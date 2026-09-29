@@ -11,13 +11,18 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
+        $reportStats = Report::query()
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
         $reports = Report::with(['listing', 'user'])
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->input('status')))
             ->latest()
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.reports.index', compact('reports'));
+        return view('admin.reports.index', compact('reports', 'reportStats'));
     }
 
     public function updateStatus(Request $request, Report $report)
