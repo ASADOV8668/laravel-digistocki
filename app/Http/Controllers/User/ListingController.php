@@ -316,6 +316,8 @@ class ListingController extends Controller
         $brand = Brand::query()->whereKey($validated['brand_id'])->where('is_active', true)->firstOrFail();
         $model = PhoneModel::query()->whereKey($validated['phone_model_id'])->where('brand_id', $brand->id)->where('is_active', true)->firstOrFail();
 
+        abort_if($rules->hasRecentDuplicate($request->user(), $brand->id, $model->id, null, $listing->id), 422, 'برای این مدل در ۲۴ ساعت گذشته آگهی دیگری ثبت کرده‌اید.');
+
         DB::transaction(function () use ($validated, $listing, $model, $imageService) {
             $listingData = $validated;
             unset($listingData['attributes'], $listingData['images']);

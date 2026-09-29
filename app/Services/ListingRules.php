@@ -33,12 +33,13 @@ class ListingRules
             && $this->activeCount($user) < self::MAX_ACTIVE_LISTINGS;
     }
 
-    public function hasRecentDuplicate(User $user, int $brandId, int $phoneModelId, ?CarbonInterface $since = null): bool
+    public function hasRecentDuplicate(User $user, int $brandId, int $phoneModelId, ?CarbonInterface $since = null, ?int $exceptListingId = null): bool
     {
         return Listing::query()
             ->where('user_id', $user->id)
             ->where('brand_id', $brandId)
             ->where('phone_model_id', $phoneModelId)
+            ->when($exceptListingId !== null, fn ($query) => $query->where('id', '!=', $exceptListingId))
             ->where('created_at', '>=', $since ?? now()->subDay())
             ->exists();
     }
