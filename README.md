@@ -653,6 +653,13 @@ npm run build
 - نمایش وضعیت رسیدگی، دلیل و توضیحات گزارش؛
 - حفظ تاریخچه گزارش پس از حذف آگهی با `nullOnDelete` و fallback امن برای عنوان آگهی.
 
+## فاز ۷۴: پشتیبانی پنل مدیریت از گزارش آگهی حذف‌شده
+
+- null-safe شدن عنوان آگهی در جدول گزارش‌های دسکتاپ و موبایل مدیریت؛
+- جلوگیری از خطای پنل هنگام مشاهده گزارش باقی‌مانده پس از حذف آگهی؛
+- نمایش fallback یکسان «آگهی حذف‌شده» برای مدیر؛
+- اضافه‌شدن تست regression برای صفحه گزارش‌های مدیریت.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -670,10 +677,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۷۳:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۷۴:
 
-- ۱۲۵ تست موفق
-- ۴۸۶ assertion موفق
+- ۱۲۶ تست موفق
+- ۴۸۸ assertion موفق
 - ۰ شکست
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php` و پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php` قرار دارند.
