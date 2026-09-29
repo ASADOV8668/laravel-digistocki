@@ -624,6 +624,13 @@ npm run build
 - حفظ فیلتر چندمستاجری `notifiable_type` و `notifiable_id` در هر دو مسیر؛
 - اضافه‌شدن تست schema برای تأیید indexهای جدید.
 
+## فاز ۷۰: مدیریت لینک اعلان آگهی حذف‌شده
+
+- بررسی وجود آگهی‌های مرتبط در صفحه اعلان‌ها با یک query برای کل صفحه؛
+- جلوگیری از نمایش لینک 404 برای اعلان‌های قدیمی؛
+- نمایش وضعیت روشن «آگهی دیگر در دسترس نیست» برای رکورد حذف‌شده؛
+- اضافه‌شدن تست regression برای اعلان پس از حذف آگهی.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -641,10 +648,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۶۹:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۷۰:
 
-- ۱۲۰ تست موفق
-- ۴۷۶ assertion موفق
+- ۱۲۱ تست موفق
+- ۴۷۹ assertion موفق
 - ۰ شکست
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php` و پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php` قرار دارند.
