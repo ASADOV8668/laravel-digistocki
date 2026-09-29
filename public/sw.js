@@ -3,8 +3,9 @@ const SHELL_ASSETS = [
     './',
     './manifest.json',
     './images/logo-header.svg',
-    './images/logo-192.svg',
-    './images/logo-512.svg',
+    './images/logo-192.png',
+    './images/logo-512.png',
+    './favicon.ico',
 ];
 
 self.addEventListener('install', (event) => {

@@ -715,6 +715,13 @@ npm run build
 - نمایش خطای اعتبارسنجی قابل‌فهم برای گزینه‌های خالی؛
 - پوشش تستی حالت جداکننده‌های فارسی، انگلیسی و خط جدید بدون مقدار.
 
+## فاز ۸۳: تکمیل assetهای PWA و لوگو
+
+- تولید لوگوی raster در اندازه‌های ۱۹۲ و ۵۱۲ پیکسل و نسخه اصلی PNG؛
+- اضافه‌شدن favicon با فرمت ICO؛
+- استفاده از PNGهای استاندارد در manifest و cache شدن آن‌ها در service worker؛
+- اضافه‌شدن تست وجود فایل‌ها و تطابق manifest با assetهای قابل نصب.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -732,10 +739,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۸۲:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۸۳:
 
-- ۱۳۶ تست موفق
-- ۵۲۰ assertion موفق
+- ۱۳۷ تست موفق
+- ۵۲۹ assertion موفق
 - ۰ شکست
 
-تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php`، پوشش ویژگی‌های چندانتخابی فاز هفتادوششم در `tests/Feature/PhaseSeventySixMultiSelectAttributesTest.php`، پوشش اعتبارسنجی ویژگی‌های پویا و ویژگی‌های الزامی در `tests/Feature/PhaseSeventySevenListingAttributeValidationTest.php`، پوشش نوع ورودی فرم ویرایش در `tests/Feature/PhaseSeventyEightEditAttributeInputTest.php`، پوشش محدودسازی ویژگی‌های مدل در `tests/Feature/PhaseEightyEditModelAttributesTest.php` و پوشش گزینه‌های ویژگی پنل مدیریت و حالت گزینه‌های خالی در `tests/Feature/PhaseEightyOneAdminAttributeOptionsTest.php` قرار دارند.
+تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php`، پوشش ویژگی‌های چندانتخابی فاز هفتادوششم در `tests/Feature/PhaseSeventySixMultiSelectAttributesTest.php`، پوشش اعتبارسنجی ویژگی‌های پویا و ویژگی‌های الزامی در `tests/Feature/PhaseSeventySevenListingAttributeValidationTest.php`، پوشش نوع ورودی فرم ویرایش در `tests/Feature/PhaseSeventyEightEditAttributeInputTest.php`، پوشش محدودسازی ویژگی‌های مدل در `tests/Feature/PhaseEightyEditModelAttributesTest.php`، پوشش گزینه‌های ویژگی پنل مدیریت و حالت گزینه‌های خالی در `tests/Feature/PhaseEightyOneAdminAttributeOptionsTest.php` و پوشش assetهای PWA در `tests/Feature/PhaseEightyThreePwaAssetsTest.php` قرار دارند.
