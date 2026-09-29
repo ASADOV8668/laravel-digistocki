@@ -53,6 +53,8 @@ class AdminPanelTest extends TestCase
     {
         $this->actingAs($this->admin)->post(route('admin.brands.store'), ['name' => 'برند تست', 'name_en' => 'Test Brand'])->assertRedirect();
         $brand = Brand::where('name_en', 'Test Brand')->firstOrFail();
+        $this->actingAs($this->admin)->patch(route('admin.brands.update', $brand), ['name' => 'برند ویرایش‌شده', 'name_en' => 'Updated Brand'])->assertRedirect();
+        $this->assertDatabaseHas('brands', ['id' => $brand->id, 'name' => 'برند ویرایش‌شده', 'name_en' => 'Updated Brand']);
         $this->actingAs($this->admin)->post(route('admin.phone-models.store'), ['brand_id' => $brand->id, 'name' => 'Test Phone', 'release_year' => 2026])->assertRedirect();
         $this->actingAs($this->admin)->post(route('admin.phone-models.store'), ['brand_id' => $brand->id, 'name' => 'Test Phone', 'release_year' => 2026])->assertRedirect();
         $this->actingAs($this->admin)->post(route('admin.attributes.store'), ['name' => 'ویژگی تست', 'type' => 'string', 'unit' => 'واحد', 'is_filterable' => 1])->assertRedirect();

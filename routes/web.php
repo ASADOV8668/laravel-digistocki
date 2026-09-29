@@ -65,6 +65,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::patch('/reports/{report}/status', [AdminReportController::class, 'updateStatus'])->name('admin.reports.status');
     Route::get('/brands', [AdminBrandController::class, 'index'])->name('admin.brands.index');
     Route::post('/brands', [AdminBrandController::class, 'store'])->name('admin.brands.store');
+    Route::patch('/brands/{brand}', [AdminBrandController::class, 'update'])->name('admin.brands.update');
     Route::patch('/brands/{brand}/toggle', [AdminBrandController::class, 'toggle'])->name('admin.brands.toggle');
     Route::get('/phone-models', [AdminPhoneModelController::class, 'index'])->name('admin.phone-models.index');
     Route::post('/phone-models', [AdminPhoneModelController::class, 'store'])->name('admin.phone-models.store');
