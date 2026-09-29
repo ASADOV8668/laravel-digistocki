@@ -1,29 +1,4 @@
 <x-app-layout title="پروفایل">
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-slot name="header"><div class="flex items-center gap-3"><span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary"><x-heroicon-o-user class="h-6 w-6" /></span><div><p class="text-xs font-bold text-primary">حساب کاربری</p><h1 class="mt-1 text-xl font-black text-neutral">پروفایل من</h1></div></div></x-slot>
+    <section class="space-y-5 px-4 py-6"><div class="flex items-center gap-3 rounded-3xl bg-slate-900 p-5 text-white"><span class="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-xl font-black">{{ mb_substr(auth()->user()->name, 0, 1) }}</span><div><p class="font-black">{{ auth()->user()->name }}</p><p class="mt-1 text-xs text-white/60">{{ auth()->user()->mobile ?: $user->email ?: 'اطلاعات تماس ثبت نشده' }}</p></div></div><div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">@include('profile.partials.update-profile-information-form')</div><div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">@include('profile.partials.update-password-form')</div><div class="rounded-3xl border border-error/15 bg-error/5 p-5">@include('profile.partials.delete-user-form')</div></section>
 </x-app-layout>
