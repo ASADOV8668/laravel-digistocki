@@ -3,6 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Models\Listing;
+use App\Models\PhoneModel;
+use App\Services\ListingAttributeValidator;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Services\SystemOptions;
@@ -30,5 +33,19 @@ class UpdateListingRequest extends FormRequest
             'images' => ['nullable', 'array', 'max:8'],
             'images.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
         ];
+    }
+
+    protected function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $errors = app(ListingAttributeValidator::class)->errors(
+                PhoneModel::query()->find($this->integer('phone_model_id')),
+                (array) $this->input('attributes', []),
+            );
+
+            foreach ($errors as $field => $message) {
+                $validator->errors()->add($field, $message);
+            }
+        });
     }
 }
