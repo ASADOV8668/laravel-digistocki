@@ -19,7 +19,7 @@ class ListingAttributeValidator
         $errors = [];
 
         foreach ($allowed as $attribute) {
-            if ($attribute->is_required && $this->isEmpty($values[$attribute->id] ?? null)) {
+            if ((bool) $attribute->pivot->is_required && $this->isEmpty($values[$attribute->id] ?? null)) {
                 $errors['attributes.'.$attribute->id] = 'وارد کردن این ویژگی الزامی است.';
             }
         }

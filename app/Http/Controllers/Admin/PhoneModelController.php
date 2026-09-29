@@ -13,7 +13,7 @@ class PhoneModelController extends Controller
 {
     public function index(Request $request)
     {
-        $models = PhoneModel::with('brand')->withCount('listings')
+        $models = PhoneModel::with(['brand', 'attributes' => fn ($query) => $query->where('attributes.is_active', true)->orderBy('model_attributes.sort_order')])->withCount('listings')
             ->when($request->filled('brand_id'), fn ($query) => $query->where('brand_id', $request->integer('brand_id')))
             ->when($request->filled('q'), fn ($query) => $query->where(function ($query) use ($request) {
                 $like = '%'.$request->string('q').'%';
@@ -28,7 +28,7 @@ class PhoneModelController extends Controller
     {
         $validated = $this->validated($request);
         $model = PhoneModel::create([...$this->modelData($validated), 'slug' => $this->uniqueSlug($validated['brand_id'], $validated['name_en'] ?? $validated['name']), 'is_active' => true]);
-        $this->syncAttributes($model, $validated['attribute_ids'] ?? []);
+        $this->syncAttributes($model, $validated['attribute_ids'] ?? [], $validated['required_attribute_ids'] ?? []);
 
         return back()->with('status', 'مدل جدید اضافه شد.');
     }
@@ -38,7 +38,7 @@ class PhoneModelController extends Controller
         $validated = $this->validated($request);
         $phoneModel->update([...$this->modelData($validated), 'slug' => $this->uniqueSlug($validated['brand_id'], $validated['name_en'] ?? $validated['name'], $phoneModel)]);
         $phoneModel->modelAttributes()->delete();
-        $this->syncAttributes($phoneModel, $validated['attribute_ids'] ?? []);
+        $this->syncAttributes($phoneModel, $validated['attribute_ids'] ?? [], $validated['required_attribute_ids'] ?? []);
 
         return back()->with('status', 'مدل و ویژگی‌های آن به‌روزرسانی شد.');
     }
@@ -52,7 +52,7 @@ class PhoneModelController extends Controller
 
     private function validated(Request $request): array
     {
-        return $request->validate(['brand_id' => ['required', 'exists:brands,id'], 'name' => ['required', 'string', 'max:100'], 'name_fa' => ['nullable', 'string', 'max:100'], 'name_en' => ['nullable', 'string', 'max:100'], 'release_year' => ['nullable', 'integer', 'between:2000,2100'], 'attribute_ids' => ['array'], 'attribute_ids.*' => ['integer', 'exists:attributes,id']]);
+        return $request->validate(['brand_id' => ['required', 'exists:brands,id'], 'name' => ['required', 'string', 'max:100'], 'name_fa' => ['nullable', 'string', 'max:100'], 'name_en' => ['nullable', 'string', 'max:100'], 'release_year' => ['nullable', 'integer', 'between:2000,2100'], 'attribute_ids' => ['array'], 'attribute_ids.*' => ['integer', 'exists:attributes,id'], 'required_attribute_ids' => ['array'], 'required_attribute_ids.*' => ['integer', 'exists:attributes,id']]);
     }
 
     private function modelData(array $validated): array
@@ -72,8 +72,9 @@ class PhoneModelController extends Controller
         return $slug;
     }
 
-    private function syncAttributes(PhoneModel $model, array $attributeIds): void
+    private function syncAttributes(PhoneModel $model, array $attributeIds, array $requiredAttributeIds = []): void
     {
-        $model->modelAttributes()->createMany(collect($attributeIds)->values()->map(fn ($id, $sort) => ['attribute_id' => $id, 'is_required' => false, 'sort_order' => $sort])->all());
+        $requiredAttributeIds = collect($requiredAttributeIds)->map(fn ($id) => (int) $id);
+        $model->modelAttributes()->createMany(collect($attributeIds)->values()->map(fn ($id, $sort) => ['attribute_id' => $id, 'is_required' => $requiredAttributeIds->contains((int) $id), 'sort_order' => $sort])->all());
     }
 }
