@@ -11,6 +11,13 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
+        $userStats = [
+            'total' => User::query()->count(),
+            'active' => User::query()->where('is_active', true)->count(),
+            'admins' => User::query()->where('role', 'admin')->count(),
+            'can_post' => User::query()->where('can_post_listings', true)->count(),
+        ];
+
         $users = User::query()
             ->withCount('listings')
             ->when($request->filled('q'), function (Builder $query) use ($request) {
@@ -22,7 +29,7 @@ class UserController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.users.index', compact('users'));
+        return view('admin.users.index', compact('users', 'userStats'));
     }
 
     public function toggleActive(Request $request, User $user)
