@@ -16,8 +16,11 @@ use App\Http\Controllers\User\ReportController as UserReportController;
 use App\Http\Controllers\User\SupportController;
 use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\SeoController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
+Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/support', [SupportController::class, 'index'])->name('support.index');
 
