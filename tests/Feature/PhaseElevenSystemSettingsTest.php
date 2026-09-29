@@ -40,7 +40,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
             'support_email' => 'help@example.test',
             'support_phone' => '02112345678',
             'listings_enabled' => 1,
-        ])->assertRedirect();
+        ])->assertRedirect()->assertSessionHas('status', 'تنظیمات سیستم ذخیره شد.');
 
         $this->assertDatabaseHas('options', ['key' => 'site_title', 'value' => 'بازار موبایل']);
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_mb', 'value' => '8']);

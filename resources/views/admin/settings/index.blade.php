@@ -8,6 +8,7 @@
     </x-slot>
 
     <section class="space-y-6">
+        <x-admin.feedback />
         @if ($errors->any())<div class="flex items-start gap-3 rounded-2xl border border-error/20 bg-error/10 p-4 text-sm font-bold text-error"><x-heroicon-o-exclamation-triangle class="h-5 w-5 shrink-0" /><div><p>ذخیره تنظیمات انجام نشد.</p><p class="mt-1 text-xs font-medium">{{ $errors->first() }}</p></div></div>@endif
         <form method="POST" action="{{ route('admin.settings.update') }}" class="space-y-6">@csrf @method('PUT')
             <div class="grid gap-6 xl:grid-cols-2">
