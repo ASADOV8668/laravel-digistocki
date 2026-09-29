@@ -1,0 +1,7 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="logo-title-192">
+  <title id="logo-title-192">Digistocki</title>
+  <path d="M20 10H55C80 10 90 30 90 50S80 90 55 90H20Z" fill="none" stroke="#eb073f" stroke-width="8" stroke-linejoin="round"/>
+  <rect x="40" y="30" width="22" height="40" rx="4" fill="#eb073f"/>
+  <rect x="46" y="34" width="10" height="26" rx="1" fill="#fff"/>
+  <circle cx="51" cy="65" r="1.5" fill="#fff"/>
+</svg>

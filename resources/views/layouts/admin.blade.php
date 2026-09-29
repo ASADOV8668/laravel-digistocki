@@ -7,6 +7,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>{{ $systemOptions->pageTitle($title ?? 'پنل مدیریت') }}</title>
         <meta name="theme-color" content="#111827">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo-header.svg') }}">
         @vite(['resources/css/admin.css', 'resources/js/admin.js'])
     </head>
     <body class="font-sans antialiased">
