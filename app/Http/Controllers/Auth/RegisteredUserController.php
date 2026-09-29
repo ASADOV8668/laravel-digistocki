@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use App\Support\MobileNumber;
 
 class RegisteredUserController extends Controller
 {
@@ -30,15 +31,18 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $request->merge(['mobile' => MobileNumber::normalize($request->input('mobile'))]);
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['nullable', 'string', 'lowercase', 'email', 'max:255', 'required_without:mobile', 'unique:'.User::class],
+            'mobile' => ['nullable', 'string', 'regex:/^09\d{9}$/', 'required_without:email', 'unique:users,mobile'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            'name' => $validated['name'],
+            'email' => $validated['email'] ?? null,
+            'mobile' => $validated['mobile'] ?? null,
             'password' => Hash::make($request->password),
         ]);
 

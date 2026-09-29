@@ -9,10 +9,17 @@
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 
+        <!-- Mobile -->
+        <div class="mt-4">
+            <x-input-label for="mobile" value="شماره موبایل" />
+            <x-text-input id="mobile" class="block mt-1 w-full" type="tel" name="mobile" :value="old('mobile')" autocomplete="tel" placeholder="09120000000" />
+            <x-input-error :messages="$errors->get('mobile')" class="mt-2" />
+        </div>
+
         <!-- Email Address -->
         <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
+            <x-input-label for="email" value="ایمیل (اختیاری)" />
+            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" autocomplete="email" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
