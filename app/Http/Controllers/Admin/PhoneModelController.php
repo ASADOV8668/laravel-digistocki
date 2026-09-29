@@ -24,7 +24,14 @@ class PhoneModelController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate(['brand_id' => ['required', 'exists:brands,id'], 'name' => ['required', 'string', 'max:100'], 'name_fa' => ['nullable', 'string', 'max:100'], 'name_en' => ['nullable', 'string', 'max:100'], 'release_year' => ['nullable', 'integer', 'between:2000,2100'], 'attribute_ids' => ['array'], 'attribute_ids.*' => ['integer', 'exists:attributes,id']]);
-        $model = PhoneModel::create(['brand_id' => $validated['brand_id'], 'name' => $validated['name'], 'name_fa' => $validated['name_fa'] ?? $validated['name'], 'name_en' => $validated['name_en'] ?? $validated['name'], 'slug' => Str::slug($validated['name']), 'release_year' => $validated['release_year'] ?? null, 'is_active' => true]);
+        $baseSlug = Str::slug($validated['name_en'] ?? $validated['name']) ?: 'model';
+        $slug = $baseSlug;
+        $suffix = 2;
+        while (PhoneModel::where('brand_id', $validated['brand_id'])->where('slug', $slug)->exists()) {
+            $slug = $baseSlug.'-'.$suffix++;
+        }
+
+        $model = PhoneModel::create(['brand_id' => $validated['brand_id'], 'name' => $validated['name'], 'name_fa' => $validated['name_fa'] ?? $validated['name'], 'name_en' => $validated['name_en'] ?? $validated['name'], 'slug' => $slug, 'release_year' => $validated['release_year'] ?? null, 'is_active' => true]);
         $model->modelAttributes()->createMany(collect($validated['attribute_ids'] ?? [])->map(fn ($id, $sort) => ['attribute_id' => $id, 'is_required' => false, 'sort_order' => $sort])->values()->all());
         return back()->with('status', 'مدل جدید اضافه شد.');
     }

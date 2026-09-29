@@ -54,8 +54,11 @@ class AdminPanelTest extends TestCase
         $this->actingAs($this->admin)->post(route('admin.brands.store'), ['name' => 'برند تست', 'name_en' => 'Test Brand'])->assertRedirect();
         $brand = Brand::where('name_en', 'Test Brand')->firstOrFail();
         $this->actingAs($this->admin)->post(route('admin.phone-models.store'), ['brand_id' => $brand->id, 'name' => 'Test Phone', 'release_year' => 2026])->assertRedirect();
+        $this->actingAs($this->admin)->post(route('admin.phone-models.store'), ['brand_id' => $brand->id, 'name' => 'Test Phone', 'release_year' => 2026])->assertRedirect();
         $this->actingAs($this->admin)->post(route('admin.attributes.store'), ['name' => 'ویژگی تست', 'type' => 'string', 'unit' => 'واحد', 'is_filterable' => 1])->assertRedirect();
         $this->assertDatabaseHas('phone_models', ['brand_id' => $brand->id, 'name' => 'Test Phone']);
+        $this->assertSame(2, $brand->phoneModels()->where('name', 'Test Phone')->count());
+        $this->assertNotSame($brand->phoneModels()->where('name', 'Test Phone')->first()->slug, $brand->phoneModels()->where('name', 'Test Phone')->latest('id')->first()->slug);
         $this->assertDatabaseHas('attributes', ['name' => 'ویژگی تست', 'is_filterable' => 1]);
         $attribute = \App\Models\Attribute::where('name', 'ویژگی تست')->firstOrFail();
         $this->actingAs($this->admin)->patch(route('admin.attributes.update', $attribute), ['name' => 'ویژگی ویرایش‌شده', 'type' => 'string', 'unit' => 'واحد جدید', 'is_filterable' => 1])->assertRedirect();

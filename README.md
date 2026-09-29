@@ -399,6 +399,13 @@ npm run build
 - اضافه‌شدن تست update واقعی ویژگی در پنل مدیریت؛
 - حفظ route، validation و وضعیت فعال/غیرفعال موجود.
 
+## فاز ۳۸: تضمین یکتایی slug مدل‌ها
+
+- جلوگیری از خطای ثبت مدل‌های هم‌نام برای یک برند؛
+- تولید slug یکتای وابسته به برند با suffix خودکار؛
+- استفاده از نام انگلیسی مدل برای slug و fallback امن برای نام‌های غیرلاتین؛
+- اضافه‌شدن تست ثبت دو مدل هم‌نام و بررسی یکتایی slug.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -416,10 +423,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۳۷:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۳۸:
 
 - ۸۵ تست موفق
-- ۳۳۶ assertion موفق
+- ۳۳۹ assertion موفق
 - ۰ شکست
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php` و پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php` قرار دارند.
