@@ -265,6 +265,14 @@ npm run build
 - جایگزینی نمودار قبلی داشبورد با نمودار خطی Chart.js برای روند ثبت آگهی در ۷ روز اخیر؛
 - افزودن Chart.js به وابستگی‌های فرانت‌اند و اتصال ورودی‌های جداگانه‌ی مدیریت به Vite.
 
+## فاز ۱۹: یکپارچه‌سازی تجربه صفحات داخلی مدیریت
+
+- بازطراحی فهرست آگهی‌ها با جدول دسکتاپ، کارت موبایل، جستجوی واضح و عملیات moderation؛
+- بازطراحی فهرست کاربران با نمایش نقش، وضعیت حساب، مجوز ثبت آگهی و عملیات مدیریتی؛
+- بازطراحی فهرست گزارش‌ها با وضعیت‌های رنگی و تغییر وضعیت سریع؛
+- بازطراحی صفحات برندها، مدل‌ها و ویژگی‌های پویا با تب‌های مشترک و فرم‌های منظم؛
+- حفظ کامل endpointها، policyها و فرم‌های موجود در کنار بهبود ظاهر و responsive بودن صفحات.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -282,10 +290,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۱۸:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۱۹:
 
 - ۸۲ تست موفق
 - ۳۱۲ assertion موفق
 - ۰ شکست
 
-تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php` و فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php` قرار دارند.
+تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php` و پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php` قرار دارند.

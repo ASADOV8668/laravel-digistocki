@@ -1,12 +1,47 @@
-<x-admin-layout>
-    <x-slot name="header"><div class="flex items-center justify-between"><h1 class="text-xl font-black text-neutral">مدیریت آگهی‌ها</h1><span class="text-xs text-slate-500">{{ $listings->total() }} مورد</span></div></x-slot>
-    <section class="space-y-4 px-4 py-6">
-        <form method="GET" class="grid grid-cols-2 gap-2 rounded-2xl bg-white p-3 shadow-sm"><input name="q" value="{{ request('q') }}" placeholder="عنوان یا نام کاربر" class="col-span-2 rounded-xl border-slate-200 text-sm"><select name="status" class="rounded-xl border-slate-200 text-sm"><option value="">همه وضعیت‌ها</option>@foreach ($statuses as $item)<option value="{{ $item }}" @selected($status === $item)>{{ \App\Enums\ListingStatus::from($item)->label() }}</option>@endforeach</select><button class="rounded-xl bg-neutral px-3 py-2 text-sm font-bold text-white">فیلتر</button></form>
-        @forelse ($listings as $listing)
-            <article class="rounded-2xl bg-white p-4 shadow-sm"><div class="flex gap-3">@if ($listing->primaryImage)<img src="{{ asset('storage/'.$listing->primaryImage->path) }}" alt="{{ $listing->title }}" class="h-16 w-16 shrink-0 rounded-xl object-cover">@endif<div class="min-w-0 flex-1"><div class="flex items-start justify-between gap-2"><div><h2 class="font-bold text-neutral">{{ $listing->title }}</h2><p class="mt-1 text-xs text-slate-500">{{ $listing->user->name }} · {{ $listing->brand->name }} {{ $listing->phoneModel->name }}</p></div><span class="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-600">{{ $listing->status->label() }}</span></div><p class="mt-2 text-xs text-slate-500">{{ number_format($listing->price) }} تومان · {{ $listing->views_count }} بازدید</p></div></div><div class="mt-3 flex gap-2">@if ($listing->status->value !== 'approved')<form method="POST" action="{{ route('admin.listings.approve', $listing) }}">@csrf @method('PATCH')<button class="rounded-lg bg-success px-3 py-2 text-xs font-bold text-white">تأیید</button></form>@endif @if ($listing->status->value !== 'rejected')<form method="POST" action="{{ route('admin.listings.reject', $listing) }}" class="flex flex-1 gap-2"><input name="rejection_reason" required minlength="5" placeholder="دلیل رد" class="min-w-0 flex-1 rounded-lg border-slate-200 text-xs">@csrf @method('PATCH')<button class="rounded-lg bg-error px-3 py-2 text-xs font-bold text-white">رد</button></form>@endif</div></article>
-        @empty
-            <div class="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">آگهی‌ای با این فیلتر پیدا نشد.</div>
-        @endforelse
+<x-admin-layout title="مدیریت آگهی‌ها">
+    <x-slot name="header">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center gap-3">
+                <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary"><x-heroicon-o-rectangle-stack class="h-6 w-6" /></span>
+                <div><h2 class="text-xl font-black text-slate-900">مدیریت آگهی‌ها</h2><p class="mt-1 text-xs text-slate-400">بررسی، تأیید و کنترل چرخه انتشار آگهی‌ها</p></div>
+            </div>
+            <div class="rounded-2xl bg-slate-100 px-4 py-3 text-center"><strong class="block text-lg font-black text-slate-900">{{ number_format($listings->total()) }}</strong><span class="text-[11px] font-bold text-slate-500">آگهی در نتایج</span></div>
+        </div>
+    </x-slot>
+
+    <section class="space-y-6">
+        <div class="admin-card p-5">
+            <div class="mb-4 flex items-center gap-2"><x-heroicon-o-funnel class="h-5 w-5 text-primary" /><div><h3 class="text-sm font-black text-slate-900">فیلتر و جستجو</h3><p class="mt-1 text-[11px] text-slate-400">آگهی موردنظر را بر اساس عنوان، کاربر یا وضعیت پیدا کنید.</p></div></div>
+            <form method="GET" class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto]">
+                <div class="relative"><x-heroicon-o-magnifying-glass class="pointer-events-none absolute right-3 top-3 h-5 w-5 text-slate-400" /><input name="q" value="{{ request('q') }}" placeholder="عنوان آگهی یا نام و موبایل کاربر" class="w-full rounded-xl border-slate-200 py-3 pr-10 text-sm focus:border-primary focus:ring-primary"></div>
+                <select name="status" class="rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary"><option value="">همه وضعیت‌ها</option>@foreach ($statuses as $item)<option value="{{ $item }}" @selected($status === $item)>{{ \App\Enums\ListingStatus::from($item)->label() }}</option>@endforeach</select>
+                <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-primary">اعمال فیلتر</button>
+            </form>
+        </div>
+
+        <div class="admin-card overflow-hidden">
+            <div class="hidden overflow-x-auto lg:block">
+                <table class="min-w-full text-right text-sm">
+                    <thead class="border-b border-slate-100 bg-slate-50 text-xs font-black text-slate-500"><tr><th class="px-5 py-4">آگهی</th><th class="px-5 py-4">ثبت‌کننده</th><th class="px-5 py-4">وضعیت</th><th class="px-5 py-4">آمار</th><th class="px-5 py-4 text-left">عملیات</th></tr></thead>
+                    <tbody class="divide-y divide-slate-100">
+                    @forelse ($listings as $listing)
+                        @php($statusClass = match ($listing->status->value) { 'approved' => 'bg-success/10 text-success', 'rejected' => 'bg-error/10 text-error', 'pending' => 'bg-warning/10 text-warning', 'sold' => 'bg-info/10 text-info', default => 'bg-slate-100 text-slate-500' })
+                        <tr class="transition hover:bg-slate-50"><td class="px-5 py-4"><div class="flex min-w-[250px] items-center gap-3">@if ($listing->primaryImage)<img src="{{ asset('storage/'.$listing->primaryImage->path) }}" alt="{{ $listing->title }}" class="h-12 w-12 rounded-xl object-cover">@else<span class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-400"><x-heroicon-o-photo class="h-5 w-5" /></span>@endif<div><p class="font-black text-slate-800">{{ $listing->title }}</p><p class="mt-1 text-xs text-slate-400">{{ $listing->brand->name }} {{ $listing->phoneModel->name }}</p></div></div></td><td class="px-5 py-4"><p class="font-bold text-slate-700">{{ $listing->user->name }}</p><p class="mt-1 text-xs text-slate-400">{{ $listing->user->mobile ?: $listing->user->email }}</p></td><td class="px-5 py-4"><span class="rounded-full px-3 py-1.5 text-[11px] font-black {{ $statusClass }}">{{ $listing->status->label() }}</span></td><td class="px-5 py-4"><p class="font-bold text-slate-700">{{ number_format($listing->price) }} <span class="text-[10px] font-medium text-slate-400">تومان</span></p><p class="mt-1 text-xs text-slate-400">{{ number_format($listing->views_count) }} بازدید</p></td><td class="px-5 py-4"><div class="flex min-w-[250px] flex-wrap justify-end gap-2">@if ($listing->status->value !== 'approved')<form method="POST" action="{{ route('admin.listings.approve', $listing) }}">@csrf @method('PATCH')<button class="rounded-lg bg-success px-3 py-2 text-xs font-bold text-white transition hover:bg-success/80">تأیید</button></form>@endif @if ($listing->status->value !== 'rejected')<form method="POST" action="{{ route('admin.listings.reject', $listing) }}" class="flex gap-1"><input name="rejection_reason" required minlength="5" placeholder="دلیل رد" class="w-32 rounded-lg border-slate-200 text-xs">@csrf @method('PATCH')<button class="rounded-lg bg-error px-3 py-2 text-xs font-bold text-white transition hover:bg-error/80">رد</button></form>@endif</div></td></tr>
+                    @empty
+                        <tr><td colspan="5" class="px-5 py-14 text-center text-sm text-slate-400">آگهی‌ای با این فیلتر پیدا نشد.</td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <div class="divide-y divide-slate-100 lg:hidden">
+                @forelse ($listings as $listing)
+                    @php($statusClass = match ($listing->status->value) { 'approved' => 'bg-success/10 text-success', 'rejected' => 'bg-error/10 text-error', 'pending' => 'bg-warning/10 text-warning', 'sold' => 'bg-info/10 text-info', default => 'bg-slate-100 text-slate-500' })
+                    <article class="p-5"><div class="flex gap-3">@if ($listing->primaryImage)<img src="{{ asset('storage/'.$listing->primaryImage->path) }}" alt="{{ $listing->title }}" class="h-14 w-14 shrink-0 rounded-xl object-cover">@else<span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400"><x-heroicon-o-photo class="h-5 w-5" /></span>@endif<div class="min-w-0 flex-1"><div class="flex items-start justify-between gap-2"><h2 class="font-black text-slate-800">{{ $listing->title }}</h2><span class="shrink-0 rounded-full px-2 py-1 text-[10px] font-black {{ $statusClass }}">{{ $listing->status->label() }}</span></div><p class="mt-1 text-xs text-slate-400">{{ $listing->user->name }} · {{ $listing->brand->name }} {{ $listing->phoneModel->name }}</p><p class="mt-2 text-xs font-bold text-slate-600">{{ number_format($listing->price) }} تومان · {{ number_format($listing->views_count) }} بازدید</p></div></div><div class="mt-4 flex gap-2">@if ($listing->status->value !== 'approved')<form method="POST" action="{{ route('admin.listings.approve', $listing) }}">@csrf @method('PATCH')<button class="rounded-lg bg-success px-3 py-2 text-xs font-bold text-white">تأیید</button></form>@endif @if ($listing->status->value !== 'rejected')<form method="POST" action="{{ route('admin.listings.reject', $listing) }}" class="flex min-w-0 flex-1 gap-1"><input name="rejection_reason" required minlength="5" placeholder="دلیل رد" class="min-w-0 flex-1 rounded-lg border-slate-200 text-xs">@csrf @method('PATCH')<button class="rounded-lg bg-error px-3 py-2 text-xs font-bold text-white">رد</button></form>@endif</div></article>
+                @empty
+                    <div class="p-10 text-center text-sm text-slate-400">آگهی‌ای با این فیلتر پیدا نشد.</div>
+                @endforelse
+            </div>
+        </div>
         {{ $listings->links() }}
     </section>
 </x-admin-layout>
