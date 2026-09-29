@@ -448,6 +448,13 @@ npm run build
 - فعال‌سازی HSTS فقط روی محیط production و درخواست HTTPS؛
 - اضافه‌شدن تست هدرهای امنیتی برای صفحات عمومی و endpointهای SEO.
 
+## فاز ۴۵: صفحه خطای 404 با طراحی عمومی
+
+- اضافه‌شدن صفحه 404 فارسی و راست‌چین هماهنگ با هویت بصری سایت؛
+- ارائه لینک مستقیم به خانه و فهرست آگهی‌ها؛
+- علامت‌گذاری صفحه خطا با `noindex, nofollow`؛
+- اضافه‌شدن تست رندر صفحه خطای سفارشی.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -465,10 +472,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۴۴:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۴۵:
 
-- ۸۹ تست موفق
-- ۳۷۳ assertion موفق
+- ۹۰ تست موفق
+- ۳۷۷ assertion موفق
 - ۰ شکست
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php` و پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php` قرار دارند.
