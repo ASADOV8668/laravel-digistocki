@@ -92,6 +92,11 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('login')).'|'.$this->ip());
+        $login = $this->string('login')->toString();
+        $identifier = filter_var($login, FILTER_VALIDATE_EMAIL)
+            ? strtolower($login)
+            : (MobileNumber::normalize($login) ?? $login);
+
+        return Str::transliterate(Str::lower($identifier).'|'.$this->ip());
     }
 }
