@@ -121,7 +121,7 @@ class ListingController extends Controller
             'unit' => $attribute->unit,
             'options' => $attribute->options ?? [],
             'is_filterable' => $attribute->is_filterable,
-            'is_required' => $attribute->is_required,
+            'is_required' => (bool) $attribute->pivot->is_required,
             'sort_order' => $attribute->sort_order,
         ])->values());
     }
@@ -472,7 +472,7 @@ class ListingController extends Controller
             'type' => $attribute->type->value,
             'unit' => $attribute->unit,
             'options' => $attribute->options ?? [],
-            'is_required' => $attribute->is_required,
+            'is_required' => (bool) ($attribute->pivot->is_required ?? false),
         ])->values()->all();
     }
 }
