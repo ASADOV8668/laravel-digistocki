@@ -24,6 +24,7 @@ class ReportController extends Controller
     public function store(Request $request, Listing $listing)
     {
         abort_unless($listing->status->value === 'approved' && ! $listing->isExpired(), 404);
+        abort_if($listing->isOwnedBy($request->user()), 422, 'نمی‌توانید آگهی خودتان را گزارش کنید.');
 
         $validated = $request->validate([
             'reason' => ['required', 'string', 'max:120'],
