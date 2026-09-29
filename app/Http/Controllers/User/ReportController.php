@@ -9,6 +9,18 @@ use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
+    public function index(Request $request)
+    {
+        $reports = Report::query()
+            ->where('user_id', $request->user()->id)
+            ->with('listing')
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('reports.index', compact('reports'));
+    }
+
     public function store(Request $request, Listing $listing)
     {
         abort_unless($listing->status->value === 'approved' && ! $listing->isExpired(), 404);

@@ -645,6 +645,14 @@ npm run build
 - حفظ unique constraint فعلی برای جلوگیری از علاقه‌مندی تکراری؛
 - اضافه‌شدن تست schema برای index فهرست علاقه‌مندی‌ها.
 
+## فاز ۷۳: صفحه گزارش‌های کاربر
+
+- اضافه‌شدن صفحه `/reports` برای مشاهده گزارش‌های ثبت‌شده توسط کاربر؛
+- محدودسازی query به گزارش‌های صاحب حساب و eager-load آگهی مرتبط؛
+- اضافه‌شدن لینک «گزارش‌های من» به Sidebar کاربر؛
+- نمایش وضعیت رسیدگی، دلیل و توضیحات گزارش؛
+- حفظ تاریخچه گزارش پس از حذف آگهی با `nullOnDelete` و fallback امن برای عنوان آگهی.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -662,10 +670,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۷۲:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۷۳:
 
-- ۱۲۳ تست موفق
-- ۴۸۱ assertion موفق
+- ۱۲۵ تست موفق
+- ۴۸۶ assertion موفق
 - ۰ شکست
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php` و پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php` قرار دارند.

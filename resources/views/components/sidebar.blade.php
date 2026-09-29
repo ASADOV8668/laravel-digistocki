@@ -23,6 +23,7 @@
             @auth
                 <a href="{{ url('/dashboard') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-rectangle-stack class="h-5 w-5" /> آگهی‌های من</a>
                 <a href="{{ route('notifications.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-bell class="h-5 w-5" /> اعلان‌ها @if ($unreadNotifications)<span class="mr-auto rounded-full bg-primary px-2 py-0.5 text-[10px] font-black text-white">{{ $unreadNotifications }}</span>@endif</a>
+                <a href="{{ route('reports.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-flag class="h-5 w-5" /> گزارش‌های من</a>
             @endauth
             <a href="{{ auth()->check() ? route('favorites.index') : route('login') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-heart class="h-5 w-5" /> علاقه‌مندی‌ها</a>
             <a href="{{ url('/profile') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-user-circle class="h-5 w-5" /> پروفایل</a>
