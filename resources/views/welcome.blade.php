@@ -1,70 +1,18 @@
 <x-app-layout title="خانه">
-    <section class="space-y-6 px-4 py-6">
-        <div class="rounded-3xl bg-neutral p-6 text-white shadow-sm">
-            <span class="rounded-full bg-primary/20 px-3 py-1 text-xs font-bold text-primary-100">بازار مطمئن موبایل</span>
-            <h1 class="mt-5 text-3xl font-black leading-tight">گوشی بعدی‌ات<br><span class="text-primary">همین‌جاست.</span></h1>
-            <p class="mt-3 text-sm leading-7 text-white/70">از بین آگهی‌های واقعی موبایل، مدل مناسب خودت را سریع پیدا کن.</p>
-
-            <div class="relative mt-5" x-data="searchSuggest('{{ route('listings.autocomplete') }}')" @click.outside="open = false">
-                <form action="{{ route('listings.index') }}" method="GET" class="flex gap-2">
-                    <label class="relative flex-1">
-                        <span class="sr-only">جستجوی آگهی</span>
-                        <x-heroicon-o-magnifying-glass class="pointer-events-none absolute right-3 top-3 h-5 w-5 text-slate-400" />
-                        <input name="q" x-model="query" @input.debounce.300ms="search" @focus="open = suggestions.length > 0" type="search" autocomplete="off" placeholder="مثلاً آیفون ۱۳ یا سامسونگ" class="w-full rounded-xl border-0 bg-white py-3 pe-10 ps-3 text-sm text-neutral placeholder:text-slate-400 focus:ring-2 focus:ring-primary">
-                    </label>
-                    <button type="submit" class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-600">جستجوی آگهی‌ها</button>
-                </form>
-
-                <div x-cloak x-show="open && (loading || suggestions.length)" class="absolute inset-x-0 top-full z-20 mt-2 overflow-hidden rounded-2xl bg-white text-neutral shadow-xl">
-                    <div x-show="loading" class="px-4 py-3 text-xs text-slate-500">در حال جستجو...</div>
-                    <template x-for="suggestion in suggestions" :key="suggestion.url">
-                        <a :href="suggestion.url" class="flex items-center gap-3 border-b border-slate-100 px-4 py-3 last:border-0 hover:bg-primary-50">
-                            <template x-if="suggestion.image">
-                                <img :src="suggestion.image" :alt="suggestion.title" class="h-11 w-11 rounded-xl object-cover">
-                            </template>
-                            <template x-if="!suggestion.image">
-                                <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-primary"><x-heroicon-o-device-phone-mobile class="h-5 w-5" /></span>
-                            </template>
-                            <span class="min-w-0">
-                                <span class="block truncate text-sm font-bold" x-text="suggestion.title"></span>
-                                <span class="mt-1 block truncate text-xs text-slate-500" x-text="suggestion.meta"></span>
-                            </span>
-                        </a>
-                    </template>
-                </div>
+    <section class="space-y-7 px-4 py-6">
+        <div class="relative overflow-hidden rounded-[2rem] bg-slate-900 p-6 text-white shadow-xl shadow-slate-900/10 sm:p-8">
+            <div class="absolute -left-16 -top-16 h-44 w-44 rounded-full bg-primary/20 blur-3xl"></div><div class="absolute -bottom-20 right-0 h-48 w-48 rounded-full bg-secondary/10 blur-3xl"></div>
+            <div class="relative"><span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[11px] font-bold text-primary-100"><x-heroicon-o-shield-check class="h-4 w-4" /> بازار مطمئن موبایل</span><h1 class="mt-5 text-3xl font-black leading-[1.35] sm:text-4xl">گوشی بعدی‌ات<br><span class="text-primary">همین‌جاست.</span></h1><p class="mt-3 max-w-sm text-sm leading-7 text-white/65">از بین آگهی‌های واقعی موبایل، مدل مناسب خودت را سریع و مطمئن پیدا کن.</p>
+                <div class="relative mt-6" x-data="searchSuggest('{{ route('listings.autocomplete') }}')" @click.outside="open = false"><form action="{{ route('listings.index') }}" method="GET" class="flex flex-col gap-2 sm:flex-row"><label class="relative flex-1"><span class="sr-only">جستجوی آگهی</span><x-heroicon-o-magnifying-glass class="pointer-events-none absolute right-3 top-3 h-5 w-5 text-slate-400" /><input name="q" x-model="query" @input.debounce.300ms="search" @focus="open = suggestions.length > 0" type="search" autocomplete="off" placeholder="مثلاً آیفون ۱۳ یا سامسونگ" class="w-full rounded-xl border-0 bg-white py-3.5 pe-10 ps-3 text-sm text-neutral placeholder:text-slate-400 focus:ring-2 focus:ring-primary"></label><button type="submit" class="rounded-xl bg-primary px-5 py-3.5 text-sm font-black text-white transition hover:bg-primary-600">جستجوی آگهی‌ها</button></form><div x-cloak x-show="open && (loading || suggestions.length)" class="absolute inset-x-0 top-full z-20 mt-2 overflow-hidden rounded-2xl bg-white text-neutral shadow-2xl"><div x-show="loading" class="px-4 py-3 text-xs text-slate-500">در حال جستجو...</div><template x-for="suggestion in suggestions" :key="suggestion.url"><a :href="suggestion.url" class="flex items-center gap-3 border-b border-slate-100 px-4 py-3 last:border-0 hover:bg-primary-50"><template x-if="suggestion.image"><img :src="suggestion.image" :alt="suggestion.title" class="h-11 w-11 rounded-xl object-cover"></template><template x-if="!suggestion.image"><span class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-primary"><x-heroicon-o-device-phone-mobile class="h-5 w-5" /></span></template><span class="min-w-0"><span class="block truncate text-sm font-bold" x-text="suggestion.title"></span><span class="mt-1 block truncate text-xs text-slate-500" x-text="suggestion.meta"></span></span></a></template></div></div>
             </div>
         </div>
 
-        <div class="flex items-center justify-between">
-            <h2 class="text-lg font-black text-neutral">دسته‌های محبوب</h2>
-            <a href="{{ route('listings.index') }}" class="text-sm font-bold text-primary">مشاهده همه</a>
-        </div>
-        <div class="grid grid-cols-3 gap-3">
-            @foreach (['آیفون', 'سامسونگ', 'شیائومی'] as $brand)
-                <a href="{{ route('listings.index') }}" class="rounded-2xl bg-white p-4 text-center text-sm font-bold text-neutral shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-                    <div class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-primary"><x-heroicon-o-device-phone-mobile class="h-6 w-6" /></div>
-                    {{ $brand }}
-                </a>
-            @endforeach
-        </div>
+        <div class="grid grid-cols-3 gap-2 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm"><div class="flex flex-col items-center gap-1 text-center"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-success/10 text-success"><x-heroicon-o-check-badge class="h-5 w-5" /></span><span class="text-[10px] font-bold text-slate-600">آگهی بررسی‌شده</span></div><div class="flex flex-col items-center gap-1 border-x border-slate-100 text-center"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-info/10 text-info"><x-heroicon-o-sparkles class="h-5 w-5" /></span><span class="text-[10px] font-bold text-slate-600">جستجوی هوشمند</span></div><div class="flex flex-col items-center gap-1 text-center"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary"><x-heroicon-o-lock-closed class="h-5 w-5" /></span><span class="text-[10px] font-bold text-slate-600">خرید امن‌تر</span></div></div>
 
-        <div class="flex items-center justify-between">
-            <h2 class="text-lg font-black text-neutral">آخرین آگهی‌ها</h2>
-            <a href="{{ route('listings.index') }}" class="text-sm font-bold text-primary">مشاهده همه</a>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-            @forelse ($latestListings as $listing)
-                <x-listing-card :listing="$listing" />
-            @empty
-                <div class="col-span-2 rounded-2xl bg-white p-6 text-center text-sm text-slate-500">هنوز آگهی تأییدشده‌ای ثبت نشده است.</div>
-            @endforelse
-        </div>
+        <div><div class="mb-3 flex items-center justify-between"><div><h2 class="text-lg font-black text-neutral">دسته‌های محبوب</h2><p class="mt-1 text-xs text-slate-400">سریع‌تر به مدل موردنظرت برس</p></div><a href="{{ route('listings.index') }}" class="text-xs font-bold text-primary">مشاهده همه</a></div><div class="grid grid-cols-3 gap-3">@foreach ([['آیفون', 'bg-slate-900'], ['سامسونگ', 'bg-blue-600'], ['شیائومی', 'bg-orange-500']] as [$brand, $color])<a href="{{ route('listings.index', ['q' => $brand]) }}" class="group rounded-2xl bg-white p-3 text-center shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-1 hover:shadow-md"><div class="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-2xl {{ $color }} text-white transition group-hover:scale-105"><x-heroicon-o-device-phone-mobile class="h-6 w-6" /></div><span class="text-xs font-black text-neutral">{{ $brand }}</span></a>@endforeach</div></div>
 
-        <div class="rounded-2xl bg-white p-5 shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="rounded-xl bg-secondary/10 p-3 text-secondary"><x-heroicon-o-shield-check class="h-6 w-6" /></div>
-                <div><h3 class="font-bold text-neutral">خرید و فروش امن‌تر</h3><p class="mt-1 text-xs leading-6 text-slate-500">آگهی‌ها پیش از انتشار توسط تیم ما بررسی می‌شوند.</p></div>
-            </div>
-        </div>
+        <div><div class="mb-3 flex items-center justify-between"><div><h2 class="text-lg font-black text-neutral">آخرین آگهی‌ها</h2><p class="mt-1 text-xs text-slate-400">تازه‌ترین فرصت‌های خرید موبایل</p></div><a href="{{ route('listings.index') }}" class="text-xs font-bold text-primary">مشاهده همه</a></div><div class="grid grid-cols-2 gap-3">@forelse ($latestListings as $listing)<x-listing-card :listing="$listing" />@empty<div class="col-span-2 rounded-2xl bg-white p-6 text-center text-sm text-slate-500">هنوز آگهی تأییدشده‌ای ثبت نشده است.</div>@endforelse</div></div>
+
+        <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100"><div class="flex items-center gap-3"><div class="rounded-xl bg-secondary/10 p-3 text-secondary"><x-heroicon-o-shield-check class="h-6 w-6" /></div><div><h3 class="font-bold text-neutral">خرید و فروش امن‌تر</h3><p class="mt-1 text-xs leading-6 text-slate-500">آگهی‌ها پیش از انتشار توسط تیم ما بررسی می‌شوند تا تجربه مطمئن‌تری داشته باشید.</p></div></div></div>
     </section>
 </x-app-layout>
