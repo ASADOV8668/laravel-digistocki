@@ -68,6 +68,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::patch('/brands/{brand}/toggle', [AdminBrandController::class, 'toggle'])->name('admin.brands.toggle');
     Route::get('/phone-models', [AdminPhoneModelController::class, 'index'])->name('admin.phone-models.index');
     Route::post('/phone-models', [AdminPhoneModelController::class, 'store'])->name('admin.phone-models.store');
+    Route::patch('/phone-models/{phoneModel}', [AdminPhoneModelController::class, 'update'])->name('admin.phone-models.update');
     Route::patch('/phone-models/{phoneModel}/toggle', [AdminPhoneModelController::class, 'toggle'])->name('admin.phone-models.toggle');
     Route::get('/attributes', [AdminAttributeController::class, 'index'])->name('admin.attributes.index');
     Route::post('/attributes', [AdminAttributeController::class, 'store'])->name('admin.attributes.store');
