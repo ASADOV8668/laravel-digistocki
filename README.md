@@ -462,6 +462,13 @@ npm run build
 - جلوگیری از سوءاستفاده ساده و ارسال مکرر پیامک؛
 - اضافه‌شدن تست مستقل برای middlewareهای throttle هر دو endpoint.
 
+## فاز ۴۷: صفحه خطای 500 با طراحی عمومی
+
+- اضافه‌شدن صفحه 500 فارسی و راست‌چین هماهنگ با صفحه 404؛
+- ارائه مسیر بازگشت به خانه و ارتباط با پشتیبانی؛
+- علامت‌گذاری صفحه خطای سرور با `noindex, nofollow`؛
+- اضافه‌شدن تست رندر view خطای سرور.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -479,10 +486,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۴۶:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۴۷:
 
-- ۹۱ تست موفق
-- ۳۸۱ assertion موفق
+- ۹۲ تست موفق
+- ۳۸۴ assertion موفق
 - ۰ شکست
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php` و پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php` قرار دارند.
