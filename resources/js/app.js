@@ -116,13 +116,16 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, initialModelId 
         this.selectedModelId = '';
         this.query = brand.label;
         this.attributes = [];
+        this.filters = {};
         this.open = false;
     },
 
     async selectModel(model) {
+        const previousModelId = this.selectedModelId;
         this.selectedBrandId = model.brand_id;
         this.selectedModelId = model.id;
         this.query = model.label;
+        if (previousModelId !== model.id) this.filters = {};
         this.open = false;
         await this.loadAttributes();
     },
@@ -174,14 +177,14 @@ window.listingWizard = (attributesEndpoint, citiesEndpoint, initialModelId = nul
     citiesLoading: false,
 
     init() {
-        if (this.modelId && !this.attributes.length) this.loadAttributes();
+        if (this.modelId && !this.attributes.length) this.loadAttributes(false);
         if (this.provinceId) this.loadCities(false);
     },
 
-    async loadAttributes() {
+    async loadAttributes(resetValues = true) {
         this.attributesLoading = true;
         this.attributes = [];
-        this.values = {};
+        if (resetValues) this.values = {};
 
         try {
             const response = await fetch(`${this.attributesEndpoint}/${this.modelId}?all=1`, {
