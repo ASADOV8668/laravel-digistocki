@@ -68,8 +68,9 @@ class PhaseFiveUserListingsTest extends TestCase
         $listing = $this->listing($owner, $brand, $model, 'آگهی آماده فروش', ListingStatus::Approved);
 
         $this->actingAs($other)->get(route('listings.edit', $listing))->assertForbidden();
-        $this->actingAs($owner)->patch(route('listings.sold', $listing))->assertRedirect();
+        $this->actingAs($owner)->patch(route('listings.sold', $listing))->assertRedirect()->assertSessionHas('status', 'آگهی به‌عنوان فروخته‌شده علامت خورد.');
         $this->assertSame(ListingStatus::Sold, $listing->refresh()->status);
+        $this->actingAs($owner)->get(route('dashboard'))->assertOk()->assertSee('آگهی به‌عنوان فروخته‌شده علامت خورد.');
     }
 
     private function catalogContext(): array
