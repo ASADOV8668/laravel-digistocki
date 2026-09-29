@@ -36,7 +36,7 @@ class ListingController extends Controller
         $likes = array_values(array_unique(['%'.$rawTerm.'%', '%'.$term.'%']));
         $listings = Listing::query()
             ->published()
-            ->with(['brand', 'phoneModel', 'primaryImage', 'attributeValues'])
+            ->with(['brand', 'phoneModel', 'primaryImage'])
             ->where(function (Builder $query) use ($likes) {
                 $query->where(function (Builder $title) use ($likes) {
                     foreach ($likes as $like) {
