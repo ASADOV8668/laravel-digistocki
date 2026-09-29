@@ -38,6 +38,33 @@ window.searchSuggest = (endpoint) => ({
     },
 });
 
+window.pullToRefresh = () => ({
+    startY: 0,
+    distance: 0,
+    refreshing: false,
+
+    touchStart(event) {
+        if (window.scrollY === 0) this.startY = event.touches[0].clientY;
+    },
+
+    touchMove(event) {
+        if (!this.startY || this.refreshing) return;
+
+        this.distance = Math.min(Math.max(event.touches[0].clientY - this.startY, 0), 96);
+    },
+
+    touchEnd() {
+        if (this.distance >= 64) {
+            this.refreshing = true;
+            window.location.reload();
+            return;
+        }
+
+        this.startY = 0;
+        this.distance = 0;
+    },
+});
+
 window.listingSearch = (suggestionsEndpoint, attributesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}) => ({
     suggestionsEndpoint,
     attributesEndpoint,

@@ -1,5 +1,8 @@
 <x-app-layout title="خانه">
-    <section class="space-y-7 px-4 py-6">
+    <section x-data="pullToRefresh()" @touchstart.passive="touchStart($event)" @touchmove.passive="touchMove($event)" @touchend="touchEnd()" class="relative space-y-7 px-4 py-6">
+        <div x-cloak x-show="distance > 0 || refreshing" class="pointer-events-none fixed inset-x-0 top-2 z-40 mx-auto flex max-w-md justify-center" aria-live="polite">
+            <span class="rounded-full bg-white px-4 py-2 text-xs font-bold text-primary shadow-lg ring-1 ring-primary/10" x-text="refreshing ? 'در حال تازه‌سازی...' : 'برای تازه‌سازی رها کنید'"></span>
+        </div>
         <div class="relative overflow-hidden rounded-[2rem] bg-slate-900 p-6 text-white shadow-xl shadow-slate-900/10 sm:p-8">
             <div class="absolute -left-16 -top-16 h-44 w-44 rounded-full bg-primary/20 blur-3xl"></div><div class="absolute -bottom-20 right-0 h-48 w-48 rounded-full bg-secondary/10 blur-3xl"></div>
             <div class="relative"><span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[11px] font-bold text-primary-100"><x-heroicon-o-shield-check class="h-4 w-4" /> بازار مطمئن موبایل</span><h1 class="mt-5 text-3xl font-black leading-[1.35] sm:text-4xl">گوشی بعدی‌ات<br><span class="text-primary">همین‌جاست.</span></h1><p class="mt-3 max-w-sm text-sm leading-7 text-white/65">از بین آگهی‌های واقعی موبایل، مدل مناسب خودت را سریع و مطمئن پیدا کن.</p>

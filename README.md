@@ -476,6 +476,13 @@ npm run build
 - اضافه‌شدن favicon و قابلیت نمایش صحیح در نوار وضعیت موبایل در layoutهای عمومی، مهمان و مدیریت؛
 - اضافه‌شدن تست صحت manifest و وجود assetهای PWA.
 
+## فاز ۴۹: تعامل pull-to-refresh صفحه اصلی
+
+- اضافه‌شدن gesture کشیدن از بالای صفحه در موبایل؛
+- نمایش feedback بصری هنگام کشیدن و شروع تازه‌سازی؛
+- refresh فقط پس از عبور از آستانه امن ۶۴ پیکسل؛
+- اضافه‌شدن تست وجود رفتار و feedback در صفحه اصلی.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -493,10 +500,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۴۸:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۴۹:
 
-- ۹۴ تست موفق
-- ۳۹۷ assertion موفق
+- ۹۵ تست موفق
+- ۴۰۱ assertion موفق
 - ۰ شکست
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php` و پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php` قرار دارند.
