@@ -722,6 +722,13 @@ npm run build
 - استفاده از PNGهای استاندارد در manifest و cache شدن آن‌ها در service worker؛
 - اضافه‌شدن تست وجود فایل‌ها و تطابق manifest با assetهای قابل نصب.
 
+## فاز ۸۴: یکپارچه‌سازی scaffolding قدیمی با UI پروژه
+
+- جایگزینی لوگوی پیش‌فرض Laravel در component قدیمی با لوگوی Digistocki؛
+- جایگزینی inline SVGهای navigation قدیمی با کامپوننت‌های Heroicon؛
+- حفظ سازگاری layoutهای قدیمی بدون باقی‌ماندن icon system متناقض؛
+- اضافه‌شدن تست regression برای لوگو و iconهای navigation.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -739,10 +746,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۸۳:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۸۴:
 
-- ۱۳۷ تست موفق
-- ۵۲۹ assertion موفق
+- ۱۳۸ تست موفق
+- ۵۳۵ assertion موفق
 - ۰ شکست
 
-تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php`، پوشش ویژگی‌های چندانتخابی فاز هفتادوششم در `tests/Feature/PhaseSeventySixMultiSelectAttributesTest.php`، پوشش اعتبارسنجی ویژگی‌های پویا و ویژگی‌های الزامی در `tests/Feature/PhaseSeventySevenListingAttributeValidationTest.php`، پوشش نوع ورودی فرم ویرایش در `tests/Feature/PhaseSeventyEightEditAttributeInputTest.php`، پوشش محدودسازی ویژگی‌های مدل در `tests/Feature/PhaseEightyEditModelAttributesTest.php`، پوشش گزینه‌های ویژگی پنل مدیریت و حالت گزینه‌های خالی در `tests/Feature/PhaseEightyOneAdminAttributeOptionsTest.php` و پوشش assetهای PWA در `tests/Feature/PhaseEightyThreePwaAssetsTest.php` قرار دارند.
+تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php`، پوشش ویژگی‌های چندانتخابی فاز هفتادوششم در `tests/Feature/PhaseSeventySixMultiSelectAttributesTest.php`، پوشش اعتبارسنجی ویژگی‌های پویا و ویژگی‌های الزامی در `tests/Feature/PhaseSeventySevenListingAttributeValidationTest.php`، پوشش نوع ورودی فرم ویرایش در `tests/Feature/PhaseSeventyEightEditAttributeInputTest.php`، پوشش محدودسازی ویژگی‌های مدل در `tests/Feature/PhaseEightyEditModelAttributesTest.php`، پوشش گزینه‌های ویژگی پنل مدیریت و حالت گزینه‌های خالی در `tests/Feature/PhaseEightyOneAdminAttributeOptionsTest.php`، پوشش assetهای PWA در `tests/Feature/PhaseEightyThreePwaAssetsTest.php` و پوشش iconهای legacy navigation در `tests/Feature/PhaseEightyFourLegacyNavigationIconsTest.php` قرار دارند.
