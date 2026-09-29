@@ -133,7 +133,7 @@ class ListingController extends Controller
 
     public function index(Request $request)
     {
-        $query = Listing::query()->published()->with(['brand', 'phoneModel', 'images']);
+        $query = Listing::query()->published()->with(['brand', 'phoneModel', 'primaryImage', 'images']);
 
         $query->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId));
         $query->when($request->integer('phone_model_id'), fn (Builder $query, int $modelId) => $query->where('phone_model_id', $modelId));
