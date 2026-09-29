@@ -275,12 +275,16 @@ class ListingController extends Controller
     public function edit(Listing $listing, SystemOptions $options)
     {
         $this->authorize('update', $listing);
-        $listing->load(['images', 'attributeValues']);
+        $listing->load(['images', 'attributeValues', 'phoneModel']);
+        $attributes = $listing->phoneModel->attributes()
+            ->where('attributes.is_active', true)
+            ->orderBy('attributes.sort_order')
+            ->get();
 
         return view('listings.edit', [
             'listing' => $listing,
             'brands' => Brand::query()->where('is_active', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
-            'attributes' => Attribute::query()->where('is_active', true)->orderBy('sort_order')->get(),
+            'attributes' => $attributes,
             'maxImageUploadMb' => $options->maxImageUploadMb(),
         ]);
     }
