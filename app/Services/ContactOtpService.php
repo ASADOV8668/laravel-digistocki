@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
+use App\Helpers\SmsHelper;
 use App\Models\ContactOtp;
 use App\Models\Listing;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 
 class ContactOtpService
 {
@@ -27,7 +27,11 @@ class ContactOtpService
             'expires_at' => $expiresAt,
         ]);
 
-        Log::info('Contact OTP generated (SMS stub)', ['user_id' => $user->id, 'listing_id' => $listing->id, 'mobile' => $user->mobile, 'code' => $code, 'expires_at' => $otp->expires_at->toIso8601String()]);
+        SmsHelper::send($user->mobile, "کد تأیید شما: {$code}", [
+            'user_id' => $user->id,
+            'listing_id' => $listing->id,
+            'expires_at' => $otp->expires_at->toIso8601String(),
+        ]);
 
         return $otp;
     }

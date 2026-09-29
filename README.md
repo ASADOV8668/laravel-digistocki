@@ -240,6 +240,15 @@ npm run build
 - اعتبارسنجی یکتا بودن موبایل و الزام وجود حداقل یکی از موبایل یا ایمیل؛
 - حفظ سازگاری با مسیرهای قبلی احراز هویت و بازیابی رمز ایمیلی.
 
+## فاز ۱۶: Helper ارسال پیامک با حالت تست و واقعی
+
+- ایجاد `App\Helpers\SmsHelper` برای یکپارچه‌سازی متمرکز ارسال پیامک؛
+- حالت تست پیش‌فرض بدون ارسال واقعی و با ثبت پیام در لاگ؛
+- حالت واقعی با تابع جداگانه‌ی `sendReal` به‌عنوان محل جایگزینی وب‌سرویس سامانه پیامک؛
+- اتصال OTP تماس امن به Helper جدید؛
+- افزودن گزینه‌ی انتخاب حالت پیامک در `/admin/settings`؛
+- جلوگیری از ارسال ناخواسته‌ی پیامک واقعی تا زمان جایگزینی بدنه‌ی تابع provider.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -257,10 +266,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۱۵:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۱۶:
 
-- ۷۸ تست موفق
-- ۳۰۰ assertion موفق
+- ۸۱ تست موفق
+- ۳۰۸ assertion موفق
 - ۰ شکست
 
-تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php` و فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php` قرار دارند.
+تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php` و فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php` قرار دارند.

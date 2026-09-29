@@ -16,6 +16,7 @@ class SystemOptions
         'support_email' => '',
         'support_phone' => '',
         'listings_enabled' => '1',
+        'sms_mode' => 'test',
     ];
 
     private ?Collection $values = null;
@@ -63,6 +64,11 @@ class SystemOptions
     public function listingsEnabled(): bool
     {
         return $this->bool('listings_enabled');
+    }
+
+    public function smsMode(): string
+    {
+        return in_array($mode = (string) $this->get('sms_mode'), ['test', 'live'], true) ? $mode : 'test';
     }
 
     public function pageTitle(?string $page = null): string

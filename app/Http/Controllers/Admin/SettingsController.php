@@ -24,6 +24,7 @@ class SettingsController extends Controller
             'support_email' => ['nullable', 'email', 'max:150'],
             'support_phone' => ['nullable', 'string', 'max:30'],
             'listings_enabled' => ['nullable', 'boolean'],
+            'sms_mode' => ['nullable', 'in:test,live'],
         ]);
 
         $options->setMany([
@@ -35,6 +36,7 @@ class SettingsController extends Controller
             'support_email' => [$validated['support_email'] ?? '', 'string'],
             'support_phone' => [$validated['support_phone'] ?? '', 'string'],
             'listings_enabled' => [$request->boolean('listings_enabled'), 'boolean'],
+            'sms_mode' => [$validated['sms_mode'] ?? $options->smsMode(), 'string'],
         ]);
 
         return back()->with('status', 'تنظیمات سیستم ذخیره شد.');
