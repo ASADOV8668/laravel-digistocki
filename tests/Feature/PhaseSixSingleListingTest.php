@@ -28,7 +28,7 @@ class PhaseSixSingleListingTest extends TestCase
         $seller = User::factory()->create(['mobile' => '09129999999']);
         $listing = $this->listing($seller, 'آگهی امن تماس');
 
-        $this->get(route('listings.show', $listing))->assertOk()->assertSee($listing->title)->assertDontSee($seller->mobile);
+        $this->get(route('listings.show', $listing))->assertOk()->assertSee($listing->title)->assertDontSee($seller->mobile)->assertSee('application/ld+json', false)->assertSee('"@type":"Product"', false);
         $this->post(route('listings.contact-otp', $listing))->assertRedirect(route('login'));
     }
 

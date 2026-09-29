@@ -427,6 +427,13 @@ npm run build
 - اضافه‌شدن Open Graph title، description، URL و site name؛
 - اضافه‌شدن تست وجود متادیتای SEO در صفحه اصلی.
 
+## فاز ۴۲: داده‌های ساختاری صفحه single آگهی
+
+- اضافه‌شدن JSON-LD از نوع Product/Offer برای صفحه آگهی؛
+- اضافه‌شدن BreadcrumbList برای مسیر آگهی؛
+- عدم انتشار شماره تماس یا اطلاعات خصوصی در schema؛
+- اضافه‌شدن assertion برای وجود schema در تست صفحه single.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -444,10 +451,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۴۱:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۴۲:
 
 - ۸۵ تست موفق
-- ۳۴۵ assertion موفق
+- ۳۴۷ assertion موفق
 - ۰ شکست
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php` و پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php` قرار دارند.

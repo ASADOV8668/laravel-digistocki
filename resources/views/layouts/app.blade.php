@@ -18,6 +18,7 @@
         <meta property="og:site_name" content="{{ $systemOptions->get('site_title') }}">
         <meta name="theme-color" content="#eb073f">
         <link rel="manifest" href="{{ asset('manifest.json') }}">
+        @stack('head')
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])

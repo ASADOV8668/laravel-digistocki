@@ -1,3 +1,34 @@
+@php
+    $listingSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Product',
+        'name' => $listing->title,
+        'description' => $listing->description ?: $listing->title,
+        'image' => $listing->images->map(fn ($image) => asset('storage/'.$image->path))->values()->all(),
+        'brand' => ['@type' => 'Brand', 'name' => $listing->brand->name],
+        'model' => $listing->phoneModel->name_en ?: $listing->phoneModel->name,
+        'offers' => [
+            '@type' => 'Offer',
+            'url' => url()->current(),
+            'priceCurrency' => 'IRR',
+            'price' => (string) $listing->price,
+            'availability' => 'https://schema.org/InStock',
+            'itemCondition' => 'https://schema.org/UsedCondition',
+        ],
+    ];
+    $breadcrumbSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => [
+            ['@type' => 'ListItem', 'position' => 1, 'name' => 'آگهی‌ها', 'item' => route('listings.index')],
+            ['@type' => 'ListItem', 'position' => 2, 'name' => $listing->title, 'item' => url()->current()],
+        ],
+    ];
+@endphp
+@push('head')
+    <script type="application/ld+json">{!! json_encode($listingSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+    <script type="application/ld+json">{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endpush
 <x-app-layout title="جزئیات آگهی">
     <x-slot name="header">
         <div class="flex items-center justify-between gap-3">
