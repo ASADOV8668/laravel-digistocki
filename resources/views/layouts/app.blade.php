@@ -19,7 +19,8 @@
         <meta property="og:site_name" content="{{ $systemOptions->get('site_title') }}">
         <meta name="theme-color" content="#eb073f">
         <link rel="manifest" href="{{ asset('manifest.json') }}">
-        <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo-header.svg') }}">
+        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+        <link rel="apple-touch-icon" sizes="192x192" href="{{ asset('images/logo-192.png') }}">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
         @stack('head')
