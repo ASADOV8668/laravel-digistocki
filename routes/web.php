@@ -39,8 +39,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/listings/{listing:slug}/favorite', [FavoriteController::class, 'toggle'])->name('listings.favorite.toggle');
     Route::post('/listings/{listing:slug}/report', [UserReportController::class, 'store'])->name('listings.report');
-    Route::post('/listings/{listing:slug}/contact-otp', [ListingController::class, 'requestContactOtp'])->name('listings.contact-otp');
-    Route::post('/listings/{listing:slug}/contact-otp/verify', [ListingController::class, 'verifyContactOtp'])->name('listings.contact-otp.verify');
+    Route::post('/listings/{listing:slug}/contact-otp', [ListingController::class, 'requestContactOtp'])->middleware('throttle:5,1')->name('listings.contact-otp');
+    Route::post('/listings/{listing:slug}/contact-otp/verify', [ListingController::class, 'verifyContactOtp'])->middleware('throttle:5,1')->name('listings.contact-otp.verify');
     Route::get('/listings/{listing:slug}/edit', [ListingController::class, 'edit'])->name('listings.edit');
     Route::put('/listings/{listing:slug}', [ListingController::class, 'update'])->name('listings.update');
     Route::delete('/listings/{listing:slug}', [ListingController::class, 'destroy'])->name('listings.destroy');
