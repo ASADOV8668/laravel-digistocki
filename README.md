@@ -526,6 +526,13 @@ npm run build
 - کاهش ریسک abuse روی endpointهای عمومی جستجو؛
 - اضافه‌شدن تست middlewareهای throttle هر چهار endpoint.
 
+## فاز ۵۶: بهینه‌سازی شمارش داشبورد کاربر
+
+- جایگزینی پنج query شمارش وضعیت با یک aggregate query؛
+- حفظ خروجی وضعیت‌های pending، approved، rejected، sold و expired؛
+- محدود ماندن شمارش‌ها به آگهی‌های کاربر واردشده؛
+- اضافه‌شدن تست دقیق داده‌های view داشبورد.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -543,10 +550,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۵۵:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۵۶:
 
-- ۱۰۴ تست موفق
-- ۴۲۹ assertion موفق
+- ۱۰۵ تست موفق
+- ۴۳۱ assertion موفق
 - ۰ شکست
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php` و پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php` قرار دارند.

@@ -22,10 +22,16 @@ class DashboardController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $countsByStatus = Listing::query()
+            ->where('user_id', $user->id)
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
         return view('dashboard', [
             'listings' => $listings,
             'status' => $status,
-            'counts' => collect($statuses)->mapWithKeys(fn (string $item) => [$item => Listing::where('user_id', $user->id)->where('status', $item)->count()]),
+            'counts' => collect($statuses)->mapWithKeys(fn (string $item) => [$item => (int) $countsByStatus->get($item, 0)]),
         ]);
     }
 }
