@@ -146,7 +146,12 @@
                 @forelse ($listing->attributeValues as $value)
                     <div class="rounded-2xl bg-slate-50 p-3">
                         <span class="block text-[11px] text-slate-500">{{ $value->attribute->name }}</span>
-                        <span class="mt-1 block text-sm font-bold text-neutral">{{ $value->value_string ?? $value->value_integer ?? $value->value_decimal ?? ($value->value_boolean ? 'بله' : 'خیر') }}</span>
+                        @php
+                            $displayValue = filled($value->value_json)
+                                ? collect($value->value_json)->filter(fn ($item) => filled($item))->implode('، ')
+                                : ($value->value_string ?? $value->value_integer ?? $value->value_decimal ?? ($value->value_boolean ? 'بله' : 'خیر'));
+                        @endphp
+                        <span class="mt-1 block text-sm font-bold text-neutral">{{ $displayValue ?: 'ثبت نشده' }}</span>
                     </div>
                 @empty
                     <p class="col-span-2 rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">مشخصات تکمیلی ثبت نشده است.</p>
