@@ -631,6 +631,13 @@ npm run build
 - نمایش وضعیت روشن «آگهی دیگر در دسترس نیست» برای رکورد حذف‌شده؛
 - اضافه‌شدن تست regression برای اعلان پس از حذف آگهی.
 
+## فاز ۷۱: ایندکس فهرست گزارش‌های مدیریت
+
+- اضافه‌شدن index ترکیبی `status, created_at` برای moderation feed؛
+- بهینه‌سازی هم‌زمان فیلتر وضعیت و مرتب‌سازی جدیدترین گزارش‌ها؛
+- حفظ عملکرد شمارش وضعیت‌ها و pagination گزارش‌ها؛
+- اضافه‌شدن تست schema برای index گزارش‌های مدیریت.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -648,10 +655,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۷۰:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۷۱:
 
-- ۱۲۱ تست موفق
-- ۴۷۹ assertion موفق
+- ۱۲۲ تست موفق
+- ۴۸۰ assertion موفق
 - ۰ شکست
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php` و پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php` قرار دارند.
