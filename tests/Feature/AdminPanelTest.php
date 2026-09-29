@@ -59,6 +59,19 @@ class AdminPanelTest extends TestCase
         $this->assertDatabaseHas('attributes', ['name' => 'ویژگی تست', 'is_filterable' => 1]);
     }
 
+    public function test_admin_can_search_catalog_entities(): void
+    {
+        $this->actingAs($this->admin)->post(route('admin.brands.store'), ['name' => 'برند جستجو', 'name_en' => 'Search Brand']);
+        $brand = Brand::where('name_en', 'Search Brand')->firstOrFail();
+
+        $this->actingAs($this->admin)->post(route('admin.phone-models.store'), ['brand_id' => $brand->id, 'name' => 'Search Phone', 'name_fa' => 'مدل جستجو', 'name_en' => 'Search Phone']);
+        $this->actingAs($this->admin)->post(route('admin.attributes.store'), ['name' => 'ویژگی جستجو', 'type' => 'string']);
+
+        $this->actingAs($this->admin)->get(route('admin.brands.index', ['q' => 'جستجو']))->assertOk()->assertSee('برند جستجو');
+        $this->actingAs($this->admin)->get(route('admin.phone-models.index', ['q' => 'Search Phone']))->assertOk()->assertSee('Search Phone');
+        $this->actingAs($this->admin)->get(route('admin.attributes.index', ['q' => 'ویژگی جستجو']))->assertOk()->assertSee('ویژگی جستجو');
+    }
+
     public function test_admin_can_review_reports_and_regular_user_is_blocked(): void
     {
         $owner = User::factory()->create();

@@ -10,9 +10,15 @@ use Illuminate\Validation\Rule;
 
 class AttributeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('admin.attributes.index', ['attributes' => ListingAttribute::withCount('phoneModels')->orderBy('sort_order')->orderBy('name')->get(), 'types' => AttributeType::cases()]);
+        $attributes = ListingAttribute::withCount('phoneModels')
+            ->when($request->filled('q'), fn ($query) => $query->where('name', 'like', '%'.$request->string('q').'%'))
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.attributes.index', ['attributes' => $attributes, 'types' => AttributeType::cases()]);
     }
 
     public function store(Request $request)

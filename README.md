@@ -367,6 +367,13 @@ npm run build
 - اضافه‌شدن پیام موفقیت و خطای یکسان برای عملیات مدیریت کاتالوگ؛
 - حفظ کامل routeها، فرم‌های CRUD، اعتبارسنجی و وضعیت فعال/غیرفعال عناصر کاتالوگ.
 
+## فاز ۳۳: جستجوی کاتالوگ در پنل مدیریت
+
+- اضافه‌شدن جستجوی نام فارسی و انگلیسی برندها؛
+- اضافه‌شدن جستجوی مدل‌ها همراه با فیلتر برند؛
+- اضافه‌شدن جستجوی نام ویژگی‌ها و امکان پاک‌کردن فیلترها؛
+- اضافه‌شدن تست پوششی برای جستجوی هر سه نوع داده کاتالوگ.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -384,10 +391,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۳۲:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۳۳:
 
-- ۸۴ تست موفق
-- ۳۲۱ assertion موفق
+- ۸۵ تست موفق
+- ۳۲۷ assertion موفق
 - ۰ شکست
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php` و پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php` قرار دارند.
