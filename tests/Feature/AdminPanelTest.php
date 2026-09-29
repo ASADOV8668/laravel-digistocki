@@ -57,6 +57,9 @@ class AdminPanelTest extends TestCase
         $this->actingAs($this->admin)->post(route('admin.attributes.store'), ['name' => 'ویژگی تست', 'type' => 'string', 'unit' => 'واحد', 'is_filterable' => 1])->assertRedirect();
         $this->assertDatabaseHas('phone_models', ['brand_id' => $brand->id, 'name' => 'Test Phone']);
         $this->assertDatabaseHas('attributes', ['name' => 'ویژگی تست', 'is_filterable' => 1]);
+        $attribute = \App\Models\Attribute::where('name', 'ویژگی تست')->firstOrFail();
+        $this->actingAs($this->admin)->patch(route('admin.attributes.update', $attribute), ['name' => 'ویژگی ویرایش‌شده', 'type' => 'string', 'unit' => 'واحد جدید', 'is_filterable' => 1])->assertRedirect();
+        $this->assertDatabaseHas('attributes', ['id' => $attribute->id, 'name' => 'ویژگی ویرایش‌شده', 'unit' => 'واحد جدید']);
     }
 
     public function test_admin_can_search_catalog_entities(): void
