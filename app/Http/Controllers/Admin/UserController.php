@@ -22,7 +22,11 @@ class UserController extends Controller
             ->withCount('listings')
             ->when($request->filled('q'), function (Builder $query) use ($request) {
                 $term = '%'.$request->string('q').'%';
-                $query->where('name', 'like', $term)->orWhere('mobile', 'like', $term)->orWhere('email', 'like', $term);
+                $query->where(function (Builder $search) use ($term) {
+                    $search->where('name', 'like', $term)
+                        ->orWhere('mobile', 'like', $term)
+                        ->orWhere('email', 'like', $term);
+                });
             })
             ->when($request->filled('role'), fn (Builder $query) => $query->where('role', $request->input('role')))
             ->latest()
