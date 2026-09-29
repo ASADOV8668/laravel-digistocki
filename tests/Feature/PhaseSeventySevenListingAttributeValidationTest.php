@@ -11,11 +11,13 @@ use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
 class PhaseSeventySevenListingAttributeValidationTest extends TestCase
 {
     use RefreshDatabase;
+    use BuildsListingAttributePayload;
 
     protected function setUp(): void
     {
@@ -36,6 +38,23 @@ class PhaseSeventySevenListingAttributeValidationTest extends TestCase
             ->assertSessionHasErrors(['attributes.'.$color->id]);
 
         $this->assertDatabaseMissing('listings', ['title' => 'آگهی گزینه نامعتبر']);
+    }
+
+    public function test_store_rejects_missing_required_model_attributes(): void
+    {
+        $user = User::factory()->create();
+        [$brand, $model] = $this->catalogContext();
+        $memory = Attribute::where('name', 'حافظه داخلی')->firstOrFail();
+
+        $this->actingAs($user)
+            ->post(route('listings.store'), [
+                'brand_id' => $brand->id,
+                'phone_model_id' => $model->id,
+                'title' => 'آگهی ناقص',
+                'price' => 32000000,
+                'attributes' => [],
+            ])
+            ->assertSessionHasErrors(['attributes.'.$memory->id]);
     }
 
     public function test_update_rejects_values_that_are_not_allowed_by_the_dynamic_attribute_definition(): void
@@ -99,7 +118,7 @@ class PhaseSeventySevenListingAttributeValidationTest extends TestCase
             'phone_model_id' => $model->id,
             'title' => $title,
             'price' => 32000000,
-            'attributes' => $attributes,
+            'attributes' => array_replace($this->requiredAttributeValues($model), $attributes),
         ];
     }
 }

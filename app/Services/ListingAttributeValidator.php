@@ -18,6 +18,12 @@ class ListingAttributeValidator
         $allowed = $model->attributes()->where('attributes.is_active', true)->get()->keyBy('id');
         $errors = [];
 
+        foreach ($allowed as $attribute) {
+            if ($attribute->is_required && $this->isEmpty($values[$attribute->id] ?? null)) {
+                $errors['attributes.'.$attribute->id] = 'وارد کردن این ویژگی الزامی است.';
+            }
+        }
+
         foreach ($values as $attributeId => $value) {
             $attribute = $allowed->get((int) $attributeId);
             $field = 'attributes.'.(string) $attributeId;

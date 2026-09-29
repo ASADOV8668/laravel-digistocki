@@ -38,10 +38,12 @@ class UpdateListingRequest extends FormRequest
     protected function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
-            $errors = app(ListingAttributeValidator::class)->errors(
-                PhoneModel::query()->find($this->integer('phone_model_id')),
-                (array) $this->input('attributes', []),
-            );
+            $model = PhoneModel::query()->find($this->integer('phone_model_id'));
+            if (! $model || $model->brand_id !== $this->integer('brand_id')) {
+                return;
+            }
+
+            $errors = app(ListingAttributeValidator::class)->errors($model, (array) $this->input('attributes', []));
 
             foreach ($errors as $field => $message) {
                 $validator->errors()->add($field, $message);

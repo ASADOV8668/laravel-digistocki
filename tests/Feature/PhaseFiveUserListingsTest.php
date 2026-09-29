@@ -12,11 +12,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
 class PhaseFiveUserListingsTest extends TestCase
 {
     use RefreshDatabase;
+    use BuildsListingAttributePayload;
 
     protected function setUp(): void
     {
@@ -42,7 +44,7 @@ class PhaseFiveUserListingsTest extends TestCase
         [$brand, $model] = $this->catalogContext();
         $image = UploadedFile::fake()->create('phone.jpg', 100, 'image/jpeg');
 
-        $this->actingAs($user)->post(route('listings.store'), ['brand_id' => $brand->id, 'phone_model_id' => $model->id, 'title' => 'آگهی تصویری', 'price' => 25000000, 'images' => [$image]])->assertRedirect();
+        $this->actingAs($user)->post(route('listings.store'), ['brand_id' => $brand->id, 'phone_model_id' => $model->id, 'title' => 'آگهی تصویری', 'price' => 25000000, 'attributes' => $this->requiredAttributeValues($model), 'images' => [$image]])->assertRedirect();
         $listing = Listing::where('title', 'آگهی تصویری')->firstOrFail();
         $stored = $listing->images()->firstOrFail();
         $this->assertTrue($stored->is_primary);
@@ -55,7 +57,7 @@ class PhaseFiveUserListingsTest extends TestCase
         [$brand, $model] = $this->catalogContext();
         $listing = $this->listing($user, $brand, $model, 'آگهی ردشده', ListingStatus::Rejected);
 
-        $this->actingAs($user)->put(route('listings.update', $listing), ['brand_id' => $brand->id, 'phone_model_id' => $model->id, 'title' => 'آگهی اصلاح‌شده', 'price' => 30000000])->assertRedirect();
+        $this->actingAs($user)->put(route('listings.update', $listing), ['brand_id' => $brand->id, 'phone_model_id' => $model->id, 'title' => 'آگهی اصلاح‌شده', 'price' => 30000000, 'attributes' => $this->requiredAttributeValues($model)])->assertRedirect();
         $this->assertSame(ListingStatus::Pending, $listing->refresh()->status);
         $this->assertSame('آگهی اصلاح‌شده', $listing->title);
     }

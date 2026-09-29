@@ -8,11 +8,13 @@ use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
 class PhaseElevenSystemSettingsTest extends TestCase
 {
     use RefreshDatabase;
+    use BuildsListingAttributePayload;
 
     private User $admin;
 
@@ -83,11 +85,13 @@ class PhaseElevenSystemSettingsTest extends TestCase
 
         $user = User::factory()->create();
         $brand = Brand::where('name_en', 'Apple')->firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
         $this->actingAs($user)->post(route('listings.store'), [
             'brand_id' => $brand->id,
-            'phone_model_id' => $brand->phoneModels()->firstOrFail()->id,
+            'phone_model_id' => $model->id,
             'title' => 'تصویر بزرگ',
             'price' => 1000000,
+            'attributes' => $this->requiredAttributeValues($model),
             'images' => [UploadedFile::fake()->create('large.jpg', 1500, 'image/jpeg')],
         ])->assertSessionHasErrors('images.0');
     }

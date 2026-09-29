@@ -688,6 +688,13 @@ npm run build
 - حفظ input عددی صحیح با گام `1`؛
 - اضافه‌شدن تست regression برای تطابق نوع کنترل فرم با نوع attribute.
 
+## فاز ۷۹: enforce ویژگی‌های الزامی در سمت سرور
+
+- enforce شدن `is_required` برای ویژگی‌های مدل در create و update؛
+- جلوگیری از ثبت آگهی ناقص با حذف یا دور زدن کنترل‌های مرورگر؛
+- حفظ خطای 404 برای ناسازگاری برند و مدل پیش از اعتبارسنجی ویژگی‌ها؛
+- هماهنگ‌سازی payload تست‌ها با catalog و اضافه‌شدن تست regression برای ویژگی‌های الزامی.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -705,10 +712,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۷۸:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۷۹:
 
-- ۱۳۳ تست موفق
-- ۵۰۹ assertion موفق
+- ۱۳۴ تست موفق
+- ۵۱۱ assertion موفق
 - ۰ شکست
 
-تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php`، پوشش ویژگی‌های چندانتخابی فاز هفتادوششم در `tests/Feature/PhaseSeventySixMultiSelectAttributesTest.php`، پوشش اعتبارسنجی ویژگی‌های پویا در `tests/Feature/PhaseSeventySevenListingAttributeValidationTest.php` و پوشش نوع ورودی فرم ویرایش در `tests/Feature/PhaseSeventyEightEditAttributeInputTest.php` قرار دارند.
+تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php`، پوشش ویژگی‌های چندانتخابی فاز هفتادوششم در `tests/Feature/PhaseSeventySixMultiSelectAttributesTest.php`، پوشش اعتبارسنجی ویژگی‌های پویا در `tests/Feature/PhaseSeventySevenListingAttributeValidationTest.php`، پوشش نوع ورودی فرم ویرایش در `tests/Feature/PhaseSeventyEightEditAttributeInputTest.php` و پوشش ویژگی‌های الزامی در `tests/Feature/PhaseSeventySevenListingAttributeValidationTest.php` قرار دارند.

@@ -9,11 +9,13 @@ use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
 class PhaseFiftyThreeListingUpdateDuplicateTest extends TestCase
 {
     use RefreshDatabase;
+    use BuildsListingAttributePayload;
 
     protected function setUp(): void
     {
@@ -35,6 +37,7 @@ class PhaseFiftyThreeListingUpdateDuplicateTest extends TestCase
                 'phone_model_id' => $model->id,
                 'title' => 'آگهی هدف ویرایش‌شده',
                 'price' => 2000000,
+                'attributes' => $this->requiredAttributeValues($model),
             ])
             ->assertStatus(422)
             ->assertSee('آگهی دیگری');
@@ -47,6 +50,7 @@ class PhaseFiftyThreeListingUpdateDuplicateTest extends TestCase
                 'phone_model_id' => $model->id,
                 'title' => 'آگهی هدف ویرایش‌شده',
                 'price' => 2000000,
+                'attributes' => $this->requiredAttributeValues($model),
             ])
             ->assertRedirect();
     }

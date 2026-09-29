@@ -11,11 +11,13 @@ use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
 class ListingFlowTest extends TestCase
 {
     use RefreshDatabase;
+    use BuildsListingAttributePayload;
 
     protected function setUp(): void
     {
@@ -45,7 +47,7 @@ class ListingFlowTest extends TestCase
             'title' => 'آگهی تست آیفون',
             'description' => 'توضیحات تست',
             'price' => 32000000,
-            'attributes' => [$memory->id => 256],
+            'attributes' => array_replace($this->requiredAttributeValues($model), [$memory->id => 256]),
         ]);
 
         $response->assertRedirect();

@@ -12,11 +12,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
 class PhaseTenImageProcessingTest extends TestCase
 {
     use RefreshDatabase;
+    use BuildsListingAttributePayload;
 
     protected function setUp(): void
     {
@@ -36,6 +38,7 @@ class PhaseTenImageProcessingTest extends TestCase
             'phone_model_id' => $model->id,
             'title' => 'آگهی با تصویر پردازش‌شده',
             'price' => 25000000,
+            'attributes' => $this->requiredAttributeValues($model),
             'images' => [UploadedFile::fake()->create('phone.jpg', 100, 'image/jpeg')],
         ])->assertRedirect();
 
