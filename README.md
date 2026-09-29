@@ -589,6 +589,13 @@ npm run build
 - کاهش query و حافظه مصرفی جستجوی سریع؛
 - اضافه‌شدن تست query-level برای جلوگیری از بازگشت بارگذاری اضافی.
 
+## فاز ۶۵: بهینه‌سازی badge اعلان‌ها
+
+- محاسبه تعداد اعلان‌های خوانده‌نشده فقط یک‌بار در layout اصلی؛
+- استفاده مشترک top-bar و sidebar از همان مقدار؛
+- حذف queryهای تکراری در هر صفحه خصوصی؛
+- اضافه‌شدن تست query-count برای تضمین اجرای یک query واحد.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -606,10 +613,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۶۴:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۶۵:
 
-- ۱۱۵ تست موفق
-- ۴۵۹ assertion موفق
+- ۱۱۶ تست موفق
+- ۴۶۱ assertion موفق
 - ۰ شکست
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php` و پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php` قرار دارند.

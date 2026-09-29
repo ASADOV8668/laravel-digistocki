@@ -1,4 +1,5 @@
 @php($systemOptions = app(\App\Services\SystemOptions::class))
+@php($unreadNotifications = auth()->check() ? auth()->user()->unreadNotifications()->count() : 0)
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
     <head>
@@ -28,8 +29,8 @@
     </head>
     <body class="font-sans antialiased">
         <div class="mobile-shell relative pb-24">
-            <x-sidebar />
-            <x-top-bar />
+            <x-sidebar :unread-notifications="$unreadNotifications" />
+            <x-top-bar :unread-notifications="$unreadNotifications" />
             @isset($header)<div class="px-4 pt-5">{{ $header }}</div>@endisset
             <main>{{ $slot }}</main>
             <x-bottom-nav />

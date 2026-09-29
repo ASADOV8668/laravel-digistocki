@@ -1,3 +1,4 @@
+@props(['unreadNotifications' => 0])
 <div x-data="{ open: false }" @open-sidebar.window="open = true" @keydown.escape.window="open = false" class="relative z-50">
     <div x-show="open" x-transition.opacity class="fixed inset-0 bg-neutral/50" @click="open = false" aria-hidden="true"></div>
     <aside x-show="open" x-transition:enter="transition-all duration-300" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition-all duration-300" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full" class="fixed inset-y-0 left-0 w-80 max-w-[85vw] overflow-y-auto bg-white p-5 shadow-2xl" aria-label="منوی اصلی">
@@ -21,7 +22,7 @@
             <a href="{{ url('/') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-home class="h-5 w-5" /> خانه</a>
             @auth
                 <a href="{{ url('/dashboard') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-rectangle-stack class="h-5 w-5" /> آگهی‌های من</a>
-                <a href="{{ route('notifications.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-bell class="h-5 w-5" /> اعلان‌ها @if (auth()->user()->unreadNotifications()->exists())<span class="mr-auto rounded-full bg-primary px-2 py-0.5 text-[10px] font-black text-white">{{ auth()->user()->unreadNotifications()->count() }}</span>@endif</a>
+                <a href="{{ route('notifications.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-bell class="h-5 w-5" /> اعلان‌ها @if ($unreadNotifications)<span class="mr-auto rounded-full bg-primary px-2 py-0.5 text-[10px] font-black text-white">{{ $unreadNotifications }}</span>@endif</a>
             @endauth
             <a href="{{ auth()->check() ? route('favorites.index') : route('login') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-heart class="h-5 w-5" /> علاقه‌مندی‌ها</a>
             <a href="{{ url('/profile') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-user-circle class="h-5 w-5" /> پروفایل</a>
