@@ -512,6 +512,13 @@ npm run build
 - حفظ پیام خطای روشن برای آگهی مشابه؛
 - اضافه‌شدن تست رد duplicate و موفقیت ویرایش پس از حذف آگهی مشابه.
 
+## فاز ۵۴: ایندکس‌های performance برای feed و EAV
+
+- اضافه‌شدن index ترکیبی feed عمومی روی status، زمان انتشار و انقضا؛
+- اضافه‌شدن indexهای فیلتر EAV برای string، integer، decimal و boolean؛
+- حفظ قابلیت rollback کامل migration؛
+- اضافه‌شدن تست وجود indexهای جدید پس از اجرای migrationها.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -529,10 +536,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۵۳:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۵۴:
 
-- ۹۹ تست موفق
-- ۴۱۶ assertion موفق
+- ۱۰۰ تست موفق
+- ۴۲۱ assertion موفق
 - ۰ شکست
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php` و پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php` قرار دارند.
