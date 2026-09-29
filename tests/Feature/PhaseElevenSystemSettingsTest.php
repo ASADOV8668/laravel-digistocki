@@ -26,6 +26,11 @@ class PhaseElevenSystemSettingsTest extends TestCase
 
     public function test_admin_can_update_site_support_and_listing_settings(): void
     {
+        $this->actingAs($this->admin)->get(route('admin.settings.edit'))
+            ->assertOk()
+            ->assertSee('تنظیمات سیستم')
+            ->assertSee('ارسال پیامک و OTP');
+
         $this->actingAs($this->admin)->put(route('admin.settings.update'), [
             'site_title' => 'بازار موبایل',
             'page_title_prefix' => 'بازار',
