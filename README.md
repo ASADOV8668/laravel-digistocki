@@ -596,6 +596,13 @@ npm run build
 - حذف queryهای تکراری در هر صفحه خصوصی؛
 - اضافه‌شدن تست query-count برای تضمین اجرای یک query واحد.
 
+## فاز ۶۶: تست امنیت حذف تصاویر آگهی
+
+- تثبیت authorization مالک آگهی برای حذف تصاویر؛
+- جلوگیری از دسترسی کاربر دیگر به endpoint حذف تصویر؛
+- اطمینان از باقی‌ماندن فایل storage و رکورد دیتابیس در درخواست غیرمجاز؛
+- اضافه‌شدن تست regression برای مالکیت تصویر.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -613,10 +620,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۶۵:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۶۶:
 
-- ۱۱۶ تست موفق
-- ۴۶۱ assertion موفق
+- ۱۱۷ تست موفق
+- ۴۶۴ assertion موفق
 - ۰ شکست
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php` و پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php` قرار دارند.
