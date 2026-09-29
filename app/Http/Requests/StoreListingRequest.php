@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use App\Services\SystemOptions;
 
 class StoreListingRequest extends FormRequest
@@ -22,7 +23,7 @@ class StoreListingRequest extends FormRequest
             'price' => ['required', 'integer', 'min:0'],
             'is_negotiable' => ['nullable', 'boolean'],
             'province_id' => ['nullable', 'integer', 'exists:provinces,id'],
-            'city_id' => ['nullable', 'integer', 'exists:cities,id'],
+            'city_id' => ['nullable', 'integer', Rule::exists('cities', 'id')->where(fn ($query) => $query->where('province_id', $this->input('province_id')))],
             'attributes' => ['nullable', 'array'],
             'attributes.*' => ['nullable'],
             'images' => ['nullable', 'array', 'max:8'],
@@ -37,6 +38,7 @@ class StoreListingRequest extends FormRequest
             'phone_model_id.required' => 'انتخاب مدل الزامی است.',
             'title.required' => 'عنوان آگهی را وارد کنید.',
             'price.required' => 'قیمت را وارد کنید.',
+            'city_id.exists' => 'شهر انتخاب‌شده با استان انتخابی مطابقت ندارد.',
         ];
     }
 }

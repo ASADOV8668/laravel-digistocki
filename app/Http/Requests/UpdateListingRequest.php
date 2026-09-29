@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Listing;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use App\Services\SystemOptions;
 
 class UpdateListingRequest extends FormRequest
@@ -23,7 +24,7 @@ class UpdateListingRequest extends FormRequest
             'price' => ['required', 'integer', 'min:0'],
             'is_negotiable' => ['nullable', 'boolean'],
             'province_id' => ['nullable', 'integer', 'exists:provinces,id'],
-            'city_id' => ['nullable', 'integer', 'exists:cities,id'],
+            'city_id' => ['nullable', 'integer', Rule::exists('cities', 'id')->where(fn ($query) => $query->where('province_id', $this->input('province_id')))],
             'attributes' => ['nullable', 'array'],
             'attributes.*' => ['nullable'],
             'images' => ['nullable', 'array', 'max:8'],
