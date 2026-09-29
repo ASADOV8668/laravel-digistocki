@@ -12,27 +12,34 @@ class DashboardController extends Controller
     public function __invoke()
     {
         $today = now()->startOfDay();
-        $listingTrend = collect(range(6, 0))->map(function (int $days) use ($today) {
+        $trendStart = $today->copy()->subDays(6);
+        $trendCounts = Listing::query()
+            ->whereBetween('created_at', [$trendStart, $today->copy()->endOfDay()])
+            ->get(['created_at'])
+            ->countBy(fn (Listing $listing) => $listing->created_at->toDateString());
+
+        $listingTrend = collect(range(6, 0))->map(function (int $days) use ($today, $trendCounts) {
             $date = $today->copy()->subDays($days);
 
             return [
                 'label' => $date->format('m/d'),
                 'date' => $date->toDateString(),
-                'count' => Listing::query()->whereBetween('created_at', [$date, $date->copy()->endOfDay()])->count(),
+                'count' => (int) $trendCounts->get($date->toDateString(), 0),
             ];
         });
 
         $statusCounts = Listing::query()->selectRaw('status, COUNT(*) as aggregate')->groupBy('status')->pluck('aggregate', 'status');
+        $reportStatusCounts = Report::query()->selectRaw('status, COUNT(*) as aggregate')->groupBy('status')->pluck('aggregate', 'status');
 
         return view('admin.dashboard', [
             'usersCount' => User::query()->count(),
-            'listingsCount' => Listing::query()->count(),
-            'pendingListingsCount' => Listing::query()->where('status', 'pending')->count(),
-            'approvedListingsCount' => Listing::query()->where('status', 'approved')->count(),
-            'rejectedListingsCount' => Listing::query()->where('status', 'rejected')->count(),
-            'expiredListingsCount' => Listing::query()->where('status', 'expired')->count(),
-            'pendingReportsCount' => Report::query()->where('status', 'pending')->count(),
-            'resolvedReportsCount' => Report::query()->where('status', 'resolved')->count(),
+            'listingsCount' => (int) $statusCounts->sum(),
+            'pendingListingsCount' => (int) $statusCounts->get('pending', 0),
+            'approvedListingsCount' => (int) $statusCounts->get('approved', 0),
+            'rejectedListingsCount' => (int) $statusCounts->get('rejected', 0),
+            'expiredListingsCount' => (int) $statusCounts->get('expired', 0),
+            'pendingReportsCount' => (int) $reportStatusCounts->get('pending', 0),
+            'resolvedReportsCount' => (int) $reportStatusCounts->get('resolved', 0),
             'listingTrend' => $listingTrend,
             'statusCounts' => $statusCounts,
             'recentListings' => Listing::with(['user', 'brand', 'phoneModel'])->latest()->limit(6)->get(),
