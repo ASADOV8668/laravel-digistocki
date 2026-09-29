@@ -133,6 +133,11 @@ class ListingController extends Controller
 
     public function index(Request $request)
     {
+        $selectedModel = $request->integer('phone_model_id')
+            ? PhoneModel::query()->where('is_active', true)->with(['attributes' => fn ($query) => $query->where('is_active', true)->where('is_filterable', true)->orderBy('sort_order')])->find($request->integer('phone_model_id'))
+            : null;
+        $filterAttributes = $selectedModel?->attributes ?? collect();
+        $filterAttributesById = $filterAttributes->keyBy('id');
         $query = Listing::query()->published()->with(['brand', 'phoneModel', 'primaryImage', 'images']);
 
         $query->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId));
@@ -153,25 +158,36 @@ class ListingController extends Controller
         });
 
         foreach ((array) $request->input('filters', []) as $attributeId => $value) {
-            if (is_array($value)) {
-                $value = $value[0] ?? null;
-            }
-
-            if ($value === null || $value === '') {
+            $attribute = $filterAttributesById->get((int) $attributeId);
+            $values = array_values(array_filter((array) $value, fn ($item) => $item !== null && $item !== ''));
+            if (! $attribute || $values === []) {
                 continue;
             }
 
-            $query->whereHas('attributeValues', function (Builder $query) use ($attributeId, $value) {
-                $query->where('attribute_id', $attributeId)->where(function (Builder $query) use ($value) {
-                    $query->where('value_string', $value)->orWhere('value_integer', $value)->orWhere('value_decimal', $value)->orWhere('value_boolean', filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
-                });
+            $query->whereHas('attributeValues', function (Builder $query) use ($attribute, $values) {
+                $query->where('attribute_id', $attribute->id);
+                if ($attribute->type === AttributeType::MultiSelect) {
+                    foreach ($values as $value) {
+                        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+                            $query->whereRaw('JSON_SEARCH(value_json, \'one\', ?) IS NOT NULL', [$value]);
+                        } else {
+                            $query->whereJsonContains('value_json', $value);
+                        }
+                    }
+
+                    return;
+                }
+
+                $value = $values[0];
+                match ($attribute->type) {
+                    AttributeType::Integer => $query->where('value_integer', (int) $value),
+                    AttributeType::Decimal => $query->where('value_decimal', (float) $value),
+                    AttributeType::Boolean => $query->where('value_boolean', filter_var($value, FILTER_VALIDATE_BOOLEAN)),
+                    default => $query->where('value_string', $value),
+                };
             });
         }
 
-        $selectedModel = $request->integer('phone_model_id')
-            ? PhoneModel::query()->where('is_active', true)->with(['attributes' => fn ($query) => $query->where('is_active', true)->where('is_filterable', true)->orderBy('sort_order')])->find($request->integer('phone_model_id'))
-            : null;
-        $filterAttributes = $selectedModel?->attributes ?? collect();
         $filterAttributesPayload = $filterAttributes->map(fn (Attribute $attribute) => [
             'id' => $attribute->id,
             'name' => $attribute->name,

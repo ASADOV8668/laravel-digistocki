@@ -72,11 +72,17 @@
                                         <template x-if="attribute.type === 'boolean'">
                                             <span class="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 font-normal ring-1 ring-slate-100"><input type="checkbox" :name="`filters[${attribute.id}]`" value="1" x-model="filters[attribute.id]" class="rounded border-slate-300 text-primary focus:ring-primary" /> دارد</span>
                                         </template>
-                                        <template x-if="attribute.type === 'select' || attribute.type === 'multi_select'">
+                                        <template x-if="attribute.type === 'select'">
                                             <select :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]" class="w-full rounded-xl border-0 bg-slate-50 text-sm font-normal ring-1 ring-slate-100 focus:ring-primary">
                                                 <option value="">همه</option>
                                                 <template x-for="option in attribute.options" :key="option"><option :value="option" x-text="option"></option></template>
                                             </select>
+                                        </template>
+                                        <template x-if="attribute.type === 'multi_select'">
+                                            <select multiple :name="`filters[${attribute.id}][]`" x-model="filters[attribute.id]" x-init="filters[attribute.id] = Array.isArray(filters[attribute.id]) ? filters[attribute.id] : (filters[attribute.id] ? [filters[attribute.id]] : [])" class="min-h-28 w-full rounded-xl border-0 bg-slate-50 text-sm font-normal ring-1 ring-slate-100 focus:ring-primary">
+                                                <template x-for="option in attribute.options" :key="option"><option :value="option" x-text="option"></option></template>
+                                            </select>
+                                            <p class="mt-1 text-[10px] font-normal text-slate-400">برای چند انتخاب، کلید Ctrl یا لمس چندگانه را استفاده کنید.</p>
                                         </template>
                                         <template x-if="attribute.type === 'integer' || attribute.type === 'decimal'">
                                             <input :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]" :type="attribute.type === 'integer' ? 'number' : 'number'" :step="attribute.type === 'decimal' ? '0.01' : '1'" class="w-full rounded-xl border-0 bg-slate-50 text-sm font-normal ring-1 ring-slate-100 focus:ring-primary" />
