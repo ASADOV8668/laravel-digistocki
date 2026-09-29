@@ -18,7 +18,7 @@ class NotificationController extends Controller
     {
         $request->user()->notifications()->whereKey($notification)->firstOrFail()->markAsRead();
 
-        return back();
+        return back()->with('status', 'اعلان خوانده‌شده علامت خورد.');
     }
 
     public function markAllAsRead(Request $request)

@@ -37,8 +37,9 @@ class PhaseFourteenNotificationsTest extends TestCase
         $this->assertNull($notification->read_at);
 
         $this->actingAs($owner)->get(route('notifications.index'))->assertOk()->assertSee('آگهی تأیید شد');
-        $this->actingAs($owner)->patch(route('notifications.read', $notification->id))->assertRedirect();
+        $this->actingAs($owner)->patch(route('notifications.read', $notification->id))->assertRedirect()->assertSessionHas('status', 'اعلان خوانده‌شده علامت خورد.');
         $this->assertNotNull($notification->fresh()->read_at);
+        $this->actingAs($owner)->get(route('notifications.index'))->assertOk()->assertSee('اعلان خوانده‌شده علامت خورد.');
     }
 
     public function test_rejected_listing_notification_contains_reason_and_all_can_be_marked_read(): void
