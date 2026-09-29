@@ -1,14 +1,12 @@
 <x-app-layout title="ثبت آگهی">
-    <x-slot name="header"><h1 class="text-xl font-black text-neutral">ثبت آگهی</h1></x-slot>
-    <section x-data='listingWizard(@js(url("/listings/models")), @js(url("/locations/provinces")), @js(old("phone_model_id")), @js($initialModelAttributes), @js(old("attributes", [])), @js(old("province_id")), @js(old("city_id")))' class="space-y-5 px-4 py-6">
-        @if ($errors->any())<div class="rounded-xl bg-error/10 p-4 text-sm font-bold text-error"><ul class="list-disc space-y-1 pr-5">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+    <x-slot name="header"><div class="flex items-center gap-3"><span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-50 text-primary"><x-heroicon-o-plus class="h-6 w-6" /></span><div><p class="text-xs font-bold text-primary">فروش سریع‌تر</p><h1 class="mt-1 text-xl font-black text-neutral">ثبت آگهی</h1></div></div></x-slot>
+    <section x-data='listingWizard(@js(url("/listings/models")), @js(url("/locations/provinces")), @js(old("phone_model_id")), @js($initialModelAttributes), @js(old("attributes", [])), @js(old("province_id")), @js(old("city_id")))' class="space-y-6 px-4 py-6">
+        @if ($errors->any())<div class="flex items-start gap-3 rounded-2xl border border-error/20 bg-error/10 p-4 text-sm font-bold text-error"><x-heroicon-o-exclamation-triangle class="h-5 w-5 shrink-0" /><ul class="space-y-1">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 
-        <div class="rounded-2xl bg-white p-4 shadow-sm">
-            <div class="flex items-center justify-between text-[11px] font-bold"><span :class="step >= 1 ? 'text-primary' : 'text-slate-400'">۱. مدل</span><span :class="step >= 2 ? 'text-primary' : 'text-slate-400'">۲. مشخصات</span><span :class="step >= 3 ? 'text-primary' : 'text-slate-400'">۳. اطلاعات</span><span :class="step >= 4 ? 'text-primary' : 'text-slate-400'">۴. ارسال</span></div>
-            <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full bg-primary transition-all duration-300" :style="`width: ${step * 25}%`"></div></div>
+        <div class="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100"><div class="flex items-center justify-between text-[11px] font-bold"><span class="flex items-center gap-1.5" :class="step >= 1 ? 'text-primary' : 'text-slate-400'"><span class="sr-only">۱. مدل</span><span class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">۱</span>مدل</span><span class="flex items-center gap-1.5" :class="step >= 2 ? 'text-primary' : 'text-slate-400'"><span class="sr-only">۲. مشخصات</span><span class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">۲</span>مشخصات</span><span class="flex items-center gap-1.5" :class="step >= 3 ? 'text-primary' : 'text-slate-400'"><span class="sr-only">۳. اطلاعات</span><span class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">۳</span>اطلاعات</span><span class="flex items-center gap-1.5" :class="step >= 4 ? 'text-primary' : 'text-slate-400'"><span class="sr-only">۴. ارسال</span><span class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">۴</span>ارسال</span></div><div class="mt-4 h-2 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full bg-primary transition-all duration-300" :style="`width: ${step * 25}%`"></div></div>
         </div>
 
-        <form method="POST" action="{{ route('listings.store') }}" enctype="multipart/form-data" class="rounded-3xl bg-white p-5 shadow-sm">
+        <form method="POST" action="{{ route('listings.store') }}" enctype="multipart/form-data" class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
             @csrf
             <div x-show="step === 1" x-cloak class="space-y-4">
                 <div><h2 class="text-lg font-black text-neutral">مدل گوشی را انتخاب کنید</h2><p class="mt-1 text-xs leading-6 text-slate-500">با انتخاب مدل، ویژگی‌های مخصوص همان دستگاه در مرحله بعد بارگذاری می‌شود.</p></div>
@@ -45,7 +43,7 @@
 
             <div x-show="step === 4" x-cloak class="space-y-4">
                 <div><h2 class="text-lg font-black text-neutral">تصاویر و ارسال</h2><p class="mt-1 text-xs leading-6 text-slate-500">حداکثر ۸ تصویر، هر تصویر حداکثر {{ $maxImageUploadMb }} مگابایت. تصویر اول به‌عنوان تصویر اصلی نمایش داده می‌شود.</p></div>
-                <input type="file" name="images[]" multiple accept=".jpg,.jpeg,.png,.webp" class="block w-full rounded-xl border border-slate-200 p-2 text-sm">
+                <label class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-primary/20 bg-primary-50/40 p-8 text-center transition hover:border-primary/50"><span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-primary shadow-sm"><x-heroicon-o-photo class="h-6 w-6" /></span><span class="mt-3 text-sm font-black text-neutral">تصاویر گوشی را انتخاب کنید</span><span class="mt-1 text-xs text-slate-400">JPG، PNG یا WEBP · حداکثر {{ $maxImageUploadMb }}MB</span><input type="file" name="images[]" multiple accept=".jpg,.jpeg,.png,.webp" class="sr-only"></label>
                 <div class="rounded-xl bg-warning/10 p-4 text-xs leading-7 text-neutral">آگهی پس از ارسال در وضعیت «در انتظار بررسی» قرار می‌گیرد و پس از تأیید ادمین در سایت نمایش داده می‌شود.</div>
             </div>
 
