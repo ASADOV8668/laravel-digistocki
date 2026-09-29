@@ -19,6 +19,10 @@ class UpdateListingRequest extends FormRequest
 
     public function rules(): array
     {
+        $listing = $this->route('listing');
+        $existingImages = $listing instanceof Listing ? $listing->images()->count() : 0;
+        $remainingImageSlots = max(0, 8 - $existingImages);
+
         return [
             'brand_id' => ['required', 'integer', 'exists:brands,id'],
             'phone_model_id' => ['required', 'integer', 'exists:phone_models,id'],
@@ -30,7 +34,7 @@ class UpdateListingRequest extends FormRequest
             'city_id' => ['nullable', 'integer', Rule::exists('cities', 'id')->where(fn ($query) => $query->where('province_id', $this->input('province_id')))],
             'attributes' => ['nullable', 'array'],
             'attributes.*' => ['nullable'],
-            'images' => ['nullable', 'array', 'max:8'],
+            'images' => ['nullable', 'array', 'max:'.$remainingImageSlots],
             'images.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
         ];
     }
