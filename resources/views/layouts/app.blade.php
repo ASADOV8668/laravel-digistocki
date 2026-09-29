@@ -6,7 +6,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ $systemOptions->pageTitle($title ?? null) }}</title>
+        @php($seoTitle = $systemOptions->pageTitle($title ?? null))
+        @php($seoDescription = $metaDescription ?? 'خرید و فروش مطمئن موبایل با آگهی‌های بررسی‌شده و جستجوی هوشمند در دیجی استوک.')
+        <title>{{ $seoTitle }}</title>
+        <meta name="description" content="{{ $seoDescription }}">
+        <link rel="canonical" href="{{ url()->current() }}">
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="{{ $seoTitle }}">
+        <meta property="og:description" content="{{ $seoDescription }}">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:site_name" content="{{ $systemOptions->get('site_title') }}">
         <meta name="theme-color" content="#eb073f">
         <link rel="manifest" href="{{ asset('manifest.json') }}">
 
