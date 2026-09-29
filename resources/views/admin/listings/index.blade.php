@@ -10,12 +10,36 @@
     </x-slot>
 
     <section class="space-y-6">
+        @if (session('status'))
+            <div class="flex items-center gap-2 rounded-2xl border border-success/15 bg-success/10 px-4 py-3 text-sm font-bold text-success" role="status">
+                <x-heroicon-o-check-circle class="h-5 w-5 shrink-0" />
+                {{ session('status') }}
+            </div>
+        @endif
+
+        @php
+            $statusCards = [
+                ['key' => 'pending', 'label' => 'در انتظار بررسی', 'icon' => 'heroicon-o-clock', 'class' => 'bg-warning/10 text-warning'],
+                ['key' => 'approved', 'label' => 'منتشرشده', 'icon' => 'heroicon-o-check-badge', 'class' => 'bg-success/10 text-success'],
+                ['key' => 'rejected', 'label' => 'ردشده', 'icon' => 'heroicon-o-x-circle', 'class' => 'bg-error/10 text-error'],
+                ['key' => 'sold', 'label' => 'فروخته‌شده', 'icon' => 'heroicon-o-shopping-bag', 'class' => 'bg-info/10 text-info'],
+            ];
+        @endphp
+        <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+            @foreach ($statusCards as $card)
+                <a href="{{ route('admin.listings.index', ['status' => $card['key']]) }}" class="admin-card flex items-center gap-3 p-4 transition hover:-translate-y-0.5 hover:shadow-md">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-2xl {{ $card['class'] }}"><x-dynamic-component :component="$card['icon']" class="h-5 w-5" /></span>
+                    <span><strong class="block text-lg font-black text-slate-900">{{ number_format((int) ($statusCounts[$card['key']] ?? 0)) }}</strong><span class="text-[11px] font-bold text-slate-500">{{ $card['label'] }}</span></span>
+                </a>
+            @endforeach
+        </div>
+
         <div class="admin-card p-5">
             <div class="mb-4 flex items-center gap-2"><x-heroicon-o-funnel class="h-5 w-5 text-primary" /><div><h3 class="text-sm font-black text-slate-900">فیلتر و جستجو</h3><p class="mt-1 text-[11px] text-slate-400">آگهی موردنظر را بر اساس عنوان، کاربر یا وضعیت پیدا کنید.</p></div></div>
             <form method="GET" class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto]">
                 <div class="relative"><x-heroicon-o-magnifying-glass class="pointer-events-none absolute right-3 top-3 h-5 w-5 text-slate-400" /><input name="q" value="{{ request('q') }}" placeholder="عنوان آگهی یا نام و موبایل کاربر" class="w-full rounded-xl border-slate-200 py-3 pr-10 text-sm focus:border-primary focus:ring-primary"></div>
                 <select name="status" class="rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary"><option value="">همه وضعیت‌ها</option>@foreach ($statuses as $item)<option value="{{ $item }}" @selected($status === $item)>{{ \App\Enums\ListingStatus::from($item)->label() }}</option>@endforeach</select>
-                <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-primary">اعمال فیلتر</button>
+                <div class="flex gap-2"><button class="flex-1 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-primary">اعمال فیلتر</button>@if (request()->hasAny(['q', 'status']))<a href="{{ route('admin.listings.index') }}" class="inline-flex items-center justify-center rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-200">پاک‌کردن</a>@endif</div>
             </form>
         </div>
 

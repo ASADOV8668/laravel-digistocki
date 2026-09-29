@@ -15,6 +15,10 @@ class ListingController extends Controller
     {
         $status = $request->input('status');
         $statuses = ['pending', 'approved', 'rejected', 'sold', 'expired'];
+        $statusCounts = Listing::query()
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
 
         $listings = Listing::with(['user', 'brand', 'phoneModel', 'primaryImage'])
             ->when(in_array($status, $statuses, true), fn (Builder $query) => $query->where('status', $status))
@@ -28,7 +32,7 @@ class ListingController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.listings.index', compact('listings', 'statuses', 'status'));
+        return view('admin.listings.index', compact('listings', 'statuses', 'status', 'statusCounts'));
     }
 
     public function approve(Listing $listing, ListingRules $rules)
