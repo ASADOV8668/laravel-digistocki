@@ -200,7 +200,7 @@ class ListingController extends Controller
         $relatedListings = Listing::query()
             ->published()
             ->whereKeyNot($listing->id)
-            ->with(['brand', 'phoneModel', 'primaryImage'])
+            ->with(['brand', 'phoneModel', 'primaryImage', 'attributeValues'])
             ->where(function (Builder $query) use ($listing, $attributePairs) {
                 $query->where('phone_model_id', $listing->phone_model_id)->orWhere('brand_id', $listing->brand_id);
                 if ($attributePairs->isNotEmpty()) {
