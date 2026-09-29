@@ -34,6 +34,14 @@ class PhaseEightyOneAdminAttributeOptionsTest extends TestCase
             ->post(route('admin.attributes.store'), [
                 'name' => 'رنگ‌های تست',
                 'type' => 'multi_select',
+                'options' => "،,\n",
+            ])
+            ->assertSessionHasErrors('options');
+
+        $this->actingAs($admin)
+            ->post(route('admin.attributes.store'), [
+                'name' => 'رنگ‌های تست',
+                'type' => 'multi_select',
                 'options' => "قرمز، آبی, قرمز\nآبی",
             ])
             ->assertRedirect();

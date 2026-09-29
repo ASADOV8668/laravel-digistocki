@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attribute as ListingAttribute;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class AttributeController extends Controller
 {
@@ -43,7 +44,11 @@ class AttributeController extends Controller
     private function validated(Request $request, ?ListingAttribute $attribute = null): array
     {
         $data = $request->validate(['name' => ['required', 'string', 'max:100'], 'type' => ['required', Rule::enum(AttributeType::class)], 'unit' => ['nullable', 'string', 'max:20'], 'options' => ['nullable', 'string', Rule::requiredIf(fn () => in_array($request->input('type'), [AttributeType::Select->value, AttributeType::MultiSelect->value], true))], 'is_filterable' => ['nullable', 'boolean'], 'is_required' => ['nullable', 'boolean'], 'sort_order' => ['nullable', 'integer', 'min:0', 'max:65535']]);
-        $data['options'] = filled($data['options'] ?? null) ? collect(preg_split('/[,،\n]+/u', $data['options']))->map(fn ($option) => trim($option))->filter()->unique()->values()->all() : null;
+        $options = filled($data['options'] ?? null) ? collect(preg_split('/[,،\n]+/u', $data['options']))->map(fn ($option) => trim($option))->filter()->unique()->values()->all() : [];
+        if (in_array($data['type'], [AttributeType::Select->value, AttributeType::MultiSelect->value], true) && $options === []) {
+            throw ValidationException::withMessages(['options' => 'حداقل یک گزینه معتبر وارد کنید.']);
+        }
+        $data['options'] = $options ?: null;
         $data['is_filterable'] = $request->boolean('is_filterable');
         $data['is_required'] = $request->boolean('is_required');
         $data['sort_order'] = (int) ($data['sort_order'] ?? 0);
