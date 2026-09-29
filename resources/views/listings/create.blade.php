@@ -1,0 +1,55 @@
+<x-app-layout title="ثبت آگهی">
+    <x-slot name="header"><h1 class="text-xl font-black text-neutral">ثبت آگهی</h1></x-slot>
+    <section x-data='listingWizard(@js(url("/listings/models")), @js(url("/locations/provinces")), @js(old("phone_model_id")), @js($initialModelAttributes), @js(old("attributes", [])), @js(old("province_id")), @js(old("city_id")))' class="space-y-5 px-4 py-6">
+        @if ($errors->any())<div class="rounded-xl bg-error/10 p-4 text-sm font-bold text-error"><ul class="list-disc space-y-1 pr-5">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+
+        <div class="rounded-2xl bg-white p-4 shadow-sm">
+            <div class="flex items-center justify-between text-[11px] font-bold"><span :class="step >= 1 ? 'text-primary' : 'text-slate-400'">۱. مدل</span><span :class="step >= 2 ? 'text-primary' : 'text-slate-400'">۲. مشخصات</span><span :class="step >= 3 ? 'text-primary' : 'text-slate-400'">۳. اطلاعات</span><span :class="step >= 4 ? 'text-primary' : 'text-slate-400'">۴. ارسال</span></div>
+            <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full bg-primary transition-all duration-300" :style="`width: ${step * 25}%`"></div></div>
+        </div>
+
+        <form method="POST" action="{{ route('listings.store') }}" enctype="multipart/form-data" class="rounded-3xl bg-white p-5 shadow-sm">
+            @csrf
+            <div x-show="step === 1" x-cloak class="space-y-4">
+                <div><h2 class="text-lg font-black text-neutral">مدل گوشی را انتخاب کنید</h2><p class="mt-1 text-xs leading-6 text-slate-500">با انتخاب مدل، ویژگی‌های مخصوص همان دستگاه در مرحله بعد بارگذاری می‌شود.</p></div>
+                <div><label class="mb-2 block text-sm font-bold text-neutral">برند</label><select name="brand_id" required class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary"><option value="">انتخاب برند</option>@foreach ($brands as $brand)<option value="{{ $brand->id }}" @selected(old('brand_id') == $brand->id)>{{ $brand->name }} ({{ $brand->name_en }})</option>@endforeach</select></div>
+                <div><label class="mb-2 block text-sm font-bold text-neutral">مدل گوشی</label><select name="phone_model_id" x-model="modelId" @change="loadAttributes" required class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary"><option value="">انتخاب مدل</option>@foreach ($brands as $brand)<optgroup label="{{ $brand->name }} / {{ $brand->name_en }}">@foreach ($brand->phoneModels as $model)<option value="{{ $model->id }}">{{ $model->name_fa ?: $model->name }} — {{ $model->name_en ?: $model->name }}</option>@endforeach</optgroup>@endforeach</select></div>
+                <div class="rounded-xl bg-primary-50 p-3 text-xs leading-6 text-primary">انتخاب مدل، فرم مشخصات را دقیقاً مطابق کاتالوگ همان گوشی تنظیم می‌کند.</div>
+            </div>
+
+            <div x-show="step === 2" x-cloak class="space-y-4">
+                <div class="flex items-center justify-between"><div><h2 class="text-lg font-black text-neutral">مشخصات گوشی</h2><p class="mt-1 text-xs text-slate-500">مقادیر مربوط به مدل انتخاب‌شده را وارد کنید.</p></div><span x-show="attributesLoading" class="text-xs text-slate-400">در حال بارگذاری...</span></div>
+                <div x-show="!attributesLoading && !attributes.length" class="rounded-xl bg-warning/10 p-3 text-xs leading-6 text-neutral">برای این مدل هنوز ویژگی‌ای تعریف نشده است.</div>
+                <div x-show="!attributesLoading" class="space-y-3">
+                    <template x-for="attribute in attributes" :key="attribute.id">
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-neutral"><span x-text="attribute.name"></span><span x-show="attribute.unit" x-text="` (${attribute.unit})`" class="mr-1 text-xs font-normal text-slate-400"></span><span x-show="attribute.is_required" class="text-error">*</span></label>
+                            <template x-if="attribute.type === 'boolean'"><label class="flex items-center gap-2 text-sm"><input type="checkbox" :name="`attributes[${attribute.id}]`" value="1" x-model="values[attribute.id]" class="rounded border-slate-300 text-primary focus:ring-primary"> دارد</label></template>
+                            <template x-if="attribute.type === 'select'"><select :name="`attributes[${attribute.id}]`" x-model="values[attribute.id]" :required="attribute.is_required" class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary"><option value="">انتخاب کنید</option><template x-for="option in attribute.options" :key="option"><option :value="option" x-text="option"></option></template></select></template>
+                            <template x-if="attribute.type === 'multi_select'"><select multiple :name="`attributes[${attribute.id}][]`" x-model="values[attribute.id]" :required="attribute.is_required" class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary"><template x-for="option in attribute.options" :key="option"><option :value="option" x-text="option"></option></template></select></template>
+                            <template x-if="attribute.type === 'integer' || attribute.type === 'decimal'"><input :name="`attributes[${attribute.id}]`" x-model="values[attribute.id]" :required="attribute.is_required" type="number" :step="attribute.type === 'decimal' ? '0.01' : '1'" class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary"></template>
+                            <template x-if="attribute.type === 'string'"><input :name="`attributes[${attribute.id}]`" x-model="values[attribute.id]" :required="attribute.is_required" type="text" class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary"></template>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <div x-show="step === 3" x-cloak class="space-y-4">
+                <div><h2 class="text-lg font-black text-neutral">اطلاعات آگهی</h2><p class="mt-1 text-xs text-slate-500">عنوان روشن، قیمت دقیق و موقعیت آگهی باعث اعتماد بیشتر خریدار می‌شود.</p></div>
+                <div><label class="mb-2 block text-sm font-bold text-neutral">عنوان آگهی</label><input name="title" value="{{ old('title') }}" required class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary" placeholder="مثلاً آیفون ۱۳ پرو تمیز"></div>
+                <div><label class="mb-2 block text-sm font-bold text-neutral">قیمت (تومان)</label><input name="price" value="{{ old('price') }}" required type="number" min="0" class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary"></div>
+                <label class="flex items-center gap-2 text-sm font-bold text-neutral"><input name="is_negotiable" value="1" type="checkbox" @checked(old('is_negotiable')) class="rounded border-slate-300 text-primary focus:ring-primary"> قیمت قابل مذاکره است</label>
+                <div class="grid grid-cols-2 gap-2"><div><label class="mb-2 block text-sm font-bold text-neutral">استان</label><select name="province_id" x-model="provinceId" @change="loadCities" class="w-full rounded-xl border-slate-200 text-sm"><option value="">انتخاب استان</option>@foreach ($provinces as $province)<option value="{{ $province->id }}">{{ $province->name }}</option>@endforeach</select></div><div><label class="mb-2 block text-sm font-bold text-neutral">شهر</label><select name="city_id" x-model="cityId" :disabled="!provinceId || citiesLoading" class="w-full rounded-xl border-slate-200 text-sm"><option value="">انتخاب شهر</option><template x-for="city in cities" :key="city.id"><option :value="city.id" x-text="city.name"></option></template></select></div></div>
+                <div><label class="mb-2 block text-sm font-bold text-neutral">توضیحات</label><textarea name="description" rows="5" class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary" placeholder="وضعیت گوشی، لوازم همراه و شرایط فروش را بنویسید">{{ old('description') }}</textarea></div>
+            </div>
+
+            <div x-show="step === 4" x-cloak class="space-y-4">
+                <div><h2 class="text-lg font-black text-neutral">تصاویر و ارسال</h2><p class="mt-1 text-xs leading-6 text-slate-500">حداکثر ۸ تصویر، هر تصویر حداکثر {{ $maxImageUploadMb }} مگابایت. تصویر اول به‌عنوان تصویر اصلی نمایش داده می‌شود.</p></div>
+                <input type="file" name="images[]" multiple accept=".jpg,.jpeg,.png,.webp" class="block w-full rounded-xl border border-slate-200 p-2 text-sm">
+                <div class="rounded-xl bg-warning/10 p-4 text-xs leading-7 text-neutral">آگهی پس از ارسال در وضعیت «در انتظار بررسی» قرار می‌گیرد و پس از تأیید ادمین در سایت نمایش داده می‌شود.</div>
+            </div>
+
+            <div class="mt-6 flex gap-2 border-t border-slate-100 pt-4"><button type="button" x-show="step > 1" @click="previous" class="rounded-xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-slate-50">مرحله قبل</button><button type="button" x-show="step < 4" @click="next" :disabled="step === 1 && !modelId" class="mobile-button flex-1 bg-neutral text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40">مرحله بعد</button><button type="submit" x-show="step === 4" class="mobile-button flex-1 bg-primary text-white hover:bg-primary-600">ارسال برای بررسی</button></div>
+        </form>
+    </section>
+</x-app-layout>

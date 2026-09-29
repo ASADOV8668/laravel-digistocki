@@ -1,0 +1,11 @@
+{
+  "name": "Digistocki",
+  "short_name": "Digistocki",
+  "start_url": "./",
+  "display": "standalone",
+  "dir": "rtl",
+  "lang": "fa",
+  "theme_color": "#eb073f",
+  "background_color": "#f8fafc",
+  "icons": [{ "src": "images/logo-header.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

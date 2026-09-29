@@ -1,0 +1,7 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # The project is served from /app while Laravel's front controller lives in /app/public.
+    RewriteCond %{REQUEST_URI} !^/app/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
