@@ -1,0 +1,23 @@
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('../fonts/Vazirmatn[wght].woff2') format('woff2 supports variations'), url('../fonts/Vazirmatn[wght].woff2') format('woff2-variations');
+    font-weight: 100 900;
+    font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[x-cloak] { display: none !important; }
+
+@layer base {
+    html { direction: rtl; }
+    body { @apply bg-slate-50 text-slate-800; }
+}
+
+@layer components {
+    .admin-nav-link { @apply flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-300 transition-all duration-200 hover:bg-white/10 hover:text-white; }
+    .admin-nav-link-active { @apply bg-primary text-white shadow-lg shadow-primary/20; }
+    .admin-card { @apply rounded-2xl border border-slate-100 bg-white shadow-sm; }
+}

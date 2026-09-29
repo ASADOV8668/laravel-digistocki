@@ -257,6 +257,14 @@ npm run build
 - نمایش تعداد گزارش‌های حل‌شده در کنار گزارش‌های باز؛
 - لینک مستقیم هر وضعیت به فهرست فیلترشده‌ی آگهی‌های مدیریت.
 
+## فاز ۱۸: بازطراحی رابط مدیریت و نمودارهای Chart.js
+
+- بازطراحی کامل Shell پنل مدیریت به‌صورت RTL و واکنش‌گرا با Sidebar، Header و کارت‌های مدیریتی مدرن؛
+- استفاده از ساختار بصری TailAdmin فقط در بخش مدیریت، بدون تغییر در UI سایت عمومی؛
+- جداسازی assetهای مدیریت در `resources/css/admin.css` و `resources/js/admin.js`؛
+- جایگزینی نمودار قبلی داشبورد با نمودار خطی Chart.js برای روند ثبت آگهی در ۷ روز اخیر؛
+- افزودن Chart.js به وابستگی‌های فرانت‌اند و اتصال ورودی‌های جداگانه‌ی مدیریت به Vite.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -274,10 +282,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۱۷:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۱۸:
 
 - ۸۲ تست موفق
 - ۳۱۲ assertion موفق
 - ۰ شکست
 
-تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php` و فاز هفدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php` قرار دارند.
+تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php` و فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php` قرار دارند.
