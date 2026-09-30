@@ -14,7 +14,7 @@ class PhaseOneHundredThirtyOneMobileOtpAuthTest extends TestCase
 
     public function test_unknown_mobile_is_verified_then_registered_without_a_password(): void
     {
-        $this->post(route('register'), ['mobile' => '+98 912 444 5566'])->assertRedirect(route('register'));
+        $this->post(route('register'), ['mobile' => '09124445566'])->assertRedirect(route('register'));
         $otp = MobileOtp::latest()->firstOrFail();
         $this->assertSame('register', $otp->purpose);
 

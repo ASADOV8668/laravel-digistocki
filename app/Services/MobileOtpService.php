@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Helpers\SmsHelper;
 use App\Models\MobileOtp;
+use App\Support\OtpCode;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -13,7 +14,7 @@ class MobileOtpService
 
     public function issue(string $mobile, string $purpose): ?MobileOtp
     {
-        $code = (string) random_int(100000, 999999);
+        $code = OtpCode::generate();
         $expiresAt = now()->addMinutes(app(SystemOptions::class)->otpExpiryMinutes());
 
         if (! SmsHelper::send($mobile, "کد تأیید شما: {$code}", compact('mobile', 'purpose', 'expiresAt'))) {

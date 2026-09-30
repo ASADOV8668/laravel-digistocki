@@ -12,12 +12,12 @@ class PhaseFifteenMobileAuthTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_user_can_login_with_mobile_and_iranian_international_prefix(): void
+    public function test_user_can_login_with_mobile_and_local_iranian_format(): void
     {
         $user = User::factory()->create(['mobile' => '09121234567']);
 
         $this->post(route('login'), [
-            'login' => '+98 912 123 4567',
+            'login' => '09121234567',
             'password' => 'password',
         ])->assertRedirect(route('dashboard', absolute: false));
 
@@ -38,7 +38,7 @@ class PhaseFifteenMobileAuthTest extends TestCase
 
     public function test_user_can_register_with_mobile_only(): void
     {
-        $this->post(route('register'), ['mobile' => '+98 912 111 2233'])->assertRedirect(route('register'));
+        $this->post(route('register'), ['mobile' => '09121112233'])->assertRedirect(route('register'));
         MobileOtp::latest()->firstOrFail()->update(['code_hash' => Hash::make('123456')]);
         $this->post(route('register.otp.verify'), ['mobile' => '09121112233', 'otp' => '123456'])->assertRedirect(route('register'));
         $this->post(route('register'), ['name' => 'کاربر موبایلی'])->assertRedirect(route('home'));

@@ -261,7 +261,7 @@ class ListingController extends Controller
     public function verifyContactOtp(Request $request, Listing $listing, ContactOtpService $otpService)
     {
         $this->authorize('view', $listing);
-        $validated = $request->validate(['otp' => ['required', 'digits:6']]);
+        $validated = $request->validate(['otp' => ['required', 'digits_between:5,6']]);
         if (! $otpService->verify($request->user(), $listing, $validated['otp'])) {
             return back()->withErrors(['otp' => 'کد واردشده نادرست یا منقضی شده است.']);
         }

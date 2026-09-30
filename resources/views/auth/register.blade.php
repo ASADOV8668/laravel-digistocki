@@ -5,14 +5,14 @@
 
     @if ($step === 'mobile')
         <form method="POST" action="{{ route('register') }}" class="space-y-5">@csrf
-            <div><x-input-label for="mobile" value="شماره موبایل" /><x-text-input id="mobile" class="mt-2 block w-full" type="tel" name="mobile" :value="old('mobile')" required autofocus autocomplete="tel" inputmode="tel" dir="ltr" placeholder="09120000000" /><p class="mt-1 text-[11px] text-slate-400">فرمت ایران مانند 09121234567 یا +989121234567</p><x-input-error :messages="$errors->get('mobile')" class="mt-2" /></div>
+            <div><x-input-label for="mobile" value="شماره موبایل" /><x-text-input id="mobile" class="mt-2 block w-full" type="tel" name="mobile" :value="old('mobile')" required autofocus autocomplete="tel" inputmode="tel" dir="ltr" placeholder="09301303005" /><p class="mt-1 text-[11px] text-slate-400">فرمت مجاز: دقیقاً ۱۱ رقم و با ۰۹، مانند 09301303005</p><x-input-error :messages="$errors->get('mobile')" class="mt-2" /></div>
             <button class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-arrow-left-on-rectangle class="h-5 w-5" />دریافت کد تأیید</button>
         </form>
     @elseif ($step === 'otp')
         <form method="POST" action="{{ route('register.otp.verify') }}" class="space-y-5">@csrf
             <input type="hidden" name="mobile" value="{{ $mobile }}">
             <div class="rounded-xl bg-slate-50 px-4 py-3 text-center text-sm font-bold text-slate-700" dir="ltr">{{ $mobile }}</div>
-            <div><x-input-label for="otp" value="رمز یکبار مصرف" /><x-text-input id="otp" class="mt-2 block w-full text-center tracking-[0.5em]" type="text" name="otp" required autofocus inputmode="numeric" maxlength="6" dir="ltr" placeholder="------" /><x-input-error :messages="$errors->get('otp')" class="mt-2" /></div>
+            <div><x-input-label for="otp" value="رمز یکبار مصرف" /><x-text-input id="otp" class="mt-2 block w-full text-center tracking-[0.5em]" type="text" name="otp" required autofocus inputmode="numeric" maxlength="5" dir="ltr" placeholder="00000" /><x-input-error :messages="$errors->get('otp')" class="mt-2" /></div>
             <p class="text-center text-xs font-bold text-slate-500">اعتبار کد: <span id="otp-countdown" data-expires-at="{{ $otpExpiresAt }}" class="text-primary">در حال محاسبه...</span></p>
             <button class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-check-circle class="h-5 w-5" />تأیید شماره موبایل</button>
         </form>

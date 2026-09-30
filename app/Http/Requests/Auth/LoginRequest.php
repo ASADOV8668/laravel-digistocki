@@ -28,8 +28,15 @@ class LoginRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $mobile = MobileNumber::normalize($this->input('mobile') ?? $this->input('login'));
+        $mobile = MobileNumber::normalizeLocal($this->input('mobile') ?? $this->input('login'));
         $this->merge(['mobile' => $mobile ?? trim((string) ($this->input('mobile') ?? $this->input('login')))]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'mobile.regex' => 'شماره موبایل باید دقیقاً ۱۱ رقم و با ۰۹ شروع شود؛ استفاده از ۹۸ یا + مجاز نیست.',
+        ];
     }
 
     public function authenticate(): void

@@ -6,6 +6,7 @@ use App\Helpers\SmsHelper;
 use App\Models\ContactOtp;
 use App\Models\Listing;
 use App\Models\User;
+use App\Support\OtpCode;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -18,7 +19,7 @@ class ContactOtpService
 
     public function issue(User $user, Listing $listing): ?ContactOtp
     {
-        $code = (string) random_int(100000, 999999);
+        $code = OtpCode::generate();
         $expiresAt = now()->addMinutes(app(SystemOptions::class)->otpExpiryMinutes());
         $sent = SmsHelper::send($user->mobile, "کد تأیید شما: {$code}", [
             'user_id' => $user->id,

@@ -59,8 +59,11 @@ class AuthenticatedSessionController extends Controller
 
     public function requestOtp(Request $request, MobileOtpService $otpService): RedirectResponse
     {
-        $request->merge(['mobile' => MobileNumber::normalize($request->input('mobile'))]);
-        $validated = $request->validate(['mobile' => ['required', 'regex:/^09\d{9}$/']]);
+        $request->merge(['mobile' => MobileNumber::normalizeLocal($request->input('mobile'))]);
+        $validated = $request->validate(
+            ['mobile' => ['required', 'regex:/^09\d{9}$/']],
+            ['mobile.regex' => 'شماره موبایل باید دقیقاً ۱۱ رقم و با ۰۹ شروع شود؛ استفاده از ۹۸ یا + مجاز نیست.']
+        );
         $user = User::query()->where('mobile', $validated['mobile'])->where('is_active', true)->first();
         if (! $user) {
             return back()->withErrors(['mobile' => 'این شماره در سامانه پیدا نشد؛ ابتدا ثبت‌نام کنید.']);
@@ -79,8 +82,14 @@ class AuthenticatedSessionController extends Controller
 
     public function verifyOtp(Request $request, MobileOtpService $otpService): RedirectResponse
     {
-        $request->merge(['mobile' => MobileNumber::normalize($request->input('mobile'))]);
-        $validated = $request->validate(['mobile' => ['required', 'regex:/^09\d{9}$/'], 'otp' => ['required', 'digits:6']]);
+        $request->merge(['mobile' => MobileNumber::normalizeLocal($request->input('mobile'))]);
+        $validated = $request->validate(
+            ['mobile' => ['required', 'regex:/^09\d{9}$/'], 'otp' => ['required', 'digits_between:5,6']],
+            [
+                'mobile.regex' => 'شماره موبایل باید دقیقاً ۱۱ رقم و با ۰۹ شروع شود؛ استفاده از ۹۸ یا + مجاز نیست.',
+                'otp.digits_between' => 'کد تأیید باید ۵ رقم باشد.',
+            ]
+        );
         abort_unless($request->session()->get('login_otp_mobile') === $validated['mobile'], 422, 'درخواست OTP معتبر نیست.');
 
         if (! $otpService->verify($validated['mobile'], 'login', $validated['otp'])) {
