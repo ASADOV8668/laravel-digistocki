@@ -63,6 +63,7 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::post('/listings', [AdminListingController::class, 'store'])->name('admin.listings.store');
     Route::get('/listings/{listing}/edit', [AdminListingController::class, 'edit'])->name('admin.listings.edit');
     Route::put('/listings/{listing}', [AdminListingController::class, 'update'])->name('admin.listings.update');
+    Route::delete('/listings/{listing}/images/{image}', [AdminListingController::class, 'deleteImage'])->name('admin.listings.images.destroy');
     Route::get('/users/search', [AdminListingController::class, 'userSearch'])->middleware('throttle:60,1')->name('admin.users.search');
     Route::patch('/listings/{listing}/approve', [AdminListingController::class, 'approve'])->name('admin.listings.approve');
     Route::patch('/listings/{listing}/reject', [AdminListingController::class, 'reject'])->name('admin.listings.reject');

@@ -10,6 +10,7 @@ use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Listing;
 use App\Models\ListingAttributeValue;
+use App\Models\ListingImage;
 use App\Models\PhoneModel;
 use App\Models\User;
 use App\Notifications\ListingStatusNotification;
@@ -87,6 +88,19 @@ class ListingController extends Controller
         }
 
         return redirect()->route('admin.listings.index')->with('status', 'تغییرات آگهی ذخیره و برای بررسی ارسال شد.');
+    }
+
+    public function deleteImage(Listing $listing, ListingImage $image, ImageService $imageService)
+    {
+        abort_unless($image->listing_id === $listing->id, 404);
+        $wasPrimary = (bool) $image->is_primary;
+        $imageService->delete($image->path, $image->thumbnail_path);
+        $image->delete();
+        if ($wasPrimary && ($replacement = $listing->images()->first())) {
+            $replacement->forceFill(['is_primary' => true])->save();
+        }
+
+        return back()->with('status', 'تصویر آگهی حذف شد.');
     }
 
     public function userSearch(Request $request)
