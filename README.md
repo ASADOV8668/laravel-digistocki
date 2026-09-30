@@ -925,6 +925,14 @@ npm run build
 - نمایش وضعیت `SKIP` در خروجی متنی برای جلوگیری از برداشت اشتباه از نتیجه؛
 - اضافه‌شدن تست regression برای هر دو mode.
 
+## فاز ۱۱۳: کنترل کیفیت خودکار
+
+- اضافه‌شدن workflow گیت‌هاب در `.github/workflows/ci.yml`؛
+- اجرای `composer validate` و نصب dependencyهای PHP؛
+- اجرای کل تست‌های Laravel روی SQLite و PHP 8.2؛
+- اجرای `npm ci` و build assetهای فرانت؛
+- اجرای portable health check بعد از تست و build.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
