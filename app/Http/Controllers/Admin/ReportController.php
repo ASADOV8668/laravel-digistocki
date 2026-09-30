@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 
 class ReportController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, ReportRules $reportRules)
     {
         $status = $request->input('status');
         $status = is_string($status) && array_key_exists($status, ReportRules::STATUSES) ? $status : null;
@@ -26,7 +26,11 @@ class ReportController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.reports.index', compact('reports', 'reportStats'));
+        $reportStatusOptions = $reports->getCollection()
+            ->mapWithKeys(fn (Report $report) => [$report->id => $reportRules->availableStatuses($report)])
+            ->all();
+
+        return view('admin.reports.index', compact('reports', 'reportStats', 'reportStatusOptions'));
     }
 
     public function updateStatus(Request $request, Report $report, ReportRules $reportRules)
