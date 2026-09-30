@@ -20,7 +20,19 @@ class ListingLifecycleService
             ->with('user')
             ->chunkById(100, function ($listings) use (&$expired) {
                 foreach ($listings as $listing) {
-                    $listing->forceFill(['status' => ListingStatus::Expired])->save();
+                    $changed = Listing::query()
+                        ->whereKey($listing->getKey())
+                        ->where('status', ListingStatus::Approved)
+                        ->update([
+                            'status' => ListingStatus::Expired,
+                            'updated_at' => now(),
+                        ]);
+
+                    if ($changed !== 1) {
+                        continue;
+                    }
+
+                    $listing->forceFill(['status' => ListingStatus::Expired]);
                     $listing->user->notify(new ListingStatusNotification($listing, 'expired'));
                     $expired++;
                 }
