@@ -24,6 +24,7 @@ class PhaseEightyThreePwaAssetsTest extends TestCase
         $serviceWorker = file_get_contents(public_path('sw.js'));
         $this->assertStringContainsString("'./images/logo-192.png'", $serviceWorker);
         $this->assertStringContainsString("'./images/logo-512.png'", $serviceWorker);
+        $this->assertStringContainsString("'./images/logo.png'", $serviceWorker);
         $this->assertStringContainsString("'./favicon.ico'", $serviceWorker);
     }
 }

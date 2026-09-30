@@ -11,7 +11,7 @@ class PhaseEightyFourLegacyNavigationIconsTest extends TestCase
         $logo = file_get_contents(resource_path('views/components/application-logo.blade.php'));
         $navigation = file_get_contents(resource_path('views/layouts/navigation.blade.php'));
 
-        $this->assertStringContainsString('images/logo-header.svg', $logo);
+        $this->assertStringContainsString('images/logo.png', $logo);
         $this->assertStringNotContainsString('<svg', $logo);
         $this->assertStringContainsString('x-heroicon-o-chevron-down', $navigation);
         $this->assertStringContainsString('x-heroicon-o-bars-3', $navigation);

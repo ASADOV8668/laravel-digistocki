@@ -1,7 +1,10 @@
 {
-  "name": "Digistocki",
-  "short_name": "Digistocki",
+  "name": "دیجی استوک",
+  "short_name": "دیجی استوک",
+  "id": "./",
   "start_url": "./",
+  "scope": "./",
+  "description": "خرید و فروش مطمئن موبایل با آگهی‌های بررسی‌شده",
   "display": "standalone",
   "dir": "rtl",
   "lang": "fa",

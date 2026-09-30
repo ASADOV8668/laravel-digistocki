@@ -1,8 +1,8 @@
-const CACHE_NAME = 'digistocki-shell-v2';
+const CACHE_NAME = 'digistocki-shell-v3';
 const SHELL_ASSETS = [
     './',
     './manifest.json',
-    './images/logo-header.svg',
+    './images/logo.png',
     './images/logo-192.png',
     './images/logo-512.png',
     './favicon.ico',
