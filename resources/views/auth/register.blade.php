@@ -13,7 +13,7 @@
             <input type="hidden" name="mobile" value="{{ $mobile }}">
             <div class="rounded-xl bg-slate-50 px-4 py-3 text-center text-sm font-bold text-slate-700" dir="ltr">{{ $mobile }}</div>
             <div><x-input-label for="otp" value="رمز یکبار مصرف" /><x-text-input id="otp" class="mt-2 block w-full text-center tracking-[0.5em]" type="text" name="otp" required autofocus inputmode="numeric" maxlength="5" dir="ltr" placeholder="00000" /><x-input-error :messages="$errors->get('otp')" class="mt-2" /></div>
-            <p class="text-center text-xs font-bold text-slate-500">اعتبار کد: <span id="otp-countdown" data-expires-at="{{ $otpExpiresAt }}" class="text-primary">در حال محاسبه...</span></p>
+            <p class="text-center text-xs font-bold text-slate-500">اعتبار کد: <span id="otp-countdown" role="timer" aria-live="polite" aria-atomic="true" data-expires-at="{{ $otpExpiresAt }}" class="text-primary">در حال محاسبه...</span></p>
             <button class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-check-circle class="h-5 w-5" />تأیید شماره موبایل</button>
         </form>
     @else
