@@ -29,6 +29,7 @@ Route::get('/support', [SupportController::class, 'index'])->name('support.index
 Route::get('/listings', [ListingController::class, 'index'])->name('listings.index');
 Route::get('/listings/autocomplete', [ListingController::class, 'autocomplete'])->middleware('throttle:60,1')->name('listings.autocomplete');
 Route::get('/listings/search/suggestions', [ListingController::class, 'searchSuggestions'])->middleware('throttle:60,1')->name('listings.search.suggestions');
+Route::get('/listings/models', [ListingController::class, 'models'])->middleware('throttle:60,1')->name('listings.models');
 Route::get('/listings/models/{phoneModel}/attributes', [ListingController::class, 'modelAttributes'])->middleware('throttle:60,1')->name('listings.models.attributes');
 Route::get('/locations/provinces/{province}/cities', [ListingController::class, 'cities'])->middleware('throttle:60,1')->name('locations.provinces.cities');
 Route::get('/listings/create', [ListingController::class, 'create'])->middleware(['auth', 'active'])->name('listings.create');

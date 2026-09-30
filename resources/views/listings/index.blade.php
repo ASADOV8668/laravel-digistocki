@@ -1,7 +1,7 @@
 <x-app-layout title="جستجوی آگهی‌ها">
     <x-slot name="header"><h1 class="text-xl font-black text-neutral">جستجوی آگهی‌ها</h1></x-slot>
 
-    <section x-data='listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js(url("/locations/provinces")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])), @js(request("province_id")), @js(request("city_id")), @js(request("q")), @js(request("brand_id")), @js(request("min_price")), @js(request("max_price")), @js($sort))' class="space-y-6 px-4 py-6">
+    <section x-data='listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js(url("/listings/models")), @js(url("/locations/provinces")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])), @js(request("province_id")), @js(request("city_id")), @js(request("q")), @js(request("brand_id")), @js(request("min_price")), @js(request("max_price")), @js($sort))' class="space-y-6 px-4 py-6">
         <div class="flex items-end justify-between gap-3"><div><p class="text-xs font-bold text-primary">بازار موبایل</p><h1 class="mt-1 text-2xl font-black text-neutral">جستجوی آگهی‌ها</h1><p class="mt-1 text-xs text-slate-400">مدل و ویژگی‌های مناسب خودت را مرحله‌به‌مرحله انتخاب کن.</p></div><span class="rounded-full bg-primary-50 px-3 py-1.5 text-[11px] font-black text-primary">{{ number_format($listings->total()) }} نتیجه</span></div>
         <button type="button" @click="filtersOpen = true" :aria-expanded="filtersOpen.toString()" aria-controls="listing-filters" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-neutral px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-neutral-800 md:hidden">
             <x-heroicon-o-adjustments-horizontal class="h-5 w-5" /> فیلتر و جستجو
@@ -55,12 +55,13 @@
                         <input type="hidden" name="brand_id" x-model="selectedBrandId" />
                         <div>
                             <label for="listing-model" class="mb-1 block text-xs font-bold text-slate-600">مدل گوشی</label>
-                            <select id="listing-model" name="phone_model_id" x-model="selectedModelId" @change="selectModelId($event.target.value)" class="w-full rounded-2xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary">
+                            <select id="listing-model" name="phone_model_id" x-model="selectedModelId" @change="selectModelId($event.target.value)" :disabled="modelsLoading" class="w-full rounded-2xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary disabled:bg-slate-100">
                                 <option value="">همه مدل‌ها</option>
-                                @foreach ($models as $model)
-                                    <option value="{{ $model->id }}">{{ $model->brand->name }} · {{ $model->name_fa ?: $model->name }}{{ $model->name_en ? ' / '.$model->name_en : '' }}</option>
-                                @endforeach
+                                <template x-for="model in models" :key="model.id">
+                                    <option :value="model.id" x-text="`${model.brand} · ${model.label}${model.secondary ? ` / ${model.secondary}` : ''}`"></option>
+                                </template>
                             </select>
+                            <span x-show="modelsLoading" class="mt-1 block text-[10px] text-slate-400">در حال بارگذاری مدل‌ها...</span>
                         </div>
 
                         <div class="grid grid-cols-2 gap-2">

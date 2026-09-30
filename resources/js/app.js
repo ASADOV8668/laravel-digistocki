@@ -320,8 +320,9 @@ window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     },
 });
 
-window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '', initialMinPrice = '', initialMaxPrice = '', initialSort = 'newest') => ({
+window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '', initialMinPrice = '', initialMaxPrice = '', initialSort = 'newest') => ({
     suggestionsEndpoint,
+    modelsEndpoint,
     attributesEndpoint,
     citiesEndpoint,
     query: initialQuery || '',
@@ -335,6 +336,8 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint,
     cities: [],
     citiesLoading: false,
     suggestions: { brands: [], models: [] },
+    models: [],
+    modelsLoading: false,
     attributes: initialAttributes || [],
     filters: initialFilters || {},
     loading: false,
@@ -343,10 +346,37 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint,
     filtersOpen: false,
     searchTimer: null,
     requestController: null,
+    modelsController: null,
     citiesController: null,
 
     init() {
+        this.loadModels(this.selectedBrandId);
         if (this.provinceId) this.loadCities(false);
+    },
+
+    async loadModels(brandId = '') {
+        this.modelsController?.abort();
+        const controller = new AbortController();
+        this.modelsController = controller;
+        this.modelsLoading = true;
+        const params = new URLSearchParams();
+        if (brandId) params.set('brand_id', brandId);
+
+        try {
+            const response = await fetch(`${this.modelsEndpoint}?${params.toString()}`, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: controller.signal,
+            });
+            if (!response.ok) throw new Error('Model request failed');
+            this.models = await response.json();
+        } catch (error) {
+            if (error.name !== 'AbortError') this.models = [];
+        } finally {
+            if (this.modelsController === controller) {
+                this.modelsController = null;
+                this.modelsLoading = false;
+            }
+        }
     },
 
     async loadCities(resetCity = true) {
@@ -422,7 +452,7 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint,
         }
     },
 
-    selectBrand(brand) {
+    async selectBrand(brand) {
         this.selectedBrandId = brand.id;
         this.selectedModelId = '';
         this.query = brand.label;
@@ -430,6 +460,7 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint,
         this.filters = {};
         this.cancelSuggestionRequest();
         this.open = false;
+        await this.loadModels(brand.id);
     },
 
     async selectModel(model) {
@@ -443,8 +474,9 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint,
     },
 
     async selectModelId(modelId) {
+        const model = this.models.find((item) => String(item.id) === String(modelId));
         this.selectedModelId = modelId;
-        this.selectedBrandId = '';
+        this.selectedBrandId = model?.brand_id || '';
         this.filters = {};
         await this.loadAttributes();
     },
@@ -475,6 +507,10 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint,
         this.query = '';
         this.selectedBrandId = '';
         this.selectedModelId = '';
+        this.modelsController?.abort();
+        this.modelsController = null;
+        this.modelsLoading = false;
+        this.models = [];
         this.provinceId = '';
         this.cityId = '';
         this.minPrice = '';
@@ -489,6 +525,7 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint,
         this.suggestions = { brands: [], models: [] };
         this.cancelSuggestionRequest();
         this.open = false;
+        this.loadModels();
     },
 });
 

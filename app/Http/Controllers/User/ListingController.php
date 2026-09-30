@@ -128,6 +128,35 @@ class ListingController extends Controller
         ])->values());
     }
 
+    public function models(Request $request)
+    {
+        $term = $this->normalizeSearchTerm((string) $request->input('q'));
+        $like = $term !== '' ? '%'.$term.'%' : null;
+
+        $models = PhoneModel::query()
+            ->where('is_active', true)
+            ->with('brand')
+            ->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId))
+            ->when($like !== null, function (Builder $query) use ($like) {
+                $query->where(function (Builder $query) use ($like) {
+                    $query->where('name', 'like', $like)
+                        ->orWhere('name_fa', 'like', $like)
+                        ->orWhere('name_en', 'like', $like)
+                        ->orWhereHas('brand', fn (Builder $brand) => $brand->where('name', 'like', $like)->orWhere('name_en', 'like', $like));
+                });
+            })
+            ->orderBy('name_fa')
+            ->get();
+
+        return response()->json($models->map(fn (PhoneModel $model) => [
+            'id' => $model->id,
+            'brand_id' => $model->brand_id,
+            'label' => $model->name_fa ?: $model->name,
+            'secondary' => $model->name_en ?: $model->name,
+            'brand' => $model->brand?->name,
+        ])->values());
+    }
+
     public function cities(Province $province)
     {
         return response()->json($province->cities()->orderBy('name')->get(['id', 'name', 'province_id']));
@@ -214,7 +243,6 @@ class ListingController extends Controller
         return view('listings.index', [
             'listings' => $query->paginate(12)->withQueryString(),
             'brands' => Brand::query()->where('is_active', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
-            'models' => PhoneModel::query()->where('is_active', true)->with('brand')->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId))->orderBy('name')->get(),
             'attributes' => Attribute::query()->where('is_active', true)->where('is_filterable', true)->orderBy('sort_order')->get(),
             'selectedModel' => $selectedModel,
             'filterAttributesPayload' => $filterAttributesPayload,
