@@ -16,6 +16,7 @@ use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\ListingController;
 use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\User\ReportController as UserReportController;
+use App\Http\Controllers\User\StorefrontController;
 use App\Http\Controllers\User\SupportController;
 use Illuminate\Support\Facades\Route;
 
@@ -49,6 +50,8 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::delete('/listings/{listing:slug}/images/{image}', [ListingController::class, 'destroyImage'])->name('listings.images.destroy');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/my-store', [StorefrontController::class, 'edit'])->name('storefront.edit');
+    Route::put('/my-store', [StorefrontController::class, 'update'])->name('storefront.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');

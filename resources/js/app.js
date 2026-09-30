@@ -142,6 +142,38 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint) => ({
     },
 });
 
+window.storefrontLocation = (citiesEndpoint, initialProvinceId = '', initialCityId = '') => ({
+    citiesEndpoint,
+    provinceId: initialProvinceId || '',
+    cityId: initialCityId || '',
+    cities: [],
+    citiesLoading: false,
+
+    init() {
+        if (this.provinceId) this.loadCities(false);
+    },
+
+    async loadCities(resetCity = true) {
+        if (resetCity) this.cityId = '';
+        this.cities = [];
+
+        if (!this.provinceId) return;
+
+        this.citiesLoading = true;
+        try {
+            const response = await fetch(`${this.citiesEndpoint}/${this.provinceId}/cities`, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            if (!response.ok) throw new Error('City request failed');
+            this.cities = await response.json();
+        } catch {
+            this.cities = [];
+        } finally {
+            this.citiesLoading = false;
+        }
+    },
+});
+
 window.pullToRefresh = () => ({
     startY: 0,
     distance: 0,
