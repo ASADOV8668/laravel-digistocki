@@ -5,14 +5,14 @@
 
     @if ($step === 'mobile')
         <form method="POST" action="{{ route('login') }}" class="space-y-5">@csrf
-            <div><x-input-label for="mobile" value="شماره موبایل" /><x-text-input id="mobile" class="mt-2 block w-full" type="tel" name="mobile" :value="old('mobile')" required autofocus autocomplete="tel" inputmode="tel" dir="ltr" placeholder="09301303005" /><p class="mt-1 text-[11px] text-slate-400">فرمت مجاز: دقیقاً ۱۱ رقم و با ۰۹، مانند 09301303005</p><x-input-error :messages="$errors->get('mobile')" class="mt-2" /></div>
+            <div><x-input-label for="mobile" value="شماره موبایل" /><x-text-input id="mobile" aria-describedby="mobile-help mobile-error" class="mt-2 block w-full" type="tel" name="mobile" :value="old('mobile')" required autofocus autocomplete="tel" inputmode="tel" dir="ltr" placeholder="09301303005" /><p id="mobile-help" class="mt-1 text-[11px] text-slate-400">فرمت مجاز: دقیقاً ۱۱ رقم و با ۰۹، مانند 09301303005</p><x-input-error id="mobile-error" :messages="$errors->get('mobile')" class="mt-2" /></div>
             <button class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-arrow-left-on-rectangle class="h-5 w-5" />ادامه</button>
         </form>
     @elseif ($step === 'password')
         <form method="POST" action="{{ route('login') }}" class="space-y-5">@csrf
             <input type="hidden" name="mobile" value="{{ $mobile }}">
             <div class="rounded-xl bg-slate-50 px-4 py-3 text-center text-sm font-bold text-slate-700" dir="ltr">{{ $mobile }}</div>
-            <div><x-input-label for="password" value="رمز عبور" /><x-text-input id="password" class="mt-2 block w-full" type="password" name="password" required autofocus autocomplete="current-password" /><x-input-error :messages="$errors->get('password')" class="mt-2" /></div>
+            <div><x-input-label for="password" value="رمز عبور" /><x-text-input id="password" aria-describedby="password-error" class="mt-2 block w-full" type="password" name="password" required autofocus autocomplete="current-password" /><x-input-error id="password-error" :messages="$errors->get('password')" class="mt-2" /></div>
             <label class="flex items-center gap-2 text-xs font-bold text-slate-500"><input type="checkbox" class="rounded border-slate-300 text-primary shadow-sm focus:ring-primary" name="remember"><span>مرا به خاطر بسپار</span></label>
             <button class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-lock-closed class="h-5 w-5" />ورود با رمز عبور</button>
         </form>
@@ -20,8 +20,8 @@
     @else
         <form method="POST" action="{{ route('login.otp.verify') }}" class="space-y-5">@csrf
             <input type="hidden" name="mobile" value="{{ $mobile }}">
-            <div><x-input-label for="otp" value="رمز یکبار مصرف" /><x-text-input id="otp" class="mt-2 block w-full text-center tracking-[0.5em]" type="text" name="otp" required autofocus inputmode="numeric" maxlength="5" dir="ltr" placeholder="00000" /><x-input-error :messages="$errors->get('otp')" class="mt-2" /></div>
-            <p class="text-center text-xs font-bold text-slate-500">اعتبار کد: <span id="otp-countdown" role="timer" aria-live="polite" aria-atomic="true" data-expires-at="{{ $otpExpiresAt }}" class="text-primary">در حال محاسبه...</span></p>
+            <div><x-input-label for="otp" value="رمز یکبار مصرف" /><x-text-input id="otp" aria-describedby="otp-expiry otp-error" class="mt-2 block w-full text-center tracking-[0.5em]" type="text" name="otp" required autofocus inputmode="numeric" maxlength="5" dir="ltr" placeholder="00000" /><x-input-error id="otp-error" :messages="$errors->get('otp')" class="mt-2" /></div>
+            <p id="otp-expiry" class="text-center text-xs font-bold text-slate-500">اعتبار کد: <span id="otp-countdown" role="timer" aria-live="polite" aria-atomic="true" data-expires-at="{{ $otpExpiresAt }}" class="text-primary">در حال محاسبه...</span></p>
             <button class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-check-circle class="h-5 w-5" />تأیید و ورود</button>
         </form>
         <form id="otp-resend-form" method="POST" action="{{ route('login.otp.request') }}" class="mt-3" hidden>@csrf<input type="hidden" name="mobile" value="{{ $mobile }}"><button type="submit" class="w-full rounded-xl border border-primary/20 bg-primary-50 px-4 py-3 text-sm font-black text-primary transition hover:bg-primary/10">ارسال مجدد کد</button></form>
