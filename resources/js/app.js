@@ -174,6 +174,35 @@ window.storefrontLocation = (citiesEndpoint, initialProvinceId = '', initialCity
     },
 });
 
+window.shareLink = (url) => ({
+    url,
+    copied: false,
+    async share() {
+        if (navigator.share) {
+            await navigator.share({ title: document.title, url: this.url });
+            return;
+        }
+
+        await this.copy();
+    },
+
+    async copy() {
+        try {
+            await navigator.clipboard.writeText(this.url);
+        } catch {
+            const input = document.createElement('input');
+            input.value = this.url;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            input.remove();
+        }
+
+        this.copied = true;
+        window.setTimeout(() => this.copied = false, 2000);
+    },
+});
+
 window.pullToRefresh = () => ({
     startY: 0,
     distance: 0,

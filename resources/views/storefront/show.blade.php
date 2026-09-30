@@ -68,6 +68,10 @@
                     @endif
                 </div>
             @endif
+            <div x-data='shareLink(@js(route("storefront.show", $store)))' class="mt-5 flex flex-wrap gap-2 border-t border-white/10 pt-4">
+                <button type="button" @click="share()" class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-black text-white transition hover:bg-primary-600"><x-heroicon-o-share class="h-4 w-4" />اشتراک‌گذاری غرفه</button>
+                <button type="button" @click="copy()" class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/15"><x-heroicon-o-clipboard-document class="h-4 w-4" /><span x-text="copied ? 'لینک کپی شد' : 'کپی لینک'">کپی لینک</span></button>
+            </div>
         </div>
 
         <div>
@@ -78,6 +82,11 @@
                 </div>
                 <span class="rounded-full bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-primary">{{ number_format($listings->total()) }} آگهی</span>
             </div>
+            <form method="GET" class="mb-4 flex gap-2">
+                <label for="storefront-search" class="sr-only">جستجو در آگهی‌های غرفه</label>
+                <input id="storefront-search" name="q" value="{{ request('q') }}" placeholder="جستجو در آگهی‌های این غرفه" class="min-w-0 flex-1 rounded-2xl border-0 bg-white text-sm ring-1 ring-slate-100 focus:ring-primary">
+                <button class="rounded-2xl bg-neutral px-4 py-3 text-xs font-black text-white"><x-heroicon-o-magnifying-glass class="h-4 w-4" /></button>
+            </form>
             @if ($listings->isNotEmpty())
                 <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
                     @foreach ($listings as $listing)
