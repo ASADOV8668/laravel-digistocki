@@ -350,6 +350,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     modelsController: null,
     resultsController: null,
     citiesController: null,
+    attributesController: null,
 
     init() {
         this.popstateHandler = () => this.fetchResults(window.location.href, 'none', true);
@@ -481,7 +482,10 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.suggestions = { brands: [], models: [] };
         await this.loadModels(this.selectedBrandId);
         if (this.selectedModelId) await this.loadAttributes();
-        else this.attributes = [];
+        else {
+            this.cancelAttributeRequest();
+            this.attributes = [];
+        }
         if (this.provinceId) await this.loadCities(false);
         else {
             this.cityId = '';
@@ -538,6 +542,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.selectedBrandId = brand.id;
         this.selectedModelId = '';
         this.query = brand.label;
+        this.cancelAttributeRequest();
         this.attributes = [];
         this.filters = {};
         this.cancelSuggestionRequest();
@@ -564,25 +569,39 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     },
 
     async loadAttributes() {
+        this.cancelAttributeRequest();
+
         if (!this.selectedModelId) {
             this.attributes = [];
             return;
         }
 
+        const controller = new AbortController();
+        this.attributesController = controller;
         this.attributesLoading = true;
 
         try {
             const response = await fetch(`${this.attributesEndpoint}/${this.selectedModelId}`, {
                 headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: controller.signal,
             });
 
             if (!response.ok) throw new Error('Attribute request failed');
             this.attributes = await response.json();
-        } catch {
-            this.attributes = [];
+        } catch (error) {
+            if (error.name !== 'AbortError') this.attributes = [];
         } finally {
-            this.attributesLoading = false;
+            if (this.attributesController === controller) {
+                this.attributesController = null;
+                this.attributesLoading = false;
+            }
         }
+    },
+
+    cancelAttributeRequest() {
+        this.attributesController?.abort();
+        this.attributesController = null;
+        this.attributesLoading = false;
     },
 
     reset() {
@@ -602,6 +621,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.citiesController = null;
         this.resultsController?.abort();
         this.resultsController = null;
+        this.cancelAttributeRequest();
         this.resultsLoading = false;
         this.citiesLoading = false;
         this.cities = [];
