@@ -1,6 +1,5 @@
-const CACHE_NAME = 'digistocki-shell-v4';
-const SHELL_ASSETS = [
-    './',
+const CACHE_NAME = 'digistocki-assets-v5';
+const STATIC_ASSETS = [
     './manifest.json',
     './images/logo.png',
     './images/logo-192.png',
@@ -12,7 +11,7 @@ const SHELL_ASSETS = [
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => cache.addAll(
-            SHELL_ASSETS.map((asset) => new URL(asset, self.registration.scope).toString()),
+            STATIC_ASSETS.map((asset) => new URL(asset, self.registration.scope).toString()),
         )),
     );
     self.skipWaiting();
@@ -21,7 +20,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) => Promise.all(
-            keys.filter((key) => key.startsWith('digistocki-shell-') && key !== CACHE_NAME)
+            keys.filter((key) => key.startsWith('digistocki-assets-') && key !== CACHE_NAME)
                 .map((key) => caches.delete(key)),
         )).then(() => self.clients.claim()),
     );
