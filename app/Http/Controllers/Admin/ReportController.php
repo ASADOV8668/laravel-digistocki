@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Report;
+use App\Services\ReportRules;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -25,9 +26,12 @@ class ReportController extends Controller
         return view('admin.reports.index', compact('reports', 'reportStats'));
     }
 
-    public function updateStatus(Request $request, Report $report)
+    public function updateStatus(Request $request, Report $report, ReportRules $reportRules)
     {
         $validated = $request->validate(['status' => ['required', Rule::in(['pending', 'reviewed', 'resolved', 'rejected'])]]);
+
+        abort_unless($reportRules->canTransition($report, $validated['status']), 422, 'این گزارش دیگر قابل تغییر نیست.');
+
         $report->update($validated);
 
         return back()->with('status', 'وضعیت گزارش به‌روزرسانی شد.');
