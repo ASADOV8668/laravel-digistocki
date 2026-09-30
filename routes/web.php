@@ -32,6 +32,7 @@ Route::get('/listings/models/{phoneModel}/attributes', [ListingController::class
 Route::get('/locations/provinces/{province}/cities', [ListingController::class, 'cities'])->middleware('throttle:60,1')->name('locations.provinces.cities');
 Route::get('/listings/create', [ListingController::class, 'create'])->middleware(['auth', 'active'])->name('listings.create');
 Route::post('/listings', [ListingController::class, 'store'])->middleware(['auth', 'active'])->name('listings.store');
+Route::get('/store/{sellerStore:slug}', [StorefrontController::class, 'show'])->name('storefront.show');
 Route::get('/listings/{listing:slug}', [ListingController::class, 'show'])->name('listings.show');
 
 Route::get('/dashboard', [UserDashboardController::class, 'index'])->middleware(['auth', 'active', 'verified'])->name('dashboard');

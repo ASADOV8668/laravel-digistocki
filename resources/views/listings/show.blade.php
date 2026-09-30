@@ -167,7 +167,11 @@
                     <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-black">{{ mb_substr($listing->user->name, 0, 1) }}</div>
                     <div><p class="text-xs text-white/60">فروشنده آگهی</p><p class="font-black">{{ $listing->user->name }}</p></div>
                 </div>
-                <span class="rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold text-white/70">تماس امن</span>
+                @if ($listing->user->storefront?->is_enabled)
+                    <a href="{{ route('storefront.show', $listing->user->storefront) }}" class="rounded-full bg-primary px-3 py-1.5 text-[10px] font-bold text-white transition hover:bg-primary-600">مشاهده غرفه</a>
+                @else
+                    <span class="rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold text-white/70">تماس امن</span>
+                @endif
             </div>
             <div class="mt-5 border-t border-white/10 pt-4">
                 @if ($contactRevealed)

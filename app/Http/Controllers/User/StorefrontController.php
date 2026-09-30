@@ -4,6 +4,8 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateStorefrontRequest;
+use App\Models\Listing;
+use App\Models\SellerStore;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +14,24 @@ use Sadegh19b\LaravelIranCities\Models\Province;
 
 class StorefrontController extends Controller
 {
+    public function show(SellerStore $sellerStore): View
+    {
+        abort_unless($sellerStore->is_enabled, 404);
+
+        $sellerStore->load(['user', 'province', 'city']);
+        $listings = Listing::query()
+            ->published()
+            ->where('user_id', $sellerStore->user_id)
+            ->with(['brand', 'phoneModel', 'primaryImage'])
+            ->latest('published_at')
+            ->paginate(12);
+
+        return view('storefront.show', [
+            'store' => $sellerStore,
+            'listings' => $listings,
+        ]);
+    }
+
     public function edit(Request $request): View
     {
         return view('storefront.edit', [

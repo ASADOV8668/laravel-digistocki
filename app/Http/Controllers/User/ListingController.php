@@ -214,7 +214,7 @@ class ListingController extends Controller
     {
         $this->authorize('view', $listing);
         $listing->increment('views_count');
-        $listing->load(['brand', 'phoneModel', 'province', 'city', 'user', 'images', 'attributeValues.attribute']);
+        $listing->load(['brand', 'phoneModel', 'province', 'city', 'user.storefront', 'images', 'attributeValues.attribute']);
 
         $attributePairs = $listing->attributeValues->map(fn ($value) => [(int) $value->attribute_id, $value->value_string ?? $value->value_integer ?? $value->value_decimal ?? $value->value_boolean])->values();
         $relatedListings = Listing::query()
