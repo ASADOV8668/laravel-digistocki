@@ -18,6 +18,7 @@ use App\Services\ImageService;
 use App\Services\ListingRules;
 use App\Services\SystemOptions;
 use App\Support\MobileNumber;
+use App\Support\PersianDate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -125,6 +126,8 @@ class ListingController extends Controller
     {
         $status = $request->input('status');
         $statuses = ['pending', 'approved', 'rejected', 'sold', 'expired'];
+        $dateFrom = PersianDate::parseDate($request->input('date_from'));
+        $dateTo = PersianDate::parseDate($request->input('date_to'));
         $statusCounts = Listing::query()
             ->selectRaw('status, COUNT(*) as aggregate')
             ->groupBy('status')
@@ -141,6 +144,8 @@ class ListingController extends Controller
                         ->orWhereHas('phoneModel', fn (Builder $model) => $model->where('name', 'like', $term)->orWhere('name_fa', 'like', $term)->orWhere('name_en', 'like', $term));
                 });
             })
+            ->when($dateFrom, fn (Builder $query) => $query->where('created_at', '>=', $dateFrom->startOfDay()))
+            ->when($dateTo, fn (Builder $query) => $query->where('created_at', '<=', $dateTo->endOfDay()))
             ->latest()
             ->paginate(15)
             ->withQueryString();

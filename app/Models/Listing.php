@@ -98,6 +98,15 @@ class Listing extends Model
         });
     }
 
+    public function scopeWithViewerFavorite(Builder $query, ?int $userId): Builder
+    {
+        if ($userId === null) {
+            return $query;
+        }
+
+        return $query->withExists(['favorites as is_favorited' => fn (Builder $favorite) => $favorite->where('user_id', $userId)]);
+    }
+
     public function isOwnedBy(User $user): bool
     {
         return $this->user_id === $user->id;

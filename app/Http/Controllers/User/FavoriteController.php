@@ -14,11 +14,13 @@ class FavoriteController extends Controller
     {
         $favorites = Favorite::query()
             ->where('user_id', $request->user()->id)
-            ->with(['listing.brand', 'listing.phoneModel', 'listing.primaryImage', 'listing.user.storefront'])
+            ->with(['listing.brand', 'listing.phoneModel', 'listing.province', 'listing.city', 'listing.primaryImage', 'listing.attributeValues.attribute', 'listing.user.storefront'])
             ->whereHas('listing', fn ($query) => $query->published())
             ->latest()
             ->paginate(12)
             ->withQueryString();
+
+        $favorites->getCollection()->each(fn (Favorite $favorite) => $favorite->listing?->setAttribute('is_favorited', true));
 
         return view('favorites.index', compact('favorites'));
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Services\ReportRules;
+use App\Support\PersianDate;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -14,6 +15,8 @@ class ReportController extends Controller
     {
         $status = $request->input('status');
         $status = is_string($status) && array_key_exists($status, ReportRules::STATUSES) ? $status : null;
+        $dateFrom = PersianDate::parseDate($request->input('date_from'));
+        $dateTo = PersianDate::parseDate($request->input('date_to'));
 
         $reportStats = Report::query()
             ->selectRaw('status, COUNT(*) as aggregate')
@@ -22,6 +25,8 @@ class ReportController extends Controller
 
         $reports = Report::with(['listing', 'user'])
             ->when($status !== null, fn ($query) => $query->where('status', $status))
+            ->when($dateFrom, fn ($query) => $query->where('created_at', '>=', $dateFrom->startOfDay()))
+            ->when($dateTo, fn ($query) => $query->where('created_at', '<=', $dateTo->endOfDay()))
             ->latest()
             ->paginate(15)
             ->withQueryString();

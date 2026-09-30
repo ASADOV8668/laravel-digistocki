@@ -1,8 +1,11 @@
 import Alpine from 'alpinejs';
 import Chart from 'chart.js/auto';
+import $ from 'jquery';
+import '../vendor/persian-datepicker/persianDatepicker-default.css';
 
 window.Alpine = Alpine;
 window.Chart = Chart;
+window.$ = window.jQuery = $;
 
 window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     previews: [],
@@ -23,6 +26,18 @@ window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+    const dateFields = $('[data-persian-datepicker]');
+    if (dateFields.length) {
+        import('../vendor/persian-datepicker/persianDatepicker.min.js').then(() => {
+            dateFields.persianDatepicker({
+                formatDate: 'YYYY/0M/DD',
+                persianNumbers: true,
+                isRTL: true,
+                calendarPosition: { x: 0, y: 0 },
+            });
+        });
+    }
+
     const dataElement = document.getElementById('listing-trend-data');
     const canvas = document.querySelector('[data-admin-chart="listing-trend"]');
 

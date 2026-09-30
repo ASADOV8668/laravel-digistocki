@@ -35,7 +35,8 @@ class StorefrontController extends Controller
                         ->orWhereHas('phoneModel', fn (Builder $model) => $model->where('name', 'like', $term)->orWhere('name_fa', 'like', $term)->orWhere('name_en', 'like', $term));
                 });
             })
-            ->with(['brand', 'phoneModel', 'primaryImage', 'user.storefront'])
+            ->with(['brand', 'phoneModel', 'province', 'city', 'primaryImage', 'attributeValues.attribute', 'user.storefront'])
+            ->withViewerFavorite($request->user()?->id)
             ->latest('published_at')
             ->paginate(12)
             ->withQueryString();

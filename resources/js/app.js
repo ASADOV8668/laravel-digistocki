@@ -754,4 +754,63 @@ window.listingWizard = (attributesEndpoint, citiesEndpoint, initialModelId = nul
     },
 });
 
+window.favoriteToggle = (endpoint, initialFavorited = false, authenticated = false) => ({
+    endpoint,
+    favorited: initialFavorited,
+    authenticated,
+    loading: false,
+
+    toggle() {
+        if (!this.authenticated) {
+            window.dispatchEvent(new CustomEvent('show-notification', { detail: { title: 'ورود لازم است', message: 'برای افزودن آگهی به علاقه‌مندی‌ها ابتدا وارد حساب کاربری شوید.', tone: 'info' } }));
+
+            return;
+        }
+
+        if (this.loading) return;
+        this.loading = true;
+        const previous = this.favorited;
+        this.favorited = !previous;
+
+        fetch(this.endpoint, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
+            body: JSON.stringify({}),
+        }).then((response) => {
+            if (!response.ok) throw new Error('Favorite request failed');
+            return response.json();
+        }).then((data) => {
+            this.favorited = Boolean(data.favorited);
+            window.dispatchEvent(new CustomEvent('show-notification', { detail: { title: this.favorited ? 'به علاقه‌مندی‌ها اضافه شد' : 'از علاقه‌مندی‌ها حذف شد', message: data.message || '', tone: this.favorited ? 'success' : 'info' } }));
+        }).catch(() => {
+            this.favorited = previous;
+            window.dispatchEvent(new CustomEvent('show-notification', { detail: { title: 'خطا در ذخیره‌سازی', message: 'تغییر علاقه‌مندی انجام نشد؛ دوباره تلاش کنید.', tone: 'error' } }));
+        }).finally(() => {
+            this.loading = false;
+        });
+    },
+});
+
+window.toastNotifications = () => ({
+    visible: false,
+    title: '',
+    message: '',
+    tone: 'info',
+    timer: null,
+
+    show(detail = {}) {
+        this.title = detail.title || 'اعلان';
+        this.message = detail.message || '';
+        this.tone = detail.tone || 'info';
+        this.visible = true;
+        clearTimeout(this.timer);
+        this.timer = window.setTimeout(() => { this.visible = false; }, 4500);
+    },
+});
+
 Alpine.start();

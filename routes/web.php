@@ -41,7 +41,7 @@ Route::get('/dashboard', [UserDashboardController::class, 'index'])->middleware(
 
 Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
-    Route::post('/listings/{listing:slug}/favorite', [FavoriteController::class, 'toggle'])->name('listings.favorite.toggle');
+    Route::post('/listings/{listing:slug}/favorite', [FavoriteController::class, 'toggle'])->middleware('throttle:30,1')->name('listings.favorite.toggle');
     Route::post('/listings/{listing:slug}/report', [UserReportController::class, 'store'])->name('listings.report');
     Route::post('/listings/{listing:slug}/contact-otp', [ListingController::class, 'requestContactOtp'])->middleware('throttle:5,1')->name('listings.contact-otp');
     Route::post('/listings/{listing:slug}/contact-otp/verify', [ListingController::class, 'verifyContactOtp'])->middleware('throttle:5,1')->name('listings.contact-otp.verify');

@@ -43,6 +43,7 @@
                 <x-heroicon-o-signal-slash class="h-5 w-5 shrink-0" />
                 <span>اتصال اینترنت قطع است؛ بعضی اطلاعات ممکن است به‌روز نباشند.</span>
             </div>
+            <div x-data="toastNotifications()" @show-notification.window="show($event.detail)" x-cloak x-show="visible" x-transition class="fixed inset-x-4 top-20 z-[70] mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl" role="status" aria-live="polite"><div class="flex items-start gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" :class="tone === 'success' ? 'bg-success/10 text-success' : tone === 'error' ? 'bg-error/10 text-error' : 'bg-info/10 text-info'"><x-heroicon-o-check-circle x-show="tone === 'success'" class="h-5 w-5" /><x-heroicon-o-exclamation-triangle x-show="tone === 'error'" class="h-5 w-5" /><x-heroicon-o-information-circle x-show="tone === 'info'" class="h-5 w-5" /></span><div class="min-w-0"><p class="font-black text-neutral" x-text="title"></p><p x-show="message" x-text="message" class="mt-1 text-xs leading-6 text-slate-500"></p></div><button type="button" @click="visible = false" aria-label="بستن اعلان" class="mr-auto rounded-lg p-1 text-slate-400 hover:bg-slate-100"><x-heroicon-o-x-mark class="h-4 w-4" /></button></div></div>
             <x-sidebar :unread-notifications="$unreadNotifications" />
             <x-top-bar :unread-notifications="$unreadNotifications" :show-back="! request()->routeIs('home')" />
             <div

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Listing;
 use App\Models\Report;
 use App\Models\User;
+use App\Support\PersianDate;
 
 class DashboardController extends Controller
 {
@@ -22,7 +23,7 @@ class DashboardController extends Controller
             $date = $today->copy()->subDays($days);
 
             return [
-                'label' => $date->format('m/d'),
+                'label' => PersianDate::format($date, 'm/d'),
                 'date' => $date->toDateString(),
                 'count' => (int) $trendCounts->get($date->toDateString(), 0),
             ];

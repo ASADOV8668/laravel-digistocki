@@ -37,10 +37,12 @@
 
         <div class="admin-card p-5">
             <div class="mb-4 flex items-center gap-2"><x-heroicon-o-funnel class="h-5 w-5 text-primary" /><div><h3 class="text-sm font-black text-slate-900">فیلتر و جستجو</h3><p class="mt-1 text-[11px] text-slate-400">آگهی موردنظر را بر اساس عنوان، کاربر یا وضعیت پیدا کنید.</p></div></div>
-            <form method="GET" class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto]">
+            <form method="GET" class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_180px_180px_auto]">
                 <div class="relative"><label for="admin-listings-search" class="sr-only">جستجوی آگهی، کاربر، برند یا مدل</label><x-heroicon-o-magnifying-glass class="pointer-events-none absolute right-3 top-3 h-5 w-5 text-slate-400" /><input id="admin-listings-search" name="q" value="{{ request('q') }}" placeholder="عنوان، کاربر، برند یا مدل" class="w-full rounded-xl border-slate-200 py-3 pr-10 text-sm focus:border-primary focus:ring-primary"></div>
                 <select name="status" class="rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary"><option value="">همه وضعیت‌ها</option>@foreach ($statuses as $item)<option value="{{ $item }}" @selected($status === $item)>{{ \App\Enums\ListingStatus::from($item)->label() }}</option>@endforeach</select>
-                <div class="flex gap-2"><button class="flex-1 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-primary">اعمال فیلتر</button>@if (request()->hasAny(['q', 'status']))<a href="{{ route('admin.listings.index') }}" class="inline-flex items-center justify-center rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-200">پاک‌کردن</a>@endif</div>
+                <div><label for="admin-listings-date-from" class="sr-only">از تاریخ ثبت</label><input id="admin-listings-date-from" data-persian-datepicker name="date_from" value="{{ request('date_from') }}" placeholder="از تاریخ" autocomplete="off" class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary"></div>
+                <div><label for="admin-listings-date-to" class="sr-only">تا تاریخ ثبت</label><input id="admin-listings-date-to" data-persian-datepicker name="date_to" value="{{ request('date_to') }}" placeholder="تا تاریخ" autocomplete="off" class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary"></div>
+                <div class="flex gap-2"><button class="flex-1 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-primary">اعمال فیلتر</button>@if (request()->hasAny(['q', 'status', 'date_from', 'date_to']))<a href="{{ route('admin.listings.index') }}" class="inline-flex items-center justify-center rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-200">پاک‌کردن</a>@endif</div>
             </form>
         </div>
 
