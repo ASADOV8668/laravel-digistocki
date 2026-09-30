@@ -25,7 +25,10 @@ class ListingController extends Controller
             ->when($request->filled('q'), function (Builder $query) use ($request) {
                 $term = '%'.$request->string('q').'%';
                 $query->where(function (Builder $query) use ($term) {
-                    $query->where('title', 'like', $term)->orWhereHas('user', fn (Builder $user) => $user->where('name', 'like', $term)->orWhere('mobile', 'like', $term));
+                    $query->where('title', 'like', $term)
+                        ->orWhereHas('user', fn (Builder $user) => $user->where('name', 'like', $term)->orWhere('mobile', 'like', $term)->orWhere('email', 'like', $term))
+                        ->orWhereHas('brand', fn (Builder $brand) => $brand->where('name', 'like', $term)->orWhere('name_en', 'like', $term))
+                        ->orWhereHas('phoneModel', fn (Builder $model) => $model->where('name', 'like', $term)->orWhere('name_fa', 'like', $term)->orWhere('name_en', 'like', $term));
                 });
             })
             ->latest()
