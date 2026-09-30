@@ -11,6 +11,9 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
+        $role = $request->input('role');
+        $role = is_string($role) && in_array($role, ['user', 'admin'], true) ? $role : null;
+
         $userStats = [
             'total' => User::query()->count(),
             'active' => User::query()->where('is_active', true)->count(),
@@ -28,7 +31,7 @@ class UserController extends Controller
                         ->orWhere('email', 'like', $term);
                 });
             })
-            ->when($request->filled('role'), fn (Builder $query) => $query->where('role', $request->input('role')))
+            ->when($role !== null, fn (Builder $query) => $query->where('role', $role))
             ->latest()
             ->paginate(15)
             ->withQueryString();
