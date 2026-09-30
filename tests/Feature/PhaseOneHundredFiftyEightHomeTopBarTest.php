@@ -28,5 +28,9 @@ class PhaseOneHundredFiftyEightHomeTopBarTest extends TestCase
         $this->assertNotFalse($component);
         $this->assertStringContainsString("'showBack' => true", $component);
         $this->assertStringContainsString('@if ($showBack)', $component);
+        $this->assertStringContainsString('asset(\'images/logo.png\')', $component);
+        $this->assertStringNotContainsString('<x-logo class="mx-auto" />', $component);
+        $this->assertStringContainsString('x-heroicon-o-arrow-left', $component);
+        $this->assertStringNotContainsString('x-heroicon-o-arrow-right', $component);
     }
 }
