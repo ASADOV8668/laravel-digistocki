@@ -21,5 +21,10 @@ class PhaseOneHundredFortySevenVazirmatnFontTest extends TestCase
             $this->assertStringContainsString('font-weight: 100 900', $stylesheet);
             $this->assertStringNotContainsString('supports variations', $stylesheet);
         }
+
+        $adminStylesheet = file_get_contents(resource_path('css/admin.css'));
+        $this->assertIsString($adminStylesheet);
+        $this->assertStringContainsString('body.font-sans', $adminStylesheet);
+        $this->assertStringContainsString('.tailadmin-shell *', $adminStylesheet);
     }
 }

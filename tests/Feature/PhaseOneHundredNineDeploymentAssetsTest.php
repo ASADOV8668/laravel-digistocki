@@ -10,11 +10,15 @@ class PhaseOneHundredNineDeploymentAssetsTest extends TestCase
     {
         $vite = file_get_contents(base_path('vite.config.js'));
         $htaccess = file_get_contents(public_path('.htaccess'));
+        $projectHtaccess = file_get_contents(base_path('.htaccess'));
 
         $this->assertIsString($vite);
         $this->assertIsString($htaccess);
+        $this->assertIsString($projectHtaccess);
         $this->assertStringContainsString("base: '/app/build/'", $vite);
         $this->assertStringContainsString('RewriteEngine On', $htaccess);
+        $this->assertStringContainsString('RewriteRule ^ /app/%1 [R=302,L,NE]', $htaccess);
         $this->assertStringContainsString('RewriteRule ^ index.php [L]', $htaccess);
+        $this->assertStringContainsString('RewriteRule ^public(?:/(.*))?$ /app/$1 [R=302,L,NE]', $projectHtaccess);
     }
 }

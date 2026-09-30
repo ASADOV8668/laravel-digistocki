@@ -5,6 +5,11 @@
 
     RewriteEngine On
 
+    # XAMPP may expose the real public directory directly. Canonicalize that
+    # address so Laravel receives the same paths as the project /app alias.
+    RewriteCond %{THE_REQUEST} \s/+app/public/([^\s?]*) [NC]
+    RewriteRule ^ /app/%1 [R=302,L,NE]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

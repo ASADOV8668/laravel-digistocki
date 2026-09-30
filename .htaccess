@@ -1,6 +1,11 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # Keep the public directory out of the browser URL while supporting the
+    # common XAMPP address /app/public/... as an alias of /app/....
+    RewriteCond %{THE_REQUEST} \s/+app/public(?:/[^\s?]*)?[\s?] [NC]
+    RewriteRule ^public(?:/(.*))?$ /app/$1 [R=302,L,NE]
+
     # The project is served from /app while Laravel's front controller lives in /app/public.
     RewriteCond %{REQUEST_URI} !^/app/public/
     RewriteRule ^(.*)$ public/$1 [L]

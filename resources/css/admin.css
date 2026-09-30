@@ -15,6 +15,9 @@
 @layer base {
     html { direction: rtl; }
     body { @apply bg-gray-50 text-gray-800; font-family: 'Vazirmatn', sans-serif; font-synthesis: none; }
+    body.font-sans,
+    .tailadmin-shell,
+    .tailadmin-shell * { font-family: 'Vazirmatn', sans-serif; }
     .dark body { @apply bg-gray-900 text-gray-200; }
     ::-webkit-scrollbar { width: 7px; height: 7px; }
     ::-webkit-scrollbar-track { @apply bg-transparent; }
