@@ -40,9 +40,12 @@ class PhaseTwoHundredFourListingPlaceholderCoverageTest extends TestCase
 
     public function test_listing_card_keeps_the_shared_placeholder_asset(): void
     {
-        $this->assertStringContainsString(
-            'listing-placeholder.svg',
-            file_get_contents(resource_path('views/components/listing-card.blade.php'))
-        );
+        foreach ([
+            resource_path('views/components/listing-card.blade.php'),
+            resource_path('views/admin/listings/index.blade.php'),
+            resource_path('views/dashboard.blade.php'),
+        ] as $path) {
+            $this->assertStringContainsString('listing-placeholder.svg', file_get_contents($path));
+        }
     }
 }
