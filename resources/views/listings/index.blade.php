@@ -1,7 +1,7 @@
 <x-app-layout title="جستجوی آگهی‌ها">
     <x-slot name="header"><h1 class="text-xl font-black text-neutral">جستجوی آگهی‌ها</h1></x-slot>
 
-    <section x-data='listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js(url("/locations/provinces")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])), @js(request("province_id")), @js(request("city_id")), @js(request("q")), @js(request("brand_id")), @js(request("min_price")), @js(request("max_price")))' class="space-y-6 px-4 py-6">
+    <section x-data='listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js(url("/locations/provinces")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])), @js(request("province_id")), @js(request("city_id")), @js(request("q")), @js(request("brand_id")), @js(request("min_price")), @js(request("max_price")), @js($sort))' class="space-y-6 px-4 py-6">
         <div class="flex items-end justify-between gap-3"><div><p class="text-xs font-bold text-primary">بازار موبایل</p><h1 class="mt-1 text-2xl font-black text-neutral">جستجوی آگهی‌ها</h1><p class="mt-1 text-xs text-slate-400">مدل و ویژگی‌های مناسب خودت را مرحله‌به‌مرحله انتخاب کن.</p></div><span class="rounded-full bg-primary-50 px-3 py-1.5 text-[11px] font-black text-primary">{{ number_format($listings->total()) }} نتیجه</span></div>
         <button type="button" @click="filtersOpen = true" :aria-expanded="filtersOpen.toString()" aria-controls="listing-filters" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-neutral px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-neutral-800 md:hidden">
             <x-heroicon-o-adjustments-horizontal class="h-5 w-5" /> فیلتر و جستجو
@@ -90,6 +90,16 @@
                             <div><label for="listing-max-price" class="sr-only">حداکثر قیمت</label><input id="listing-max-price" name="max_price" x-model="maxPrice" type="number" min="0" placeholder="حداکثر قیمت" class="w-full rounded-xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary" /></div>
                         </div>
 
+                        <div>
+                            <label for="listing-sort" class="mb-1 block text-xs font-bold text-slate-600">مرتب‌سازی</label>
+                            <select id="listing-sort" name="sort" x-model="sort" class="w-full rounded-2xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary">
+                                <option value="newest">جدیدترین</option>
+                                <option value="price_asc">ارزان‌ترین</option>
+                                <option value="price_desc">گران‌ترین</option>
+                                <option value="views">پربازدیدترین</option>
+                            </select>
+                        </div>
+
                         <div class="border-t border-slate-100 pt-4">
                             <div class="mb-3 flex items-center justify-between">
                                 <h3 class="text-sm font-black text-neutral">ویژگی‌های مدل</h3>
@@ -132,7 +142,7 @@
             </aside>
 
             <div class="min-w-0">
-                <div class="mb-4 flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100"><div><h2 class="text-sm font-black text-neutral">آگهی‌های تأییدشده</h2><p class="mt-1 text-[11px] text-slate-400">مرتب‌سازی بر اساس جدیدترین آگهی‌ها</p></div><span class="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600">{{ number_format($listings->total()) }} نتیجه</span></div>
+                <div class="mb-4 flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100"><div><h2 class="text-sm font-black text-neutral">آگهی‌های تأییدشده</h2><p class="mt-1 text-[11px] text-slate-400">مرتب‌سازی بر اساس {{ ['newest' => 'جدیدترین', 'price_asc' => 'ارزان‌ترین', 'price_desc' => 'گران‌ترین', 'views' => 'پربازدیدترین'][$sort] }}</p></div><span class="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600">{{ number_format($listings->total()) }} نتیجه</span></div>
                 @if ($listings->count())
                     <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 xl:grid-cols-3">@foreach ($listings as $listing)<x-listing-card :listing="$listing" />@endforeach</div>
                     <div class="mt-5">{{ $listings->links() }}</div>

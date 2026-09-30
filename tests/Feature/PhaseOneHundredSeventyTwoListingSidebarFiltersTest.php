@@ -33,6 +33,8 @@ class PhaseOneHundredSeventyTwoListingSidebarFiltersTest extends TestCase
             ->assertSee('loadCities()', false)
             ->assertSee('x-model="minPrice"', false)
             ->assertSee('x-model="maxPrice"', false)
+            ->assertSee('id="listing-sort"', false)
+            ->assertSee('price_asc', false)
             ->assertSee('filters[', false)
             ->assertSee('listing-min-price', false)
             ->assertSee('listing-max-price', false);
@@ -71,7 +73,31 @@ class PhaseOneHundredSeventyTwoListingSidebarFiltersTest extends TestCase
         $this->assertSame($province->id, (int) $response->viewData('listings')->getCollection()->first()->province_id);
     }
 
-    private function listing(User $seller, int $brandId, int $modelId, ?int $provinceId, ?int $cityId, string $title): Listing
+    public function test_listing_sidebar_sort_orders_results_and_keeps_contact_prices_last(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+        $seller = User::factory()->create();
+        $newest = $this->listing($seller, $brand->id, $model->id, null, null, 'آگهی جدید', 3000000, now());
+        $cheapest = $this->listing($seller, $brand->id, $model->id, null, null, 'آگهی ارزان', 500000, now()->subDay());
+        $contact = $this->listing($seller, $brand->id, $model->id, null, null, 'تماس بگیرید', null, now()->subDays(2));
+        $contact->update(['price_on_request' => true]);
+
+        $ascending = $this->get(route('listings.index', ['sort' => 'price_asc']))
+            ->assertOk()
+            ->viewData('listings')
+            ->getCollection();
+        $this->assertSame([$cheapest->id, $newest->id, $contact->id], $ascending->pluck('id')->all());
+
+        $descending = $this->get(route('listings.index', ['sort' => 'price_desc']))
+            ->assertOk()
+            ->viewData('listings')
+            ->getCollection();
+        $this->assertSame([$newest->id, $cheapest->id, $contact->id], $descending->pluck('id')->all());
+    }
+
+    private function listing(User $seller, int $brandId, int $modelId, ?int $provinceId, ?int $cityId, string $title, ?int $price = 1000000, ?\DateTimeInterface $publishedAt = null): Listing
     {
         return Listing::create([
             'user_id' => $seller->id,
@@ -81,9 +107,9 @@ class PhaseOneHundredSeventyTwoListingSidebarFiltersTest extends TestCase
             'city_id' => $cityId,
             'title' => $title,
             'slug' => Str::uuid(),
-            'price' => 1000000,
+            'price' => $price,
             'status' => ListingStatus::Approved,
-            'published_at' => now(),
+            'published_at' => $publishedAt ?? now(),
         ]);
     }
 }

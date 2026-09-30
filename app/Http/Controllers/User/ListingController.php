@@ -192,6 +192,17 @@ class ListingController extends Controller
             });
         }
 
+        $sort = in_array($request->input('sort'), ['newest', 'price_asc', 'price_desc', 'views'], true)
+            ? $request->input('sort')
+            : 'newest';
+
+        match ($sort) {
+            'price_asc' => $query->orderByRaw('price IS NULL')->orderBy('price')->latest('published_at'),
+            'price_desc' => $query->orderByRaw('price IS NULL')->orderByDesc('price')->latest('published_at'),
+            'views' => $query->orderByDesc('views_count')->latest('published_at'),
+            default => $query->latest('published_at'),
+        };
+
         $filterAttributesPayload = $filterAttributes->map(fn (Attribute $attribute) => [
             'id' => $attribute->id,
             'name' => $attribute->name,
@@ -201,13 +212,14 @@ class ListingController extends Controller
         ])->values()->all();
 
         return view('listings.index', [
-            'listings' => $query->latest('published_at')->paginate(12)->withQueryString(),
+            'listings' => $query->paginate(12)->withQueryString(),
             'brands' => Brand::query()->where('is_active', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
             'models' => PhoneModel::query()->where('is_active', true)->with('brand')->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId))->orderBy('name')->get(),
             'attributes' => Attribute::query()->where('is_active', true)->where('is_filterable', true)->orderBy('sort_order')->get(),
             'selectedModel' => $selectedModel,
             'filterAttributesPayload' => $filterAttributesPayload,
             'provinces' => Province::query()->orderBy('name')->get(['id', 'name']),
+            'sort' => $sort,
         ]);
     }
 

@@ -320,7 +320,7 @@ window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     },
 });
 
-window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '', initialMinPrice = '', initialMaxPrice = '') => ({
+window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '', initialMinPrice = '', initialMaxPrice = '', initialSort = 'newest') => ({
     suggestionsEndpoint,
     attributesEndpoint,
     citiesEndpoint,
@@ -331,6 +331,7 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint,
     cityId: initialCityId || '',
     minPrice: initialMinPrice || '',
     maxPrice: initialMaxPrice || '',
+    sort: initialSort || 'newest',
     cities: [],
     citiesLoading: false,
     suggestions: { brands: [], models: [] },
@@ -478,6 +479,7 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint,
         this.cityId = '';
         this.minPrice = '';
         this.maxPrice = '';
+        this.sort = 'newest';
         this.citiesController?.abort();
         this.citiesController = null;
         this.citiesLoading = false;
