@@ -36,9 +36,32 @@ class SystemOptions
 
     public function setMany(array $values): void
     {
-        foreach ($values as $key => [$value, $type]) {
-            $this->set($key, $value, $type);
+        if ($values === []) {
+            $this->values = null;
+
+            return;
         }
+
+        $timestamp = now();
+        $rows = [];
+
+        foreach ($values as $key => [$value, $type]) {
+            $rows[] = [
+                'key' => $key,
+                'value' => $this->stringify($value),
+                'type' => $type,
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ];
+        }
+
+        SystemOption::query()->upsert(
+            $rows,
+            ['key'],
+            ['value', 'type', 'updated_at'],
+        );
+
+        $this->values = null;
     }
 
     public function all(): array
