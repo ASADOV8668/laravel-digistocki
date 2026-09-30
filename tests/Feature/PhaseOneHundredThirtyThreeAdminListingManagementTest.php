@@ -58,6 +58,17 @@ class PhaseOneHundredThirtyThreeAdminListingManagementTest extends TestCase
             ->assertOk()->assertJsonFragment(['mobile' => '09129876543']);
     }
 
+    public function test_admin_user_search_normalizes_persian_and_international_mobile_input(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create(['name' => 'شماره بین‌المللی', 'mobile' => '09129876543']);
+
+        $this->actingAs($admin)->get(route('admin.users.search', ['q' => '+98 912 987 6543']))
+            ->assertOk()->assertJsonFragment(['id' => $user->id]);
+        $this->actingAs($admin)->get(route('admin.users.search', ['q' => '۰۹۱۲۹۸۷۶۵۴۳']))
+            ->assertOk()->assertJsonFragment(['id' => $user->id]);
+    }
+
     public function test_regular_user_cannot_manage_admin_listings(): void
     {
         $user = User::factory()->create();

@@ -17,6 +17,7 @@ use App\Notifications\ListingStatusNotification;
 use App\Services\ImageService;
 use App\Services\ListingRules;
 use App\Services\SystemOptions;
+use App\Support\MobileNumber;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -110,9 +111,14 @@ class ListingController extends Controller
             return response()->json([]);
         }
 
-        $like = '%'.$term.'%';
+        $normalized = MobileNumber::normalize($term) ?? $term;
+        $likes = array_values(array_unique(['%'.$term.'%', '%'.$normalized.'%']));
 
-        return response()->json(User::query()->where(fn ($query) => $query->where('name', 'like', $like)->orWhere('mobile', 'like', $like)->orWhere('email', 'like', $like))->orderBy('name')->limit(15)->get(['id', 'name', 'mobile', 'email'])->map(fn (User $user) => ['id' => $user->id, 'label' => $user->name, 'mobile' => $user->mobile, 'email' => $user->email])->values());
+        return response()->json(User::query()->where(function ($query) use ($likes) {
+            foreach ($likes as $like) {
+                $query->orWhere('name', 'like', $like)->orWhere('mobile', 'like', $like)->orWhere('email', 'like', $like);
+            }
+        })->orderBy('name')->limit(15)->get(['id', 'name', 'mobile', 'email'])->map(fn (User $user) => ['id' => $user->id, 'label' => $user->name, 'mobile' => $user->mobile, 'email' => $user->email])->values());
     }
 
     public function index(Request $request)
