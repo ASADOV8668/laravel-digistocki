@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\SystemOptions;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -22,6 +23,9 @@ class CheckApplicationHealth extends Command
             'build_manifest' => $deploymentAssetsSkipped || is_file(public_path('build/manifest.json')),
             'apache_front_controller' => $this->apacheRewriteIsConfigured(),
         ];
+        if (app(SystemOptions::class)->smsMode() === 'live') {
+            $checks['sms_provider'] = is_string(config('services.sms.url')) && trim((string) config('services.sms.url')) !== '';
+        }
         $healthy = ! in_array(false, $checks, true);
         $skipped = $deploymentAssetsSkipped ? ['storage_link', 'build_manifest'] : [];
 
