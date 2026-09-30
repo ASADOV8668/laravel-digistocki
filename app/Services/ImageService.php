@@ -43,7 +43,25 @@ class ImageService
 
     public function delete(?string $path, ?string $thumbnailPath = null): void
     {
-        Storage::disk('public')->delete(array_values(array_filter([$path, $thumbnailPath])));
+        $this->deleteMany([[$path, $thumbnailPath]]);
+    }
+
+    public function deleteMany(iterable $files): void
+    {
+        $paths = [];
+
+        foreach ($files as $file) {
+            $paths = [...$paths, ...(is_array($file) ? $file : [$file])];
+        }
+
+        $paths = array_values(array_unique(array_filter(
+            $paths,
+            fn ($path): bool => is_string($path) && $path !== '',
+        )));
+
+        if ($paths !== []) {
+            Storage::disk('public')->delete($paths);
+        }
     }
 
     private function canProcess(): bool

@@ -358,9 +358,7 @@ class ListingController extends Controller
         $this->authorize('delete', $listing);
         $images = $listing->images()->get(['path', 'thumbnail_path']);
         $listing->delete();
-        foreach ($images as $image) {
-            $imageService->delete($image->path, $image->thumbnail_path);
-        }
+        $imageService->deleteMany($images->map(fn (ListingImage $image) => [$image->path, $image->thumbnail_path]));
 
         return redirect()->route('dashboard')->with('status', 'آگهی حذف شد.');
     }
