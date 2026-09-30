@@ -22,11 +22,60 @@
     </section>
     <script>
         window.adminListingForm = (attributesEndpoint, citiesEndpoint, usersEndpoint, initialModelId = '', initialAttributes = [], initialValues = {}, initialProvinceId = '', initialCityId = '', initialUserId = '') => ({
-            attributesEndpoint, citiesEndpoint, usersEndpoint, modelId: initialModelId, attributes: initialAttributes, values: initialValues || {}, attributesLoading: false, provinceId: initialProvinceId, cityId: initialCityId, cities: [], citiesLoading: false, userId: initialUserId, userQuery: @js($listing?->user?->name ?? ''), selectedUserLabel: @js($listing?->user?->name ?? ''), userResults: [],
-            init() { if (this.provinceId) this.loadCities(); },
-            async loadAttributes() { if (!this.modelId) { this.attributes = []; return; } this.attributesLoading = true; const response = await fetch(`${this.attributesEndpoint}/${this.modelId}/attributes?all=1`); this.attributes = await response.json(); this.attributesLoading = false; },
-            async loadCities() { if (!this.provinceId) { this.cities = []; return; } this.citiesLoading = true; const response = await fetch(`${this.citiesEndpoint}/${this.provinceId}/cities`); this.cities = await response.json(); this.citiesLoading = false; },
-            async searchUsers() { if (this.userQuery.trim().length < 2) { this.userResults = []; return; } const response = await fetch(`${this.usersEndpoint}?q=${encodeURIComponent(this.userQuery)}`); this.userResults = await response.json(); },
+            attributesEndpoint, citiesEndpoint, usersEndpoint, modelId: initialModelId, attributes: initialAttributes, values: initialValues || {}, attributesLoading: false, provinceId: initialProvinceId, cityId: initialCityId, cities: [], citiesLoading: false, userId: initialUserId, userQuery: @js($listing?->user?->name ?? ''), selectedUserLabel: @js($listing?->user?->name ?? ''), userResults: [], attributesController: null, citiesController: null, usersController: null,
+            init() { if (this.provinceId) this.loadCities(false); },
+            async loadAttributes() {
+                this.attributesController?.abort();
+                this.attributesController = null;
+                if (!this.modelId) { this.attributes = []; this.attributesLoading = false; return; }
+                const controller = new AbortController();
+                this.attributesController = controller;
+                this.attributesLoading = true;
+                try {
+                    const response = await fetch(`${this.attributesEndpoint}/${this.modelId}/attributes?all=1`, { signal: controller.signal });
+                    if (!response.ok) throw new Error('Attribute request failed');
+                    this.attributes = await response.json();
+                } catch (error) {
+                    if (error.name !== 'AbortError') this.attributes = [];
+                } finally {
+                    if (this.attributesController === controller) { this.attributesController = null; this.attributesLoading = false; }
+                }
+            },
+            async loadCities(resetCity = true) {
+                this.citiesController?.abort();
+                this.citiesController = null;
+                if (resetCity) this.cityId = '';
+                this.cities = [];
+                if (!this.provinceId) { this.citiesLoading = false; return; }
+                const controller = new AbortController();
+                this.citiesController = controller;
+                this.citiesLoading = true;
+                try {
+                    const response = await fetch(`${this.citiesEndpoint}/${this.provinceId}/cities`, { signal: controller.signal });
+                    if (!response.ok) throw new Error('City request failed');
+                    this.cities = await response.json();
+                } catch (error) {
+                    if (error.name !== 'AbortError') this.cities = [];
+                } finally {
+                    if (this.citiesController === controller) { this.citiesController = null; this.citiesLoading = false; }
+                }
+            },
+            async searchUsers() {
+                this.usersController?.abort();
+                this.usersController = null;
+                if (this.userQuery.trim().length < 2) { this.userResults = []; return; }
+                const controller = new AbortController();
+                this.usersController = controller;
+                try {
+                    const response = await fetch(`${this.usersEndpoint}?q=${encodeURIComponent(this.userQuery)}`, { signal: controller.signal });
+                    if (!response.ok) throw new Error('User request failed');
+                    this.userResults = await response.json();
+                } catch (error) {
+                    if (error.name !== 'AbortError') this.userResults = [];
+                } finally {
+                    if (this.usersController === controller) this.usersController = null;
+                }
+            },
             selectUser(user) { this.userId = user.id; this.userQuery = user.label; this.selectedUserLabel = `${user.label} · ${user.mobile || user.email || ''}`; this.userResults = []; },
         });
     </script>
