@@ -26,6 +26,7 @@ class SettingsController extends Controller
             'listings_enabled' => ['nullable', 'boolean'],
             'sms_mode' => ['nullable', 'in:test,live'],
             'registration_mode' => ['nullable', 'in:mobile'],
+            'otp_expiry_minutes' => ['nullable', 'integer', 'min:1', 'max:30'],
         ]);
 
         $options->setMany([
@@ -39,6 +40,7 @@ class SettingsController extends Controller
             'listings_enabled' => [$request->boolean('listings_enabled'), 'boolean'],
             'sms_mode' => [$validated['sms_mode'] ?? $options->smsMode(), 'string'],
             'registration_mode' => [$validated['registration_mode'] ?? $options->registrationMode(), 'string'],
+            'otp_expiry_minutes' => [(int) ($validated['otp_expiry_minutes'] ?? $options->otpExpiryMinutes()), 'integer'],
         ]);
 
         return back()->with('status', 'تنظیمات سیستم ذخیره شد.');

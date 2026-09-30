@@ -21,6 +21,7 @@ class SystemOptions
         'listings_enabled' => '1',
         'sms_mode' => 'test',
         'registration_mode' => 'mobile',
+        'otp_expiry_minutes' => '5',
     ];
 
     private ?Collection $values = null;
@@ -105,6 +106,11 @@ class SystemOptions
         $mode = (string) $this->get('registration_mode');
 
         return in_array($mode, ['mobile'], true) ? $mode : 'mobile';
+    }
+
+    public function otpExpiryMinutes(): int
+    {
+        return min(30, max(1, (int) $this->get('otp_expiry_minutes')));
     }
 
     public function pageTitle(?string $page = null): string

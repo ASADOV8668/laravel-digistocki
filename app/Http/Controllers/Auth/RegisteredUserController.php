@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\MobileOtpService;
 use App\Services\SystemOptions;
 use App\Support\MobileNumber;
 use Illuminate\Auth\Events\Registered;
@@ -11,54 +12,77 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
-    public function create(SystemOptions $options): View
+    public function create(Request $request, SystemOptions $options): View
     {
-        return view('auth.register', ['registrationMode' => $options->registrationMode()]);
+        $step = $request->session()->has('registration_mobile_verified') ? 'profile' : ($request->session()->has('registration_mobile') ? 'otp' : 'mobile');
+
+        return view('auth.register', [
+            'registrationMode' => $options->registrationMode(),
+            'step' => $step,
+            'mobile' => $request->session()->get('registration_mobile_verified', $request->session()->get('registration_mobile')),
+            'otpExpiresAt' => $request->session()->get('registration_otp_expires_at'),
+        ]);
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws ValidationException
-     */
-    public function store(Request $request, SystemOptions $options): RedirectResponse
+    public function store(Request $request, MobileOtpService $otpService): RedirectResponse
     {
-        $request->merge(['mobile' => MobileNumber::normalize($request->input('mobile'))]);
-        $registrationMode = $options->registrationMode();
-        $emailRules = ['nullable', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class];
-        $mobileRules = ['nullable', 'string', 'regex:/^09\d{9}$/', 'unique:users,mobile'];
+        if (! $request->session()->has('registration_mobile_verified')) {
+            $request->merge(['mobile' => MobileNumber::normalize($request->input('mobile'))]);
+            $validated = $request->validate(['mobile' => ['required', 'regex:/^09\d{9}$/']]);
+            if (User::query()->where('mobile', $validated['mobile'])->exists()) {
+                return redirect()->route('login')->withErrors(['mobile' => 'این شماره قبلاً ثبت شده است؛ وارد شوید.']);
+            }
 
-        if ($registrationMode === 'mobile') {
-            $mobileRules[] = 'required';
+            $otp = $otpService->issue($validated['mobile'], 'register');
+            if (! $otp) {
+                return back()->withErrors(['mobile' => 'ارسال کد تأیید انجام نشد؛ لطفاً بعداً دوباره تلاش کنید.']);
+            }
+
+            $request->session()->put(['registration_mobile' => $validated['mobile'], 'registration_otp_expires_at' => $otp->expires_at->timestamp]);
+
+            return redirect()->route('register')->with('status', 'کد تأیید ثبت‌نام به موبایل شما ارسال شد.');
         }
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => $emailRules,
-            'mobile' => $mobileRules,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'national_id' => ['nullable', 'digits:10', Rule::unique(User::class, 'national_id')],
         ]);
-
+        $mobile = $request->session()->get('registration_mobile_verified');
         $user = User::create([
             'name' => $validated['name'],
-            'email' => $validated['email'] ?? null,
-            'mobile' => $validated['mobile'] ?? null,
-            'password' => Hash::make($request->password),
+            'mobile' => $mobile,
+            'national_id' => $validated['national_id'] ?? null,
+            'password' => Hash::make(Str::random(40)),
+            'mobile_verified_at' => now(),
         ]);
 
         event(new Registered($user));
-
         Auth::login($user);
+        $request->session()->forget(['registration_mobile', 'registration_mobile_verified', 'registration_otp_expires_at']);
+        $request->session()->regenerate();
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->route('home');
+    }
+
+    public function verifyOtp(Request $request, MobileOtpService $otpService): RedirectResponse
+    {
+        $request->merge(['mobile' => MobileNumber::normalize($request->input('mobile'))]);
+        $validated = $request->validate(['mobile' => ['required', 'regex:/^09\d{9}$/'], 'otp' => ['required', 'digits:6']]);
+        abort_unless($request->session()->get('registration_mobile') === $validated['mobile'], 422, 'درخواست OTP معتبر نیست.');
+
+        if (! $otpService->verify($validated['mobile'], 'register', $validated['otp'])) {
+            return back()->withErrors(['otp' => 'کد واردشده نادرست یا منقضی شده است.']);
+        }
+
+        $request->session()->put('registration_mobile_verified', $validated['mobile']);
+        $request->session()->forget(['registration_mobile', 'registration_otp_expires_at']);
+
+        return redirect()->route('register');
     }
 }

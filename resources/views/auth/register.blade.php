@@ -1,11 +1,35 @@
 <x-guest-layout title="ساخت حساب کاربری">
-    <div class="mb-6 text-center"><span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50 text-primary"><x-heroicon-o-user-plus class="h-7 w-7" /></span><h1 class="mt-4 text-xl font-black text-slate-900">ثبت‌نام با شماره موبایل</h1><p class="mt-2 text-xs text-slate-500">برای ساخت حساب، شماره موبایل خود را ثبت کنید.</p></div>
-    <form method="POST" action="{{ route('register') }}" class="space-y-4">@csrf
-        <div><x-input-label for="name" value="نام و نام خانوادگی" /><x-text-input id="name" class="mt-2 block w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" placeholder="مثلاً علی رضایی" /><x-input-error :messages="$errors->get('name')" class="mt-2" /></div>
-        <div><x-input-label for="mobile" value="شماره موبایل" /><x-text-input id="mobile" class="mt-2 block w-full" type="tel" name="mobile" :value="old('mobile')" required autocomplete="tel" inputmode="tel" dir="ltr" placeholder="09120000000" /><p class="mt-1 text-[11px] text-slate-400">شماره موبایل، شناسه ورود و مسیر دریافت کدهای تأیید شماست.</p><x-input-error :messages="$errors->get('mobile')" class="mt-2" /></div>
-        <div><x-input-label for="password" value="رمز عبور" /><x-text-input id="password" class="mt-2 block w-full" type="password" name="password" required autocomplete="new-password" /><x-input-error :messages="$errors->get('password')" class="mt-2" /></div>
-        <div><x-input-label for="password_confirmation" value="تکرار رمز عبور" /><x-text-input id="password_confirmation" class="mt-2 block w-full" type="password" name="password_confirmation" required autocomplete="new-password" /><x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" /></div>
-        <button class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-user-plus class="h-5 w-5" />ساخت حساب</button>
-    </form>
+    @php($step = $step ?? 'mobile')
+    <div class="mb-6 text-center"><span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50 text-primary"><x-heroicon-o-user-plus class="h-7 w-7" /></span><h1 class="mt-4 text-xl font-black text-slate-900">ثبت‌نام با موبایل</h1><p class="mt-2 text-xs text-slate-500">{{ $step === 'mobile' ? 'شماره موبایل خود را برای شروع وارد کنید.' : ($step === 'otp' ? 'کد ارسال‌شده را برای تأیید شماره وارد کنید.' : 'اطلاعات حساب خود را تکمیل کنید.') }}</p></div>
+    <x-auth-session-status class="mb-4" :status="session('status')" />
+
+    @if ($step === 'mobile')
+        <form method="POST" action="{{ route('register') }}" class="space-y-5">@csrf
+            <div><x-input-label for="mobile" value="شماره موبایل" /><x-text-input id="mobile" class="mt-2 block w-full" type="tel" name="mobile" :value="old('mobile')" required autofocus autocomplete="tel" inputmode="tel" dir="ltr" placeholder="09120000000" /><p class="mt-1 text-[11px] text-slate-400">فرمت ایران مانند 09121234567 یا +989121234567</p><x-input-error :messages="$errors->get('mobile')" class="mt-2" /></div>
+            <button class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-arrow-left-on-rectangle class="h-5 w-5" />دریافت کد تأیید</button>
+        </form>
+    @elseif ($step === 'otp')
+        <form method="POST" action="{{ route('register.otp.verify') }}" class="space-y-5">@csrf
+            <input type="hidden" name="mobile" value="{{ $mobile }}">
+            <div class="rounded-xl bg-slate-50 px-4 py-3 text-center text-sm font-bold text-slate-700" dir="ltr">{{ $mobile }}</div>
+            <div><x-input-label for="otp" value="رمز یکبار مصرف" /><x-text-input id="otp" class="mt-2 block w-full text-center tracking-[0.5em]" type="text" name="otp" required autofocus inputmode="numeric" maxlength="6" dir="ltr" placeholder="------" /><x-input-error :messages="$errors->get('otp')" class="mt-2" /></div>
+            <p class="text-center text-xs font-bold text-slate-500">اعتبار کد: <span id="otp-countdown" data-expires-at="{{ $otpExpiresAt }}" class="text-primary">در حال محاسبه...</span></p>
+            <button class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-check-circle class="h-5 w-5" />تأیید شماره موبایل</button>
+        </form>
+    @else
+        <form method="POST" action="{{ route('register') }}" class="space-y-4">@csrf
+            <input type="hidden" name="mobile" value="{{ $mobile }}">
+            <div class="rounded-xl bg-slate-50 px-4 py-3 text-center text-sm font-bold text-slate-700" dir="ltr">{{ $mobile }} <span class="mr-2 text-success">تأیید شد</span></div>
+            <div><x-input-label for="name" value="نام و نام خانوادگی" /><x-text-input id="name" class="mt-2 block w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" placeholder="مثلاً علی رضایی" /><x-input-error :messages="$errors->get('name')" class="mt-2" /></div>
+            <div><x-input-label for="national_id" value="کد ملی (اختیاری)" /><x-text-input id="national_id" class="mt-2 block w-full" type="text" name="national_id" :value="old('national_id')" inputmode="numeric" maxlength="10" dir="ltr" placeholder="0012345678" /><x-input-error :messages="$errors->get('national_id')" class="mt-2" /></div>
+            <button class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-user-plus class="h-5 w-5" />تکمیل ثبت‌نام و ورود</button>
+        </form>
+    @endif
+
     <div class="mt-6 border-t border-slate-100 pt-5 text-center text-xs text-slate-500">قبلاً ثبت‌نام کرده‌اید؟ <a href="{{ route('login') }}" class="font-black text-primary hover:text-primary-600">وارد شوید</a></div>
+    @if ($step === 'otp')
+        <script>
+            (() => { const node = document.getElementById('otp-countdown'); const expiresAt = Number(node?.dataset.expiresAt || 0) * 1000; const tick = () => { const remaining = Math.max(0, expiresAt - Date.now()); const seconds = Math.ceil(remaining / 1000); if (node) node.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`; if (seconds > 0) window.setTimeout(tick, 1000); }; tick(); })();
+        </script>
+    @endif
 </x-guest-layout>

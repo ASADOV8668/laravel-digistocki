@@ -41,10 +41,13 @@ class PhaseElevenSystemSettingsTest extends TestCase
             'support_email' => 'help@example.test',
             'support_phone' => '02112345678',
             'listings_enabled' => 1,
+            'otp_expiry_minutes' => 7,
         ])->assertRedirect()->assertSessionHas('status', 'تنظیمات سیستم ذخیره شد.');
 
         $this->assertDatabaseHas('options', ['key' => 'site_title', 'value' => 'بازار موبایل']);
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_mb', 'value' => '8']);
+        $this->assertDatabaseHas('options', ['key' => 'otp_expiry_minutes', 'value' => '7']);
+        $this->assertDatabaseHas('options', ['key' => 'registration_mode', 'value' => 'mobile']);
         $this->get(route('home'))->assertOk()->assertSee('<title>بازار — خانه</title>', false);
         $this->get(route('support.index'))->assertOk()->assertSee('<title>بازار — ارتباط با پشتیبانی</title>', false)->assertSee('help@example.test')->assertSee('تهران، خیابان تست');
     }

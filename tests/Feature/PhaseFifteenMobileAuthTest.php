@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\MobileOtp;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class PhaseFifteenMobileAuthTest extends TestCase
@@ -29,19 +31,17 @@ class PhaseFifteenMobileAuthTest extends TestCase
         $this->post(route('login'), [
             'login' => '09129876543',
             'password' => 'password',
-        ])->assertSessionHasErrors('login');
+        ])->assertSessionHasErrors('mobile');
 
         $this->assertGuest();
     }
 
     public function test_user_can_register_with_mobile_only(): void
     {
-        $this->post(route('register'), [
-            'name' => 'کاربر موبایلی',
-            'mobile' => '+98 912 111 2233',
-            'password' => 'password',
-            'password_confirmation' => 'password',
-        ])->assertRedirect(route('dashboard', absolute: false));
+        $this->post(route('register'), ['mobile' => '+98 912 111 2233'])->assertRedirect(route('register'));
+        MobileOtp::latest()->firstOrFail()->update(['code_hash' => Hash::make('123456')]);
+        $this->post(route('register.otp.verify'), ['mobile' => '09121112233', 'otp' => '123456'])->assertRedirect(route('register'));
+        $this->post(route('register'), ['name' => 'کاربر موبایلی'])->assertRedirect(route('home'));
 
         $user = User::where('mobile', '09121112233')->firstOrFail();
         $this->assertNull($user->email);

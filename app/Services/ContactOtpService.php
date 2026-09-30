@@ -19,7 +19,7 @@ class ContactOtpService
     public function issue(User $user, Listing $listing): ?ContactOtp
     {
         $code = (string) random_int(100000, 999999);
-        $expiresAt = now()->addMinutes(self::TTL_MINUTES);
+        $expiresAt = now()->addMinutes(app(SystemOptions::class)->otpExpiryMinutes());
         $sent = SmsHelper::send($user->mobile, "کد تأیید شما: {$code}", [
             'user_id' => $user->id,
             'listing_id' => $listing->id,

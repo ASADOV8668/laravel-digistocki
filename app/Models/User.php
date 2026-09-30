@@ -26,6 +26,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'mobile',
+        'national_id',
         'email',
         'password',
         'can_post_listings',
