@@ -971,6 +971,12 @@ npm run build
 - محدود کردن تغییر فقط به رکورد legacy با نام انگلیسی Apple و نام فارسی آیفون؛
 - پوشش مسیر `up` و `down` migration با تست regression.
 
+## فاز ۱۲۰: تکمیل مدیریت آگهی‌های منقضی
+
+- افزودن کارت سریع «منقضی‌شده» به صفحه‌ی مدیریت آگهی‌ها؛
+- حفظ دسترسی مستقیم به فیلتر status برای آگهی‌های منقضی؛
+- اضافه‌شدن regression test برای کارت و نتیجه‌ی فیلتر.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -988,10 +994,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۱۱۹:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۱۲۰:
 
-- ۱۷۲ تست موفق
-- ۶۸۴ assertion موفق
+- ۱۷۳ تست موفق
+- ۶۸۹ assertion موفق
 - ۰ شکست
 
 تست regression فاز ۸۹ در `tests/Feature/PhaseEightyNineRelatedListingRelationsTest.php` قرار دارد.
@@ -1045,5 +1051,7 @@ npm run build
 تست نام‌گذاری فارسی catalog در فاز ۱۱۸ در `tests/Feature/PhaseOneHundredEighteenCatalogLocalizationTest.php` قرار دارد.
 
 تست migration داده‌ی catalog در فاز ۱۱۹ در `tests/Feature/PhaseOneHundredNineteenCatalogDataMigrationTest.php` قرار دارد.
+
+تست فیلتر آگهی‌های منقضی در فاز ۱۲۰ در `tests/Feature/PhaseOneHundredTwentyAdminExpiredListingFilterTest.php` قرار دارد.
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php`، پوشش ویژگی‌های چندانتخابی فاز هفتادوششم در `tests/Feature/PhaseSeventySixMultiSelectAttributesTest.php`، پوشش اعتبارسنجی ویژگی‌های پویا و ویژگی‌های الزامی در `tests/Feature/PhaseSeventySevenListingAttributeValidationTest.php`، پوشش نوع ورودی فرم ویرایش در `tests/Feature/PhaseSeventyEightEditAttributeInputTest.php`، پوشش محدودسازی ویژگی‌های مدل در `tests/Feature/PhaseEightyEditModelAttributesTest.php`، پوشش گزینه‌های ویژگی پنل مدیریت و حالت گزینه‌های خالی در `tests/Feature/PhaseEightyOneAdminAttributeOptionsTest.php`، پوشش assetهای PWA در `tests/Feature/PhaseEightyThreePwaAssetsTest.php`، پوشش iconهای legacy navigation در `tests/Feature/PhaseEightyFourLegacyNavigationIconsTest.php`، پوشش favicon layoutها در `tests/Feature/PhaseEightyFiveFaviconLinksTest.php`، پوشش سقف مجموع تصاویر در `tests/Feature/PhaseEightySixImageLimitTest.php`، پوشش الزام per-model در `tests/Feature/PhaseEightySevenModelAttributeRequirementsTest.php` و پوشش marker الزام فرم ویرایش در `tests/Feature/PhaseEightyEightEditRequirementDisplayTest.php` قرار دارند.

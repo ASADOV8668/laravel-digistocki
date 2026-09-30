@@ -23,9 +23,10 @@
                 ['key' => 'approved', 'label' => 'منتشرشده', 'icon' => 'heroicon-o-check-badge', 'class' => 'bg-success/10 text-success'],
                 ['key' => 'rejected', 'label' => 'ردشده', 'icon' => 'heroicon-o-x-circle', 'class' => 'bg-error/10 text-error'],
                 ['key' => 'sold', 'label' => 'فروخته‌شده', 'icon' => 'heroicon-o-shopping-bag', 'class' => 'bg-info/10 text-info'],
+                ['key' => 'expired', 'label' => 'منقضی‌شده', 'icon' => 'heroicon-o-clock', 'class' => 'bg-slate-100 text-slate-500'],
             ];
         @endphp
-        <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <div class="grid grid-cols-2 gap-3 xl:grid-cols-5">
             @foreach ($statusCards as $card)
                 <a href="{{ route('admin.listings.index', ['status' => $card['key']]) }}" class="admin-card flex items-center gap-3 p-4 transition hover:-translate-y-0.5 hover:shadow-md">
                     <span class="flex h-10 w-10 items-center justify-center rounded-2xl {{ $card['class'] }}"><x-dynamic-component :component="$card['icon']" class="h-5 w-5" /></span>
