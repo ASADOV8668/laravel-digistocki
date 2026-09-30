@@ -2,7 +2,7 @@
 @php
     $image = $listing->primaryImage ?? $listing->images->first();
     $showStatusBadge = app(\App\Services\SystemOptions::class)->showListingStatusBadge();
-    $isFavorited = (bool) ($listing->is_favorited ?? false);
+    $isFavorited = filter_var($listing->is_favorited ?? false, FILTER_VALIDATE_BOOLEAN);
     $cardAttributes = collect($listing->attributeValues ?? [])->map(function ($value) {
         $raw = $value->value_json ?? $value->value_string ?? $value->value_integer ?? $value->value_decimal;
         if ($raw === null && $value->value_boolean !== null) {
@@ -19,7 +19,7 @@
         <a href="{{ route('listings.show', $listing) }}" class="block">
             <img src="{{ $image ? asset('storage/'.($image->thumbnail_path ?: $image->path)) : asset('images/listing-placeholder.svg') }}" alt="{{ $image ? $listing->title : 'تصویر پیش‌فرض آگهی موبایل' }}" class="h-40 w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" decoding="async">
         </a>
-        <button type="button" @click.stop.prevent="toggle" :aria-pressed="favorited.toString()" aria-label="افزودن آگهی به علاقه‌مندی‌ها" class="absolute left-2 top-2 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-slate-300 shadow-sm transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30" :class="favorited ? 'text-primary' : 'text-slate-300'"><x-heroicon-o-heart x-show="!favorited" class="h-6 w-6" /><x-heroicon-s-heart x-show="favorited" x-cloak class="h-6 w-6 fill-current" /></button>
+        <button type="button" @click.stop.prevent="toggle" :aria-pressed="favorited.toString()" :aria-label="favorited ? 'حذف آگهی از علاقه‌مندی‌ها' : 'افزودن آگهی به علاقه‌مندی‌ها'" class="absolute left-2 top-2 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-slate-300 shadow-sm transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30" :class="favorited ? 'text-primary' : 'text-slate-300'"><x-heroicon-o-heart x-show="!favorited" class="h-6 w-6" /><x-heroicon-s-heart x-show="favorited" x-cloak class="h-6 w-6 fill-current" /></button>
         @if ($showStatusBadge)<span class="absolute right-2 top-2 rounded-full bg-neutral px-2.5 py-1.5 text-[10px] font-black text-white shadow-sm">آگهی فعال</span>@endif
     </div>
     <a href="{{ route('listings.show', $listing) }}" class="block p-3.5">
