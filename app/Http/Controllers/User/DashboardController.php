@@ -11,6 +11,7 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        $user->load('storefront');
         $status = $request->input('status');
         $statuses = ['pending', 'approved', 'rejected', 'sold', 'expired'];
 
@@ -32,6 +33,7 @@ class DashboardController extends Controller
             'listings' => $listings,
             'status' => $status,
             'counts' => collect($statuses)->mapWithKeys(fn (string $item) => [$item => (int) $countsByStatus->get($item, 0)]),
+            'store' => $user->storefront,
         ]);
     }
 }
