@@ -933,6 +933,13 @@ npm run build
 - اجرای `npm ci` و build assetهای فرانت؛
 - اجرای portable health check بعد از تست و build.
 
+## فاز ۱۱۴: smoke test کامل دیپلوی در CI
+
+- اجرای portable health check قبل از تولید assetها؛
+- ساخت storage link و cacheهای config، route و view در CI؛
+- اجرای strict health check بعد از آماده‌سازی artifactهای production؛
+- اطمینان از اینکه مسیر deploy واقعی در کنار تست‌های برنامه پوشش داده می‌شود.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:

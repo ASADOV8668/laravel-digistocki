@@ -48,6 +48,9 @@ jobs:
       - name: Run Laravel tests
         run: php artisan test
 
+      - name: Run portable deployment health check
+        run: php artisan app:health --json --skip-deployment-assets
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -60,5 +63,12 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
-      - name: Run portable deployment health check
-        run: php artisan app:health --json --skip-deployment-assets
+      - name: Prepare deployment artifacts
+        run: |
+          php artisan storage:link
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+
+      - name: Run strict deployment health check
+        run: php artisan app:health --json
