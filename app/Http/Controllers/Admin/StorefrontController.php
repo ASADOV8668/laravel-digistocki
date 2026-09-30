@@ -43,6 +43,13 @@ class StorefrontController extends Controller
         ]);
     }
 
+    public function toggle(Request $request, SellerStore $sellerStore): RedirectResponse
+    {
+        $sellerStore->update(['is_enabled' => ! $sellerStore->is_enabled]);
+
+        return back()->with('status', $sellerStore->is_enabled ? 'غرفه فعال شد.' : 'غرفه غیرفعال شد.');
+    }
+
     public function update(UpdateStorefrontRequest $request, User $user): RedirectResponse
     {
         $store = $user->storefront;

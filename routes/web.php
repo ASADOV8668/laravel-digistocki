@@ -74,6 +74,7 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::patch('/listings/{listing}/reject', [AdminListingController::class, 'reject'])->name('admin.listings.reject');
     Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users.index');
     Route::get('/storefronts', [AdminStorefrontController::class, 'index'])->name('admin.storefronts.index');
+    Route::patch('/storefronts/{sellerStore}/toggle', [AdminStorefrontController::class, 'toggle'])->name('admin.storefronts.toggle');
     Route::get('/users/{user}/storefront', [AdminStorefrontController::class, 'edit'])->name('admin.storefronts.edit');
     Route::put('/users/{user}/storefront', [AdminStorefrontController::class, 'update'])->name('admin.storefronts.update');
     Route::get('/users/create', [AdminUserController::class, 'create'])->name('admin.users.create');
