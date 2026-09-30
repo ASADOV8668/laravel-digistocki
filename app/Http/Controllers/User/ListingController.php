@@ -448,17 +448,22 @@ class ListingController extends Controller
 
     private function storeImages(Listing $listing, array $images, ImageService $imageService): void
     {
-        foreach ($images as $image) {
-            if (! $image instanceof \Illuminate\Http\UploadedFile) {
-                continue;
-            }
+        $uploads = array_values(array_filter($images, fn ($image) => $image instanceof \Illuminate\Http\UploadedFile));
+        if ($uploads === []) {
+            return;
+        }
 
+        $hasPrimary = $listing->images()->where('is_primary', true)->exists();
+        $nextSortOrder = (int) $listing->images()->max('sort_order') + 1;
+
+        foreach ($uploads as $image) {
             $stored = $imageService->store($image, 'listings/'.$listing->id);
             $listing->images()->create([
                 ...$stored,
-                'is_primary' => ! $listing->images()->where('is_primary', true)->exists(),
-                'sort_order' => (int) $listing->images()->max('sort_order') + 1,
+                'is_primary' => ! $hasPrimary,
+                'sort_order' => $nextSortOrder++,
             ]);
+            $hasPrimary = true;
         }
     }
 
