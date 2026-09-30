@@ -10,30 +10,45 @@ window.searchSuggest = (endpoint) => ({
     suggestions: [],
     loading: false,
     open: false,
+    requestController: null,
+
+    cancelRequest() {
+        this.requestController?.abort();
+        this.requestController = null;
+    },
 
     async search() {
         const query = this.query.trim();
 
         if (query.length < 2) {
+            this.cancelRequest();
             this.suggestions = [];
+            this.loading = false;
             this.open = false;
             return;
         }
 
+        this.cancelRequest();
+        const controller = new AbortController();
+        this.requestController = controller;
         this.loading = true;
         this.open = true;
 
         try {
             const response = await fetch(`${this.endpoint}?q=${encodeURIComponent(query)}`, {
                 headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: controller.signal,
             });
 
             if (!response.ok) throw new Error('Search request failed');
             this.suggestions = await response.json();
-        } catch {
-            this.suggestions = [];
+        } catch (error) {
+            if (error.name !== 'AbortError') this.suggestions = [];
         } finally {
-            this.loading = false;
+            if (this.requestController === controller) {
+                this.requestController = null;
+                this.loading = false;
+            }
         }
     },
 });
@@ -106,13 +121,21 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, initialModelId 
     open: false,
     filtersOpen: false,
     searchTimer: null,
+    requestController: null,
+
+    cancelSuggestionRequest() {
+        this.requestController?.abort();
+        this.requestController = null;
+    },
 
     search() {
         clearTimeout(this.searchTimer);
         const query = this.query.trim();
 
         if (query.length < 2) {
+            this.cancelSuggestionRequest();
             this.suggestions = { brands: [], models: [] };
+            this.loading = false;
             this.open = false;
             return;
         }
@@ -121,20 +144,27 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, initialModelId 
     },
 
     async fetchSuggestions(query) {
+        this.cancelSuggestionRequest();
+        const controller = new AbortController();
+        this.requestController = controller;
         this.loading = true;
         this.open = true;
 
         try {
             const response = await fetch(`${this.suggestionsEndpoint}?q=${encodeURIComponent(query)}`, {
                 headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: controller.signal,
             });
 
             if (!response.ok) throw new Error('Search request failed');
             this.suggestions = await response.json();
-        } catch {
-            this.suggestions = { brands: [], models: [] };
+        } catch (error) {
+            if (error.name !== 'AbortError') this.suggestions = { brands: [], models: [] };
         } finally {
-            this.loading = false;
+            if (this.requestController === controller) {
+                this.requestController = null;
+                this.loading = false;
+            }
         }
     },
 
@@ -144,6 +174,7 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, initialModelId 
         this.query = brand.label;
         this.attributes = [];
         this.filters = {};
+        this.cancelSuggestionRequest();
         this.open = false;
     },
 
@@ -186,6 +217,7 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, initialModelId 
         this.attributes = [];
         this.filters = {};
         this.suggestions = { brands: [], models: [] };
+        this.cancelSuggestionRequest();
         this.open = false;
     },
 });
