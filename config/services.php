@@ -31,4 +31,11 @@ return [
         ],
     ],
 
+    'sms' => [
+        'url' => env('SMS_API_URL'),
+        'token' => env('SMS_API_TOKEN'),
+        'sender' => env('SMS_SENDER'),
+        'timeout' => (int) env('SMS_TIMEOUT', 10),
+    ],
+
 ];
