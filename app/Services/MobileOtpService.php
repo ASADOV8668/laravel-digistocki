@@ -17,7 +17,7 @@ class MobileOtpService
         $code = OtpCode::generate();
         $expiresAt = now()->addMinutes(app(SystemOptions::class)->otpExpiryMinutes());
 
-        if (! SmsHelper::send($mobile, "کد تأیید شما: {$code}", compact('mobile', 'purpose', 'expiresAt'))) {
+        if (! SmsHelper::send($mobile, "کد تأیید شما: {$code}", compact('mobile', 'purpose', 'expiresAt') + ['otp' => $code])) {
             return null;
         }
 

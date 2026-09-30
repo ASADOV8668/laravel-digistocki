@@ -32,9 +32,11 @@ return [
     ],
 
     'sms' => [
-        'url' => env('SMS_API_URL'),
-        'token' => env('SMS_API_TOKEN'),
-        'sender' => env('SMS_SENDER'),
+        'url' => env('SMS_API_URL', 'https://edge.ippanel.com/v1/api/send'),
+        'authorization' => env('SMS_AUTHORIZATION', env('SMS_API_TOKEN')),
+        'pattern_code' => env('SMS_PATTERN_CODE', 'f532bys7isf15yl'),
+        'sending_type' => env('SMS_SENDING_TYPE', 'pattern'),
+        'sender' => env('SMS_SENDER', '+983000505'),
         'timeout' => (int) env('SMS_TIMEOUT', 10),
     ],
 

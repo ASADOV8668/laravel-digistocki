@@ -24,7 +24,8 @@ class CheckApplicationHealth extends Command
             'apache_front_controller' => $this->apacheRewriteIsConfigured(),
         ];
         if (app(SystemOptions::class)->smsMode() === 'live') {
-            $checks['sms_provider'] = is_string(config('services.sms.url')) && trim((string) config('services.sms.url')) !== '';
+            $checks['sms_provider'] = collect(['url', 'authorization', 'pattern_code'])
+                ->every(fn (string $key) => is_string(config("services.sms.{$key}")) && trim((string) config("services.sms.{$key}")) !== '');
         }
         $healthy = ! in_array(false, $checks, true);
         $skipped = $deploymentAssetsSkipped ? ['storage_link', 'build_manifest'] : [];

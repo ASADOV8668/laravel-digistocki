@@ -25,6 +25,7 @@ class ContactOtpService
             'user_id' => $user->id,
             'listing_id' => $listing->id,
             'expires_at' => $expiresAt->toIso8601String(),
+            'otp' => $code,
         ]);
 
         if (! $sent) {

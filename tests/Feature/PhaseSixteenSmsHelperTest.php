@@ -45,6 +45,6 @@ class PhaseSixteenSmsHelperTest extends TestCase
         ])->assertRedirect();
 
         $this->assertDatabaseHas('options', ['key' => 'sms_mode', 'value' => 'live']);
-        $this->actingAs($admin)->get(route('admin.settings.edit'))->assertOk()->assertSee('وب‌سرویس سامانه پیامک');
+        $this->actingAs($admin)->get(route('admin.settings.edit'))->assertOk()->assertSee('وب‌سرویس Pattern آی‌پی‌پنل');
     }
 }
