@@ -33,7 +33,7 @@ class PhaseSixtyTwoOtpDeliveryFailureTest extends TestCase
         $this->actingAs($viewer)
             ->post(route('listings.contact-otp', $listing))
             ->assertRedirect()
-            ->assertSessionHasErrors('contact_otp');
+            ->assertSessionHasErrors(['contact_otp' => 'پیامک ارسال نشد؛ لطفاً بعداً دوباره تلاش کنید.']);
 
         $this->assertDatabaseCount('contact_otps', 0);
         $this->assertFalse(session()->has('contact_otp_listing_id'));

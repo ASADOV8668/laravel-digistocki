@@ -44,7 +44,7 @@ class RegisteredUserController extends Controller
 
             $otp = $otpService->issue($validated['mobile'], 'register');
             if (! $otp) {
-                return back()->withErrors(['mobile' => 'ارسال کد تأیید انجام نشد؛ لطفاً بعداً دوباره تلاش کنید.']);
+                return back()->withErrors(['mobile' => 'پیامک ارسال نشد؛ لطفاً بعداً دوباره تلاش کنید.']);
             }
 
             $request->session()->put(['registration_mobile' => $validated['mobile'], 'registration_otp_expires_at' => $otp->expires_at->timestamp]);
@@ -105,7 +105,7 @@ class RegisteredUserController extends Controller
 
         $otp = $otpService->issue($mobile, 'register');
         if (! $otp) {
-            return back()->withErrors(['otp' => 'ارسال کد تأیید انجام نشد؛ لطفاً بعداً دوباره تلاش کنید.']);
+            return back()->withErrors(['otp' => 'پیامک ارسال نشد؛ لطفاً بعداً دوباره تلاش کنید.']);
         }
 
         $request->session()->put('registration_otp_expires_at', $otp->expires_at->timestamp);

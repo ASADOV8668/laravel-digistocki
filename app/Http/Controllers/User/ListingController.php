@@ -345,7 +345,7 @@ class ListingController extends Controller
         $this->authorize('view', $listing);
         abort_if(blank($request->user()->mobile), 422, 'برای دریافت کد تماس، شماره موبایل حساب خود را تکمیل کنید.');
         if (! $otpService->issue($request->user(), $listing)) {
-            return back()->withErrors(['contact_otp' => 'ارسال کد تأیید انجام نشد؛ لطفاً بعداً دوباره تلاش کنید.']);
+            return back()->withErrors(['contact_otp' => 'پیامک ارسال نشد؛ لطفاً بعداً دوباره تلاش کنید.']);
         }
 
         $request->session()->put('contact_otp_listing_id', $listing->id);

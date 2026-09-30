@@ -37,7 +37,7 @@ class AuthenticatedSessionController extends Controller
             if (! $user) {
                 $otp = $otpService->issue($mobile, 'register');
                 if (! $otp) {
-                    return back()->withErrors(['mobile' => 'ارسال کد تأیید انجام نشد؛ لطفاً بعداً دوباره تلاش کنید.']);
+                    return back()->withErrors(['mobile' => 'پیامک ارسال نشد؛ لطفاً بعداً دوباره تلاش کنید.']);
                 }
 
                 $request->session()->put(['registration_mobile' => $mobile, 'registration_otp_expires_at' => $otp->expires_at->timestamp]);
@@ -71,7 +71,7 @@ class AuthenticatedSessionController extends Controller
 
         $otp = $otpService->issue($validated['mobile'], 'login');
         if (! $otp) {
-            return back()->withErrors(['mobile' => 'ارسال کد تأیید انجام نشد؛ لطفاً بعداً دوباره تلاش کنید.']);
+            return back()->withErrors(['mobile' => 'پیامک ارسال نشد؛ لطفاً بعداً دوباره تلاش کنید.']);
         }
 
         $request->session()->forget('login_identified_mobile');
