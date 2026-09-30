@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ListingController as AdminListingController;
 use App\Http\Controllers\Admin\PhoneModelController as AdminPhoneModelController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\StorefrontController as AdminStorefrontController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SeoController;
@@ -72,6 +73,9 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::patch('/listings/{listing}/approve', [AdminListingController::class, 'approve'])->name('admin.listings.approve');
     Route::patch('/listings/{listing}/reject', [AdminListingController::class, 'reject'])->name('admin.listings.reject');
     Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users.index');
+    Route::get('/storefronts', [AdminStorefrontController::class, 'index'])->name('admin.storefronts.index');
+    Route::get('/users/{user}/storefront', [AdminStorefrontController::class, 'edit'])->name('admin.storefronts.edit');
+    Route::put('/users/{user}/storefront', [AdminStorefrontController::class, 'update'])->name('admin.storefronts.update');
     Route::get('/users/create', [AdminUserController::class, 'create'])->name('admin.users.create');
     Route::post('/users', [AdminUserController::class, 'store'])->name('admin.users.store');
     Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('admin.users.edit');

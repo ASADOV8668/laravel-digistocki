@@ -1,0 +1,46 @@
+<x-admin-layout title="مدیریت غرفه‌ها">
+    <x-slot name="header">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center gap-3">
+                <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><x-heroicon-o-building-storefront class="h-6 w-6" /></span>
+                <div><h2 class="text-xl font-black text-slate-900">مدیریت غرفه‌ها</h2><p class="mt-1 text-xs text-slate-400">ویترین عمومی کاربران را مدیریت کنید.</p></div>
+            </div>
+            <a href="{{ route('admin.users.index') }}" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-black text-white transition hover:bg-primary"><x-heroicon-o-users class="h-5 w-5" />انتخاب از کاربران</a>
+        </div>
+    </x-slot>
+
+    <section class="space-y-6">
+        <div class="admin-card p-5">
+            <form method="GET" class="flex flex-col gap-3 sm:flex-row">
+                <input name="q" value="{{ request('q') }}" placeholder="نام غرفه، slug، نام یا موبایل کاربر" class="min-w-0 flex-1 rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary">
+                <button class="rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white">جستجو</button>
+                @if (request()->filled('q'))<a href="{{ route('admin.storefronts.index') }}" class="rounded-xl bg-slate-100 px-5 py-3 text-center text-sm font-bold text-slate-600">پاک‌کردن</a>@endif
+            </form>
+        </div>
+
+        <div class="admin-card overflow-hidden">
+            <div class="divide-y divide-slate-100">
+                @forelse ($stores as $store)
+                    <article class="flex flex-col gap-4 p-5 transition hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex min-w-0 items-center gap-3">
+                            @if ($store->logo_path)<img src="{{ asset('storage/'.$store->logo_path) }}" alt="{{ $store->name }}" class="h-12 w-12 rounded-2xl object-cover">@else<span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 font-black text-primary">{{ mb_substr($store->name, 0, 1) }}</span>@endif
+                            <div class="min-w-0">
+                                <h3 class="truncate font-black text-slate-800">{{ $store->name }}</h3>
+                                <p class="mt-1 truncate text-xs text-slate-400" dir="ltr">/store/{{ $store->slug }} · {{ $store->user->mobile }}</p>
+                                <p class="mt-1 text-xs text-slate-500">{{ collect([$store->province?->name, $store->city?->name])->filter()->implode('، ') ?: 'موقعیت ثبت نشده' }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="rounded-full px-3 py-1.5 text-[10px] font-black {{ $store->is_enabled ? 'bg-success/10 text-success' : 'bg-slate-100 text-slate-500' }}">{{ $store->is_enabled ? 'فعال' : 'غیرفعال' }}</span>
+                            @if ($store->is_enabled)<a href="{{ route('storefront.show', $store) }}" target="_blank" class="rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600">نمایش</a>@endif
+                            <a href="{{ route('admin.storefronts.edit', $store->user) }}" class="rounded-xl bg-primary/10 px-3 py-2 text-xs font-bold text-primary">ویرایش</a>
+                        </div>
+                    </article>
+                @empty
+                    <div class="p-12 text-center text-sm text-slate-400">هنوز غرفه‌ای ثبت نشده است.</div>
+                @endforelse
+            </div>
+        </div>
+        {{ $stores->links() }}
+    </section>
+</x-admin-layout>
