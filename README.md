@@ -940,6 +940,12 @@ npm run build
 - اجرای strict health check بعد از آماده‌سازی artifactهای production؛
 - اطمینان از اینکه مسیر deploy واقعی در کنار تست‌های برنامه پوشش داده می‌شود.
 
+## فاز ۱۱۵: enforce کردن code style
+
+- اجرای `vendor/bin/pint --test` در workflow؛
+- جلوگیری از ورود تغییرات PHP خارج از استاندارد پروژه به branch؛
+- حفظ همان بررسی style در محیط محلی و CI.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:

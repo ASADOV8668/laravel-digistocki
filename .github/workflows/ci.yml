@@ -45,6 +45,9 @@ jobs:
           mkdir -p database
           touch database/database.sqlite
 
+      - name: Check PHP code style
+        run: vendor/bin/pint --test
+
       - name: Run Laravel tests
         run: php artisan test
 
