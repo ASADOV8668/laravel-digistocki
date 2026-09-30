@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Listing;
+use Sadegh19b\LaravelIranCities\Models\Province;
 
 class HomeController extends Controller
 {
@@ -16,6 +17,9 @@ class HomeController extends Controller
             ->limit(8)
             ->get();
 
-        return view('welcome', compact('latestListings'));
+        return view('welcome', [
+            'latestListings' => $latestListings,
+            'provinces' => Province::query()->orderBy('name')->get(['id', 'name']),
+        ]);
     }
 }

@@ -144,6 +144,8 @@ class ListingController extends Controller
 
         $query->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId));
         $query->when($request->integer('phone_model_id'), fn (Builder $query, int $modelId) => $query->where('phone_model_id', $modelId));
+        $query->when($request->integer('province_id'), fn (Builder $query, int $provinceId) => $query->where('province_id', $provinceId));
+        $query->when($request->integer('city_id'), fn (Builder $query, int $cityId) => $query->where('city_id', $cityId));
         $query->when($request->integer('min_price'), fn (Builder $query, int $price) => $query->where('price', '>=', $price));
         $query->when($request->integer('max_price'), fn (Builder $query, int $price) => $query->where('price', '<=', $price));
         $query->when($request->filled('q'), function (Builder $query) use ($request) {

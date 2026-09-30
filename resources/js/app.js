@@ -53,6 +53,95 @@ window.searchSuggest = (endpoint) => ({
     },
 });
 
+window.homeSearch = (citiesEndpoint, suggestionsEndpoint) => ({
+    citiesEndpoint,
+    suggestionsEndpoint,
+    provinceId: '',
+    cityId: '',
+    cities: [],
+    citiesLoading: false,
+    query: '',
+    selectedBrandId: '',
+    selectedModelId: '',
+    suggestions: { brands: [], models: [] },
+    loading: false,
+    open: false,
+    searchTimer: null,
+    requestController: null,
+
+    async loadCities() {
+        this.cityId = '';
+        this.cities = [];
+        if (!this.provinceId) return;
+
+        this.citiesLoading = true;
+        try {
+            const response = await fetch(`${this.citiesEndpoint}/${this.provinceId}/cities`, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            if (!response.ok) throw new Error('City request failed');
+            this.cities = await response.json();
+        } catch {
+            this.cities = [];
+        } finally {
+            this.citiesLoading = false;
+        }
+    },
+
+    search() {
+        clearTimeout(this.searchTimer);
+        const query = this.query.trim();
+        this.selectedBrandId = '';
+        this.selectedModelId = '';
+
+        if (query.length < 2) {
+            this.suggestions = { brands: [], models: [] };
+            this.open = false;
+            return;
+        }
+
+        this.searchTimer = setTimeout(() => this.fetchSuggestions(query), 250);
+    },
+
+    async fetchSuggestions(query) {
+        this.requestController?.abort();
+        const controller = new AbortController();
+        this.requestController = controller;
+        this.loading = true;
+        this.open = true;
+
+        try {
+            const response = await fetch(`${this.suggestionsEndpoint}?q=${encodeURIComponent(query)}`, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: controller.signal,
+            });
+            if (!response.ok) throw new Error('Search request failed');
+            this.suggestions = await response.json();
+        } catch (error) {
+            if (error.name !== 'AbortError') this.suggestions = { brands: [], models: [] };
+        } finally {
+            if (this.requestController === controller) {
+                this.requestController = null;
+                this.loading = false;
+            }
+        }
+    },
+
+    selectBrand(brand) {
+        this.selectedBrandId = brand.id;
+        this.selectedModelId = '';
+        this.query = brand.label;
+        this.open = false;
+    },
+
+    selectModel(model) {
+        this.selectedBrandId = model.brand_id;
+        this.selectedModelId = model.id;
+        this.query = model.label;
+        this.open = false;
+    },
+});
+
 window.pullToRefresh = () => ({
     startY: 0,
     distance: 0,
