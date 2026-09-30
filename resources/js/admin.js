@@ -62,6 +62,24 @@ document.addEventListener('DOMContentLoaded', () => {
             },
         },
     });
+
+    const statusElement = document.getElementById('listing-status-data');
+    const statusCanvas = document.querySelector('[data-admin-chart="listing-status"]');
+    if (!statusElement || !statusCanvas) return;
+    const statusData = JSON.parse(statusElement.textContent);
+    new Chart(statusCanvas, {
+        type: 'doughnut',
+        data: {
+            labels: statusData.labels,
+            datasets: [{ data: statusData.values, backgroundColor: ['#f59e0b', '#10b981', '#ef4444', '#0ea5e9', '#94a3b8'], borderWidth: 0, hoverOffset: 5 }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: { legend: { position: 'bottom', rtl: true, labels: { usePointStyle: true, padding: 16, font: { family: 'Vazirmatn' } } }, tooltip: { rtl: true, textDirection: 'rtl' } },
+        },
+    });
 });
 
 Alpine.start();

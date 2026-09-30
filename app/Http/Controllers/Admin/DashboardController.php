@@ -42,6 +42,7 @@ class DashboardController extends Controller
             'resolvedReportsCount' => (int) $reportStatusCounts->get('resolved', 0),
             'listingTrend' => $listingTrend,
             'statusCounts' => $statusCounts,
+            'listingStatusChart' => ['labels' => ['در انتظار', 'تأییدشده', 'ردشده', 'فروخته‌شده', 'منقضی‌شده'], 'values' => [$statusCounts->get('pending', 0), $statusCounts->get('approved', 0), $statusCounts->get('rejected', 0), $statusCounts->get('sold', 0), $statusCounts->get('expired', 0)]],
             'recentListings' => Listing::with(['user', 'brand', 'phoneModel'])->latest()->limit(6)->get(),
         ]);
     }
