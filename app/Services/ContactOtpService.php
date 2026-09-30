@@ -48,19 +48,27 @@ class ContactOtpService
 
     public function verify(User $user, Listing $listing, string $code): bool
     {
-        $otp = ContactOtp::query()->where('user_id', $user->id)->where('listing_id', $listing->id)->whereNull('verified_at')->latest()->first();
-        $expiresAt = $otp ? Carbon::parse($otp->getRawOriginal('expires_at'), config('app.timezone')) : null;
-        if (! $otp || $expiresAt->isPast() || $otp->attempts >= self::MAX_ATTEMPTS) {
-            return false;
-        }
+        return DB::transaction(function () use ($user, $listing, $code): bool {
+            $otp = ContactOtp::query()
+                ->where('user_id', $user->id)
+                ->where('listing_id', $listing->id)
+                ->whereNull('verified_at')
+                ->latest()
+                ->lockForUpdate()
+                ->first();
+            $expiresAt = $otp ? Carbon::parse($otp->getRawOriginal('expires_at'), config('app.timezone')) : null;
+            if (! $otp || $expiresAt->isPast() || $otp->attempts >= self::MAX_ATTEMPTS) {
+                return false;
+            }
 
-        $otp->forceFill(['attempts' => $otp->attempts + 1])->save();
-        if (! Hash::check($code, $otp->code_hash)) {
-            return false;
-        }
+            $otp->forceFill(['attempts' => $otp->attempts + 1])->save();
+            if (! Hash::check($code, $otp->code_hash)) {
+                return false;
+            }
 
-        $otp->forceFill(['verified_at' => now()])->save();
+            $otp->forceFill(['verified_at' => now()])->save();
 
-        return true;
+            return true;
+        });
     }
 }
