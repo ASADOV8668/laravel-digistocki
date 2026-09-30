@@ -1063,10 +1063,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۱۳۱:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۱۴۱:
 
-- ۱۸۷ تست موفق
-- ۷۶۹ assertion موفق
+- ۲۰۱ تست موفق
+- ۸۳۰ assertion موفق
 - ۰ شکست
 
 تست regression فاز ۸۹ در `tests/Feature/PhaseEightyNineRelatedListingRelationsTest.php` قرار دارد.
@@ -1144,5 +1144,23 @@ npm run build
 تست حالت ثبت‌نام موبایلی در فاز ۱۳۰ در `tests/Feature/PhaseOneHundredThirtyMobileRegistrationModeTest.php` قرار دارد.
 
 تست flow احراز OTP موبایل در فاز ۱۳۱ در `tests/Feature/PhaseOneHundredThirtyOneMobileOtpAuthTest.php` قرار دارد.
+
+تست ساخت کاربر دستی توسط مدیریت در فاز ۱۳۲ در `tests/Feature/PhaseOneHundredThirtyTwoAdminUserCreationTest.php` قرار دارد.
+
+تست ایجاد، ویرایش و جستجوی کاربر آگهی در فاز ۱۳۳ در `tests/Feature/PhaseOneHundredThirtyThreeAdminListingManagementTest.php` قرار دارد.
+
+تست ویرایش وضعیت آگهی توسط مدیریت در فاز ۱۳۴ در `tests/Feature/PhaseOneHundredThirtyThreeAdminListingManagementTest.php` قرار دارد.
+
+تست ویرایش کاربران مدیریت در فاز ۱۳۵ در `tests/Feature/PhaseOneHundredThirtyFiveAdminUserEditTest.php` قرار دارد.
+
+تست مدیریت تصاویر آگهی توسط مدیریت در فاز ۱۳۶ در `tests/Feature/PhaseOneHundredThirtySixAdminListingImagesTest.php` قرار دارد.
+
+تست محدودسازی ارسال OTP در فاز ۱۳۷ در `tests/Feature/PhaseOneHundredThirtySevenOtpThrottleTest.php` قرار دارد.
+
+تست نمودارهای Chart.js مدیریت در فاز ۱۳۸ در `tests/Feature/PhaseOneHundredThirtyEightAdminChartsTest.php` قرار دارد.
+
+تست نرمال‌سازی جستجوی شماره موبایل مدیریت در فاز ۱۳۹ در `tests/Feature/PhaseOneHundredThirtyThreeAdminListingManagementTest.php` قرار دارد.
+
+تست لینک‌های ویرایش آگهی و کاربر در فازهای ۱۴۰ و ۱۴۱ در `tests/Feature/PhaseOneHundredFortyAdminListingEditLinksTest.php` و `tests/Feature/PhaseOneHundredFortyOneAdminUserEditLinksTest.php` قرار دارد.
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php`، پوشش ویژگی‌های چندانتخابی فاز هفتادوششم در `tests/Feature/PhaseSeventySixMultiSelectAttributesTest.php`، پوشش اعتبارسنجی ویژگی‌های پویا و ویژگی‌های الزامی در `tests/Feature/PhaseSeventySevenListingAttributeValidationTest.php`، پوشش نوع ورودی فرم ویرایش در `tests/Feature/PhaseSeventyEightEditAttributeInputTest.php`، پوشش محدودسازی ویژگی‌های مدل در `tests/Feature/PhaseEightyEditModelAttributesTest.php`، پوشش گزینه‌های ویژگی پنل مدیریت و حالت گزینه‌های خالی در `tests/Feature/PhaseEightyOneAdminAttributeOptionsTest.php`، پوشش assetهای PWA در `tests/Feature/PhaseEightyThreePwaAssetsTest.php`، پوشش iconهای legacy navigation در `tests/Feature/PhaseEightyFourLegacyNavigationIconsTest.php`، پوشش favicon layoutها در `tests/Feature/PhaseEightyFiveFaviconLinksTest.php`، پوشش سقف مجموع تصاویر در `tests/Feature/PhaseEightySixImageLimitTest.php`، پوشش الزام per-model در `tests/Feature/PhaseEightySevenModelAttributeRequirementsTest.php` و پوشش marker الزام فرم ویرایش در `tests/Feature/PhaseEightyEightEditRequirementDisplayTest.php` قرار دارند.
