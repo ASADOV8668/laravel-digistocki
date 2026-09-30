@@ -407,22 +407,42 @@ class ListingController extends Controller
 
     private function saveAttributeValues(Listing $listing, PhoneModel $model, array $values): void
     {
-        $allowedAttributeIds = $model->modelAttributes()->pluck('attribute_id');
+        $attributes = $model->attributes()
+            ->where('attributes.is_active', true)
+            ->get()
+            ->keyBy('id');
+        $now = now();
+        $payloads = [];
+
         foreach ($values as $attributeId => $value) {
-            if (! $allowedAttributeIds->contains((int) $attributeId) || $value === null || $value === '') {
+            $attribute = $attributes->get((int) $attributeId);
+            if (! $attribute || $value === null || $value === '' || (is_array($value) && $value === [])) {
                 continue;
             }
 
-            $attribute = Attribute::query()->find($attributeId);
-            $payload = ['listing_id' => $listing->id, 'attribute_id' => $attribute->id];
+            $payload = [
+                'listing_id' => $listing->id,
+                'attribute_id' => $attribute->id,
+                'value_string' => null,
+                'value_integer' => null,
+                'value_decimal' => null,
+                'value_boolean' => null,
+                'value_json' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
             match ($attribute->type) {
                 AttributeType::Integer => $payload['value_integer'] = (int) $value,
                 AttributeType::Decimal => $payload['value_decimal'] = (float) $value,
                 AttributeType::Boolean => $payload['value_boolean'] = filter_var($value, FILTER_VALIDATE_BOOLEAN),
-                AttributeType::MultiSelect => $payload['value_json'] = (array) $value,
+                AttributeType::MultiSelect => $payload['value_json'] = json_encode((array) $value, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
                 default => $payload['value_string'] = (string) $value,
             };
-            ListingAttributeValue::create($payload);
+            $payloads[] = $payload;
+        }
+
+        if ($payloads !== []) {
+            ListingAttributeValue::query()->insert($payloads);
         }
     }
 
