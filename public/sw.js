@@ -1,4 +1,4 @@
-const CACHE_NAME = 'digistocki-shell-v3';
+const CACHE_NAME = 'digistocki-shell-v4';
 const SHELL_ASSETS = [
     './',
     './manifest.json',
@@ -41,6 +41,8 @@ self.addEventListener('fetch', (event) => {
         );
         return;
     }
+
+    if (!['font', 'image', 'script', 'style'].includes(event.request.destination)) return;
 
     event.respondWith(
         caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {

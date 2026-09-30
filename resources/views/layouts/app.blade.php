@@ -59,6 +59,14 @@
             <main>{{ $slot }}</main>
             <x-bottom-nav />
         </div>
-        <script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('{{ asset('sw.js') }}')); }</script>
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('{{ asset('sw.js') }}')
+                        .then((registration) => registration.update())
+                        .catch(() => {});
+                });
+            }
+        </script>
     </body>
 </html>

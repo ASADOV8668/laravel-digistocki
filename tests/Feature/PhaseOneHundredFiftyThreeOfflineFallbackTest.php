@@ -25,4 +25,23 @@ class PhaseOneHundredFiftyThreeOfflineFallbackTest extends TestCase
         $this->assertStringContainsString("new URL('./offline.html', self.registration.scope)", $serviceWorker);
         $this->assertStringNotContainsString("caches.match(new URL('./', self.registration.scope))", $serviceWorker);
     }
+
+    public function test_service_worker_only_intercepts_cacheable_static_assets(): void
+    {
+        $serviceWorker = file_get_contents(public_path('sw.js'));
+
+        $this->assertNotFalse($serviceWorker);
+        $this->assertStringContainsString('digistocki-shell-v4', $serviceWorker);
+        $this->assertStringContainsString("['font', 'image', 'script', 'style']", $serviceWorker);
+        $this->assertStringContainsString("if (!['font', 'image', 'script', 'style'].includes(event.request.destination)) return;", $serviceWorker);
+    }
+
+    public function test_public_layout_checks_for_a_new_service_worker_version(): void
+    {
+        $layout = file_get_contents(resource_path('views/layouts/app.blade.php'));
+
+        $this->assertNotFalse($layout);
+        $this->assertStringContainsString("navigator.serviceWorker.register('{{ asset('sw.js') }}')", $layout);
+        $this->assertStringContainsString('.then((registration) => registration.update())', $layout);
+    }
 }
