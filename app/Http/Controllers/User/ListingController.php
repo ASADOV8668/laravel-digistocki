@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Throwable;
 use Sadegh19b\LaravelIranCities\Models\Province;
 
 class ListingController extends Controller
@@ -313,22 +314,29 @@ class ListingController extends Controller
 
         abort_if($rules->hasRecentDuplicate($request->user(), $brand->id, $model->id), 422, 'برای این مدل در ۲۴ ساعت گذشته آگهی ثبت کرده‌اید.');
 
-        $listing = DB::transaction(function () use ($validated, $request, $rules, $model, $imageService) {
-            $listingData = $validated;
-            unset($listingData['attributes'], $listingData['images']);
-            $listing = Listing::create([
-                ...$listingData,
-                'user_id' => $request->user()->id,
-                'slug' => Str::slug($validated['title']).'-'.Str::lower(Str::random(8)),
-                'status' => 'pending',
-                'expires_at' => null,
-            ]);
+        $storedFiles = [];
+        try {
+            $listing = DB::transaction(function () use ($validated, $request, $model, $imageService, &$storedFiles) {
+                $listingData = $validated;
+                unset($listingData['attributes'], $listingData['images']);
+                $listing = Listing::create([
+                    ...$listingData,
+                    'user_id' => $request->user()->id,
+                    'slug' => Str::slug($validated['title']).'-'.Str::lower(Str::random(8)),
+                    'status' => 'pending',
+                    'expires_at' => null,
+                ]);
 
-            $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
-            $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService);
+                $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
+                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $storedFiles);
 
-            return $listing;
-        });
+                return $listing;
+            });
+        } catch (Throwable $exception) {
+            $imageService->deleteMany($storedFiles);
+
+            throw $exception;
+        }
 
         return redirect()->route('listings.show', $listing)->with('status', 'آگهی شما برای بررسی ارسال شد.');
     }
@@ -341,14 +349,21 @@ class ListingController extends Controller
 
         abort_if($rules->hasRecentDuplicate($request->user(), $brand->id, $model->id, null, $listing->id), 422, 'برای این مدل در ۲۴ ساعت گذشته آگهی دیگری ثبت کرده‌اید.');
 
-        DB::transaction(function () use ($validated, $listing, $model, $imageService) {
-            $listingData = $validated;
-            unset($listingData['attributes'], $listingData['images']);
-            $listing->update([...$listingData, 'status' => 'pending', 'rejection_reason' => null, 'published_at' => null]);
-            $listing->attributeValues()->delete();
-            $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
-            $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService);
-        });
+        $storedFiles = [];
+        try {
+            DB::transaction(function () use ($validated, $listing, $model, $imageService, &$storedFiles) {
+                $listingData = $validated;
+                unset($listingData['attributes'], $listingData['images']);
+                $listing->update([...$listingData, 'status' => 'pending', 'rejection_reason' => null, 'published_at' => null]);
+                $listing->attributeValues()->delete();
+                $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
+                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $storedFiles);
+            });
+        } catch (Throwable $exception) {
+            $imageService->deleteMany($storedFiles);
+
+            throw $exception;
+        }
 
         return redirect()->route('listings.show', $listing)->with('status', 'تغییرات ذخیره و آگهی دوباره برای بررسی ارسال شد.');
     }
@@ -444,7 +459,7 @@ class ListingController extends Controller
         }
     }
 
-    private function storeImages(Listing $listing, array $images, ImageService $imageService): void
+    private function storeImages(Listing $listing, array $images, ImageService $imageService, array &$storedFiles = []): void
     {
         $uploads = array_values(array_filter($images, fn ($image) => $image instanceof \Illuminate\Http\UploadedFile));
         if ($uploads === []) {
@@ -456,6 +471,7 @@ class ListingController extends Controller
 
         foreach ($uploads as $image) {
             $stored = $imageService->store($image, 'listings/'.$listing->id);
+            $storedFiles[] = [$stored['path'] ?? null, $stored['thumbnail_path'] ?? null];
             $listing->images()->create([
                 ...$stored,
                 'is_primary' => ! $hasPrimary,
