@@ -1,7 +1,7 @@
 <x-app-layout title="جستجوی آگهی‌ها">
     <x-slot name="header"><h1 class="text-xl font-black text-neutral">جستجوی آگهی‌ها</h1></x-slot>
 
-    <section x-data='listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])))' class="space-y-6 px-4 py-6">
+    <section x-data='listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js(url("/locations/provinces")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])), @js(request("province_id")), @js(request("city_id")), @js(request("q")), @js(request("brand_id")))' class="space-y-6 px-4 py-6">
         <div class="flex items-end justify-between gap-3"><div><p class="text-xs font-bold text-primary">بازار موبایل</p><h1 class="mt-1 text-2xl font-black text-neutral">جستجوی آگهی‌ها</h1><p class="mt-1 text-xs text-slate-400">مدل و ویژگی‌های مناسب خودت را مرحله‌به‌مرحله انتخاب کن.</p></div><span class="rounded-full bg-primary-50 px-3 py-1.5 text-[11px] font-black text-primary">{{ number_format($listings->total()) }} نتیجه</span></div>
         <button type="button" @click="filtersOpen = true" :aria-expanded="filtersOpen.toString()" aria-controls="listing-filters" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-neutral px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-neutral-800 md:hidden">
             <x-heroicon-o-adjustments-horizontal class="h-5 w-5" /> فیلتر و جستجو
@@ -14,7 +14,7 @@
         <div class="grid gap-6 md:grid-cols-[18rem_minmax(0,1fr)]">
             <div x-show="filtersOpen" x-cloak @click="filtersOpen = false" class="fixed inset-0 z-40 bg-slate-950/40 md:hidden"></div>
 
-            <aside id="listing-filters" aria-label="فیلتر آگهی‌ها" :class="filtersOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'" class="fixed inset-y-0 right-0 z-50 w-full max-w-md overflow-y-auto bg-slate-50 p-4 transition-transform md:static md:z-auto md:block md:max-w-none md:translate-x-0 md:rounded-3xl md:bg-transparent md:p-0">
+            <aside id="listing-filters" aria-label="فیلتر آگهی‌ها" :class="filtersOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'" class="fixed inset-y-0 left-0 z-50 w-full max-w-md overflow-y-auto bg-slate-50 p-4 transition-transform md:static md:z-auto md:block md:max-w-none md:translate-x-0 md:rounded-3xl md:bg-transparent md:p-0">
                 <div class="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100 md:sticky md:top-6">
                     <div class="mb-4 flex items-center justify-between">
                         <div><h2 class="font-black text-neutral">فیلتر آگهی‌ها</h2><p class="mt-1 text-[11px] text-slate-400">انتخاب مرحله‌ای ویژگی‌ها</p></div>
@@ -53,7 +53,37 @@
                         </div>
 
                         <input type="hidden" name="brand_id" x-model="selectedBrandId" />
-                        <input type="hidden" name="phone_model_id" x-model="selectedModelId" />
+                        <div>
+                            <label for="listing-model" class="mb-1 block text-xs font-bold text-slate-600">مدل گوشی</label>
+                            <select id="listing-model" name="phone_model_id" x-model="selectedModelId" @change="selectModelId($event.target.value)" class="w-full rounded-2xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary">
+                                <option value="">همه مدل‌ها</option>
+                                @foreach ($models as $model)
+                                    <option value="{{ $model->id }}">{{ $model->brand->name }} · {{ $model->name_fa ?: $model->name }}{{ $model->name_en ? ' / '.$model->name_en : '' }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label for="listing-province" class="mb-1 block text-xs font-bold text-slate-600">استان</label>
+                                <select id="listing-province" name="province_id" x-model="provinceId" @change="loadCities()" class="w-full rounded-2xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary">
+                                    <option value="">همه استان‌ها</option>
+                                    @foreach ($provinces as $province)
+                                        <option value="{{ $province->id }}">{{ $province->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label for="listing-city" class="mb-1 block text-xs font-bold text-slate-600">شهر</label>
+                                <select id="listing-city" name="city_id" x-model="cityId" :disabled="!provinceId || citiesLoading" class="w-full rounded-2xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary disabled:bg-slate-100">
+                                    <option value="">همه شهرها</option>
+                                    <template x-for="city in cities" :key="city.id">
+                                        <option :value="city.id" x-text="city.name"></option>
+                                    </template>
+                                </select>
+                                <span x-show="citiesLoading" class="mt-1 block text-[10px] text-slate-400">در حال بارگذاری شهرها...</span>
+                            </div>
+                        </div>
 
                         <div class="grid grid-cols-2 gap-2">
                             <div><label for="listing-min-price" class="sr-only">حداقل قیمت</label><input id="listing-min-price" name="min_price" value="{{ request('min_price') }}" type="number" min="0" placeholder="حداقل قیمت" class="w-full rounded-xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary" /></div>

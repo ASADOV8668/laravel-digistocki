@@ -320,12 +320,17 @@ window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     },
 });
 
-window.listingSearch = (suggestionsEndpoint, attributesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}) => ({
+window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '') => ({
     suggestionsEndpoint,
     attributesEndpoint,
-    query: '',
-    selectedBrandId: '',
+    citiesEndpoint,
+    query: initialQuery || '',
+    selectedBrandId: initialBrandId || '',
     selectedModelId: initialModelId || '',
+    provinceId: initialProvinceId || '',
+    cityId: initialCityId || '',
+    cities: [],
+    citiesLoading: false,
     suggestions: { brands: [], models: [] },
     attributes: initialAttributes || [],
     filters: initialFilters || {},
@@ -335,6 +340,29 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, initialModelId 
     filtersOpen: false,
     searchTimer: null,
     requestController: null,
+
+    init() {
+        if (this.provinceId) this.loadCities(false);
+    },
+
+    async loadCities(resetCity = true) {
+        if (resetCity) this.cityId = '';
+        this.cities = [];
+        if (!this.provinceId) return;
+
+        this.citiesLoading = true;
+        try {
+            const response = await fetch(this.citiesEndpoint + '/' + this.provinceId + '/cities', {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            if (!response.ok) throw new Error('City request failed');
+            this.cities = await response.json();
+        } catch {
+            this.cities = [];
+        } finally {
+            this.citiesLoading = false;
+        }
+    },
 
     cancelSuggestionRequest() {
         this.requestController?.abort();
@@ -401,6 +429,13 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, initialModelId 
         await this.loadAttributes();
     },
 
+    async selectModelId(modelId) {
+        this.selectedModelId = modelId;
+        this.selectedBrandId = '';
+        this.filters = {};
+        await this.loadAttributes();
+    },
+
     async loadAttributes() {
         if (!this.selectedModelId) {
             this.attributes = [];
@@ -427,6 +462,9 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, initialModelId 
         this.query = '';
         this.selectedBrandId = '';
         this.selectedModelId = '';
+        this.provinceId = '';
+        this.cityId = '';
+        this.cities = [];
         this.attributes = [];
         this.filters = {};
         this.suggestions = { brands: [], models: [] };

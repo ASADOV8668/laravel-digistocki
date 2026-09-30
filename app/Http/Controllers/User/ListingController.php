@@ -203,10 +203,11 @@ class ListingController extends Controller
         return view('listings.index', [
             'listings' => $query->latest('published_at')->paginate(12)->withQueryString(),
             'brands' => Brand::query()->where('is_active', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
-            'models' => PhoneModel::query()->where('is_active', true)->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId))->orderBy('name')->get(),
+            'models' => PhoneModel::query()->where('is_active', true)->with('brand')->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId))->orderBy('name')->get(),
             'attributes' => Attribute::query()->where('is_active', true)->where('is_filterable', true)->orderBy('sort_order')->get(),
             'selectedModel' => $selectedModel,
             'filterAttributesPayload' => $filterAttributesPayload,
+            'provinces' => Province::query()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
