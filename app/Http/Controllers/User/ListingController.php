@@ -240,8 +240,16 @@ class ListingController extends Controller
             'options' => $attribute->options ?? [],
         ])->values()->all();
 
+        $listings = $query->paginate(12)->withQueryString();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'html' => view('listings.partials.results', compact('listings', 'sort'))->render(),
+            ]);
+        }
+
         return view('listings.index', [
-            'listings' => $query->paginate(12)->withQueryString(),
+            'listings' => $listings,
             'brands' => Brand::query()->where('is_active', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
             'attributes' => Attribute::query()->where('is_active', true)->where('is_filterable', true)->orderBy('sort_order')->get(),
             'selectedModel' => $selectedModel,

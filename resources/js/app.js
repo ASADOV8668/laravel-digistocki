@@ -342,11 +342,13 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     filters: initialFilters || {},
     loading: false,
     attributesLoading: false,
+    resultsLoading: false,
     open: false,
     filtersOpen: false,
     searchTimer: null,
     requestController: null,
     modelsController: null,
+    resultsController: null,
     citiesController: null,
 
     init() {
@@ -403,6 +405,48 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
             if (this.citiesController === controller) {
                 this.citiesController = null;
                 this.citiesLoading = false;
+            }
+        }
+    },
+
+    async applyFilters(event) {
+        const form = event.target;
+        const url = new URL(form.action, window.location.href);
+        url.search = new URLSearchParams(new FormData(form)).toString();
+        this.filtersOpen = false;
+        await this.fetchResults(url.toString());
+    },
+
+    async paginateResults(event) {
+        const link = event.target.closest('.listing-pagination a');
+        if (!link) return;
+
+        event.preventDefault();
+        await this.fetchResults(link.href);
+    },
+
+    async fetchResults(url) {
+        this.resultsController?.abort();
+        const controller = new AbortController();
+        this.resultsController = controller;
+        this.resultsLoading = true;
+
+        try {
+            const response = await fetch(url, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: controller.signal,
+            });
+            if (!response.ok) throw new Error('Results request failed');
+            const data = await response.json();
+            const container = document.getElementById('listing-results');
+            if (container && data.html) container.innerHTML = data.html;
+            window.history.replaceState({}, '', url);
+        } catch (error) {
+            if (error.name !== 'AbortError') window.location.assign(url);
+        } finally {
+            if (this.resultsController === controller) {
+                this.resultsController = null;
+                this.resultsLoading = false;
             }
         }
     },
@@ -518,6 +562,9 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.sort = 'newest';
         this.citiesController?.abort();
         this.citiesController = null;
+        this.resultsController?.abort();
+        this.resultsController = null;
+        this.resultsLoading = false;
         this.citiesLoading = false;
         this.cities = [];
         this.attributes = [];
