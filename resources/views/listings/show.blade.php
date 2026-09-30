@@ -62,7 +62,7 @@
             @if ($listing->images->isNotEmpty())
                 <div class="grid grid-cols-2 gap-2">
                     @foreach ($listing->images as $image)
-                        <img src="{{ asset('storage/'.$image->path) }}" alt="{{ $listing->title }}" class="h-36 w-full rounded-2xl object-cover first:col-span-2 first:h-64" @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif>
+                        <img src="{{ asset('storage/'.$image->path) }}" alt="{{ $listing->title }}" class="h-36 w-full rounded-2xl object-cover first:col-span-2 first:h-64" decoding="async" @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif>
                     @endforeach
                 </div>
             @else
