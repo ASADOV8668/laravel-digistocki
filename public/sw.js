@@ -6,6 +6,7 @@ const SHELL_ASSETS = [
     './images/logo-192.png',
     './images/logo-512.png',
     './favicon.ico',
+    './offline.html',
 ];
 
 self.addEventListener('install', (event) => {
@@ -34,7 +35,9 @@ self.addEventListener('fetch', (event) => {
 
     if (event.request.mode === 'navigate') {
         event.respondWith(
-            fetch(event.request).catch(() => caches.match(new URL('./', self.registration.scope))),
+            fetch(event.request).catch(() => caches.match(
+                new URL('./offline.html', self.registration.scope),
+            )),
         );
         return;
     }
