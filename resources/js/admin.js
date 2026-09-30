@@ -4,6 +4,24 @@ import Chart from 'chart.js/auto';
 window.Alpine = Alpine;
 window.Chart = Chart;
 
+window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
+    previews: [],
+    invalid: false,
+    message: '',
+    select(event) {
+        this.revokePreviews();
+        const files = Array.from(event.target.files || []);
+        const oversized = files.find((file) => file.size > maxMb * 1024 * 1024);
+        this.invalid = files.length > maxFiles || Boolean(oversized);
+        this.message = files.length > maxFiles ? `حداکثر ${maxFiles} تصویر قابل انتخاب است.` : oversized ? `حجم تصویر «${oversized.name}» بیشتر از ${maxMb} مگابایت است.` : '';
+        this.previews = files.slice(0, maxFiles).map((file) => ({ name: file.name, url: URL.createObjectURL(file) }));
+    },
+    revokePreviews() {
+        this.previews.forEach((preview) => URL.revokeObjectURL(preview.url));
+        this.previews = [];
+    },
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     const dataElement = document.getElementById('listing-trend-data');
     const canvas = document.querySelector('[data-admin-chart="listing-trend"]');

@@ -5,7 +5,7 @@
                 <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary"><x-heroicon-o-rectangle-stack class="h-6 w-6" /></span>
                 <div><h2 class="text-xl font-black text-slate-900">مدیریت آگهی‌ها</h2><p class="mt-1 text-xs text-slate-400">بررسی، تأیید و کنترل چرخه انتشار آگهی‌ها</p></div>
             </div>
-            <div class="rounded-2xl bg-slate-100 px-4 py-3 text-center"><strong class="block text-lg font-black text-slate-900">{{ number_format($listings->total()) }}</strong><span class="text-[11px] font-bold text-slate-500">آگهی در نتایج</span></div>
+            <div class="flex items-center gap-3"><div class="rounded-2xl bg-slate-100 px-4 py-3 text-center"><strong class="block text-lg font-black text-slate-900">{{ number_format($listings->total()) }}</strong><span class="text-[11px] font-bold text-slate-500">آگهی در نتایج</span></div><a href="{{ route('admin.listings.create') }}" class="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-primary/90"><x-heroicon-o-plus class="h-5 w-5" />افزودن آگهی</a></div>
         </div>
     </x-slot>
 

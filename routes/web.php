@@ -59,6 +59,11 @@ Route::middleware(['auth', 'active'])->group(function () {
 Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function () {
     Route::get('/', DashboardController::class)->name('admin.dashboard');
     Route::get('/listings', [AdminListingController::class, 'index'])->name('admin.listings.index');
+    Route::get('/listings/create', [AdminListingController::class, 'create'])->name('admin.listings.create');
+    Route::post('/listings', [AdminListingController::class, 'store'])->name('admin.listings.store');
+    Route::get('/listings/{listing}/edit', [AdminListingController::class, 'edit'])->name('admin.listings.edit');
+    Route::put('/listings/{listing}', [AdminListingController::class, 'update'])->name('admin.listings.update');
+    Route::get('/users/search', [AdminListingController::class, 'userSearch'])->middleware('throttle:60,1')->name('admin.users.search');
     Route::patch('/listings/{listing}/approve', [AdminListingController::class, 'approve'])->name('admin.listings.approve');
     Route::patch('/listings/{listing}/reject', [AdminListingController::class, 'reject'])->name('admin.listings.reject');
     Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users.index');
