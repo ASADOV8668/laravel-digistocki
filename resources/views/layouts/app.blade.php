@@ -32,6 +32,29 @@
         <div class="mobile-shell relative pb-24">
             <x-sidebar :unread-notifications="$unreadNotifications" />
             <x-top-bar :unread-notifications="$unreadNotifications" />
+            <div
+                x-data="pwaInstallPrompt()"
+                x-init="init()"
+                x-cloak
+                x-show="canInstall && !dismissed"
+                class="mx-4 mt-3 rounded-2xl border border-primary/20 bg-primary-50 p-4 shadow-sm"
+            >
+                <div class="flex items-start gap-3">
+                    <img src="{{ asset('images/logo-192.png') }}" alt="" class="h-12 w-12 rounded-2xl">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-black text-neutral">دیجی استوک را به صفحه اصلی اضافه کن</p>
+                        <p class="mt-1 text-xs leading-6 text-slate-600">برای دسترسی سریع‌تر و تجربه‌ای شبیه اپلیکیشن.</p>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <button type="button" @click="install()" class="mobile-button bg-primary text-white">
+                                افزودن به صفحه اصلی
+                            </button>
+                            <button type="button" @click="dismiss()" class="mobile-button bg-white text-slate-600 ring-1 ring-slate-200">
+                                بعداً
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             @isset($header)<div class="px-4 pt-5">{{ $header }}</div>@endisset
             <main>{{ $slot }}</main>
             <x-bottom-nav />

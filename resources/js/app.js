@@ -80,6 +80,52 @@ window.pullToRefresh = () => ({
     },
 });
 
+window.pwaInstallPrompt = () => ({
+    deferredPrompt: null,
+    canInstall: false,
+    dismissed: false,
+    installed: false,
+
+    init() {
+        this.dismissed = window.localStorage.getItem('digistocki-pwa-install-dismissed') === '1';
+        this.installed = window.matchMedia('(display-mode: standalone)').matches
+            || window.navigator.standalone === true;
+
+        window.addEventListener('beforeinstallprompt', (event) => {
+            event.preventDefault();
+            this.deferredPrompt = event;
+            this.canInstall = !this.installed && !this.dismissed;
+        });
+
+        window.addEventListener('appinstalled', () => {
+            this.installed = true;
+            this.canInstall = false;
+            this.deferredPrompt = null;
+            window.localStorage.removeItem('digistocki-pwa-install-dismissed');
+        });
+    },
+
+    async install() {
+        if (!this.deferredPrompt) return;
+
+        const promptEvent = this.deferredPrompt;
+        this.deferredPrompt = null;
+        promptEvent.prompt();
+        const { outcome } = await promptEvent.userChoice;
+
+        if (outcome === 'accepted') {
+            this.installed = true;
+            this.canInstall = false;
+        }
+    },
+
+    dismiss() {
+        this.dismissed = true;
+        this.canInstall = false;
+        window.localStorage.setItem('digistocki-pwa-install-dismissed', '1');
+    },
+});
+
 window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     previews: [],
     invalid: false,
