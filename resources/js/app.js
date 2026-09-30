@@ -320,7 +320,7 @@ window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     },
 });
 
-window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '') => ({
+window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '', initialMinPrice = '', initialMaxPrice = '') => ({
     suggestionsEndpoint,
     attributesEndpoint,
     citiesEndpoint,
@@ -329,6 +329,8 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint,
     selectedModelId: initialModelId || '',
     provinceId: initialProvinceId || '',
     cityId: initialCityId || '',
+    minPrice: initialMinPrice || '',
+    maxPrice: initialMaxPrice || '',
     cities: [],
     citiesLoading: false,
     suggestions: { brands: [], models: [] },
@@ -340,6 +342,7 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint,
     filtersOpen: false,
     searchTimer: null,
     requestController: null,
+    citiesController: null,
 
     init() {
         if (this.provinceId) this.loadCities(false);
@@ -347,20 +350,29 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint,
 
     async loadCities(resetCity = true) {
         if (resetCity) this.cityId = '';
+        this.citiesController?.abort();
+        this.citiesController = null;
         this.cities = [];
+        this.citiesLoading = false;
         if (!this.provinceId) return;
 
+        const controller = new AbortController();
+        this.citiesController = controller;
         this.citiesLoading = true;
         try {
             const response = await fetch(this.citiesEndpoint + '/' + this.provinceId + '/cities', {
                 headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: controller.signal,
             });
             if (!response.ok) throw new Error('City request failed');
             this.cities = await response.json();
-        } catch {
-            this.cities = [];
+        } catch (error) {
+            if (error.name !== 'AbortError') this.cities = [];
         } finally {
-            this.citiesLoading = false;
+            if (this.citiesController === controller) {
+                this.citiesController = null;
+                this.citiesLoading = false;
+            }
         }
     },
 
@@ -464,6 +476,11 @@ window.listingSearch = (suggestionsEndpoint, attributesEndpoint, citiesEndpoint,
         this.selectedModelId = '';
         this.provinceId = '';
         this.cityId = '';
+        this.minPrice = '';
+        this.maxPrice = '';
+        this.citiesController?.abort();
+        this.citiesController = null;
+        this.citiesLoading = false;
         this.cities = [];
         this.attributes = [];
         this.filters = {};

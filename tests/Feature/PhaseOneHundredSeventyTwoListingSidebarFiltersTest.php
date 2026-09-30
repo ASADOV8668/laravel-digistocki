@@ -31,6 +31,8 @@ class PhaseOneHundredSeventyTwoListingSidebarFiltersTest extends TestCase
             ->assertSee('id="listing-city"', false)
             ->assertSee('listingSearch(', false)
             ->assertSee('loadCities()', false)
+            ->assertSee('x-model="minPrice"', false)
+            ->assertSee('x-model="maxPrice"', false)
             ->assertSee('filters[', false)
             ->assertSee('listing-min-price', false)
             ->assertSee('listing-max-price', false);
@@ -38,6 +40,10 @@ class PhaseOneHundredSeventyTwoListingSidebarFiltersTest extends TestCase
         $view = file_get_contents(resource_path('views/listings/index.blade.php'));
         $this->assertNotFalse($view);
         $this->assertStringContainsString('url("/listings/models")', $view);
+
+        $script = file_get_contents(resource_path('js/app.js'));
+        $this->assertNotFalse($script);
+        $this->assertStringContainsString('citiesController?.abort()', $script);
     }
 
     public function test_listing_sidebar_filters_results_by_province_and_city(): void

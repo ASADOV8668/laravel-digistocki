@@ -1,7 +1,7 @@
 <x-app-layout title="جستجوی آگهی‌ها">
     <x-slot name="header"><h1 class="text-xl font-black text-neutral">جستجوی آگهی‌ها</h1></x-slot>
 
-    <section x-data='listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js(url("/locations/provinces")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])), @js(request("province_id")), @js(request("city_id")), @js(request("q")), @js(request("brand_id")))' class="space-y-6 px-4 py-6">
+    <section x-data='listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js(url("/locations/provinces")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])), @js(request("province_id")), @js(request("city_id")), @js(request("q")), @js(request("brand_id")), @js(request("min_price")), @js(request("max_price")))' class="space-y-6 px-4 py-6">
         <div class="flex items-end justify-between gap-3"><div><p class="text-xs font-bold text-primary">بازار موبایل</p><h1 class="mt-1 text-2xl font-black text-neutral">جستجوی آگهی‌ها</h1><p class="mt-1 text-xs text-slate-400">مدل و ویژگی‌های مناسب خودت را مرحله‌به‌مرحله انتخاب کن.</p></div><span class="rounded-full bg-primary-50 px-3 py-1.5 text-[11px] font-black text-primary">{{ number_format($listings->total()) }} نتیجه</span></div>
         <button type="button" @click="filtersOpen = true" :aria-expanded="filtersOpen.toString()" aria-controls="listing-filters" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-neutral px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-neutral-800 md:hidden">
             <x-heroicon-o-adjustments-horizontal class="h-5 w-5" /> فیلتر و جستجو
@@ -86,8 +86,8 @@
                         </div>
 
                         <div class="grid grid-cols-2 gap-2">
-                            <div><label for="listing-min-price" class="sr-only">حداقل قیمت</label><input id="listing-min-price" name="min_price" value="{{ request('min_price') }}" type="number" min="0" placeholder="حداقل قیمت" class="w-full rounded-xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary" /></div>
-                            <div><label for="listing-max-price" class="sr-only">حداکثر قیمت</label><input id="listing-max-price" name="max_price" value="{{ request('max_price') }}" type="number" min="0" placeholder="حداکثر قیمت" class="w-full rounded-xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary" /></div>
+                            <div><label for="listing-min-price" class="sr-only">حداقل قیمت</label><input id="listing-min-price" name="min_price" x-model="minPrice" type="number" min="0" placeholder="حداقل قیمت" class="w-full rounded-xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary" /></div>
+                            <div><label for="listing-max-price" class="sr-only">حداکثر قیمت</label><input id="listing-max-price" name="max_price" x-model="maxPrice" type="number" min="0" placeholder="حداکثر قیمت" class="w-full rounded-xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary" /></div>
                         </div>
 
                         <div class="border-t border-slate-100 pt-4">
