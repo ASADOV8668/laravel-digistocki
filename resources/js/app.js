@@ -85,11 +85,14 @@ window.pwaInstallPrompt = () => ({
     canInstall: false,
     dismissed: false,
     installed: false,
+    isIos: false,
 
     init() {
         this.dismissed = window.localStorage.getItem('digistocki-pwa-install-dismissed') === '1';
         this.installed = window.matchMedia('(display-mode: standalone)').matches
             || window.navigator.standalone === true;
+        this.isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent)
+            || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
 
         window.addEventListener('beforeinstallprompt', (event) => {
             event.preventDefault();
