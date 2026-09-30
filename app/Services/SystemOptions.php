@@ -20,6 +20,7 @@ class SystemOptions
         'support_phone' => '',
         'listings_enabled' => '1',
         'sms_mode' => 'test',
+        'registration_mode' => 'mobile',
     ];
 
     private ?Collection $values = null;
@@ -97,6 +98,13 @@ class SystemOptions
     public function smsMode(): string
     {
         return in_array($mode = (string) $this->get('sms_mode'), ['test', 'live'], true) ? $mode : 'test';
+    }
+
+    public function registrationMode(): string
+    {
+        $mode = (string) $this->get('registration_mode');
+
+        return in_array($mode, ['mobile'], true) ? $mode : 'mobile';
     }
 
     public function pageTitle(?string $page = null): string

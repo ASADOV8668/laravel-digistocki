@@ -1031,6 +1031,13 @@ npm run build
 - درخواست‌های هم‌زمان نمی‌توانند سقف تلاش مجاز را دور بزنند یا یک کد مصرف‌شده را دوباره تأیید کنند؛
 - تست regression برای enforcement سقف تلاش OTP اضافه شد.
 
+## فاز ۱۳۰: ثبت‌نام و ورود فقط با موبایل
+
+- option جدید `registration_mode` با مقدار پیش‌فرض `mobile` به تنظیمات سیستم اضافه شد؛
+- فرم ورود و ثبت‌نام با عنوان، placeholder و راهنمای فارسی مخصوص موبایل بازطراحی شد؛
+- validation ثبت‌نام ایمیل-only و ورود با ایمیل را در حالت فعلی رد می‌کند؛
+- تنظیمات مدیریت نیز روش فعلی ثبت‌نام را به‌صورت «فقط با شماره موبایل» نمایش می‌دهد.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -1048,10 +1055,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۱۲۹:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۱۳۰:
 
-- ۱۸۴ تست موفق
-- ۷۲۸ assertion موفق
+- ۱۸۵ تست موفق
+- ۷۳۵ assertion موفق
 - ۰ شکست
 
 تست regression فاز ۸۹ در `tests/Feature/PhaseEightyNineRelatedListingRelationsTest.php` قرار دارد.
@@ -1125,5 +1132,7 @@ npm run build
 تست toggle اتمیک علاقه‌مندی در فاز ۱۲۸ در `tests/Feature/PhaseOneHundredTwentyEightAtomicFavoriteTest.php` قرار دارد.
 
 تست تأیید اتمیک OTP در فاز ۱۲۹ در `tests/Feature/PhaseOneHundredTwentyNineAtomicOtpVerificationTest.php` قرار دارد.
+
+تست حالت ثبت‌نام موبایلی در فاز ۱۳۰ در `tests/Feature/PhaseOneHundredThirtyMobileRegistrationModeTest.php` قرار دارد.
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php`، پوشش ویژگی‌های چندانتخابی فاز هفتادوششم در `tests/Feature/PhaseSeventySixMultiSelectAttributesTest.php`، پوشش اعتبارسنجی ویژگی‌های پویا و ویژگی‌های الزامی در `tests/Feature/PhaseSeventySevenListingAttributeValidationTest.php`، پوشش نوع ورودی فرم ویرایش در `tests/Feature/PhaseSeventyEightEditAttributeInputTest.php`، پوشش محدودسازی ویژگی‌های مدل در `tests/Feature/PhaseEightyEditModelAttributesTest.php`، پوشش گزینه‌های ویژگی پنل مدیریت و حالت گزینه‌های خالی در `tests/Feature/PhaseEightyOneAdminAttributeOptionsTest.php`، پوشش assetهای PWA در `tests/Feature/PhaseEightyThreePwaAssetsTest.php`، پوشش iconهای legacy navigation در `tests/Feature/PhaseEightyFourLegacyNavigationIconsTest.php`، پوشش favicon layoutها در `tests/Feature/PhaseEightyFiveFaviconLinksTest.php`، پوشش سقف مجموع تصاویر در `tests/Feature/PhaseEightySixImageLimitTest.php`، پوشش الزام per-model در `tests/Feature/PhaseEightySevenModelAttributeRequirementsTest.php` و پوشش marker الزام فرم ویرایش در `tests/Feature/PhaseEightyEightEditRequirementDisplayTest.php` قرار دارند.

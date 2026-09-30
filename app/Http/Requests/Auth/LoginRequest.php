@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Services\SystemOptions;
 use App\Support\MobileNumber;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -28,15 +29,25 @@ class LoginRequest extends FormRequest
      */
     public function rules(): array
     {
+        $rules = ['required', 'string', 'max:255'];
+        if (app(SystemOptions::class)->registrationMode() === 'mobile') {
+            $rules[] = 'regex:/^09\d{9}$/';
+        }
+
         return [
-            'login' => ['required', 'string', 'max:255'],
+            'login' => $rules,
             'password' => ['required', 'string'],
         ];
     }
 
     protected function prepareForValidation(): void
     {
-        $this->merge(['login' => trim((string) ($this->input('login') ?? $this->input('email')))]);
+        $login = trim((string) ($this->input('login') ?? $this->input('email')));
+        if (app(SystemOptions::class)->registrationMode() === 'mobile') {
+            $login = MobileNumber::normalize($login) ?? $login;
+        }
+
+        $this->merge(['login' => $login]);
     }
 
     /**
@@ -49,7 +60,7 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         $login = $this->string('login')->toString();
-        $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'mobile';
+        $field = app(SystemOptions::class)->registrationMode() === 'mobile' ? 'mobile' : (filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'mobile');
         $value = $field === 'mobile' ? MobileNumber::normalize($login) : strtolower($login);
         $credentials = [$field => $value, 'password' => $this->string('password')->toString(), 'is_active' => true];
 
@@ -93,9 +104,11 @@ class LoginRequest extends FormRequest
     public function throttleKey(): string
     {
         $login = $this->string('login')->toString();
-        $identifier = filter_var($login, FILTER_VALIDATE_EMAIL)
+        $identifier = app(SystemOptions::class)->registrationMode() === 'mobile'
+            ? MobileNumber::normalize($login) ?? $login
+            : (filter_var($login, FILTER_VALIDATE_EMAIL)
             ? strtolower($login)
-            : (MobileNumber::normalize($login) ?? $login);
+            : (MobileNumber::normalize($login) ?? $login));
 
         return Str::transliterate(Str::lower($identifier).'|'.$this->ip());
     }

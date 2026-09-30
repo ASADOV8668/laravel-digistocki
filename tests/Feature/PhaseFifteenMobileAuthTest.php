@@ -48,13 +48,13 @@ class PhaseFifteenMobileAuthTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
-    public function test_registration_requires_email_or_mobile(): void
+    public function test_registration_requires_mobile(): void
     {
         $this->post(route('register'), [
             'name' => 'کاربر بدون تماس',
             'password' => 'password',
             'password_confirmation' => 'password',
-        ])->assertSessionHasErrors(['email', 'mobile']);
+        ])->assertSessionHasErrors(['mobile']);
     }
 
     public function test_profile_can_update_mobile_with_persian_digits(): void

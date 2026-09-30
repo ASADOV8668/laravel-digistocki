@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\SystemOptions;
 use App\Support\MobileNumber;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -19,9 +20,9 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
-    public function create(): View
+    public function create(SystemOptions $options): View
     {
-        return view('auth.register');
+        return view('auth.register', ['registrationMode' => $options->registrationMode()]);
     }
 
     /**
@@ -29,13 +30,21 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, SystemOptions $options): RedirectResponse
     {
         $request->merge(['mobile' => MobileNumber::normalize($request->input('mobile'))]);
+        $registrationMode = $options->registrationMode();
+        $emailRules = ['nullable', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class];
+        $mobileRules = ['nullable', 'string', 'regex:/^09\d{9}$/', 'unique:users,mobile'];
+
+        if ($registrationMode === 'mobile') {
+            $mobileRules[] = 'required';
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'string', 'lowercase', 'email', 'max:255', 'required_without:mobile', 'unique:'.User::class],
-            'mobile' => ['nullable', 'string', 'regex:/^09\d{9}$/', 'required_without:email', 'unique:users,mobile'],
+            'email' => $emailRules,
+            'mobile' => $mobileRules,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
