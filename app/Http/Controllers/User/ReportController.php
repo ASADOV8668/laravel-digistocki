@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Listing;
 use App\Models\Report;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
@@ -23,30 +24,39 @@ class ReportController extends Controller
 
     public function store(Request $request, Listing $listing)
     {
-        abort_unless($listing->status->value === 'approved' && ! $listing->isExpired(), 404);
-        abort_if($listing->isOwnedBy($request->user()), 422, 'نمی‌توانید آگهی خودتان را گزارش کنید.');
-
         $validated = $request->validate([
             'reason' => ['required', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $alreadyReported = Report::query()
-            ->where('listing_id', $listing->id)
-            ->where('user_id', $request->user()->id)
-            ->whereIn('status', ['pending', 'reviewed'])
-            ->exists();
+        $created = DB::transaction(function () use ($listing, $request, $validated): bool {
+            $lockedListing = Listing::query()->whereKey($listing->id)->lockForUpdate()->firstOrFail();
+            abort_unless($lockedListing->status->value === 'approved' && ! $lockedListing->isExpired(), 404);
+            abort_if($lockedListing->isOwnedBy($request->user()), 422, 'نمی‌توانید آگهی خودتان را گزارش کنید.');
 
-        if ($alreadyReported) {
+            $alreadyReported = Report::query()
+                ->where('listing_id', $lockedListing->id)
+                ->where('user_id', $request->user()->id)
+                ->whereIn('status', ['pending', 'reviewed'])
+                ->exists();
+
+            if ($alreadyReported) {
+                return false;
+            }
+
+            Report::create([
+                ...$validated,
+                'listing_id' => $lockedListing->id,
+                'user_id' => $request->user()->id,
+                'status' => 'pending',
+            ]);
+
+            return true;
+        });
+
+        if (! $created) {
             return back()->withErrors(['report' => 'این آگهی را قبلاً گزارش کرده‌اید و در حال بررسی است.']);
         }
-
-        Report::create([
-            ...$validated,
-            'listing_id' => $listing->id,
-            'user_id' => $request->user()->id,
-            'status' => 'pending',
-        ]);
 
         return back()->with('status', 'گزارش شما ثبت شد و توسط تیم پشتیبانی بررسی می‌شود.');
     }
