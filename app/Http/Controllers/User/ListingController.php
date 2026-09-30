@@ -57,7 +57,7 @@ class ListingController extends Controller
             'title' => $listing->title,
             'meta' => $listing->brand->name.' · '.($listing->phoneModel->name_fa ?: $listing->phoneModel->name),
             'url' => route('listings.show', $listing),
-            'image' => $listing->primaryImage ? asset('storage/'.$listing->primaryImage->path) : null,
+            'image' => $listing->primaryImage ? asset('storage/'.$listing->primaryImage->path) : asset('images/listing-placeholder.svg'),
         ])->values());
     }
 
