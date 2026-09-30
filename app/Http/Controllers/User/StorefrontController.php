@@ -16,9 +16,12 @@ class StorefrontController extends Controller
 {
     public function show(SellerStore $sellerStore): View
     {
-        abort_unless($sellerStore->is_enabled, 404);
-
         $sellerStore->load(['user', 'province', 'city']);
+
+        if (! $sellerStore->is_enabled) {
+            return view('storefront.disabled', ['store' => $sellerStore]);
+        }
+
         $listings = Listing::query()
             ->published()
             ->where('user_id', $sellerStore->user_id)

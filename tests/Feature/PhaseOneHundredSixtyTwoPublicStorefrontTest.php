@@ -42,7 +42,7 @@ class PhaseOneHundredSixtyTwoPublicStorefrontTest extends TestCase
             ->assertSee(route('listings.show', $listing), false);
     }
 
-    public function test_disabled_storefront_is_not_publicly_accessible(): void
+    public function test_disabled_storefront_shows_a_public_disabled_message(): void
     {
         $store = SellerStore::create([
             'user_id' => User::factory()->create()->id,
@@ -51,7 +51,10 @@ class PhaseOneHundredSixtyTwoPublicStorefrontTest extends TestCase
             'is_enabled' => false,
         ]);
 
-        $this->get(route('storefront.show', $store))->assertNotFound();
+        $this->get(route('storefront.show', $store))
+            ->assertOk()
+            ->assertSee('غرفه این فروشنده غیرفعال است')
+            ->assertSee('disabled-storefront-icon', false);
     }
 
     public function test_listing_page_links_to_an_enabled_seller_storefront(): void
