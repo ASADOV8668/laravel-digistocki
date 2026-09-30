@@ -22,6 +22,7 @@ class PhaseOneHundredEightHealthCommandTest extends TestCase
             'storage' => true,
             'storage_link' => true,
             'build_manifest' => true,
+            'apache_front_controller' => true,
         ], $payload['checks']);
     }
 }

@@ -19,6 +19,7 @@ class CheckApplicationHealth extends Command
             'storage' => $this->directoriesAreWritable(),
             'storage_link' => is_dir(public_path('storage')),
             'build_manifest' => is_file(public_path('build/manifest.json')),
+            'apache_front_controller' => $this->apacheRewriteIsConfigured(),
         ];
         $healthy = ! in_array(false, $checks, true);
 
@@ -62,5 +63,13 @@ class CheckApplicationHealth extends Command
         }
 
         return true;
+    }
+
+    private function apacheRewriteIsConfigured(): bool
+    {
+        $path = public_path('.htaccess');
+        $contents = is_file($path) ? file_get_contents($path) : false;
+
+        return is_string($contents) && str_contains($contents, 'RewriteRule ^ index.php [L]');
     }
 }
