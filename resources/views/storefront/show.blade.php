@@ -1,3 +1,31 @@
+@php
+    $storeSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'LocalBusiness',
+        'name' => $store->name,
+        'url' => route('storefront.show', $store),
+    ];
+    if ($store->logo_path) {
+        $storeSchema['image'] = asset('storage/'.$store->logo_path);
+        $storeSchema['logo'] = asset('storage/'.$store->logo_path);
+    }
+    if ($store->contact_phone) {
+        $storeSchema['telephone'] = $store->contact_phone;
+    }
+    if ($store->address || $store->city || $store->province) {
+        $storeSchema['address'] = [
+            '@type' => 'PostalAddress',
+            'streetAddress' => $store->address,
+            'addressLocality' => $store->city?->name,
+            'addressRegion' => $store->province?->name,
+            'addressCountry' => 'IR',
+        ];
+    }
+@endphp
+@push('head')
+    <meta name="description" content="{{ $store->name }}؛ مشاهده اطلاعات فروشگاه و آخرین آگهی‌های فعال فروشنده در دیجی استوک.">
+    <script type="application/ld+json">{!! json_encode($storeSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endpush
 <x-app-layout :title="$store->name">
     <x-slot name="header">
         <div class="flex items-center gap-3">

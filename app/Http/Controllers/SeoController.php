@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
+use App\Models\SellerStore;
 use Illuminate\Http\Response;
 
 class SeoController extends Controller
@@ -24,6 +25,18 @@ class SeoController extends Controller
                     'lastmod' => $listing->updated_at?->toAtomString(),
                     'changefreq' => 'weekly',
                     'priority' => '0.8',
+                ])
+        )->merge(
+            SellerStore::query()
+                ->where('is_enabled', true)
+                ->select(['slug', 'updated_at'])
+                ->latest('updated_at')
+                ->get()
+                ->map(fn (SellerStore $store) => [
+                    'loc' => route('storefront.show', ['sellerStore' => $store->slug]),
+                    'lastmod' => $store->updated_at?->toAtomString(),
+                    'changefreq' => 'weekly',
+                    'priority' => '0.7',
                 ])
         );
 

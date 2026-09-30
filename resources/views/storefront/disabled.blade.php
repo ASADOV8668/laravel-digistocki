@@ -1,4 +1,7 @@
 <x-app-layout title="غرفه غیرفعال">
+    @push('head')
+        <meta name="robots" content="noindex,nofollow">
+    @endpush
     <x-slot name="header">
         <div class="flex items-center gap-3">
             <a href="{{ route('home') }}" class="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100" aria-label="بازگشت">
