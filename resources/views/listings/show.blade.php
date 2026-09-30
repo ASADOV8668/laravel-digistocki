@@ -11,11 +11,13 @@
             '@type' => 'Offer',
             'url' => url()->current(),
             'priceCurrency' => 'IRR',
-            'price' => (string) $listing->price,
             'availability' => 'https://schema.org/InStock',
             'itemCondition' => 'https://schema.org/UsedCondition',
         ],
     ];
+    if (! $listing->price_on_request) {
+        $listingSchema['offers']['price'] = (string) $listing->price;
+    }
     $breadcrumbSchema = [
         '@context' => 'https://schema.org',
         '@type' => 'BreadcrumbList',
@@ -100,7 +102,7 @@
             <div class="mt-6 flex items-end justify-between gap-3 rounded-2xl bg-slate-50 p-4">
                 <div>
                     <p class="text-[11px] font-bold text-slate-400">قیمت پیشنهادی</p>
-                    <p class="mt-1 text-2xl font-black text-primary">{{ number_format($listing->price) }} <span class="text-xs font-bold">تومان</span></p>
+                    <p class="mt-1 text-2xl font-black text-primary">{{ $listing->price_on_request ? 'تماس بگیرید' : number_format($listing->price).' تومان' }}</p>
                 </div>
                 @if ($listing->is_negotiable)
                     <span class="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-3 py-1.5 text-xs font-bold text-secondary">

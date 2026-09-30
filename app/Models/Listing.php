@@ -17,11 +17,11 @@ class Listing extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'brand_id', 'phone_model_id', 'province_id', 'city_id', 'title', 'slug', 'description', 'price', 'is_negotiable', 'status', 'rejection_reason', 'views_count', 'published_at', 'expires_at'];
+    protected $fillable = ['user_id', 'brand_id', 'phone_model_id', 'province_id', 'city_id', 'title', 'slug', 'description', 'price', 'price_on_request', 'is_negotiable', 'status', 'rejection_reason', 'views_count', 'published_at', 'expires_at'];
 
     protected function casts(): array
     {
-        return ['status' => ListingStatus::class, 'price' => 'integer', 'is_negotiable' => 'boolean', 'views_count' => 'integer', 'published_at' => 'datetime', 'expires_at' => 'datetime'];
+        return ['status' => ListingStatus::class, 'price' => 'integer', 'price_on_request' => 'boolean', 'is_negotiable' => 'boolean', 'views_count' => 'integer', 'published_at' => 'datetime', 'expires_at' => 'datetime'];
     }
 
     public function user(): BelongsTo

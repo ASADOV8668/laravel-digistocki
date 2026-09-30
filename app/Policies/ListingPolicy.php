@@ -17,7 +17,7 @@ class ListingPolicy
     {
         return ($listing->status->value === 'approved' && ! $listing->isExpired())
             || (bool) $user?->isAdmin()
-            || (bool) $user?->isOwnedBy($user);
+            || (bool) ($user && $listing->isOwnedBy($user));
     }
 
     public function create(User $user): bool

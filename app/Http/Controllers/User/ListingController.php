@@ -290,6 +290,7 @@ class ListingController extends Controller
             'provinces' => Province::query()->orderBy('name')->get(),
             'initialModelAttributes' => $this->attributePayload($selectedModel?->attributes ?? collect()),
             'maxImageUploadMb' => $options->maxImageUploadMb(),
+            'allowContactPrice' => $options->allowContactPrice(),
         ]);
     }
 
@@ -307,6 +308,7 @@ class ListingController extends Controller
             'brands' => Brand::query()->where('is_active', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
             'attributes' => $attributes,
             'maxImageUploadMb' => $options->maxImageUploadMb(),
+            'allowContactPrice' => $options->allowContactPrice(),
         ]);
     }
 
