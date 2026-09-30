@@ -62,6 +62,8 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::patch('/listings/{listing}/approve', [AdminListingController::class, 'approve'])->name('admin.listings.approve');
     Route::patch('/listings/{listing}/reject', [AdminListingController::class, 'reject'])->name('admin.listings.reject');
     Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users.index');
+    Route::get('/users/create', [AdminUserController::class, 'create'])->name('admin.users.create');
+    Route::post('/users', [AdminUserController::class, 'store'])->name('admin.users.store');
     Route::patch('/users/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('admin.users.toggle-active');
     Route::patch('/users/{user}/toggle-role', [AdminUserController::class, 'toggleRole'])->name('admin.users.toggle-role');
     Route::patch('/users/{user}/toggle-listing-permission', [AdminUserController::class, 'toggleListingPermission'])->name('admin.users.toggle-listing-permission');

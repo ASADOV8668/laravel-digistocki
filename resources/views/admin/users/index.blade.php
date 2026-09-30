@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-3"><span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-info/10 text-info"><x-heroicon-o-users class="h-6 w-6" /></span><div><h2 class="text-xl font-black text-slate-900">مدیریت کاربران</h2><p class="mt-1 text-xs text-slate-400">مدیریت نقش، وضعیت حساب و مجوز ثبت آگهی</p></div></div>
-            <div class="rounded-2xl bg-slate-100 px-4 py-3 text-center"><strong class="block text-lg font-black text-slate-900">{{ number_format($users->total()) }}</strong><span class="text-[11px] font-bold text-slate-500">کاربر در نتایج</span></div>
+            <div class="flex items-center gap-3"><div class="rounded-2xl bg-slate-100 px-4 py-3 text-center"><strong class="block text-lg font-black text-slate-900">{{ number_format($users->total()) }}</strong><span class="text-[11px] font-bold text-slate-500">کاربر در نتایج</span></div><a href="{{ route('admin.users.create') }}" class="inline-flex items-center gap-2 rounded-2xl bg-info px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-info/90"><x-heroicon-o-plus class="h-5 w-5" />افزودن کاربر</a></div>
         </div>
     </x-slot>
 

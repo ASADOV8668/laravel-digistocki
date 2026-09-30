@@ -3,12 +3,38 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreUserRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    public function create()
+    {
+        return view('admin.users.create');
+    }
+
+    public function store(StoreUserRequest $request)
+    {
+        $validated = $request->validated();
+        $user = User::create([
+            'name' => $validated['name'],
+            'mobile' => $validated['mobile'],
+            'national_id' => $validated['national_id'] ?? null,
+            'email' => $validated['email'] ?? null,
+            'password' => $validated['password'],
+        ]);
+        $user->forceFill([
+            'role' => $validated['role'],
+            'is_active' => (bool) ($validated['is_active'] ?? false),
+            'can_post_listings' => (bool) ($validated['can_post_listings'] ?? false),
+            'mobile_verified_at' => now(),
+        ])->save();
+
+        return redirect()->route('admin.users.index')->with('status', 'کاربر جدید با موفقیت ایجاد شد.');
+    }
+
     public function index(Request $request)
     {
         $role = $request->input('role');
