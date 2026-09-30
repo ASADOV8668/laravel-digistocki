@@ -283,6 +283,9 @@ class ListingController extends Controller
         ])->values()->all();
 
         $listings = $query->paginate(12)->withQueryString();
+        $priceCeiling = (int) Listing::query()->published()->whereNotNull('price')->max('price');
+        $priceCeiling = max(1000000, (int) (ceil($priceCeiling / 1000000) * 1000000));
+        $priceCeiling = max($priceCeiling, (int) $request->integer('max_price'));
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -299,6 +302,7 @@ class ListingController extends Controller
             'provinces' => Province::query()->orderBy('name')->get(['id', 'name']),
             'sort' => $sort,
             'activeFilters' => $activeFilters,
+            'priceCeiling' => $priceCeiling,
         ]);
     }
 

@@ -347,7 +347,7 @@ window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     },
 });
 
-window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '', initialMinPrice = '', initialMaxPrice = '', initialSort = 'newest') => ({
+window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '', initialMinPrice = '', initialMaxPrice = '', initialSort = 'newest', initialPriceCeiling = 1000000000) => ({
     suggestionsEndpoint,
     modelsEndpoint,
     attributesEndpoint,
@@ -357,8 +357,10 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     selectedModelId: initialModelId || '',
     provinceId: initialProvinceId || '',
     cityId: initialCityId || '',
-    minPrice: initialMinPrice || '',
-    maxPrice: initialMaxPrice || '',
+    priceCeiling: Number(initialPriceCeiling) || 1000000000,
+    priceStep: 100000,
+    minPrice: Number(initialMinPrice) || 0,
+    maxPrice: Number(initialMaxPrice) || Number(initialPriceCeiling) || 1000000000,
     sort: initialSort || 'newest',
     cities: [],
     citiesLoading: false,
@@ -380,6 +382,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     attributesController: null,
 
     init() {
+        this.maxPrice = Math.min(this.maxPrice || this.priceCeiling, this.priceCeiling);
         this.popstateHandler = () => this.fetchResults(window.location.href, 'none', true);
         window.addEventListener('popstate', this.popstateHandler);
         this.loadModels(this.selectedBrandId);
@@ -447,6 +450,28 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         await this.fetchResults(url.toString(), 'push');
     },
 
+    syncPriceRange(changed) {
+        this.minPrice = Math.max(0, Math.min(Number(this.minPrice) || 0, this.priceCeiling));
+        this.maxPrice = Math.max(0, Math.min(Number(this.maxPrice) || this.priceCeiling, this.priceCeiling));
+        if (this.minPrice > this.maxPrice) {
+            if (changed === 'min') this.maxPrice = this.minPrice;
+            else this.minPrice = this.maxPrice;
+        }
+    },
+
+    formatPrice(value) {
+        return new Intl.NumberFormat('fa-IR').format(Number(value) || 0);
+    },
+
+    activeFilterCount() {
+        const dynamic = Object.values(this.filters || {}).filter((value) => Array.isArray(value)
+            ? value.some((item) => item !== null && item !== '')
+            : value !== null && value !== '').length;
+
+        return [this.query, this.selectedBrandId, this.selectedModelId, this.provinceId, this.cityId]
+            .filter(Boolean).length + (this.minPrice > 0 ? 1 : 0) + (this.maxPrice < this.priceCeiling ? 1 : 0) + dynamic;
+    },
+
     async paginateResults(event) {
         const link = event.target.closest('.listing-pagination a, .listing-filter-chip');
         if (!link) return;
@@ -493,8 +518,8 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.selectedModelId = url.searchParams.get('phone_model_id') || '';
         this.provinceId = url.searchParams.get('province_id') || '';
         this.cityId = url.searchParams.get('city_id') || '';
-        this.minPrice = url.searchParams.get('min_price') || '';
-        this.maxPrice = url.searchParams.get('max_price') || '';
+        this.minPrice = Number(url.searchParams.get('min_price')) || 0;
+        this.maxPrice = Number(url.searchParams.get('max_price')) || this.priceCeiling;
         this.sort = url.searchParams.get('sort') || 'newest';
         this.filters = {};
         url.searchParams.forEach((value, key) => {
@@ -641,8 +666,8 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.models = [];
         this.provinceId = '';
         this.cityId = '';
-        this.minPrice = '';
-        this.maxPrice = '';
+        this.minPrice = 0;
+        this.maxPrice = this.priceCeiling;
         this.sort = 'newest';
         this.citiesController?.abort();
         this.citiesController = null;

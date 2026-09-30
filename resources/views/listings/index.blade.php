@@ -1,24 +1,24 @@
 <x-app-layout title="جستجوی آگهی‌ها">
     <x-slot name="header"><h1 class="text-xl font-black text-neutral">جستجوی آگهی‌ها</h1></x-slot>
 
-    <section x-data='listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js(url("/listings/models")), @js(url("/locations/provinces")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])), @js(request("province_id")), @js(request("city_id")), @js(request("q")), @js(request("brand_id")), @js(request("min_price")), @js(request("max_price")), @js($sort))' class="space-y-6 px-4 py-6">
+    <section x-data="listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js(url("/listings/models")), @js(url("/locations/provinces")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])), @js(request("province_id")), @js(request("city_id")), @js(request("q")), @js(request("brand_id")), @js(request("min_price")), @js(request("max_price")), @js($sort), @js($priceCeiling))" class="space-y-6 px-4 py-6">
         <div class="flex items-end justify-between gap-3"><div><p class="text-xs font-bold text-primary">بازار موبایل</p><h1 class="mt-1 text-2xl font-black text-neutral">جستجوی آگهی‌ها</h1><p class="mt-1 text-xs text-slate-400">مدل و ویژگی‌های مناسب خودت را مرحله‌به‌مرحله انتخاب کن.</p></div><span class="rounded-full bg-primary-50 px-3 py-1.5 text-[11px] font-black text-primary">{{ number_format($listings->total()) }} نتیجه</span></div>
-        <button type="button" @click="filtersOpen = true" :aria-expanded="filtersOpen.toString()" aria-controls="listing-filters" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-neutral px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-neutral-800 md:hidden">
-            <x-heroicon-o-adjustments-horizontal class="h-5 w-5" /> فیلتر و جستجو
+        <button type="button" @click="filtersOpen = true" :aria-expanded="filtersOpen.toString()" aria-controls="listing-filters" aria-label="باز کردن فیلترها" class="fixed bottom-24 left-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-xl shadow-primary/30 transition hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary/30 md:bottom-8 md:left-8">
+            <x-heroicon-o-adjustments-horizontal class="h-6 w-6" /><span x-show="activeFilterCount()" x-cloak class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral px-1 text-[10px] font-black text-white" x-text="activeFilterCount()"></span>
         </button>
 
         @if ($selectedModel)
             <div class="flex items-center justify-between gap-3 rounded-2xl border border-primary/15 bg-primary-50 p-4"><div class="flex min-w-0 items-center gap-3"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-primary"><x-heroicon-o-device-phone-mobile class="h-5 w-5" /></span><div class="min-w-0"><p class="text-[11px] font-bold text-primary">مدل انتخاب‌شده</p><p class="truncate text-sm font-black text-neutral">{{ $selectedModel->brand->name }} {{ $selectedModel->name_fa ?: $selectedModel->name }}</p></div></div><a href="{{ route('listings.index') }}" class="shrink-0 rounded-xl bg-white px-3 py-2 text-[11px] font-bold text-slate-600 shadow-sm">پاک کردن</a></div>
         @endif
 
-        <div class="grid gap-6 md:grid-cols-[18rem_minmax(0,1fr)]">
-            <div x-show="filtersOpen" x-cloak @click="filtersOpen = false" class="fixed inset-0 z-40 bg-slate-950/40 md:hidden"></div>
+        <div>
+            <div x-show="filtersOpen" x-cloak @click="filtersOpen = false" class="fixed inset-0 z-40 bg-slate-950/40"></div>
 
-            <aside id="listing-filters" role="region" aria-labelledby="listing-filters-title" aria-label="فیلتر آگهی‌ها" @keydown.escape.window="filtersOpen = false" :class="filtersOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'" class="fixed inset-y-0 left-0 z-50 w-full max-w-md overflow-y-auto bg-slate-50 p-4 transition-transform md:static md:z-auto md:block md:max-w-none md:translate-x-0 md:rounded-3xl md:bg-transparent md:p-0">
-                <div class="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100 md:sticky md:top-6">
+            <aside id="listing-filters" role="region" aria-labelledby="listing-filters-title" aria-label="فیلتر آگهی‌ها" @keydown.escape.window="filtersOpen = false" :class="filtersOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed inset-y-0 left-0 z-50 w-[min(92vw,24rem)] max-w-full overflow-y-auto bg-slate-50 p-4 transition-transform duration-300">
+                <div class="min-h-full rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
                     <div class="mb-4 flex items-center justify-between">
                         <div><h2 id="listing-filters-title" class="font-black text-neutral">فیلتر آگهی‌ها</h2><p class="mt-1 text-[11px] text-slate-400">انتخاب مرحله‌ای ویژگی‌ها</p></div>
-                        <button type="button" @click="filtersOpen = false" class="rounded-xl p-2 text-slate-500 md:hidden" aria-label="بستن"><x-heroicon-o-x-mark class="h-5 w-5" /></button>
+                        <button type="button" @click="filtersOpen = false" class="rounded-xl p-2 text-slate-500" aria-label="بستن"><x-heroicon-o-x-mark class="h-5 w-5" /></button>
                     </div>
 
                     <form method="GET" action="{{ route('listings.index') }}" role="search" aria-label="جستجوی آگهی‌ها" @submit.prevent="applyFilters($event)" class="space-y-4">
@@ -86,9 +86,20 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-2">
-                            <div><label for="listing-min-price" class="sr-only">حداقل قیمت</label><input id="listing-min-price" name="min_price" x-model="minPrice" type="number" min="0" placeholder="حداقل قیمت" class="w-full rounded-xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary" /></div>
-                            <div><label for="listing-max-price" class="sr-only">حداکثر قیمت</label><input id="listing-max-price" name="max_price" x-model="maxPrice" type="number" min="0" placeholder="حداکثر قیمت" class="w-full rounded-xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary" /></div>
+                        <div class="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
+                            <div class="mb-3 flex items-center justify-between gap-3"><span class="text-xs font-bold text-slate-600">بازه قیمت</span><span class="text-[10px] font-bold text-slate-400">تومان</span></div>
+                            <div class="mb-3 flex items-center justify-between gap-3 text-[11px] font-black text-primary"><span x-text="`${formatPrice(minPrice)} تومان`">۰ تومان</span><span x-text="`${formatPrice(maxPrice)} تومان`">۰ تومان</span></div>
+                            <div class="relative h-6" dir="ltr">
+                                <div class="absolute left-0 right-0 top-2 h-2 rounded-full bg-slate-200"></div>
+                                <div class="absolute top-2 h-2 rounded-full bg-primary" :style="`left: ${(minPrice / priceCeiling) * 100}%; right: ${100 - (maxPrice / priceCeiling) * 100}%;`"></div>
+                                <label for="listing-min-price" class="sr-only">حداقل قیمت</label>
+                                <input id="listing-min-price" type="range" min="0" :max="priceCeiling" :step="priceStep" x-model.number="minPrice" @input="syncPriceRange('min')" class="price-range absolute inset-0 h-6 w-full" />
+                                <label for="listing-max-price" class="sr-only">حداکثر قیمت</label>
+                                <input id="listing-max-price" type="range" min="0" :max="priceCeiling" :step="priceStep" x-model.number="maxPrice" @input="syncPriceRange('max')" class="price-range absolute inset-0 h-6 w-full" />
+                            </div>
+                            <input type="hidden" name="min_price" x-bind:value="minPrice > 0 ? minPrice : ''" />
+                            <input type="hidden" name="max_price" x-bind:value="maxPrice < priceCeiling ? maxPrice : ''" />
+                            <p class="mt-2 text-[10px] text-slate-400">دسته‌ها را با کشیدن دو دستگیره انتخاب کنید.</p>
                         </div>
 
                         <div>
@@ -142,7 +153,7 @@
                 </div>
             </aside>
 
-            <div class="min-w-0" @click="paginateResults($event)">
+            <div class="min-w-0 pb-28" @click="paginateResults($event)">
                 <div id="listing-results" :aria-busy="resultsLoading.toString()" aria-live="polite" aria-atomic="false">
                     @include('listings.partials.results', ['listings' => $listings, 'sort' => $sort, 'activeFilters' => $activeFilters])
                 </div>
