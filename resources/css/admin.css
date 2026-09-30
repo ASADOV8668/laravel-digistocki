@@ -1,6 +1,7 @@
 @font-face {
     font-family: 'Vazirmatn';
-    src: url('../fonts/Vazirmatn[wght].woff2') format('woff2 supports variations'), url('../fonts/Vazirmatn[wght].woff2') format('woff2-variations');
+    src: url('../fonts/Vazirmatn[wght].woff2') format('woff2');
+    font-style: normal;
     font-weight: 100 900;
     font-display: swap;
 }
@@ -13,7 +14,7 @@
 
 @layer base {
     html { direction: rtl; }
-    body { @apply bg-gray-50 text-gray-800; }
+    body { @apply bg-gray-50 text-gray-800; font-family: 'Vazirmatn', sans-serif; font-synthesis: none; }
     .dark body { @apply bg-gray-900 text-gray-200; }
     ::-webkit-scrollbar { width: 7px; height: 7px; }
     ::-webkit-scrollbar-track { @apply bg-transparent; }
