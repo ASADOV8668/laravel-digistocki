@@ -17,8 +17,20 @@ class StorefrontController extends Controller
 {
     public function index(Request $request): View
     {
+        $status = $request->input('status');
+        $status = is_string($status) && in_array($status, ['active', 'disabled', 'blocked'], true) ? $status : null;
+        $storeStats = [
+            'total' => SellerStore::query()->count(),
+            'active' => SellerStore::query()->where('is_enabled', true)->where('is_admin_disabled', false)->count(),
+            'disabled' => SellerStore::query()->where('is_enabled', false)->where('is_admin_disabled', false)->count(),
+            'blocked' => SellerStore::query()->where('is_admin_disabled', true)->count(),
+        ];
+
         $stores = SellerStore::query()
             ->with(['user', 'province', 'city'])
+            ->when($status === 'active', fn (Builder $query) => $query->where('is_enabled', true)->where('is_admin_disabled', false))
+            ->when($status === 'disabled', fn (Builder $query) => $query->where('is_enabled', false)->where('is_admin_disabled', false))
+            ->when($status === 'blocked', fn (Builder $query) => $query->where('is_admin_disabled', true))
             ->when($request->filled('q'), function (Builder $query) use ($request): void {
                 $term = '%'.$request->string('q').'%';
                 $query->where(function (Builder $search) use ($term): void {
@@ -31,7 +43,7 @@ class StorefrontController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.storefronts.index', compact('stores'));
+        return view('admin.storefronts.index', compact('stores', 'storeStats'));
     }
 
     public function edit(User $user): View

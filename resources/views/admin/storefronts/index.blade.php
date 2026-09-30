@@ -10,11 +10,18 @@
     </x-slot>
 
     <section class="space-y-6">
+        <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <a href="{{ route('admin.storefronts.index') }}" class="admin-card p-4 transition hover:-translate-y-0.5"><p class="text-xs font-bold text-slate-500">کل غرفه‌ها</p><p class="mt-2 text-2xl font-black text-slate-900">{{ number_format($storeStats['total']) }}</p></a>
+            <a href="{{ route('admin.storefronts.index', ['status' => 'active']) }}" class="admin-card p-4 transition hover:-translate-y-0.5"><p class="text-xs font-bold text-success">فعال و قابل مشاهده</p><p class="mt-2 text-2xl font-black text-success">{{ number_format($storeStats['active']) }}</p></a>
+            <a href="{{ route('admin.storefronts.index', ['status' => 'disabled']) }}" class="admin-card p-4 transition hover:-translate-y-0.5"><p class="text-xs font-bold text-slate-500">غیرفعال توسط کاربر</p><p class="mt-2 text-2xl font-black text-slate-500">{{ number_format($storeStats['disabled']) }}</p></a>
+            <a href="{{ route('admin.storefronts.index', ['status' => 'blocked']) }}" class="admin-card p-4 transition hover:-translate-y-0.5"><p class="text-xs font-bold text-error">مسدود توسط مدیریت</p><p class="mt-2 text-2xl font-black text-error">{{ number_format($storeStats['blocked']) }}</p></a>
+        </div>
         <div class="admin-card p-5">
             <form method="GET" class="flex flex-col gap-3 sm:flex-row">
                 <input name="q" value="{{ request('q') }}" placeholder="نام غرفه، slug، نام یا موبایل کاربر" class="min-w-0 flex-1 rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary">
+                <select name="status" class="rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary"><option value="">همه وضعیت‌ها</option><option value="active" @selected(request('status') === 'active')>فعال و قابل مشاهده</option><option value="disabled" @selected(request('status') === 'disabled')>غیرفعال توسط کاربر</option><option value="blocked" @selected(request('status') === 'blocked')>مسدود توسط مدیریت</option></select>
                 <button class="rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white">جستجو</button>
-                @if (request()->filled('q'))<a href="{{ route('admin.storefronts.index') }}" class="rounded-xl bg-slate-100 px-5 py-3 text-center text-sm font-bold text-slate-600">پاک‌کردن</a>@endif
+                @if (request()->hasAny(['q', 'status']))<a href="{{ route('admin.storefronts.index') }}" class="rounded-xl bg-slate-100 px-5 py-3 text-center text-sm font-bold text-slate-600">پاک‌کردن</a>@endif
             </form>
         </div>
 
