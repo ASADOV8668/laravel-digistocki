@@ -4,12 +4,35 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
+use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    public function edit(User $user)
+    {
+        return view('admin.users.edit', compact('user'));
+    }
+
+    public function update(UpdateUserRequest $request, User $user)
+    {
+        abort_if($request->user()->is($user) && $request->input('role') !== 'admin', 422, 'نقش حساب خودتان را نمی‌توانید حذف کنید.');
+        abort_if($request->user()->is($user) && ! $request->boolean('is_active'), 422, 'حساب خودتان را نمی‌توانید غیرفعال کنید.');
+        abort_if($user->isAdmin() && $request->input('role') !== 'admin' && User::query()->where('role', 'admin')->count() <= 1, 422, 'حداقل یک مدیر باید در سیستم باقی بماند.');
+
+        $validated = $request->validated();
+        $data = collect($validated)->except(['password', 'role', 'is_active', 'can_post_listings'])->all();
+        if (! empty($validated['password'])) {
+            $data['password'] = $validated['password'];
+        }
+        $user->update($data);
+        $user->forceFill(['role' => $validated['role'], 'is_active' => (bool) ($validated['is_active'] ?? false), 'can_post_listings' => (bool) ($validated['can_post_listings'] ?? false)])->save();
+
+        return redirect()->route('admin.users.index')->with('status', 'اطلاعات کاربر به‌روزرسانی شد.');
+    }
+
     public function create()
     {
         return view('admin.users.create');
