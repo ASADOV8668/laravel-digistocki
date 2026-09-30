@@ -876,6 +876,13 @@ npm run build
 - تأیید `vendor/bin/pint --test` بدون خطا؛
 - اجرای مجدد test suite و build production پس از refactor مکانیکی.
 
+## فاز ۱۰۶: به‌روزرسانی امن dependency تصویر
+
+- اصلاح constraint پکیج `intervention/image` از exact `3.0` به `^3.0`؛
+- به‌روزرسانی `composer.lock` به نسخه‌ی پایدار ۳.۱۱.۹ و gif ۴.۲.۴؛
+- حذف warning مربوط به exact version از `composer validate`؛
+- تأیید سازگاری image processing، تست کامل و build production.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -893,7 +900,7 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۱۰۵:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۱۰۶:
 
 - ۱۶۲ تست موفق
 - ۶۲۷ assertion موفق

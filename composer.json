@@ -7,7 +7,7 @@
     "require": {
         "php": "^8.2",
         "blade-ui-kit/blade-heroicons": "^2.7",
-        "intervention/image": "3.0",
+        "intervention/image": "^3.0",
         "laravel/framework": "^11.0",
         "laravel/tinker": "^2.9",
         "sadegh19b/laravel-iran-cities": "^2.1"
