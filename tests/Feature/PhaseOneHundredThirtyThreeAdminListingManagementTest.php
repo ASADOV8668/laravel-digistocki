@@ -42,9 +42,11 @@ class PhaseOneHundredThirtyThreeAdminListingManagementTest extends TestCase
         $this->actingAs($admin)->get(route('admin.listings.edit', $listing))->assertOk()->assertSee($owner->name);
         $this->actingAs($admin)->put(route('admin.listings.update', $listing), [
             'user_id' => $owner->id, 'brand_id' => $brand->id, 'phone_model_id' => $model->id,
-            'title' => 'آگهی ویرایش‌شده توسط مدیریت', 'price' => 1500000, 'attributes' => $attributes,
+            'title' => 'آگهی ویرایش‌شده توسط مدیریت', 'price' => 1500000, 'status' => 'approved', 'attributes' => $attributes,
         ])->assertRedirect(route('admin.listings.index'));
         $this->assertSame('آگهی ویرایش‌شده توسط مدیریت', $listing->refresh()->title);
+        $this->assertSame('approved', $listing->status->value);
+        $this->assertNotNull($listing->published_at);
     }
 
     public function test_admin_user_search_returns_name_and_mobile_matches(): void

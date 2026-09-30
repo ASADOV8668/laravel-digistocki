@@ -74,8 +74,9 @@ class ListingController extends Controller
         try {
             DB::transaction(function () use ($validated, $listing, $model, $imageService, &$storedFiles) {
                 $data = $validated;
-                unset($data['attributes'], $data['images'], $data['user_id']);
-                $listing->update([...$data, 'user_id' => $validated['user_id'], 'status' => 'pending', 'published_at' => null, 'expires_at' => null, 'rejection_reason' => null]);
+                unset($data['attributes'], $data['images'], $data['user_id'], $data['status']);
+                $status = $validated['status'];
+                $listing->update([...$data, 'user_id' => $validated['user_id'], 'status' => $status, 'published_at' => $status === 'approved' ? now() : $listing->published_at, 'expires_at' => $status === 'approved' ? app(ListingRules::class)->expiryDate() : ($status === 'expired' ? now()->subSecond() : $listing->expires_at), 'rejection_reason' => $status === 'rejected' ? ($listing->rejection_reason ?: 'رد توسط مدیریت') : null]);
                 $listing->attributeValues()->delete();
                 $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
                 $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $storedFiles);
