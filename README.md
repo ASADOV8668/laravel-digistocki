@@ -848,6 +848,13 @@ npm run build
 - حفظ API حذف تکی برای حذف تصویر از صفحه ویرایش؛
 - اضافه‌شدن تست regression برای حذف batch و حفظ مسیرهای فایل.
 
+## فاز ۱۰۲: cleanup تصاویر هنگام حذف حساب کاربر
+
+- جمع‌آوری تصاویر تمام آگهی‌های کاربر قبل از حذف cascade حساب؛
+- حذف فایل‌های original و thumbnail پس از حذف موفق حساب؛
+- جلوگیری از باقی‌ماندن فایل‌های orphan در storage؛
+- اضافه‌شدن تست end-to-end برای حذف حساب، آگهی و فایل‌های آن.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -865,10 +872,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۱۰۱:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۱۰۲:
 
-- ۱۵۹ تست موفق
-- ۶۱۲ assertion موفق
+- ۱۶۰ تست موفق
+- ۶۱۹ assertion موفق
 - ۰ شکست
 
 تست regression فاز ۸۹ در `tests/Feature/PhaseEightyNineRelatedListingRelationsTest.php` قرار دارد.
@@ -896,5 +903,7 @@ npm run build
 تست cache تنظیمات سیستم در فاز ۱۰۰ در `tests/Feature/PhaseOneHundredSystemOptionsCacheTest.php` قرار دارد.
 
 تست batch cleanup تصاویر در فاز ۱۰۱ در `tests/Feature/PhaseOneHundredOneImageBatchCleanupTest.php` قرار دارد.
+
+تست cleanup تصاویر حذف حساب در فاز ۱۰۲ در `tests/Feature/PhaseOneHundredTwoAccountImageCleanupTest.php` قرار دارد.
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php`، پوشش ویژگی‌های چندانتخابی فاز هفتادوششم در `tests/Feature/PhaseSeventySixMultiSelectAttributesTest.php`، پوشش اعتبارسنجی ویژگی‌های پویا و ویژگی‌های الزامی در `tests/Feature/PhaseSeventySevenListingAttributeValidationTest.php`، پوشش نوع ورودی فرم ویرایش در `tests/Feature/PhaseSeventyEightEditAttributeInputTest.php`، پوشش محدودسازی ویژگی‌های مدل در `tests/Feature/PhaseEightyEditModelAttributesTest.php`، پوشش گزینه‌های ویژگی پنل مدیریت و حالت گزینه‌های خالی در `tests/Feature/PhaseEightyOneAdminAttributeOptionsTest.php`، پوشش assetهای PWA در `tests/Feature/PhaseEightyThreePwaAssetsTest.php`، پوشش iconهای legacy navigation در `tests/Feature/PhaseEightyFourLegacyNavigationIconsTest.php`، پوشش favicon layoutها در `tests/Feature/PhaseEightyFiveFaviconLinksTest.php`، پوشش سقف مجموع تصاویر در `tests/Feature/PhaseEightySixImageLimitTest.php`، پوشش الزام per-model در `tests/Feature/PhaseEightySevenModelAttributeRequirementsTest.php` و پوشش marker الزام فرم ویرایش در `tests/Feature/PhaseEightyEightEditRequirementDisplayTest.php` قرار دارند.

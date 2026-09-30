@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Services\ImageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -40,17 +41,22 @@ class ProfileController extends Controller
     /**
      * Delete the user's account.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request, ImageService $imageService): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [
             'password' => ['required', 'current_password'],
         ]);
 
         $user = $request->user();
+        $imageFiles = $user->listings()
+            ->with('images')
+            ->get()
+            ->flatMap(fn ($listing) => $listing->images->map(fn ($image) => [$image->path, $image->thumbnail_path]));
 
         Auth::logout();
 
         $user->delete();
+        $imageService->deleteMany($imageFiles);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
