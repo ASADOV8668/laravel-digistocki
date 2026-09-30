@@ -180,7 +180,7 @@
                     <p class="mb-3 text-xs leading-6 text-white/60">برای حفظ امنیت، شماره تماس بعد از تأیید شماره موبایل شما نمایش داده می‌شود.</p>
                     <form method="POST" action="{{ route('listings.contact-otp', $listing) }}">@csrf<button class="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3.5 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-shield-check class="h-5 w-5" /> دریافت کد تأیید</button></form>
                     @if (session('contact_otp_listing_id') == $listing->id)
-                        <form method="POST" action="{{ route('listings.contact-otp.verify', $listing) }}" class="mt-3 flex gap-2">@csrf<input name="otp" inputmode="numeric" maxlength="5" placeholder="کد ۵ رقمی" class="min-w-0 flex-1 rounded-2xl border-0 bg-white text-center text-sm text-neutral placeholder:text-slate-400 focus:ring-2 focus:ring-primary"><button class="rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral">تأیید</button></form>
+                        <form method="POST" action="{{ route('listings.contact-otp.verify', $listing) }}" class="mt-3 flex gap-2">@csrf<label for="listing-contact-otp" class="sr-only">کد پنج رقمی تأیید شماره تماس</label><input id="listing-contact-otp" name="otp" inputmode="numeric" maxlength="5" placeholder="کد ۵ رقمی" class="min-w-0 flex-1 rounded-2xl border-0 bg-white text-center text-sm text-neutral placeholder:text-slate-400 focus:ring-2 focus:ring-primary"><button class="rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral">تأیید</button></form>
                         <p class="mt-2 text-[11px] text-white/50">کد ۵ دقیقه اعتبار دارد.</p>
                     @endif
                 @else
@@ -194,8 +194,8 @@
                 <details class="rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-slate-100">
                     <summary class="cursor-pointer list-none text-sm font-black text-neutral"><span class="flex items-center gap-2"><x-heroicon-o-flag class="h-5 w-5 text-error" /> گزارش مشکل در این آگهی</span></summary>
                     <form method="POST" action="{{ route('listings.report', $listing) }}" class="mt-4 space-y-3 border-t border-slate-100 pt-4">@csrf
-                        <select name="reason" required class="w-full rounded-2xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary"><option value="">دلیل گزارش را انتخاب کنید</option><option value="اطلاعات نادرست">اطلاعات نادرست</option><option value="آگهی تکراری">آگهی تکراری</option><option value="محتوای نامناسب">محتوای نامناسب</option><option value="فروشنده مشکوک">فروشنده مشکوک</option></select>
-                        <textarea name="description" rows="3" placeholder="توضیح تکمیلی (اختیاری)" class="w-full rounded-2xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary"></textarea>
+                        <label for="listing-report-reason" class="sr-only">دلیل گزارش</label><select id="listing-report-reason" name="reason" required class="w-full rounded-2xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary"><option value="">دلیل گزارش را انتخاب کنید</option><option value="اطلاعات نادرست">اطلاعات نادرست</option><option value="آگهی تکراری">آگهی تکراری</option><option value="محتوای نامناسب">محتوای نامناسب</option><option value="فروشنده مشکوک">فروشنده مشکوک</option></select>
+                        <label for="listing-report-description" class="sr-only">توضیح تکمیلی گزارش</label><textarea id="listing-report-description" name="description" rows="3" placeholder="توضیح تکمیلی (اختیاری)" class="w-full rounded-2xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary"></textarea>
                         <button class="w-full rounded-2xl bg-error px-4 py-3 text-sm font-bold text-white">ثبت گزارش</button>
                     </form>
                 </details>
