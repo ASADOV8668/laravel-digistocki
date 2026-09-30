@@ -8,7 +8,7 @@ use Throwable;
 
 class CheckApplicationHealth extends Command
 {
-    protected $signature = 'app:health {--json : Print machine-readable JSON output}';
+    protected $signature = 'app:health {--json : Print machine-readable JSON output} {--skip-deployment-assets : Skip generated build and storage-link checks}';
 
     protected $description = 'Check the application dependencies required for local and FTP deployments';
 
@@ -17,8 +17,8 @@ class CheckApplicationHealth extends Command
         $checks = [
             'database' => $this->databaseIsReachable(),
             'storage' => $this->directoriesAreWritable(),
-            'storage_link' => is_dir(public_path('storage')),
-            'build_manifest' => is_file(public_path('build/manifest.json')),
+            'storage_link' => $this->deploymentAssetsAreSkipped() || is_dir(public_path('storage')),
+            'build_manifest' => $this->deploymentAssetsAreSkipped() || is_file(public_path('build/manifest.json')),
             'apache_front_controller' => $this->apacheRewriteIsConfigured(),
         ];
         $healthy = ! in_array(false, $checks, true);
@@ -71,5 +71,10 @@ class CheckApplicationHealth extends Command
         $contents = is_file($path) ? file_get_contents($path) : false;
 
         return is_string($contents) && str_contains($contents, 'RewriteRule ^ index.php [L]');
+    }
+
+    private function deploymentAssetsAreSkipped(): bool
+    {
+        return (bool) $this->option('skip-deployment-assets');
     }
 }
