@@ -19,8 +19,10 @@ use App\Services\SystemOptions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Sadegh19b\LaravelIranCities\Models\City;
 use Sadegh19b\LaravelIranCities\Models\Province;
 use Throwable;
 
@@ -232,6 +234,46 @@ class ListingController extends Controller
             default => $query->latest('published_at'),
         };
 
+        $selectedBrand = $request->integer('brand_id') ? Brand::query()->where('is_active', true)->find($request->integer('brand_id')) : null;
+        $selectedProvince = $request->integer('province_id') ? Province::query()->find($request->integer('province_id')) : null;
+        $selectedCity = $request->integer('city_id') ? City::query()->find($request->integer('city_id')) : null;
+        $without = fn (array $keys): string => route('listings.index', Arr::except($request->query(), $keys));
+        $activeFilters = [];
+
+        if ($request->filled('q')) {
+            $activeFilters[] = ['label' => 'جستجو: '.trim((string) $request->input('q')), 'url' => $without(['q'])];
+        }
+        if ($selectedBrand) {
+            $activeFilters[] = ['label' => 'برند: '.$selectedBrand->name, 'url' => $without(['brand_id'])];
+        }
+        if ($selectedModel) {
+            $activeFilters[] = ['label' => 'مدل: '.($selectedModel->name_fa ?: $selectedModel->name), 'url' => $without(['phone_model_id', 'filters'])];
+        }
+        if ($selectedProvince) {
+            $activeFilters[] = ['label' => 'استان: '.$selectedProvince->name, 'url' => $without(['province_id', 'city_id'])];
+        }
+        if ($selectedCity) {
+            $activeFilters[] = ['label' => 'شهر: '.$selectedCity->name, 'url' => $without(['city_id'])];
+        }
+        if ($request->filled('min_price')) {
+            $activeFilters[] = ['label' => 'حداقل: '.number_format((int) $request->input('min_price')), 'url' => $without(['min_price'])];
+        }
+        if ($request->filled('max_price')) {
+            $activeFilters[] = ['label' => 'حداکثر: '.number_format((int) $request->input('max_price')), 'url' => $without(['max_price'])];
+        }
+        if ($request->filled('filters')) {
+            $filterCount = collect((array) $request->input('filters'))
+                ->filter(fn ($value) => collect((array) $value)->contains(fn ($item) => $item !== null && $item !== ''))
+                ->count();
+            if ($filterCount > 0) {
+                $activeFilters[] = ['label' => 'ویژگی‌ها: '.$filterCount.' مورد', 'url' => $without(['filters'])];
+            }
+        }
+        if ($sort !== 'newest') {
+            $sortLabels = ['price_asc' => 'ارزان‌ترین', 'price_desc' => 'گران‌ترین', 'views' => 'پربازدیدترین'];
+            $activeFilters[] = ['label' => 'مرتب‌سازی: '.$sortLabels[$sort], 'url' => $without(['sort'])];
+        }
+
         $filterAttributesPayload = $filterAttributes->map(fn (Attribute $attribute) => [
             'id' => $attribute->id,
             'name' => $attribute->name,
@@ -244,7 +286,7 @@ class ListingController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'html' => view('listings.partials.results', compact('listings', 'sort'))->render(),
+                'html' => view('listings.partials.results', compact('listings', 'sort', 'activeFilters'))->render(),
             ]);
         }
 
@@ -256,6 +298,7 @@ class ListingController extends Controller
             'filterAttributesPayload' => $filterAttributesPayload,
             'provinces' => Province::query()->orderBy('name')->get(['id', 'name']),
             'sort' => $sort,
+            'activeFilters' => $activeFilters,
         ]);
     }
 

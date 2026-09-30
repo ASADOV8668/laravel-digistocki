@@ -41,7 +41,7 @@ class PhaseOneHundredSeventySixAjaxListingResultsTest extends TestCase
 
         $script = file_get_contents(resource_path('js/app.js'));
         $this->assertNotFalse($script);
-        $this->assertStringContainsString('fetchResults(url)', $script);
+        $this->assertStringContainsString('fetchResults(url, historyMode', $script);
         $this->assertStringContainsString('window.history.replaceState', $script);
     }
 

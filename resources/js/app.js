@@ -352,6 +352,8 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     citiesController: null,
 
     init() {
+        this.popstateHandler = () => window.location.reload();
+        window.addEventListener('popstate', this.popstateHandler);
         this.loadModels(this.selectedBrandId);
         if (this.provinceId) this.loadCities(false);
     },
@@ -414,7 +416,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         const url = new URL(form.action, window.location.href);
         url.search = new URLSearchParams(new FormData(form)).toString();
         this.filtersOpen = false;
-        await this.fetchResults(url.toString());
+        await this.fetchResults(url.toString(), 'push');
     },
 
     async paginateResults(event) {
@@ -422,10 +424,10 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         if (!link) return;
 
         event.preventDefault();
-        await this.fetchResults(link.href);
+        await this.fetchResults(link.href, 'replace');
     },
 
-    async fetchResults(url) {
+    async fetchResults(url, historyMode = 'replace') {
         this.resultsController?.abort();
         const controller = new AbortController();
         this.resultsController = controller;
@@ -440,7 +442,8 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
             const data = await response.json();
             const container = document.getElementById('listing-results');
             if (container && data.html) container.innerHTML = data.html;
-            window.history.replaceState({}, '', url);
+            if (historyMode === 'push') window.history.pushState({}, '', url);
+            if (historyMode === 'replace') window.history.replaceState({}, '', url);
         } catch (error) {
             if (error.name !== 'AbortError') window.location.assign(url);
         } finally {

@@ -144,7 +144,7 @@
 
             <div class="min-w-0" @click="paginateResults($event)">
                 <div id="listing-results" :aria-busy="resultsLoading.toString()">
-                    @include('listings.partials.results', ['listings' => $listings, 'sort' => $sort])
+                    @include('listings.partials.results', ['listings' => $listings, 'sort' => $sort, 'activeFilters' => $activeFilters])
                 </div>
                 <div x-show="resultsLoading" x-cloak class="pointer-events-none fixed inset-x-4 top-20 z-40 mx-auto flex max-w-md items-center justify-center gap-2 rounded-2xl bg-neutral px-4 py-3 text-xs font-bold text-white shadow-xl" role="status" aria-live="polite"><span class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>در حال به‌روزرسانی نتایج...</div>
             </div>

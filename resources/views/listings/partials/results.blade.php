@@ -1,3 +1,13 @@
+@if (count($activeFilters))
+    <div class="mb-4 flex flex-wrap items-center gap-2 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-100">
+        <span class="text-[11px] font-black text-slate-500">فیلترهای فعال:</span>
+        @foreach ($activeFilters as $filter)
+            <a href="{{ $filter['url'] }}" class="inline-flex items-center gap-1 rounded-full bg-primary-50 px-3 py-1.5 text-[11px] font-bold text-primary transition hover:bg-primary-100"><span>{{ $filter['label'] }}</span><x-heroicon-o-x-mark class="h-3.5 w-3.5" /></a>
+        @endforeach
+        <a href="{{ route('listings.index') }}" class="mr-auto text-[11px] font-bold text-slate-500 hover:text-error">پاک کردن همه</a>
+    </div>
+@endif
+
 <div class="mb-4 flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100"><div><h2 class="text-sm font-black text-neutral">آگهی‌های تأییدشده</h2><p class="mt-1 text-[11px] text-slate-400">مرتب‌سازی بر اساس {{ ['newest' => 'جدیدترین', 'price_asc' => 'ارزان‌ترین', 'price_desc' => 'گران‌ترین', 'views' => 'پربازدیدترین'][$sort] }}</p></div><span class="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600">{{ number_format($listings->total()) }} نتیجه</span></div>
 @if ($listings->count())
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 xl:grid-cols-3">@foreach ($listings as $listing)<x-listing-card :listing="$listing" />@endforeach</div>
