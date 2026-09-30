@@ -18,7 +18,9 @@ class PhaseOneHundredFortyFiveTailAdminUiTest extends TestCase
             ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee('tailadmin-shell')
+            ->assertSee('tailadmin-v2')
             ->assertSee('sidebarCollapsed')
+            ->assertSee('admin-sidebar-collapsed')
             ->assertSee('menu-item-active')
             ->assertSee('admin-dark-mode')
             ->assertSee('جستجو در پنل مدیریت');

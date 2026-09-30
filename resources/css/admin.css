@@ -15,6 +15,10 @@
     html { direction: rtl; }
     body { @apply bg-gray-50 text-gray-800; }
     .dark body { @apply bg-gray-900 text-gray-200; }
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { @apply bg-transparent; }
+    ::-webkit-scrollbar-thumb { @apply rounded-full bg-gray-300; }
+    .dark ::-webkit-scrollbar-thumb { @apply bg-gray-700; }
 }
 
 @layer components {
@@ -26,6 +30,11 @@
 
     .admin-card { @apply rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow duration-200 dark:border-gray-800 dark:bg-gray-900; }
     .admin-card:hover { @apply shadow-md; }
+    .tailadmin-main > section,
+    .tailadmin-main > form { @apply min-w-0; }
+    .tailadmin-main .admin-card .border-b { @apply border-gray-200 dark:border-gray-800; }
+    .tailadmin-main .admin-card .divide-y > * { @apply border-gray-100 dark:border-gray-800; }
+    .tailadmin-main .admin-card .divide-y > *:hover { @apply bg-gray-50 dark:bg-white/[0.02]; }
     .admin-card table thead { @apply bg-gray-50 dark:bg-gray-800/70; }
     .admin-card table th { @apply whitespace-nowrap text-xs font-bold text-gray-500 dark:text-gray-300; }
     .admin-card table td { @apply border-gray-100 text-sm text-gray-700 dark:border-gray-800 dark:text-gray-300; }

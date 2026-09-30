@@ -13,13 +13,14 @@
     </head>
     <body
         x-data="{ loaded: true, darkMode: false, sidebarOpen: false, sidebarCollapsed: false }"
-        x-init="const storedTheme = localStorage.getItem('admin-dark-mode'); darkMode = storedTheme ? JSON.parse(storedTheme) : false; $watch('darkMode', value => localStorage.setItem('admin-dark-mode', JSON.stringify(value)))"
+        x-init="const storedTheme = localStorage.getItem('admin-dark-mode'); const storedSidebar = localStorage.getItem('admin-sidebar-collapsed'); darkMode = storedTheme ? JSON.parse(storedTheme) : false; sidebarCollapsed = storedSidebar ? JSON.parse(storedSidebar) : false; $watch('darkMode', value => localStorage.setItem('admin-dark-mode', JSON.stringify(value))); $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapsed', JSON.stringify(value)))"
         :class="darkMode ? 'dark bg-gray-900' : 'bg-gray-50'"
         class="font-sans antialiased"
     >
         <div x-cloak x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-[9998] bg-gray-900/50 lg:hidden" @click="sidebarOpen = false"></div>
 
-        <div class="tailadmin-shell flex h-screen overflow-hidden">
+        <div class="tailadmin-shell" data-admin-ui="tailadmin-v2">
+            <div class="flex h-screen overflow-hidden">
             <aside
                 @click.outside="if (window.innerWidth < 1024) sidebarOpen = false"
                 :class="[sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0', sidebarCollapsed ? 'lg:w-[90px]' : 'lg:w-[290px]']"
@@ -149,6 +150,7 @@
                 <main class="tailadmin-main mx-auto w-full max-w-[1600px] p-4 pb-20 sm:p-6 md:pb-6 lg:p-8">
                     {{ $slot }}
                 </main>
+            </div>
             </div>
         </div>
     </body>
