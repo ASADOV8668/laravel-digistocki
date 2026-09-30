@@ -14,7 +14,7 @@ class FavoriteController extends Controller
     {
         $favorites = Favorite::query()
             ->where('user_id', $request->user()->id)
-            ->with(['listing.brand', 'listing.phoneModel', 'listing.primaryImage'])
+            ->with(['listing.brand', 'listing.phoneModel', 'listing.primaryImage', 'listing.user.storefront'])
             ->whereHas('listing', fn ($query) => $query->published())
             ->latest()
             ->paginate(12)

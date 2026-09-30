@@ -140,7 +140,7 @@ class ListingController extends Controller
             : null;
         $filterAttributes = $selectedModel?->attributes ?? collect();
         $filterAttributesById = $filterAttributes->keyBy('id');
-        $query = Listing::query()->published()->with(['brand', 'phoneModel', 'primaryImage', 'images']);
+        $query = Listing::query()->published()->with(['brand', 'phoneModel', 'primaryImage', 'images', 'user.storefront']);
 
         $query->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId));
         $query->when($request->integer('phone_model_id'), fn (Builder $query, int $modelId) => $query->where('phone_model_id', $modelId));
@@ -220,7 +220,7 @@ class ListingController extends Controller
         $relatedListings = Listing::query()
             ->published()
             ->whereKeyNot($listing->id)
-            ->with(['brand', 'phoneModel', 'primaryImage', 'attributeValues'])
+            ->with(['brand', 'phoneModel', 'primaryImage', 'attributeValues', 'user.storefront'])
             ->where(function (Builder $query) use ($listing, $attributePairs) {
                 $query->where('phone_model_id', $listing->phone_model_id)->orWhere('brand_id', $listing->brand_id);
                 if ($attributePairs->isNotEmpty()) {

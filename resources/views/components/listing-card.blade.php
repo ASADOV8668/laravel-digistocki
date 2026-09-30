@@ -8,4 +8,11 @@
         </div>
         <div class="p-3.5"><div class="flex items-start justify-between gap-2"><h3 class="line-clamp-2 min-h-10 text-sm font-black leading-5 text-neutral">{{ $listing->title }}</h3><x-heroicon-o-heart class="h-5 w-5 shrink-0 text-slate-300 transition group-hover:text-primary" /></div><p class="mt-2 truncate text-[11px] text-slate-500">{{ $listing->brand->name }} · {{ $listing->phoneModel->name }}</p><div class="mt-3 flex items-end justify-between gap-2"><p class="text-sm font-black text-primary">{{ $listing->price_on_request ? 'تماس بگیرید' : number_format($listing->price).' تومان' }}</p><span class="text-[10px] font-medium text-slate-400">{{ $listing->created_at?->diffForHumans() }}</span></div></div>
     </a>
+    @if ($listing->user?->storefront?->isPubliclyEnabled())
+        <div class="border-t border-slate-100 px-3.5 py-2.5">
+            <a href="{{ route('storefront.show', $listing->user->storefront) }}" class="inline-flex items-center gap-1 text-[11px] font-bold text-primary transition hover:text-primary-600">
+                <x-heroicon-o-building-storefront class="h-4 w-4" /> غرفه فروشنده
+            </a>
+        </div>
+    @endif
 </article>

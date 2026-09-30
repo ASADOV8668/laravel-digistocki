@@ -12,7 +12,7 @@ class HomeController extends Controller
     {
         $latestListings = Listing::query()
             ->published()
-            ->with(['brand', 'phoneModel', 'primaryImage'])
+            ->with(['brand', 'phoneModel', 'primaryImage', 'user.storefront'])
             ->latest('published_at')
             ->limit(8)
             ->get();
