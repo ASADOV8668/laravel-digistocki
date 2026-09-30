@@ -41,6 +41,7 @@ class ListingController extends Controller
     public function approve(Listing $listing, ListingRules $rules)
     {
         $this->authorize('approve', $listing);
+        abort_unless($rules->canPublish($listing), 422, 'این آگهی در وضعیت فعلی قابل تأیید نیست.');
         $listing = $rules->publish($listing);
         $listing->user->notify(new ListingStatusNotification($listing, 'approved'));
 
@@ -50,6 +51,7 @@ class ListingController extends Controller
     public function reject(Request $request, Listing $listing, ListingRules $rules)
     {
         $this->authorize('reject', $listing);
+        abort_unless($rules->canReject($listing), 422, 'این آگهی در وضعیت فعلی قابل رد نیست.');
         $validated = $request->validate(['rejection_reason' => ['required', 'string', 'min:5', 'max:1000']]);
         $listing = $rules->reject($listing, $validated['rejection_reason']);
         $listing->user->notify(new ListingStatusNotification($listing, 'rejected', $validated['rejection_reason']));

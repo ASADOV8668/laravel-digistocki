@@ -57,10 +57,20 @@ class ListingRules
         return $listing->refresh();
     }
 
+    public function canPublish(Listing $listing): bool
+    {
+        return in_array($listing->status, [ListingStatus::Pending, ListingStatus::Rejected], true);
+    }
+
     public function reject(Listing $listing, string $reason): Listing
     {
         $listing->forceFill(['status' => ListingStatus::Rejected, 'rejection_reason' => $reason])->save();
 
         return $listing->refresh();
+    }
+
+    public function canReject(Listing $listing): bool
+    {
+        return in_array($listing->status, [ListingStatus::Pending, ListingStatus::Approved], true);
     }
 }
