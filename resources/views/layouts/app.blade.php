@@ -30,6 +30,19 @@
     </head>
     <body class="font-sans antialiased">
         <div class="mobile-shell relative pb-24">
+            <div
+                x-data="networkStatus()"
+                x-init="init()"
+                x-cloak
+                x-show="!online"
+                x-transition
+                class="fixed inset-x-4 top-3 z-[60] mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-warning/30 bg-warning-50 px-4 py-3 text-sm font-bold text-amber-900 shadow-lg"
+                role="status"
+                aria-live="polite"
+            >
+                <x-heroicon-o-signal-slash class="h-5 w-5 shrink-0" />
+                <span>اتصال اینترنت قطع است؛ بعضی اطلاعات ممکن است به‌روز نباشند.</span>
+            </div>
             <x-sidebar :unread-notifications="$unreadNotifications" />
             <x-top-bar :unread-notifications="$unreadNotifications" />
             <div

@@ -126,6 +126,20 @@ window.pwaInstallPrompt = () => ({
     },
 });
 
+window.networkStatus = () => ({
+    online: window.navigator.onLine,
+
+    init() {
+        window.addEventListener('online', () => {
+            this.online = true;
+        });
+
+        window.addEventListener('offline', () => {
+            this.online = false;
+        });
+    },
+});
+
 window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     previews: [],
     invalid: false,
