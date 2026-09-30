@@ -14,23 +14,28 @@ class CheckApplicationHealth extends Command
 
     public function handle(): int
     {
+        $deploymentAssetsSkipped = $this->deploymentAssetsAreSkipped();
         $checks = [
             'database' => $this->databaseIsReachable(),
             'storage' => $this->directoriesAreWritable(),
-            'storage_link' => $this->deploymentAssetsAreSkipped() || is_dir(public_path('storage')),
-            'build_manifest' => $this->deploymentAssetsAreSkipped() || is_file(public_path('build/manifest.json')),
+            'storage_link' => $deploymentAssetsSkipped || is_dir(public_path('storage')),
+            'build_manifest' => $deploymentAssetsSkipped || is_file(public_path('build/manifest.json')),
             'apache_front_controller' => $this->apacheRewriteIsConfigured(),
         ];
         $healthy = ! in_array(false, $checks, true);
+        $skipped = $deploymentAssetsSkipped ? ['storage_link', 'build_manifest'] : [];
 
         if ($this->option('json')) {
             $this->line((string) json_encode([
                 'ok' => $healthy,
+                'mode' => $deploymentAssetsSkipped ? 'portable' : 'strict',
                 'checks' => $checks,
+                'skipped' => $skipped,
             ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         } else {
             foreach ($checks as $name => $passed) {
-                $this->line(($passed ? 'OK  ' : 'FAIL').' '.$name);
+                $status = in_array($name, $skipped, true) ? 'SKIP' : ($passed ? 'OK  ' : 'FAIL');
+                $this->line($status.' '.$name);
             }
             $this->line($healthy ? 'Application health: OK' : 'Application health: FAIL');
         }
