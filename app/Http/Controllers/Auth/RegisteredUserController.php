@@ -94,4 +94,22 @@ class RegisteredUserController extends Controller
 
         return redirect()->route('register');
     }
+
+    public function resendOtp(Request $request, MobileOtpService $otpService): RedirectResponse
+    {
+        $mobile = $request->session()->get('registration_mobile');
+
+        if (! is_string($mobile) || $mobile === '') {
+            return redirect()->route('register')->withErrors(['mobile' => 'فرآیند ثبت‌نام را از ابتدا شروع کنید.']);
+        }
+
+        $otp = $otpService->issue($mobile, 'register');
+        if (! $otp) {
+            return back()->withErrors(['otp' => 'ارسال کد تأیید انجام نشد؛ لطفاً بعداً دوباره تلاش کنید.']);
+        }
+
+        $request->session()->put('registration_otp_expires_at', $otp->expires_at->timestamp);
+
+        return redirect()->route('register')->with('status', 'کد تأیید جدید به موبایل شما ارسال شد.');
+    }
 }

@@ -16,6 +16,7 @@ Route::middleware('guest')->group(function () {
         ->name('register');
 
     Route::post('register', [RegisteredUserController::class, 'store'])->middleware('throttle:5,1');
+    Route::post('register/otp/resend', [RegisteredUserController::class, 'resendOtp'])->middleware('throttle:5,1')->name('register.otp.resend');
     Route::post('register/otp/verify', [RegisteredUserController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('register.otp.verify');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])

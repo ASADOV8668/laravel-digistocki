@@ -16,6 +16,7 @@
             <p class="text-center text-xs font-bold text-slate-500">اعتبار کد: <span id="otp-countdown" role="timer" aria-live="polite" aria-atomic="true" data-expires-at="{{ $otpExpiresAt }}" class="text-primary">در حال محاسبه...</span></p>
             <button class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-check-circle class="h-5 w-5" />تأیید شماره موبایل</button>
         </form>
+        <form id="otp-resend-form" method="POST" action="{{ route('register.otp.resend') }}" class="mt-3" hidden>@csrf<button type="submit" class="w-full rounded-xl border border-primary/20 bg-primary-50 px-4 py-3 text-sm font-black text-primary transition hover:bg-primary/10">ارسال مجدد کد</button></form>
     @else
         <form method="POST" action="{{ route('register') }}" class="space-y-4">@csrf
             <input type="hidden" name="mobile" value="{{ $mobile }}">
@@ -29,7 +30,7 @@
     <div class="mt-6 border-t border-slate-100 pt-5 text-center text-xs text-slate-500">قبلاً ثبت‌نام کرده‌اید؟ <a href="{{ route('login') }}" class="font-black text-primary hover:text-primary-600">وارد شوید</a></div>
     @if ($step === 'otp')
         <script>
-            (() => { const node = document.getElementById('otp-countdown'); const expiresAt = Number(node?.dataset.expiresAt || 0) * 1000; const tick = () => { const remaining = Math.max(0, expiresAt - Date.now()); const seconds = Math.ceil(remaining / 1000); if (node) node.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`; if (seconds > 0) window.setTimeout(tick, 1000); }; tick(); })();
+            (() => { const node = document.getElementById('otp-countdown'); const resend = document.getElementById('otp-resend-form'); const expiresAt = Number(node?.dataset.expiresAt || 0) * 1000; const tick = () => { const remaining = Math.max(0, expiresAt - Date.now()); const seconds = Math.ceil(remaining / 1000); if (node) node.textContent = seconds > 0 ? `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}` : 'منقضی شده'; if (seconds > 0) window.setTimeout(tick, 1000); else if (resend) resend.hidden = false; }; tick(); })();
         </script>
     @endif
 </x-guest-layout>
