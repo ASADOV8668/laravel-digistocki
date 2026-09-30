@@ -44,7 +44,7 @@
                 <span>اتصال اینترنت قطع است؛ بعضی اطلاعات ممکن است به‌روز نباشند.</span>
             </div>
             <x-sidebar :unread-notifications="$unreadNotifications" />
-            <x-top-bar :unread-notifications="$unreadNotifications" />
+            <x-top-bar :unread-notifications="$unreadNotifications" :show-back="! request()->routeIs('home')" />
             <div
                 x-data="pwaInstallPrompt()"
                 x-init="init()"
