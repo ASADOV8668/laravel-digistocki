@@ -17,11 +17,11 @@
         :class="darkMode ? 'dark bg-gray-900' : 'bg-gray-50'"
         class="font-sans antialiased"
     >
-        <div x-cloak x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-[9998] bg-gray-900/50 lg:hidden" @click="sidebarOpen = false"></div>
+        <div x-cloak x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-[9998] bg-gray-900/50 lg:hidden" @click="sidebarOpen = false" aria-hidden="true"></div>
 
         <div class="tailadmin-shell" data-admin-ui="tailadmin-v2">
             <div class="flex h-screen overflow-hidden">
-            <aside
+            <aside id="admin-sidebar" role="navigation" aria-label="منوی مدیریت"
                 @click.outside="if (window.innerWidth < 1024) sidebarOpen = false"
                 :class="[sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0', sidebarCollapsed ? 'lg:w-[90px]' : 'lg:w-[290px]']"
                 class="fixed inset-y-0 right-0 z-[9999] flex w-[290px] flex-col overflow-y-auto border-l border-gray-200 bg-white px-5 shadow-xl transition-all duration-300 dark:border-gray-800 dark:bg-gray-900 lg:static lg:shadow-none"
@@ -39,7 +39,7 @@
                     </button>
                 </div>
 
-                <nav class="flex-1 overflow-y-auto py-6">
+                <nav class="flex-1 overflow-y-auto py-6" aria-label="ناوبری مدیریت">
                     <p x-show="!sidebarCollapsed" class="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-400">نمای کلی</p>
                     <a href="{{ route('admin.dashboard') }}" title="داشبورد" class="menu-item group {{ request()->routeIs('admin.dashboard') ? 'menu-item-active' : 'menu-item-inactive' }}" :class="sidebarCollapsed ? 'justify-center' : ''">
                         <x-heroicon-o-squares-2x2 class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.dashboard') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
@@ -110,7 +110,7 @@
             <div class="relative flex min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto">
                 <header class="sticky top-0 z-40 flex h-20 w-full shrink-0 items-center border-b border-gray-200 bg-white/90 px-4 backdrop-blur dark:border-gray-800 dark:bg-gray-900/90 sm:px-6 lg:px-8">
                     <div class="flex min-w-0 flex-1 items-center gap-4">
-                        <button type="button" @click="sidebarOpen = true" class="rounded-lg border border-gray-200 p-2 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:hover:bg-white/5 dark:hover:text-white lg:hidden" aria-label="باز کردن منو"><x-heroicon-o-bars-3 class="h-5 w-5" /></button>
+                        <button type="button" @click="sidebarOpen = true" :aria-expanded="sidebarOpen.toString()" aria-controls="admin-sidebar" class="rounded-lg border border-gray-200 p-2 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:hover:bg-white/5 dark:hover:text-white lg:hidden" aria-label="باز کردن منو"><x-heroicon-o-bars-3 class="h-5 w-5" /></button>
                         <div class="hidden min-w-0 md:block">
                             <p class="text-xs font-medium text-gray-400">خوش آمدید، {{ auth()->user()->name }}</p>
                             <h1 class="mt-1 truncate text-lg font-black text-gray-900 dark:text-white">{{ $title ?? 'پنل مدیریت' }}</h1>
