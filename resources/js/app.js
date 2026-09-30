@@ -420,14 +420,15 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     },
 
     async paginateResults(event) {
-        const link = event.target.closest('.listing-pagination a');
+        const link = event.target.closest('.listing-pagination a, .listing-filter-chip');
         if (!link) return;
 
         event.preventDefault();
-        await this.fetchResults(link.href, 'replace');
+        const syncState = link.classList.contains('listing-filter-chip');
+        await this.fetchResults(link.href, syncState ? 'push' : 'replace', syncState);
     },
 
-    async fetchResults(url, historyMode = 'replace') {
+    async fetchResults(url, historyMode = 'replace', syncState = false) {
         this.resultsController?.abort();
         const controller = new AbortController();
         this.resultsController = controller;
@@ -444,6 +445,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
             if (container && data.html) container.innerHTML = data.html;
             if (historyMode === 'push') window.history.pushState({}, '', url);
             if (historyMode === 'replace') window.history.replaceState({}, '', url);
+            if (syncState) await this.syncFormFromUrl(new URL(url, window.location.href));
         } catch (error) {
             if (error.name !== 'AbortError') window.location.assign(url);
         } finally {
@@ -451,6 +453,36 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
                 this.resultsController = null;
                 this.resultsLoading = false;
             }
+        }
+    },
+
+    async syncFormFromUrl(url) {
+        this.query = url.searchParams.get('q') || '';
+        this.selectedBrandId = url.searchParams.get('brand_id') || '';
+        this.selectedModelId = url.searchParams.get('phone_model_id') || '';
+        this.provinceId = url.searchParams.get('province_id') || '';
+        this.cityId = url.searchParams.get('city_id') || '';
+        this.minPrice = url.searchParams.get('min_price') || '';
+        this.maxPrice = url.searchParams.get('max_price') || '';
+        this.sort = url.searchParams.get('sort') || 'newest';
+        this.filters = {};
+        url.searchParams.forEach((value, key) => {
+            const match = key.match(/^filters\[(\d+)\](\[\])?$/);
+            if (!match || value === '') return;
+            const attributeId = match[1];
+            this.filters[attributeId] = match[2]
+                ? [...(Array.isArray(this.filters[attributeId]) ? this.filters[attributeId] : []), value]
+                : value;
+        });
+        this.open = false;
+        this.suggestions = { brands: [], models: [] };
+        await this.loadModels(this.selectedBrandId);
+        if (this.selectedModelId) await this.loadAttributes();
+        else this.attributes = [];
+        if (this.provinceId) await this.loadCities(false);
+        else {
+            this.cityId = '';
+            this.cities = [];
         }
     },
 
