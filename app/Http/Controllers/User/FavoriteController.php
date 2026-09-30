@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Favorite;
 use App\Models\Listing;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FavoriteController extends Controller
 {
@@ -24,22 +25,26 @@ class FavoriteController extends Controller
 
     public function toggle(Request $request, Listing $listing)
     {
-        abort_unless($listing->status->value === 'approved' && ! $listing->isExpired(), 404);
+        $favorited = DB::transaction(function () use ($request, $listing): bool {
+            $lockedListing = Listing::query()->whereKey($listing->id)->lockForUpdate()->firstOrFail();
+            abort_unless($lockedListing->status->value === 'approved' && ! $lockedListing->isExpired(), 404);
 
-        $favorite = Favorite::query()
-            ->where('user_id', $request->user()->id)
-            ->where('listing_id', $listing->id)
-            ->first();
+            $favorite = Favorite::query()
+                ->where('user_id', $request->user()->id)
+                ->where('listing_id', $lockedListing->id)
+                ->first();
 
-        if ($favorite) {
-            $favorite->delete();
-            $message = 'آگهی از علاقه‌مندی‌ها حذف شد.';
-            $favorited = false;
-        } else {
-            Favorite::create(['user_id' => $request->user()->id, 'listing_id' => $listing->id]);
-            $message = 'آگهی به علاقه‌مندی‌ها اضافه شد.';
-            $favorited = true;
-        }
+            if ($favorite) {
+                $favorite->delete();
+
+                return false;
+            }
+
+            Favorite::create(['user_id' => $request->user()->id, 'listing_id' => $lockedListing->id]);
+
+            return true;
+        });
+        $message = $favorited ? 'آگهی به علاقه‌مندی‌ها اضافه شد.' : 'آگهی از علاقه‌مندی‌ها حذف شد.';
 
         if ($request->expectsJson()) {
             return response()->json(['favorited' => $favorited, 'message' => $message]);
