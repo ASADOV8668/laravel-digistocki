@@ -946,6 +946,12 @@ npm run build
 - جلوگیری از ورود تغییرات PHP خارج از استاندارد پروژه به branch؛
 - حفظ همان بررسی style در محیط محلی و CI.
 
+## فاز ۱۱۶: دسترس‌پذیری فیلتر آگهی‌ها
+
+- اتصال دکمه‌ی فیلتر موبایل به پنل فیلتر با `aria-controls` و `aria-expanded`؛
+- افزودن نام قابل‌دسترسی برای جستجوی مدل و بازه‌ی قیمت؛
+- اضافه‌شدن regression test برای ساختار دسترس‌پذیر فیلترها.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -963,10 +969,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۱۱۲:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۱۱۶:
 
-- ۱۶۸ تست موفق
-- ۶۶۸ assertion موفق
+- ۱۶۹ تست موفق
+- ۶۷۵ assertion موفق
 - ۰ شکست
 
 تست regression فاز ۸۹ در `tests/Feature/PhaseEightyNineRelatedListingRelationsTest.php` قرار دارد.
@@ -1012,5 +1018,7 @@ npm run build
 تست portable health check در فاز ۱۱۱ در `tests/Feature/PhaseOneHundredElevenHealthPortabilityTest.php` قرار دارد.
 
 تست mode خروجی health check در فاز ۱۱۲ در `tests/Feature/PhaseOneHundredTwelveHealthModeTest.php` قرار دارد.
+
+تست دسترس‌پذیری فیلتر آگهی‌ها در فاز ۱۱۶ در `tests/Feature/PhaseOneHundredSixteenListingFilterAccessibilityTest.php` قرار دارد.
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php`، پوشش ویژگی‌های چندانتخابی فاز هفتادوششم در `tests/Feature/PhaseSeventySixMultiSelectAttributesTest.php`، پوشش اعتبارسنجی ویژگی‌های پویا و ویژگی‌های الزامی در `tests/Feature/PhaseSeventySevenListingAttributeValidationTest.php`، پوشش نوع ورودی فرم ویرایش در `tests/Feature/PhaseSeventyEightEditAttributeInputTest.php`، پوشش محدودسازی ویژگی‌های مدل در `tests/Feature/PhaseEightyEditModelAttributesTest.php`، پوشش گزینه‌های ویژگی پنل مدیریت و حالت گزینه‌های خالی در `tests/Feature/PhaseEightyOneAdminAttributeOptionsTest.php`، پوشش assetهای PWA در `tests/Feature/PhaseEightyThreePwaAssetsTest.php`، پوشش iconهای legacy navigation در `tests/Feature/PhaseEightyFourLegacyNavigationIconsTest.php`، پوشش favicon layoutها در `tests/Feature/PhaseEightyFiveFaviconLinksTest.php`، پوشش سقف مجموع تصاویر در `tests/Feature/PhaseEightySixImageLimitTest.php`، پوشش الزام per-model در `tests/Feature/PhaseEightySevenModelAttributeRequirementsTest.php` و پوشش marker الزام فرم ویرایش در `tests/Feature/PhaseEightyEightEditRequirementDisplayTest.php` قرار دارند.

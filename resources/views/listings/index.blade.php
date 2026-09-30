@@ -3,7 +3,7 @@
 
     <section x-data='listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])))' class="space-y-6 px-4 py-6">
         <div class="flex items-end justify-between gap-3"><div><p class="text-xs font-bold text-primary">بازار موبایل</p><h1 class="mt-1 text-2xl font-black text-neutral">جستجوی آگهی‌ها</h1><p class="mt-1 text-xs text-slate-400">مدل و ویژگی‌های مناسب خودت را مرحله‌به‌مرحله انتخاب کن.</p></div><span class="rounded-full bg-primary-50 px-3 py-1.5 text-[11px] font-black text-primary">{{ number_format($listings->total()) }} نتیجه</span></div>
-        <button type="button" @click="filtersOpen = true" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-neutral px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-neutral-800 md:hidden">
+        <button type="button" @click="filtersOpen = true" :aria-expanded="filtersOpen.toString()" aria-controls="listing-filters" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-neutral px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-neutral-800 md:hidden">
             <x-heroicon-o-adjustments-horizontal class="h-5 w-5" /> فیلتر و جستجو
         </button>
 
@@ -14,7 +14,7 @@
         <div class="grid gap-6 md:grid-cols-[18rem_minmax(0,1fr)]">
             <div x-show="filtersOpen" x-cloak @click="filtersOpen = false" class="fixed inset-0 z-40 bg-slate-950/40 md:hidden"></div>
 
-            <aside :class="filtersOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'" class="fixed inset-y-0 right-0 z-50 w-full max-w-md overflow-y-auto bg-slate-50 p-4 transition-transform md:static md:z-auto md:block md:max-w-none md:translate-x-0 md:rounded-3xl md:bg-transparent md:p-0">
+            <aside id="listing-filters" aria-label="فیلتر آگهی‌ها" :class="filtersOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'" class="fixed inset-y-0 right-0 z-50 w-full max-w-md overflow-y-auto bg-slate-50 p-4 transition-transform md:static md:z-auto md:block md:max-w-none md:translate-x-0 md:rounded-3xl md:bg-transparent md:p-0">
                 <div class="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100 md:sticky md:top-6">
                     <div class="mb-4 flex items-center justify-between">
                         <div><h2 class="font-black text-neutral">فیلتر آگهی‌ها</h2><p class="mt-1 text-[11px] text-slate-400">انتخاب مرحله‌ای ویژگی‌ها</p></div>
@@ -24,7 +24,8 @@
                     <form method="GET" action="{{ route('listings.index') }}" class="space-y-4">
                         <div class="relative">
                             <x-heroicon-o-magnifying-glass class="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                            <input name="q" x-model="query" @input="search" @focus="query.length >= 2 && (open = true)" @keydown.escape="open = false" type="search" autocomplete="off" placeholder="مثلاً آیفون یا iPhone 13" class="w-full rounded-2xl border-0 bg-slate-50 py-3 pr-10 pl-3 text-sm ring-1 ring-slate-100 focus:ring-primary" />
+                            <label for="listing-search" class="sr-only">جستجوی برند یا مدل</label>
+                            <input id="listing-search" name="q" x-model="query" @input="search" @focus="query.length >= 2 && (open = true)" @keydown.escape="open = false" type="search" autocomplete="off" placeholder="مثلاً آیفون یا iPhone 13" class="w-full rounded-2xl border-0 bg-slate-50 py-3 pr-10 pl-3 text-sm ring-1 ring-slate-100 focus:ring-primary" />
                             <div x-show="open" x-cloak @click.outside="open = false" class="absolute inset-x-0 top-full z-20 mt-2 max-h-80 overflow-y-auto rounded-2xl bg-white p-2 shadow-xl ring-1 ring-slate-100">
                                 <div x-show="loading" class="px-3 py-3 text-xs text-slate-500">در حال جستجو...</div>
                                 <template x-if="!loading && suggestions.brands.length">
@@ -55,8 +56,8 @@
                         <input type="hidden" name="phone_model_id" x-model="selectedModelId" />
 
                         <div class="grid grid-cols-2 gap-2">
-                            <input name="min_price" value="{{ request('min_price') }}" type="number" min="0" placeholder="حداقل قیمت" class="w-full rounded-xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary" />
-                            <input name="max_price" value="{{ request('max_price') }}" type="number" min="0" placeholder="حداکثر قیمت" class="w-full rounded-xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary" />
+                            <div><label for="listing-min-price" class="sr-only">حداقل قیمت</label><input id="listing-min-price" name="min_price" value="{{ request('min_price') }}" type="number" min="0" placeholder="حداقل قیمت" class="w-full rounded-xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary" /></div>
+                            <div><label for="listing-max-price" class="sr-only">حداکثر قیمت</label><input id="listing-max-price" name="max_price" value="{{ request('max_price') }}" type="number" min="0" placeholder="حداکثر قیمت" class="w-full rounded-xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary" /></div>
                         </div>
 
                         <div class="border-t border-slate-100 pt-4">
