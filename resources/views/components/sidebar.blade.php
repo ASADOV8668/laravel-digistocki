@@ -19,7 +19,7 @@
             <div class="mb-6 rounded-2xl bg-primary-50 p-4"><p class="font-bold text-neutral">به {{ $siteTitle }} خوش آمدید</p><a href="{{ route('login') }}" class="mt-2 inline-flex text-sm font-bold text-primary">ورود به حساب</a></div>
         @endauth
 
-        <nav class="space-y-1">
+        <nav class="space-y-1" aria-label="ناوبری اصلی">
             <a href="{{ url('/') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-home class="h-5 w-5" /> خانه</a>
             @auth
                 <a href="{{ url('/dashboard') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-rectangle-stack class="h-5 w-5" /> آگهی‌های من</a>

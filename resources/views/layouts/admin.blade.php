@@ -151,7 +151,7 @@
                     <div class="px-4 pt-6 sm:px-6 lg:px-8">{{ $header }}</div>
                 @endisset
 
-                <main class="tailadmin-main mx-auto w-full max-w-[1600px] p-4 pb-20 sm:p-6 md:pb-6 lg:p-8">
+                <main id="main-content" tabindex="-1" aria-label="محتوای اصلی پنل مدیریت" class="tailadmin-main mx-auto w-full max-w-[1600px] p-4 pb-20 sm:p-6 md:pb-6 lg:p-8">
                     {{ $slot }}
                 </main>
             </div>

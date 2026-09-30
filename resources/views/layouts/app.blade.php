@@ -73,7 +73,7 @@
                 </div>
             </div>
             @isset($header)<div class="px-4 pt-5">{{ $header }}</div>@endisset
-            <main>{{ $slot }}</main>
+            <main id="main-content" tabindex="-1" aria-label="محتوای اصلی">{{ $slot }}</main>
             <x-bottom-nav />
         </div>
         <script>
