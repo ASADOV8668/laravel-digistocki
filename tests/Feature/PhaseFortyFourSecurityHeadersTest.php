@@ -13,7 +13,10 @@ class PhaseFortyFourSecurityHeadersTest extends TestCase
             ->assertHeader('X-Content-Type-Options', 'nosniff')
             ->assertHeader('X-Frame-Options', 'SAMEORIGIN')
             ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
-            ->assertHeader('Permissions-Policy', 'camera=(), geolocation=(), microphone=()');
+            ->assertHeader('Permissions-Policy', 'camera=(), geolocation=(), microphone=()')
+            ->assertHeader('Cross-Origin-Resource-Policy', 'same-origin')
+            ->assertHeader('X-Permitted-Cross-Domain-Policies', 'none')
+            ->assertHeader('X-DNS-Prefetch-Control', 'off');
     }
 
     public function test_seo_endpoints_also_receive_security_headers(): void

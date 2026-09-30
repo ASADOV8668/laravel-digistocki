@@ -904,6 +904,13 @@ npm run build
 - اضافه‌شدن regression برای Apache/XAMPP و assetهای subdirectory؛
 - نمایش وضعیت rewrite در خروجی `app:health`.
 
+## فاز ۱۱۰: hardening headerهای امنیتی
+
+- افزودن `Cross-Origin-Resource-Policy: same-origin`؛
+- محدود کردن policyهای cross-domain با `X-Permitted-Cross-Domain-Policies: none`؛
+- خاموش کردن DNS prefetch برای کاهش نشت metadata؛
+- پوشش regression برای صفحات عمومی و احراز هویت‌شده.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -921,10 +928,10 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۱۰۹:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۱۱۰:
 
-- ۱۶۵ تست موفق
-- ۶۴۴ assertion موفق
+- ۱۶۶ تست موفق
+- ۶۵۷ assertion موفق
 - ۰ شکست
 
 تست regression فاز ۸۹ در `tests/Feature/PhaseEightyNineRelatedListingRelationsTest.php` قرار دارد.
@@ -964,5 +971,7 @@ npm run build
 تست health check در فاز ۱۰۸ در `tests/Feature/PhaseOneHundredEightHealthCommandTest.php` قرار دارد.
 
 تست assetهای deploy در فاز ۱۰۹ در `tests/Feature/PhaseOneHundredNineDeploymentAssetsTest.php` قرار دارد.
+
+تست headerهای امنیتی فاز ۱۱۰ در `tests/Feature/PhaseOneHundredTenSecurityHeadersTest.php` قرار دارد.
 
 تست‌های فاز سوم در `tests/Feature/HomeSearchTest.php`، فاز چهارم در `tests/Feature/AdminPanelTest.php`، فاز پنجم در `tests/Feature/PhaseFiveUserListingsTest.php`، فاز ششم در `tests/Feature/PhaseSixSingleListingTest.php`، فاز هفتم در `tests/Feature/PhaseSevenSearchTest.php`، فاز هشتم در `tests/Feature/PhaseEightFavoritesReportsTest.php`، فاز نهم در `tests/Feature/PhaseNineListingWizardTest.php`، فاز دهم در `tests/Feature/PhaseTenImageProcessingTest.php`، فازهای یازدهم و دوازدهم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، فاز سیزدهم در `tests/Feature/PhaseThirteenListingLifecycleTest.php`، فاز چهاردهم در `tests/Feature/PhaseFourteenNotificationsTest.php`، فاز پانزدهم در `tests/Feature/PhaseFifteenMobileAuthTest.php`، فاز شانزدهم در `tests/Feature/PhaseSixteenSmsHelperTest.php`، فازهای هفدهم و هجدهم در `tests/Feature/PhaseSeventeenAdminAnalyticsTest.php`، پوشش صفحات داخلی فاز نوزدهم در `tests/Feature/AdminPanelTest.php`، پوشش UI تنظیمات فاز بیستم در `tests/Feature/PhaseElevenSystemSettingsTest.php`، پوشش صفحه پشتیبانی فاز بیست‌ونهم در `tests/Feature/PhaseTwentyNineSupportTest.php`، پوشش ویژگی‌های چندانتخابی فاز هفتادوششم در `tests/Feature/PhaseSeventySixMultiSelectAttributesTest.php`، پوشش اعتبارسنجی ویژگی‌های پویا و ویژگی‌های الزامی در `tests/Feature/PhaseSeventySevenListingAttributeValidationTest.php`، پوشش نوع ورودی فرم ویرایش در `tests/Feature/PhaseSeventyEightEditAttributeInputTest.php`، پوشش محدودسازی ویژگی‌های مدل در `tests/Feature/PhaseEightyEditModelAttributesTest.php`، پوشش گزینه‌های ویژگی پنل مدیریت و حالت گزینه‌های خالی در `tests/Feature/PhaseEightyOneAdminAttributeOptionsTest.php`، پوشش assetهای PWA در `tests/Feature/PhaseEightyThreePwaAssetsTest.php`، پوشش iconهای legacy navigation در `tests/Feature/PhaseEightyFourLegacyNavigationIconsTest.php`، پوشش favicon layoutها در `tests/Feature/PhaseEightyFiveFaviconLinksTest.php`، پوشش سقف مجموع تصاویر در `tests/Feature/PhaseEightySixImageLimitTest.php`، پوشش الزام per-model در `tests/Feature/PhaseEightySevenModelAttributeRequirementsTest.php` و پوشش marker الزام فرم ویرایش در `tests/Feature/PhaseEightyEightEditRequirementDisplayTest.php` قرار دارند.
