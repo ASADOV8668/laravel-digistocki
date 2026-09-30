@@ -55,7 +55,7 @@
                 <div class="flex items-start gap-3">
                     <img src="{{ asset('images/logo-192.png') }}" alt="" class="h-12 w-12 rounded-2xl">
                     <div class="min-w-0 flex-1">
-                        <p class="font-black text-neutral">دیجی استوک را به صفحه اصلی اضافه کن</p>
+                        <p class="font-black text-neutral">{{ $systemOptions->get('site_title') }} را به صفحه اصلی اضافه کن</p>
                         <p x-show="!isIos" class="mt-1 text-xs leading-6 text-slate-600">برای دسترسی سریع‌تر و تجربه‌ای شبیه اپلیکیشن.</p>
                         <p x-show="isIos" class="mt-1 text-xs leading-6 text-slate-600">در Safari روی دکمه اشتراک‌گذاری بزنید و گزینه «افزودن به صفحه اصلی» را انتخاب کنید.</p>
                         <div class="mt-3 flex flex-wrap gap-2">

@@ -28,9 +28,9 @@
             >
                 <div class="flex h-20 shrink-0 items-center justify-between border-b border-gray-100 dark:border-gray-800">
                     <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 items-center gap-3" title="داشبورد مدیریت">
-                        <img src="{{ asset('images/logo.png') }}" alt="Digistocki" class="h-10 w-10 shrink-0">
+                        <img src="{{ asset('images/logo.png') }}" alt="{{ $systemOptions->get('site_title') }}" class="h-10 w-10 shrink-0">
                         <span x-show="!sidebarCollapsed" x-transition class="min-w-0">
-                            <span class="block truncate text-base font-black text-gray-900 dark:text-white">Digistocki</span>
+                            <span class="block truncate text-base font-black text-gray-900 dark:text-white">{{ $systemOptions->get('site_title') }}</span>
                             <span class="block truncate text-[10px] font-medium text-gray-400">پنل مدیریت سامانه</span>
                         </span>
                     </a>

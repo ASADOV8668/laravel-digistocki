@@ -1,4 +1,5 @@
 @props(['unreadNotifications' => 0])
+@php($siteTitle = app(\App\Services\SystemOptions::class)->get('site_title'))
 <div x-data="{ open: false }" @open-sidebar.window="open = true" @keydown.escape.window="open = false" class="relative z-50">
     <div x-show="open" x-transition.opacity class="fixed inset-0 bg-neutral/50" @click="open = false" aria-hidden="true"></div>
     <aside x-show="open" x-transition:enter="transition-all duration-300" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition-all duration-300" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full" class="fixed inset-y-0 left-0 w-80 max-w-[85vw] overflow-y-auto bg-white p-5 shadow-2xl" aria-label="منوی اصلی">
@@ -15,7 +16,7 @@
                 </div>
             </div>
         @else
-            <div class="mb-6 rounded-2xl bg-primary-50 p-4"><p class="font-bold text-neutral">به Digistocki خوش آمدید</p><a href="{{ route('login') }}" class="mt-2 inline-flex text-sm font-bold text-primary">ورود به حساب</a></div>
+            <div class="mb-6 rounded-2xl bg-primary-50 p-4"><p class="font-bold text-neutral">به {{ $siteTitle }} خوش آمدید</p><a href="{{ route('login') }}" class="mt-2 inline-flex text-sm font-bold text-primary">ورود به حساب</a></div>
         @endauth
 
         <nav class="space-y-1">
