@@ -31,7 +31,7 @@ class PhaseOneHundredFiftyThreeOfflineFallbackTest extends TestCase
         $serviceWorker = file_get_contents(public_path('sw.js'));
 
         $this->assertNotFalse($serviceWorker);
-        $this->assertStringContainsString('digistocki-shell-v4', $serviceWorker);
+        $this->assertStringContainsString('digistocki-assets-v5', $serviceWorker);
         $this->assertStringContainsString("['font', 'image', 'script', 'style']", $serviceWorker);
         $this->assertStringContainsString("if (!['font', 'image', 'script', 'style'].includes(event.request.destination)) return;", $serviceWorker);
     }
