@@ -15,11 +15,11 @@
                         <span class="flex h-11 w-11 items-center justify-center rounded-2xl {{ $store->is_enabled ? 'bg-primary text-white' : 'bg-warning/15 text-warning' }}"><x-heroicon-o-building-storefront class="h-6 w-6" /></span>
                         <div><p class="text-xs {{ $store->is_enabled ? 'text-white/60' : 'text-slate-500' }}">غرفه شما</p><h2 class="mt-1 font-black">{{ $store->name }}</h2></div>
                     </div>
-                    <span class="rounded-full px-3 py-1.5 text-[10px] font-black {{ $store->is_enabled ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning' }}">{{ $store->is_enabled ? 'فعال و قابل مشاهده' : 'غیرفعال' }}</span>
+                    <span class="rounded-full px-3 py-1.5 text-[10px] font-black {{ $store->is_admin_disabled ? 'bg-error/15 text-error' : ($store->is_enabled ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning') }}">{{ $store->is_admin_disabled ? 'غیرفعال توسط مدیریت' : ($store->is_enabled ? 'فعال و قابل مشاهده' : 'غیرفعال') }}</span>
                 </div>
                 <p class="mt-4 rounded-2xl {{ $store->is_enabled ? 'bg-white/10 text-white/70' : 'bg-white text-slate-500' }} px-3 py-2 text-left text-xs" dir="ltr">/store/{{ $store->slug }}</p>
                 <div class="mt-4 flex flex-wrap gap-2">
-                    @if ($store->is_enabled)<a href="{{ route('storefront.show', $store) }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-black text-neutral"><x-heroicon-o-arrow-top-right-on-square class="h-4 w-4" />مشاهده غرفه</a>@endif
+                    @if ($store->isPubliclyEnabled())<a href="{{ route('storefront.show', $store) }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-black text-neutral"><x-heroicon-o-arrow-top-right-on-square class="h-4 w-4" />مشاهده غرفه</a>@endif
                     <a href="{{ route('storefront.edit') }}" class="inline-flex items-center gap-2 rounded-xl {{ $store->is_enabled ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-neutral text-white' }} px-4 py-2.5 text-xs font-bold"><x-heroicon-o-pencil-square class="h-4 w-4" />ویرایش اطلاعات</a>
                 </div>
             </div>

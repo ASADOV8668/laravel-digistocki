@@ -28,9 +28,10 @@ class PhaseOneHundredSixtySevenAdminStorefrontToggleTest extends TestCase
 
         $this->actingAs($admin)->patch(route('admin.storefronts.toggle', $store))
             ->assertRedirect()
-            ->assertSessionHas('status', 'غرفه غیرفعال شد.');
+            ->assertSessionHas('status', 'غرفه توسط مدیریت غیرفعال شد.');
 
-        $this->assertFalse($store->refresh()->is_enabled);
+        $this->assertTrue($store->refresh()->is_enabled);
+        $this->assertTrue($store->is_admin_disabled);
     }
 
     public function test_regular_user_cannot_toggle_a_storefront(): void

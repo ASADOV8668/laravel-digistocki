@@ -17,6 +17,7 @@ class SellerStore extends Model
         'slug',
         'name',
         'is_enabled',
+        'is_admin_disabled',
         'province_id',
         'city_id',
         'logo_path',
@@ -26,7 +27,7 @@ class SellerStore extends Model
 
     protected function casts(): array
     {
-        return ['is_enabled' => 'boolean'];
+        return ['is_enabled' => 'boolean', 'is_admin_disabled' => 'boolean'];
     }
 
     public function user(): BelongsTo
@@ -47,5 +48,10 @@ class SellerStore extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function isPubliclyEnabled(): bool
+    {
+        return $this->is_enabled && ! $this->is_admin_disabled;
     }
 }

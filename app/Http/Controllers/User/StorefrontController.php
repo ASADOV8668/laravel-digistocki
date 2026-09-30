@@ -18,7 +18,7 @@ class StorefrontController extends Controller
     {
         $sellerStore->load(['user', 'province', 'city']);
 
-        if (! $sellerStore->is_enabled) {
+        if (! $sellerStore->isPubliclyEnabled()) {
             return view('storefront.disabled', ['store' => $sellerStore]);
         }
 
@@ -59,7 +59,9 @@ class StorefrontController extends Controller
 
         $payload = [
             'name' => $validated['name'] ?? $store?->name ?? $user->name,
-            'is_enabled' => $request->boolean('store_enabled'),
+            'is_enabled' => $store?->is_admin_disabled
+                ? (bool) $store->is_enabled
+                : $request->boolean('store_enabled'),
             'province_id' => $validated['province_id'] ?? null,
             'city_id' => $validated['city_id'] ?? null,
             'logo_path' => $logoPath,

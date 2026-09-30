@@ -25,6 +25,7 @@ class UpdateStorefrontRequest extends FormRequest
 
         return [
             'store_enabled' => ['boolean'],
+            'admin_disabled' => ['boolean'],
             'name' => ['required', 'string', 'max:120'],
             'slug' => ['required', 'string', 'min:3', 'max:80', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('seller_stores', 'slug')->ignore($store?->id)],
             'province_id' => ['nullable', 'integer', 'exists:provinces,id'],

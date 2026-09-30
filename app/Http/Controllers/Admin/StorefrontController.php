@@ -45,9 +45,9 @@ class StorefrontController extends Controller
 
     public function toggle(Request $request, SellerStore $sellerStore): RedirectResponse
     {
-        $sellerStore->update(['is_enabled' => ! $sellerStore->is_enabled]);
+        $sellerStore->update(['is_admin_disabled' => ! $sellerStore->is_admin_disabled]);
 
-        return back()->with('status', $sellerStore->is_enabled ? 'غرفه فعال شد.' : 'غرفه غیرفعال شد.');
+        return back()->with('status', $sellerStore->is_admin_disabled ? 'غرفه توسط مدیریت غیرفعال شد.' : 'غرفه از حالت غیرفعال مدیریتی خارج شد.');
     }
 
     public function update(UpdateStorefrontRequest $request, User $user): RedirectResponse
@@ -68,6 +68,7 @@ class StorefrontController extends Controller
             'name' => $validated['name'],
             'slug' => $validated['slug'],
             'is_enabled' => (bool) ($validated['store_enabled'] ?? false),
+            'is_admin_disabled' => (bool) ($validated['admin_disabled'] ?? false),
             'province_id' => $validated['province_id'] ?? null,
             'city_id' => $validated['city_id'] ?? null,
             'logo_path' => $logoPath,

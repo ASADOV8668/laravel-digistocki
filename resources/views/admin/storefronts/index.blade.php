@@ -31,9 +31,9 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="rounded-full px-3 py-1.5 text-[10px] font-black {{ $store->is_enabled ? 'bg-success/10 text-success' : 'bg-slate-100 text-slate-500' }}">{{ $store->is_enabled ? 'فعال' : 'غیرفعال' }}</span>
-                            @if ($store->is_enabled)<a href="{{ route('storefront.show', $store) }}" target="_blank" class="rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600">نمایش</a>@endif
-                            <form method="POST" action="{{ route('admin.storefronts.toggle', $store) }}">@csrf @method('PATCH')<button class="rounded-xl {{ $store->is_enabled ? 'bg-warning/10 text-warning' : 'bg-success/10 text-success' }} px-3 py-2 text-xs font-bold">{{ $store->is_enabled ? 'غیرفعال‌سازی' : 'فعال‌سازی' }}</button></form>
+                            <span class="rounded-full px-3 py-1.5 text-[10px] font-black {{ $store->is_admin_disabled ? 'bg-error/10 text-error' : ($store->is_enabled ? 'bg-success/10 text-success' : 'bg-slate-100 text-slate-500') }}">{{ $store->is_admin_disabled ? 'مسدود توسط مدیریت' : ($store->is_enabled ? 'فعال' : 'غیرفعال') }}</span>
+                            @if ($store->isPubliclyEnabled())<a href="{{ route('storefront.show', $store) }}" target="_blank" class="rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600">نمایش</a>@endif
+                            <form method="POST" action="{{ route('admin.storefronts.toggle', $store) }}">@csrf @method('PATCH')<button class="rounded-xl {{ $store->is_admin_disabled ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning' }} px-3 py-2 text-xs font-bold">{{ $store->is_admin_disabled ? 'رفع مسدودی' : 'غیرفعال‌سازی مدیریتی' }}</button></form>
                             <a href="{{ route('admin.storefronts.edit', $store->user) }}" class="rounded-xl bg-primary/10 px-3 py-2 text-xs font-bold text-primary">ویرایش</a>
                         </div>
                     </article>

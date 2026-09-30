@@ -29,6 +29,7 @@ class SeoController extends Controller
         )->merge(
             SellerStore::query()
                 ->where('is_enabled', true)
+                ->where('is_admin_disabled', false)
                 ->select(['slug', 'updated_at'])
                 ->latest('updated_at')
                 ->get()
