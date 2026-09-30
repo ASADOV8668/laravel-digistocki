@@ -1,4 +1,5 @@
 @php
+    $siteTitle = app(\App\Services\SystemOptions::class)->get('site_title');
     $storeSchema = [
         '@context' => 'https://schema.org',
         '@type' => 'LocalBusiness',
@@ -23,7 +24,7 @@
     }
 @endphp
 @push('head')
-    <meta name="description" content="{{ $store->name }}؛ مشاهده اطلاعات فروشگاه و آخرین آگهی‌های فعال فروشنده در دیجی استوک.">
+    <meta name="description" content="{{ $store->name }}؛ مشاهده اطلاعات فروشگاه و آخرین آگهی‌های فعال فروشنده در {{ $siteTitle }}.">
     <script type="application/ld+json">{!! json_encode($storeSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 @endpush
 <x-app-layout :title="$store->name">

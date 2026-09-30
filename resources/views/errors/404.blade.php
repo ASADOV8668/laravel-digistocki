@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+@php($siteTitle = app(\App\Services\SystemOptions::class)->get('site_title'))
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>صفحه پیدا نشد | دیجی استوک</title>
+    <title>صفحه پیدا نشد | {{ $siteTitle }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900">
