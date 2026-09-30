@@ -12,13 +12,16 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
+        $status = $request->input('status');
+        $status = is_string($status) && array_key_exists($status, ReportRules::STATUSES) ? $status : null;
+
         $reportStats = Report::query()
             ->selectRaw('status, COUNT(*) as aggregate')
             ->groupBy('status')
             ->pluck('aggregate', 'status');
 
         $reports = Report::with(['listing', 'user'])
-            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->input('status')))
+            ->when($status !== null, fn ($query) => $query->where('status', $status))
             ->latest()
             ->paginate(15)
             ->withQueryString();
