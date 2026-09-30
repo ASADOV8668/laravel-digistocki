@@ -352,7 +352,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     citiesController: null,
 
     init() {
-        this.popstateHandler = () => window.location.reload();
+        this.popstateHandler = () => this.fetchResults(window.location.href, 'none', true);
         window.addEventListener('popstate', this.popstateHandler);
         this.loadModels(this.selectedBrandId);
         if (this.provinceId) this.loadCities(false);
@@ -446,6 +446,9 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
             if (historyMode === 'push') window.history.pushState({}, '', url);
             if (historyMode === 'replace') window.history.replaceState({}, '', url);
             if (syncState) await this.syncFormFromUrl(new URL(url, window.location.href));
+            if (historyMode === 'none') {
+                document.getElementById('listing-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         } catch (error) {
             if (error.name !== 'AbortError') window.location.assign(url);
         } finally {
