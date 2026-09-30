@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Sadegh19b\LaravelIranCities\Models\City;
+use Sadegh19b\LaravelIranCities\Models\Province;
 
 class Listing extends Model
 {
@@ -22,17 +24,60 @@ class Listing extends Model
         return ['status' => ListingStatus::class, 'price' => 'integer', 'is_negotiable' => 'boolean', 'views_count' => 'integer', 'published_at' => 'datetime', 'expires_at' => 'datetime'];
     }
 
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
-    public function brand(): BelongsTo { return $this->belongsTo(Brand::class); }
-    public function phoneModel(): BelongsTo { return $this->belongsTo(PhoneModel::class); }
-    public function province(): BelongsTo { return $this->belongsTo(\Sadegh19b\LaravelIranCities\Models\Province::class); }
-    public function city(): BelongsTo { return $this->belongsTo(\Sadegh19b\LaravelIranCities\Models\City::class); }
-    public function images(): HasMany { return $this->hasMany(ListingImage::class)->orderBy('sort_order'); }
-    public function primaryImage(): HasOne { return $this->hasOne(ListingImage::class)->where('is_primary', true)->orderBy('sort_order'); }
-    public function favorites(): HasMany { return $this->hasMany(Favorite::class); }
-    public function reports(): HasMany { return $this->hasMany(Report::class); }
-    public function attributeValues(): HasMany { return $this->hasMany(ListingAttributeValue::class); }
-    public function attributes(): BelongsToMany { return $this->belongsToMany(Attribute::class, 'listing_attribute_values')->withPivot(['value_string', 'value_integer', 'value_decimal', 'value_boolean', 'value_json'])->withTimestamps(); }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class);
+    }
+
+    public function phoneModel(): BelongsTo
+    {
+        return $this->belongsTo(PhoneModel::class);
+    }
+
+    public function province(): BelongsTo
+    {
+        return $this->belongsTo(Province::class);
+    }
+
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ListingImage::class)->orderBy('sort_order');
+    }
+
+    public function primaryImage(): HasOne
+    {
+        return $this->hasOne(ListingImage::class)->where('is_primary', true)->orderBy('sort_order');
+    }
+
+    public function favorites(): HasMany
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    public function attributeValues(): HasMany
+    {
+        return $this->hasMany(ListingAttributeValue::class);
+    }
+
+    public function attributes(): BelongsToMany
+    {
+        return $this->belongsToMany(Attribute::class, 'listing_attribute_values')->withPivot(['value_string', 'value_integer', 'value_decimal', 'value_boolean', 'value_json'])->withTimestamps();
+    }
 
     public function scopeApproved(Builder $query): Builder
     {

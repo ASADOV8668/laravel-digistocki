@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\ListingStatus;
+use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Listing;
 use App\Models\Report;
@@ -62,7 +63,7 @@ class AdminPanelTest extends TestCase
         $this->assertSame(2, $brand->phoneModels()->where('name', 'Test Phone')->count());
         $this->assertNotSame($brand->phoneModels()->where('name', 'Test Phone')->first()->slug, $brand->phoneModels()->where('name', 'Test Phone')->latest('id')->first()->slug);
         $this->assertDatabaseHas('attributes', ['name' => 'ویژگی تست', 'is_filterable' => 1]);
-        $attribute = \App\Models\Attribute::where('name', 'ویژگی تست')->firstOrFail();
+        $attribute = Attribute::where('name', 'ویژگی تست')->firstOrFail();
         $this->actingAs($this->admin)->patch(route('admin.attributes.update', $attribute), ['name' => 'ویژگی ویرایش‌شده', 'type' => 'string', 'unit' => 'واحد جدید', 'is_filterable' => 1])->assertRedirect();
         $this->assertDatabaseHas('attributes', ['id' => $attribute->id, 'name' => 'ویژگی ویرایش‌شده', 'unit' => 'واحد جدید']);
         $model = $brand->phoneModels()->where('name', 'Test Phone')->firstOrFail();

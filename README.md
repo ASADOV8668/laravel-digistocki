@@ -869,6 +869,13 @@ npm run build
 - حفظ fallback ذخیره فایل اصلی پس از خطا؛
 - اضافه‌شدن تست regression برای شکست جزئی پردازش و نبود فایل orphan.
 
+## فاز ۱۰۵: یکسان‌سازی کیفیت کد
+
+- اجرای Laravel Pint روی کدهای PHP، migrationها، routeها و تست‌ها؛
+- رفع ناسازگاری‌های formatting و importهای قدیمی؛
+- تأیید `vendor/bin/pint --test` بدون خطا؛
+- اجرای مجدد test suite و build production پس از refactor مکانیکی.
+
 ## انتقال به سرور FTP
 
 در زمان انتشار، این موارد را انجام دهید:
@@ -886,7 +893,7 @@ npm run build
 
 ## گزارش تست
 
-آخرین اجرای کامل `php artisan test` در پایان فاز ۱۰۴:
+آخرین اجرای کامل `php artisan test` در پایان فاز ۱۰۵:
 
 - ۱۶۲ تست موفق
 - ۶۲۷ assertion موفق

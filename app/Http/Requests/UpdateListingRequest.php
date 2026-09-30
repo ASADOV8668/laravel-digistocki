@@ -5,10 +5,10 @@ namespace App\Http\Requests;
 use App\Models\Listing;
 use App\Models\PhoneModel;
 use App\Services\ListingAttributeValidator;
+use App\Services\SystemOptions;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Services\SystemOptions;
 
 class UpdateListingRequest extends FormRequest
 {

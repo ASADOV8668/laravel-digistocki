@@ -8,7 +8,10 @@ use App\Services\ListingRules;
 
 class ListingPolicy
 {
-    public function viewAny(?User $user): bool { return true; }
+    public function viewAny(?User $user): bool
+    {
+        return true;
+    }
 
     public function view(?User $user, Listing $listing): bool
     {
@@ -32,8 +35,15 @@ class ListingPolicy
         return $user->isAdmin() || $listing->isOwnedBy($user);
     }
 
-    public function approve(User $user): bool { return $user->isAdmin(); }
-    public function reject(User $user): bool { return $user->isAdmin(); }
+    public function approve(User $user): bool
+    {
+        return $user->isAdmin();
+    }
+
+    public function reject(User $user): bool
+    {
+        return $user->isAdmin();
+    }
 
     public function markSold(User $user, Listing $listing): bool
     {

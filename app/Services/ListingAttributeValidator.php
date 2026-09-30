@@ -30,6 +30,7 @@ class ListingAttributeValidator
 
             if (! $attribute instanceof Attribute) {
                 $errors[$field] = 'ویژگی انتخاب‌شده برای این مدل معتبر نیست.';
+
                 continue;
             }
 

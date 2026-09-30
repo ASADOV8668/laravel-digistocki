@@ -17,8 +17,8 @@ use Tests\TestCase;
 
 class PhaseTenImageProcessingTest extends TestCase
 {
-    use RefreshDatabase;
     use BuildsListingAttributePayload;
+    use RefreshDatabase;
 
     protected function setUp(): void
     {

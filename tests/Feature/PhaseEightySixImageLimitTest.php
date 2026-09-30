@@ -11,15 +11,15 @@ use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
 class PhaseEightySixImageLimitTest extends TestCase
 {
-    use RefreshDatabase;
     use BuildsListingAttributePayload;
+    use RefreshDatabase;
 
     protected function setUp(): void
     {

@@ -16,8 +16,8 @@ use Tests\TestCase;
 
 class PhaseSeventySevenListingAttributeValidationTest extends TestCase
 {
-    use RefreshDatabase;
     use BuildsListingAttributePayload;
+    use RefreshDatabase;
 
     protected function setUp(): void
     {

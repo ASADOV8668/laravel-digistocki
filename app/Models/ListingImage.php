@@ -12,6 +12,13 @@ class ListingImage extends Model
 
     protected $fillable = ['listing_id', 'path', 'thumbnail_path', 'is_primary', 'sort_order'];
 
-    protected function casts(): array { return ['is_primary' => 'boolean']; }
-    public function listing(): BelongsTo { return $this->belongsTo(Listing::class); }
+    protected function casts(): array
+    {
+        return ['is_primary' => 'boolean'];
+    }
+
+    public function listing(): BelongsTo
+    {
+        return $this->belongsTo(Listing::class);
+    }
 }

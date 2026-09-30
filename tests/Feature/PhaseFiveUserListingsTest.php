@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Enums\ListingStatus;
 use App\Models\Brand;
 use App\Models\Listing;
-use App\Models\ListingImage;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -17,8 +16,8 @@ use Tests\TestCase;
 
 class PhaseFiveUserListingsTest extends TestCase
 {
-    use RefreshDatabase;
     use BuildsListingAttributePayload;
+    use RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -78,6 +77,7 @@ class PhaseFiveUserListingsTest extends TestCase
     private function catalogContext(): array
     {
         $brand = Brand::firstOrFail();
+
         return [$brand, $brand->phoneModels()->firstOrFail()];
     }
 

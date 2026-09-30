@@ -10,6 +10,7 @@ use Carbon\CarbonInterface;
 class ListingRules
 {
     public const MAX_ACTIVE_LISTINGS = 10;
+
     public const EXPIRY_DAYS = 30;
 
     public function activeCount(User $user): int

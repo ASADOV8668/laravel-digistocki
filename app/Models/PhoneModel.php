@@ -13,6 +13,7 @@ class PhoneModel extends Model
     use HasFactory;
 
     protected $table = 'phone_models';
+
     protected $fillable = ['brand_id', 'name', 'name_fa', 'name_en', 'slug', 'release_year', 'is_active'];
 
     protected function casts(): array

@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Enums\ListingStatus;
 use App\Models\Brand;
 use App\Models\ListingImage;
 use App\Models\User;
@@ -16,8 +15,8 @@ use Tests\TestCase;
 
 class PhaseOneHundredThreeImageTransactionCleanupTest extends TestCase
 {
-    use RefreshDatabase;
     use BuildsListingAttributePayload;
+    use RefreshDatabase;
 
     public function test_failed_listing_transaction_removes_files_created_before_rollback(): void
     {

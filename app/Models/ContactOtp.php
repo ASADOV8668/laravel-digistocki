@@ -17,6 +17,13 @@ class ContactOtp extends Model
         return ['attempts' => 'integer', 'expires_at' => 'datetime', 'verified_at' => 'datetime'];
     }
 
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
-    public function listing(): BelongsTo { return $this->belongsTo(Listing::class); }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function listing(): BelongsTo
+    {
+        return $this->belongsTo(Listing::class);
+    }
 }

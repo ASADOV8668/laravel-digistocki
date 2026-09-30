@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\ContactOtp;
+use App\Enums\ListingStatus;
 use App\Models\Brand;
+use App\Models\ContactOtp;
 use App\Models\Listing;
 use App\Models\User;
-use App\Enums\ListingStatus;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;

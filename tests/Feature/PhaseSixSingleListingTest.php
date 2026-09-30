@@ -60,6 +60,7 @@ class PhaseSixSingleListingTest extends TestCase
     private function listing(User $seller, string $title): Listing
     {
         $brand = Brand::firstOrFail();
+
         return Listing::create(['user_id' => $seller->id, 'brand_id' => $brand->id, 'phone_model_id' => $brand->phoneModels()->firstOrFail()->id, 'title' => $title, 'slug' => Str::uuid(), 'price' => 18000000, 'status' => ListingStatus::Approved, 'published_at' => now()]);
     }
 }

@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Enums\ListingStatus;
 use App\Models\Brand;
 use App\Models\Listing;
-use App\Models\Report;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;

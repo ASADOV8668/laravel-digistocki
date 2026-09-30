@@ -17,6 +17,13 @@ class ListingAttributeValue extends Model
         return ['value_decimal' => 'decimal:2', 'value_boolean' => 'boolean', 'value_json' => 'array'];
     }
 
-    public function listing(): BelongsTo { return $this->belongsTo(Listing::class); }
-    public function attribute(): BelongsTo { return $this->belongsTo(Attribute::class); }
+    public function listing(): BelongsTo
+    {
+        return $this->belongsTo(Listing::class);
+    }
+
+    public function attribute(): BelongsTo
+    {
+        return $this->belongsTo(Attribute::class);
+    }
 }

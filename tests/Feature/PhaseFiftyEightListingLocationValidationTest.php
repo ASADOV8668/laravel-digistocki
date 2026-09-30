@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Brand;
-use App\Models\Listing;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;

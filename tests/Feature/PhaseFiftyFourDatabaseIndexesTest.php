@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class PhaseFiftyFourDatabaseIndexesTest extends TestCase

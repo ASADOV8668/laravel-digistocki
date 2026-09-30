@@ -16,8 +16,8 @@ use Tests\TestCase;
 
 class ListingFlowTest extends TestCase
 {
-    use RefreshDatabase;
     use BuildsListingAttributePayload;
+    use RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -87,6 +87,7 @@ class ListingFlowTest extends TestCase
     private function context(): array
     {
         $brand = Brand::firstOrFail();
+
         return [User::factory()->create(), $brand, $brand->phoneModels()->firstOrFail()];
     }
 

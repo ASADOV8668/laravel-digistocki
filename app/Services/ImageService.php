@@ -71,7 +71,7 @@ class ImageService
 
     protected function process(UploadedFile $file, string $path, string $thumbnailPath): void
     {
-        $manager = new ImageManager(new Driver());
+        $manager = new ImageManager(new Driver);
         $original = $manager->read($file->getRealPath())->scaleDown(width: 1200, height: 1200)->toWebp(82);
         $thumbnail = $manager->read($file->getRealPath())->cover(400, 400)->toWebp(78);
 

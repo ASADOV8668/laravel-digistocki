@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Attribute;
 use App\Models\Brand;
-use App\Models\PhoneModel;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;

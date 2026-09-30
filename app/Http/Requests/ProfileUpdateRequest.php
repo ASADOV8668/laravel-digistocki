@@ -3,10 +3,10 @@
 namespace App\Http\Requests;
 
 use App\Models\User;
+use App\Support\MobileNumber;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Support\MobileNumber;
 
 class ProfileUpdateRequest extends FormRequest
 {

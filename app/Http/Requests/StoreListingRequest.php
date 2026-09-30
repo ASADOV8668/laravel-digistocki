@@ -2,18 +2,19 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Validation\Rule;
+use App\Models\Listing;
 use App\Models\PhoneModel;
 use App\Services\ListingAttributeValidator;
 use App\Services\SystemOptions;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreListingRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('create', \App\Models\Listing::class) ?? false;
+        return $this->user()?->can('create', Listing::class) ?? false;
     }
 
     public function rules(): array

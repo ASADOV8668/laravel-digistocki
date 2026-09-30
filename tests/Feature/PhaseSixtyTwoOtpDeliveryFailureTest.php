@@ -4,14 +4,13 @@ namespace Tests\Feature;
 
 use App\Enums\ListingStatus;
 use App\Models\Brand;
-use App\Models\ContactOtp;
 use App\Models\Listing;
 use App\Models\SystemOption;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class PhaseSixtyTwoOtpDeliveryFailureTest extends TestCase

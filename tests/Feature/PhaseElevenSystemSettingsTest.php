@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Brand;
-use App\Models\SystemOption;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,8 +12,8 @@ use Tests\TestCase;
 
 class PhaseElevenSystemSettingsTest extends TestCase
 {
-    use RefreshDatabase;
     use BuildsListingAttributePayload;
+    use RefreshDatabase;
 
     private User $admin;
 

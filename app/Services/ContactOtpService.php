@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 class ContactOtpService
 {
     public const TTL_MINUTES = 5;
+
     public const MAX_ATTEMPTS = 5;
 
     public function issue(User $user, Listing $listing): ?ContactOtp
@@ -59,6 +60,7 @@ class ContactOtpService
         }
 
         $otp->forceFill(['verified_at' => now()])->save();
+
         return true;
     }
 }

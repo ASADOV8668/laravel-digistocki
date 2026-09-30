@@ -12,16 +12,17 @@ use App\Models\Listing;
 use App\Models\ListingAttributeValue;
 use App\Models\ListingImage;
 use App\Models\PhoneModel;
-use App\Services\ListingRules;
 use App\Services\ContactOtpService;
 use App\Services\ImageService;
+use App\Services\ListingRules;
 use App\Services\SystemOptions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Throwable;
 use Sadegh19b\LaravelIranCities\Models\Province;
+use Throwable;
 
 class ListingController extends Controller
 {
@@ -231,6 +232,7 @@ class ListingController extends Controller
                 $score = $candidate->phone_model_id === $listing->phone_model_id ? 10 : 0;
                 $score += $candidate->brand_id === $listing->brand_id ? 4 : 0;
                 $score += $candidate->attributeValues->whereIn('attribute_id', $attributePairs->pluck(0))->count();
+
                 return $score;
             })
             ->take(4)
@@ -461,7 +463,7 @@ class ListingController extends Controller
 
     private function storeImages(Listing $listing, array $images, ImageService $imageService, array &$storedFiles = []): void
     {
-        $uploads = array_values(array_filter($images, fn ($image) => $image instanceof \Illuminate\Http\UploadedFile));
+        $uploads = array_values(array_filter($images, fn ($image) => $image instanceof UploadedFile));
         if ($uploads === []) {
             return;
         }

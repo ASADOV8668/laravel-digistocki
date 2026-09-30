@@ -10,10 +10,10 @@ class PhaseFiftyServiceWorkerTest extends TestCase
     {
         $serviceWorker = (string) file_get_contents(public_path('sw.js'));
 
-        $this->assertStringContainsString("digistocki-shell-v2", $serviceWorker);
-        $this->assertStringContainsString("cache.addAll", $serviceWorker);
+        $this->assertStringContainsString('digistocki-shell-v2', $serviceWorker);
+        $this->assertStringContainsString('cache.addAll', $serviceWorker);
         $this->assertStringContainsString("event.request.mode === 'navigate'", $serviceWorker);
-        $this->assertStringContainsString("caches.delete", $serviceWorker);
-        $this->assertStringContainsString("self.skipWaiting", $serviceWorker);
+        $this->assertStringContainsString('caches.delete', $serviceWorker);
+        $this->assertStringContainsString('self.skipWaiting', $serviceWorker);
     }
 }

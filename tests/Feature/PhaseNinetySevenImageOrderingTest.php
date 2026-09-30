@@ -14,8 +14,8 @@ use Tests\TestCase;
 
 class PhaseNinetySevenImageOrderingTest extends TestCase
 {
-    use RefreshDatabase;
     use BuildsListingAttributePayload;
+    use RefreshDatabase;
 
     protected function setUp(): void
     {

@@ -26,18 +26,21 @@ class AttributeController extends Controller
     {
         $validated = $this->validated($request);
         ListingAttribute::create($validated);
+
         return back()->with('status', 'ویژگی جدید اضافه شد.');
     }
 
     public function update(Request $request, ListingAttribute $attribute)
     {
         $attribute->update($this->validated($request, $attribute));
+
         return back()->with('status', 'ویژگی به‌روزرسانی شد.');
     }
 
     public function toggle(ListingAttribute $attribute)
     {
         $attribute->update(['is_active' => ! $attribute->is_active]);
+
         return back()->with('status', 'وضعیت ویژگی تغییر کرد.');
     }
 
@@ -52,6 +55,7 @@ class AttributeController extends Controller
         $data['is_filterable'] = $request->boolean('is_filterable');
         $data['is_required'] = $request->boolean('is_required');
         $data['sort_order'] = (int) ($data['sort_order'] ?? 0);
+
         return $data;
     }
 }
