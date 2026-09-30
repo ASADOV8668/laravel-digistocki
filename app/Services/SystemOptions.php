@@ -4,9 +4,12 @@ namespace App\Services;
 
 use App\Models\SystemOption;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class SystemOptions
 {
+    private const CACHE_KEY = 'system_options.values';
+
     public const DEFAULTS = [
         'site_title' => 'دیجی استوک',
         'page_title_prefix' => 'دیجی استوک',
@@ -31,6 +34,7 @@ class SystemOptions
     public function set(string $key, mixed $value, string $type = 'string'): void
     {
         SystemOption::updateOrCreate(['key' => $key], ['value' => $this->stringify($value), 'type' => $type]);
+        Cache::forget(self::CACHE_KEY);
         $this->values = null;
     }
 
@@ -61,6 +65,7 @@ class SystemOptions
             ['value', 'type', 'updated_at'],
         );
 
+        Cache::forget(self::CACHE_KEY);
         $this->values = null;
     }
 
@@ -113,7 +118,10 @@ class SystemOptions
             return;
         }
 
-        $this->values = SystemOption::query()->pluck('value', 'key');
+        $this->values = collect(Cache::rememberForever(
+            self::CACHE_KEY,
+            fn () => SystemOption::query()->pluck('value', 'key')->all(),
+        ));
     }
 
     private function stringify(mixed $value): string
