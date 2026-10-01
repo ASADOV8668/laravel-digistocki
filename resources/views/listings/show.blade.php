@@ -128,8 +128,12 @@
                     @auth
                         <form method="POST" action="{{ route('listings.favorite.toggle', $listing) }}">
                             @csrf
-                            <button type="submit" title="{{ $isFavorited ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها' }}" class="rounded-lg {{ $isFavorited ? 'bg-primary text-white' : 'bg-primary-50 text-primary' }} p-3 transition hover:scale-105">
-                                <x-heroicon-o-heart class="h-6 w-6" />
+                            <button type="submit" title="{{ $isFavorited ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها' }}" class="rounded-lg {{ $isFavorited ? 'border border-red-200 bg-red-50 text-red-600' : 'bg-primary-50 text-primary' }} p-3 transition hover:scale-105">
+                                @if ($isFavorited)
+                                    <x-heroicon-s-heart class="h-6 w-6 fill-current" />
+                                @else
+                                    <x-heroicon-o-heart class="h-6 w-6" />
+                                @endif
                             </button>
                         </form>
                     @else
