@@ -14,12 +14,12 @@
         return ['name' => $value->attribute?->name, 'value' => $raw];
     })->filter(fn ($item) => filled($item['name']) && filled($item['value']))->take(2);
 @endphp
-<article x-data="favoriteToggle('{{ route('listings.favorite.toggle', $listing) }}', {{ $isFavorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }})" class="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/5">
+<article x-data="favoriteToggle('{{ route('listings.favorite.toggle', $listing) }}', {{ $isFavorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }})" class="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/5">
     <div class="relative overflow-hidden bg-slate-100">
         <a href="{{ route('listings.show', $listing) }}" class="block">
             <img src="{{ $image ? asset('storage/'.($image->thumbnail_path ?: $image->path)) : asset('images/listing-placeholder.svg') }}" alt="{{ $image ? $listing->title : 'تصویر پیش‌فرض آگهی موبایل' }}" class="h-40 w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" decoding="async">
         </a>
-        <button type="button" @click.stop.prevent="toggle" :aria-pressed="favorited.toString()" :aria-label="favorited ? 'حذف آگهی از علاقه‌مندی‌ها' : 'افزودن آگهی به علاقه‌مندی‌ها'" class="absolute left-2 top-2 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-slate-300 shadow-sm transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30" :class="favorited ? 'text-primary' : 'text-slate-300'"><x-heroicon-o-heart x-show="!favorited" class="h-6 w-6" /><x-heroicon-s-heart x-show="favorited" x-cloak class="h-6 w-6 fill-current" /></button>
+        <button type="button" @click.stop.prevent="toggle" :aria-pressed="favorited.toString()" :aria-label="favorited ? 'حذف آگهی از علاقه‌مندی‌ها' : 'افزودن آگهی به علاقه‌مندی‌ها'" class="absolute left-2 top-2 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-300 shadow-sm transition hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20" :class="favorited ? 'text-primary' : 'text-slate-300'"><x-heroicon-o-heart x-show="!favorited" class="h-5 w-5" /><x-heroicon-s-heart x-show="favorited" x-cloak class="h-5 w-5 fill-current" /></button>
         @if ($showStatusBadge)<span class="absolute right-2 top-2 rounded-full bg-neutral px-2.5 py-1.5 text-[10px] font-black text-white shadow-sm">آگهی فعال</span>@endif
     </div>
     <a href="{{ route('listings.show', $listing) }}" class="block p-3.5">
