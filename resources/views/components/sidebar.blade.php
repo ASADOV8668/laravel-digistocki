@@ -5,7 +5,7 @@
     <div class="mb-7 flex items-center justify-between">
         <h2 id="public-sidebar-title" class="sr-only">منوی اصلی</h2>
         <x-logo />
-        <button type="button" data-drawer-hide="public-sidebar" aria-controls="public-sidebar" aria-label="بستن منو" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><x-heroicon-o-x-mark class="h-6 w-6" /></button>
+        <button type="button" data-drawer-hide="public-sidebar" data-tooltip-target="public-sidebar-close-tooltip" aria-controls="public-sidebar" aria-label="بستن منو" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-x-mark class="h-6 w-6" /></button><div id="public-sidebar-close-tooltip" role="tooltip" class="invisible absolute z-10 rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white opacity-0 shadow-sm">بستن منو<div class="tooltip-arrow" data-popper-arrow></div></div>
     </div>
 
     @auth
