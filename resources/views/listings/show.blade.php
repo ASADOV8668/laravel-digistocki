@@ -112,7 +112,7 @@
         @endif
 
         <div class="rounded-lg bg-white p-5 shadow-sm border border-slate-200">
-            <div class="flex items-start justify-between gap-4">
+            <div x-data="shareLink(@js(url()->current()))" class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">{{ $listing->brand->name }}</span>
@@ -120,18 +120,24 @@
                     </div>
                     <h2 class="mt-3 text-2xl font-black leading-9 text-neutral">{{ $listing->title }}</h2>
                 </div>
-                @auth
-                    <form method="POST" action="{{ route('listings.favorite.toggle', $listing) }}" class="shrink-0">
-                        @csrf
-                        <button type="submit" title="{{ $isFavorited ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها' }}" class="rounded-lg {{ $isFavorited ? 'bg-primary text-white' : 'bg-primary-50 text-primary' }} p-3 transition hover:scale-105">
+                <div class="flex shrink-0 items-center gap-2">
+                    <button type="button" @click="share()" class="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20">
+                        <x-heroicon-o-share class="h-5 w-5" />
+                        <span x-text="copied ? 'لینک کپی شد' : 'اشتراک‌گذاری'">اشتراک‌گذاری</span>
+                    </button>
+                    @auth
+                        <form method="POST" action="{{ route('listings.favorite.toggle', $listing) }}">
+                            @csrf
+                            <button type="submit" title="{{ $isFavorited ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها' }}" class="rounded-lg {{ $isFavorited ? 'bg-primary text-white' : 'bg-primary-50 text-primary' }} p-3 transition hover:scale-105">
+                                <x-heroicon-o-heart class="h-6 w-6" />
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" title="ورود برای ذخیره آگهی" class="rounded-lg bg-primary-50 p-3 text-primary transition hover:scale-105">
                             <x-heroicon-o-heart class="h-6 w-6" />
-                        </button>
-                    </form>
-                @else
-                    <a href="{{ route('login') }}" title="ورود برای ذخیره آگهی" class="shrink-0 rounded-lg bg-primary-50 p-3 text-primary transition hover:scale-105">
-                        <x-heroicon-o-heart class="h-6 w-6" />
-                    </a>
-                @endauth
+                        </a>
+                    @endauth
+                </div>
             </div>
 
             <div class="mt-6 flex items-end justify-between gap-3 rounded-lg bg-slate-50 p-4">
