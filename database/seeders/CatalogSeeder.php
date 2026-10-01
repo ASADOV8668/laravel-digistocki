@@ -121,10 +121,35 @@ class CatalogSeeder extends Seeder
 
     private function persianModelName(string $name): string
     {
-        return str_replace(
-            ['iPhone', 'Galaxy', 'Redmi Note', 'Redmi', 'POCO', 'Pixel', 'OnePlus', 'Xperia', 'Mate', 'Nova', 'ROG Phone', 'Zenfone', 'Find X', 'Reno', 'Edge', 'Razr', 'Pro Max', 'Pro+', 'Pro', 'Plus', 'Ultra', 'mini', 'Flip', 'Fold'],
-            ['آیفون', 'گلکسی', 'ردمی نوت', 'ردمی', 'پوکو', 'پیکسل', 'وان پلاس', 'اکسپریا', 'میت', 'نوا', 'راگ فون', 'زنفون', 'فایند ایکس', 'رینو', 'اج', 'ریزر', 'پرو مکس', 'پرو پلاس', 'پرو', 'پلاس', 'اولترا', 'مینی', 'فلیپ', 'فولد'],
-            $name,
-        );
+        $map = [
+            'iPhone' => 'آیفون',
+            'Galaxy' => 'گلکسی',
+            'Redmi Note' => 'ردمی نوت',
+            'Redmi' => 'ردمی',
+            'POCO' => 'پوکو',
+            'Pixel' => 'پیکسل',
+            'OnePlus' => 'وان پلاس',
+            'Xperia' => 'اکسپریا',
+            'ROG Phone' => 'راگ فون',
+            'Zenfone' => 'زنفون',
+            'Find X' => 'فایند ایکس',
+            'Reno' => 'رینو',
+            'Mate' => 'میت',
+            'Nova' => 'نوا',
+            'Edge' => 'اج',
+            'Razr' => 'ریزر',
+            'Pro Max' => 'پرو مکس',
+            'Pro+' => 'پرو پلاس',
+            'Pro' => 'پرو',
+            'Plus' => 'پلاس',
+            'Ultra' => 'اولترا',
+            'mini' => 'مینی',
+            'Flip' => 'فلیپ',
+            'Fold' => 'فولد',
+        ];
+
+        uksort($map, fn (string $left, string $right): int => strlen($right) <=> strlen($left));
+
+        return str_replace(array_keys($map), array_values($map), $name);
     }
 }

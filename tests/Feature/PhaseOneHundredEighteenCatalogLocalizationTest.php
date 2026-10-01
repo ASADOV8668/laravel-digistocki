@@ -22,4 +22,21 @@ class PhaseOneHundredEighteenCatalogLocalizationTest extends TestCase
         $this->assertSame('آیفون 13 پرو', $model->name_fa);
         $this->assertSame('iPhone 13 Pro', $model->name_en);
     }
+
+    public function test_model_suggestions_match_both_persian_and_english_model_names(): void
+    {
+        $this->seed(CatalogSeeder::class);
+
+        $this->getJson(route('listings.search.suggestions', ['q' => 'آیفون ۱۳ پرو مکس']))
+            ->assertOk()
+            ->assertJsonFragment(['label' => 'آیفون 13 پرو مکس', 'secondary' => 'iPhone 13 Pro Max']);
+
+        $this->getJson(route('listings.search.suggestions', ['q' => 'iPhone 13 Pro Max']))
+            ->assertOk()
+            ->assertJsonFragment(['label' => 'آیفون 13 پرو مکس', 'secondary' => 'iPhone 13 Pro Max']);
+
+        $this->getJson(route('listings.search.suggestions', ['q' => 'ردمی نوت ۱۲ پرو پلاس']))
+            ->assertOk()
+            ->assertJsonFragment(['label' => 'ردمی نوت 12 پرو پلاس', 'secondary' => 'Redmi Note 12 Pro+']);
+    }
 }
