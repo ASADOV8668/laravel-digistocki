@@ -65,13 +65,13 @@
                     @endforeach
                 </div>
                 @if ($listing->images->count() > 1)
-                    <button type="button" data-carousel-prev aria-label="تصویر قبلی" class="group absolute start-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50">
+                    <button type="button" data-carousel-prev aria-label="تصویر قبلی" class="group absolute start-4 top-1/2 z-40 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50">
                         <x-heroicon-o-chevron-right class="h-5 w-5" />
                     </button>
-                    <button type="button" data-carousel-next aria-label="تصویر بعدی" class="group absolute end-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50">
+                    <button type="button" data-carousel-next aria-label="تصویر بعدی" class="group absolute end-4 top-1/2 z-40 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50">
                         <x-heroicon-o-chevron-left class="h-5 w-5" />
                     </button>
-                    <div class="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+                    <div class="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 gap-1.5">
                         @foreach ($listing->images as $image)
                             <button type="button" data-carousel-slide-to="{{ $loop->index }}" aria-label="نمایش تصویر {{ $loop->iteration }}" class="h-2 w-2 rounded-full bg-white/60 transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-white/70 {{ $loop->first ? 'bg-white' : '' }}"></button>
                         @endforeach
@@ -100,9 +100,9 @@
                                 </div>
                             @endforeach
                             @if ($listing->images->count() > 1)
-                                <button type="button" data-carousel-prev aria-label="تصویر قبلی" class="group absolute start-4 top-1/2 z-30 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50"><x-heroicon-o-chevron-right class="h-5 w-5" /></button>
-                                <button type="button" data-carousel-next aria-label="تصویر بعدی" class="group absolute end-4 top-1/2 z-30 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50"><x-heroicon-o-chevron-left class="h-5 w-5" /></button>
-                                <div class="absolute bottom-5 left-1/2 z-30 flex -translate-x-1/2 gap-2">
+                                <button type="button" data-carousel-prev aria-label="تصویر قبلی" class="group absolute start-4 top-1/2 z-40 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50"><x-heroicon-o-chevron-right class="h-5 w-5" /></button>
+                                <button type="button" data-carousel-next aria-label="تصویر بعدی" class="group absolute end-4 top-1/2 z-40 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50"><x-heroicon-o-chevron-left class="h-5 w-5" /></button>
+                                <div class="absolute bottom-5 left-1/2 z-40 flex -translate-x-1/2 gap-2">
                                     @foreach ($listing->images as $image)
                                         <button type="button" data-carousel-slide-to="{{ $loop->index }}" aria-label="نمایش تصویر {{ $loop->iteration }}" class="h-2.5 w-2.5 rounded-full bg-white/60 transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-white/70 {{ $loop->first ? 'bg-white' : '' }}"></button>
                                     @endforeach
