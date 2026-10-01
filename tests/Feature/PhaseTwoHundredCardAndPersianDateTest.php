@@ -40,6 +40,8 @@ class PhaseTwoHundredCardAndPersianDateTest extends TestCase
         $this->assertStringContainsString('data-persian-datepicker', $listings);
         $this->assertStringContainsString('data-persian-datepicker', $reports);
         $this->assertStringContainsString('PersianDate::parseDate', $listingController);
-        $this->assertFileExists(resource_path('vendor/persian-datepicker/persianDatepicker.min.js'));
+        $datepicker = resource_path('vendor/persian-datepicker/persianDatepicker.min.js');
+        $this->assertFileExists($datepicker);
+        $this->assertStringContainsString('var _fontSize', file_get_contents($datepicker));
     }
 }
