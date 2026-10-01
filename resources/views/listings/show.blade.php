@@ -49,13 +49,10 @@
 
     <section class="space-y-5 px-4 py-6">
         @if (session('status'))
-            <div class="flex items-center gap-2 rounded-lg bg-secondary/10 p-3 text-sm font-bold text-success" role="status">
-                <x-heroicon-o-check-circle class="h-5 w-5 shrink-0" />
-                {{ session('status') }}
-            </div>
+            <x-flowbite-alert type="success">{{ session('status') }}</x-flowbite-alert>
         @endif
         @if ($errors->any())
-            <div class="rounded-lg bg-error/10 p-3 text-sm font-bold text-error" role="alert">{{ $errors->first() }}</div>
+            <x-flowbite-alert type="danger">{{ $errors->first() }}</x-flowbite-alert>
         @endif
 
         <div class="relative overflow-hidden rounded-[2rem] bg-slate-900 p-2 shadow-xl shadow-slate-900/10">
@@ -191,14 +188,21 @@
 
         @auth
             @if (! $listing->isOwnedBy(auth()->user()))
-                <details class="rounded-[2rem] bg-white p-5 shadow-sm border border-slate-200">
-                    <summary class="cursor-pointer list-none text-sm font-black text-neutral"><span class="flex items-center gap-2"><x-heroicon-o-flag class="h-5 w-5 text-error" /> گزارش مشکل در این آگهی</span></summary>
-                    <form method="POST" action="{{ route('listings.report', $listing) }}" class="mt-4 space-y-3 border-t border-slate-100 pt-4">@csrf
+                <div id="listing-report-accordion" data-accordion="collapse" class="rounded-lg bg-white shadow-sm border border-slate-200">
+                    <h2 id="listing-report-heading">
+                        <button type="button" data-accordion-target="#listing-report-panel" aria-expanded="false" aria-controls="listing-report-panel" class="flex w-full items-center justify-between gap-3 p-5 text-right text-sm font-black text-neutral hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-primary/10">
+                            <span class="flex items-center gap-2"><x-heroicon-o-flag class="h-5 w-5 text-error" /> گزارش مشکل در این آگهی</span>
+                            <x-heroicon-o-chevron-down class="h-5 w-5 shrink-0 text-slate-400" />
+                        </button>
+                    </h2>
+                    <div id="listing-report-panel" class="hidden" aria-labelledby="listing-report-heading">
+                    <form method="POST" action="{{ route('listings.report', $listing) }}" class="space-y-3 border-t border-slate-100 p-5">@csrf
                         <label for="listing-report-reason" class="sr-only">دلیل گزارش</label><select id="listing-report-reason" name="reason" required class="w-full rounded-lg border-0 bg-slate-50 text-sm border border-slate-200 focus:ring-primary"><option value="">دلیل گزارش را انتخاب کنید</option><option value="اطلاعات نادرست">اطلاعات نادرست</option><option value="آگهی تکراری">آگهی تکراری</option><option value="محتوای نامناسب">محتوای نامناسب</option><option value="فروشنده مشکوک">فروشنده مشکوک</option></select>
                         <label for="listing-report-description" class="sr-only">توضیح تکمیلی گزارش</label><textarea id="listing-report-description" name="description" rows="3" placeholder="توضیح تکمیلی (اختیاری)" class="w-full rounded-lg border-0 bg-slate-50 text-sm border border-slate-200 focus:ring-primary"></textarea>
                         <button class="w-full rounded-lg bg-error px-4 py-3 text-sm font-bold text-white">ثبت گزارش</button>
                     </form>
-                </details>
+                    </div>
+                </div>
             @endif
         @endauth
 

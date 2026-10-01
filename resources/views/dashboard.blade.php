@@ -2,10 +2,10 @@
     <x-slot name="header"><div class="flex items-center justify-between gap-3"><div><p class="text-xs font-bold text-primary">حساب کاربری</p><h1 class="mt-1 text-xl font-black text-neutral">داشبورد من</h1></div><span class="max-w-[140px] truncate rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">{{ auth()->user()->name }}</span></div></x-slot>
     <section class="space-y-6 px-4 py-6">
         @if (session('status'))
-            <div class="flex items-center gap-2 rounded-lg border border-secondary/20 bg-secondary/10 p-4 text-sm font-bold text-success" role="status"><x-heroicon-o-check-circle class="h-5 w-5 shrink-0" />{{ session('status') }}</div>
+            <x-flowbite-alert type="success">{{ session('status') }}</x-flowbite-alert>
         @endif
         @if ($errors->any())
-            <div class="flex items-start gap-2 rounded-lg border border-error/20 bg-error/10 p-4 text-sm font-bold text-error" role="alert"><x-heroicon-o-exclamation-triangle class="h-5 w-5 shrink-0" /><span>{{ $errors->first() }}</span></div>
+            <x-flowbite-alert type="danger">{{ $errors->first() }}</x-flowbite-alert>
         @endif
         <div class="relative overflow-hidden rounded-lg bg-primary p-5 text-white shadow-lg shadow-primary/15"><div class="absolute -left-8 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div><div class="relative"><p class="text-sm text-white/75">مدیریت آگهی‌های شما</p><h2 class="mt-1 text-2xl font-black">همه‌چیز مرتب و آماده فروش</h2><p class="mt-2 text-xs leading-6 text-white/75">وضعیت آگهی‌هایت را بررسی کن و سریع‌تر به خریدارها پاسخ بده.</p><a href="{{ route('listings.create') }}" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-black text-primary transition hover:bg-primary-50"><x-heroicon-o-plus class="h-5 w-5" />ثبت آگهی جدید</a></div></div>
         @if ($store)
