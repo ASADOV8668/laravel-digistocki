@@ -114,10 +114,6 @@
                             <p class="text-xs font-medium text-gray-400">خوش آمدید، {{ auth()->user()->name }}</p>
                             <h1 class="mt-1 truncate text-lg font-black text-gray-900 dark:text-white">{{ $title ?? 'پنل مدیریت' }}</h1>
                         </div>
-                        <div class="relative hidden max-w-md flex-1 lg:block">
-                            <x-heroicon-o-magnifying-glass class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                            <input type="search" placeholder="جستجو در پنل مدیریت..." class="h-11 w-full rounded-lg border border-gray-200 bg-gray-50 pr-10 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-                        </div>
                     </div>
                     <div class="flex items-center gap-2 sm:gap-3">
                         <button type="button" @click="darkMode = !darkMode" class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5" :aria-label="darkMode ? 'حالت روشن' : 'حالت تاریک'">

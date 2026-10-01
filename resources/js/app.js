@@ -3,6 +3,7 @@ import 'flowbite';
 import { initTooltips } from 'flowbite';
 
 import Alpine from 'alpinejs';
+import './listing-attribute-repeater';
 
 window.Alpine = Alpine;
 window.refreshFlowbiteTooltips = () => initTooltips();
@@ -692,11 +693,14 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     },
 });
 
-window.listingWizard = (attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialValues = {}, initialProvinceId = '', initialCityId = '') => ({
-    attributesEndpoint,
+window.listingWizard = (modelsEndpoint, citiesEndpoint, initialBrandId = '', initialModelId = null, initialAttributes = [], initialValues = {}, initialProvinceId = '', initialCityId = '') => ({
+    modelsEndpoint,
+    attributesEndpoint: modelsEndpoint,
     citiesEndpoint,
     step: 1,
+    brandId: initialBrandId || '',
     modelId: initialModelId || '',
+    models: [],
     attributes: initialAttributes || [],
     values: initialValues || {},
     provinceId: initialProvinceId || '',
@@ -704,12 +708,51 @@ window.listingWizard = (attributesEndpoint, citiesEndpoint, initialModelId = nul
     cities: [],
     attributesLoading: false,
     citiesLoading: false,
+    modelsLoading: false,
+    modelsController: null,
     attributesController: null,
     citiesController: null,
 
     init() {
+        this.$watch('brandId', (value, previous) => { if (value && value !== previous) this.loadModels(); });
+        if (this.brandId) this.loadModels(false);
         if (this.modelId && !this.attributes.length) this.loadAttributes(false);
         if (this.provinceId) this.loadCities(false);
+    },
+
+    async loadModels(resetModel = true) {
+        this.modelsController?.abort();
+        this.modelsController = null;
+        if (resetModel) {
+            this.modelId = '';
+            this.attributes = [];
+            this.values = {};
+            window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: [], values: {} } }));
+        }
+        this.models = [];
+        if (!this.brandId) {
+            this.modelsLoading = false;
+            return;
+        }
+
+        const controller = new AbortController();
+        this.modelsController = controller;
+        this.modelsLoading = true;
+        try {
+            const response = await fetch(`${this.modelsEndpoint}?brand_id=${encodeURIComponent(this.brandId)}`, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: controller.signal,
+            });
+            if (!response.ok) throw new Error('Model request failed');
+            this.models = await response.json();
+        } catch (error) {
+            if (error.name !== 'AbortError') this.models = [];
+        } finally {
+            if (this.modelsController === controller) {
+                this.modelsController = null;
+                this.modelsLoading = false;
+            }
+        }
     },
 
     async loadAttributes(resetValues = true) {
@@ -718,6 +761,7 @@ window.listingWizard = (attributesEndpoint, citiesEndpoint, initialModelId = nul
         this.attributesLoading = true;
         this.attributes = [];
         if (resetValues) this.values = {};
+        window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: [], values: this.values } }));
 
         if (!this.modelId) {
             this.attributesLoading = false;
@@ -734,8 +778,12 @@ window.listingWizard = (attributesEndpoint, citiesEndpoint, initialModelId = nul
             });
             if (!response.ok) throw new Error('Attribute request failed');
             this.attributes = await response.json();
+            window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: this.attributes, values: this.values } }));
         } catch (error) {
-            if (error.name !== 'AbortError') this.attributes = [];
+            if (error.name !== 'AbortError') {
+                this.attributes = [];
+                window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: [], values: this.values } }));
+            }
         } finally {
             if (this.attributesController === controller) {
                 this.attributesController = null;

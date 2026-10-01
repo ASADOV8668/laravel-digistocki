@@ -404,6 +404,9 @@ class ListingController extends Controller
             'listing' => $listing,
             'brands' => Brand::query()->where('is_active', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
             'attributes' => $attributes,
+            'provinces' => Province::query()->orderBy('name')->get(),
+            'initialValues' => $listing->attributeValues->mapWithKeys(fn ($value) => [$value->attribute_id => $value->value_json ?? $value->value_string ?? $value->value_integer ?? $value->value_decimal ?? $value->value_boolean])->all(),
+            'initialModelAttributes' => $this->attributePayload($attributes),
             'maxImageUploadMb' => $options->maxImageUploadMb(),
             'allowContactPrice' => $options->allowContactPrice(),
         ]);
