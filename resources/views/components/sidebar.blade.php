@@ -1,7 +1,7 @@
 @props(['unreadNotifications' => 0])
 @php($siteTitle = app(\App\Services\SystemOptions::class)->get('site_title'))
 
-<aside id="public-sidebar" data-drawer-backdrop="true" class="fixed left-0 top-0 z-50 h-screen w-80 max-w-[85vw] -translate-x-full overflow-y-auto bg-white p-5 shadow-2xl transition-transform" tabindex="-1" aria-labelledby="public-sidebar-title">
+<aside id="public-sidebar" data-drawer-backdrop="true" data-drawer-placement="left" role="dialog" aria-modal="true" class="fixed left-0 top-0 z-50 h-screen w-80 max-w-[85vw] -translate-x-full overflow-y-auto bg-white p-5 shadow-2xl transition-transform focus:outline-none" tabindex="-1" aria-labelledby="public-sidebar-title">
     <div class="mb-7 flex items-center justify-between">
         <h2 id="public-sidebar-title" class="sr-only">منوی اصلی</h2>
         <x-logo />
