@@ -29,7 +29,10 @@ class PhaseTwoDomainTest extends TestCase
     {
         $this->assertGreaterThanOrEqual(14, Brand::count());
         $this->assertGreaterThanOrEqual(100, PhoneModel::count());
-        $this->assertSame(11, Attribute::count());
+        $this->assertSame(45, Attribute::count());
+        $this->assertSame('storage', Attribute::where('name', 'حافظه داخلی')->value('slug'));
+        $this->assertSame(['شرایط فروش'], Attribute::query()->whereBetween('sort_order', [45, 48])->pluck('name')->all());
+        $this->assertSame(1, Attribute::where('slug', 'sale_condition')->count());
         $this->assertTrue(Attribute::where('is_filterable', true)->exists());
         $this->assertTrue(PhoneModel::first()->modelAttributes()->exists());
     }

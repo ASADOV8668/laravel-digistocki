@@ -12,7 +12,7 @@ class Attribute extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'type', 'unit', 'options', 'is_filterable', 'is_required', 'sort_order', 'is_active'];
+    protected $fillable = ['name', 'slug', 'type', 'unit', 'options', 'is_filterable', 'is_required', 'sort_order', 'is_active'];
 
     protected function casts(): array
     {

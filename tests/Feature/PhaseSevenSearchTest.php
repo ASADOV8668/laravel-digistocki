@@ -39,7 +39,7 @@ class PhaseSevenSearchTest extends TestCase
             ->assertOk()
             ->assertJsonFragment(['name' => 'حافظه داخلی', 'type' => 'integer'])
             ->assertJsonFragment(['name' => 'رنگ', 'type' => 'select'])
-            ->assertJsonMissing(['name' => 'جعبه و لوازم']);
+            ->assertJsonFragment(['name' => 'جعبه و لوازم', 'type' => 'boolean']);
     }
 
     public function test_index_search_matches_listing_model_in_both_languages(): void
