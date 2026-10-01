@@ -55,7 +55,7 @@
             <x-flowbite-alert type="danger">{{ $errors->first() }}</x-flowbite-alert>
         @endif
 
-        <div id="listing-gallery" class="relative touch-pan-y overflow-hidden rounded-lg bg-slate-900 p-2 shadow-xl shadow-slate-900/10" data-carousel="static" data-listing-carousel>
+        <div id="listing-gallery" class="relative touch-pan-y overflow-hidden rounded-lg bg-slate-900 p-2 shadow-xl shadow-slate-900/10" data-carousel="static" data-carousel-interval="false" data-listing-carousel aria-roledescription="carousel" aria-label="تصاویر آگهی">
             @if ($listing->images->isNotEmpty())
                 <div class="relative h-64 overflow-hidden rounded-lg sm:h-96">
                     @foreach ($listing->images as $image)
@@ -93,7 +93,7 @@
                 <div class="relative flex min-h-full w-full items-center justify-center p-2 sm:p-5">
                     <div class="relative h-[92vh] w-full max-w-6xl">
                         <button type="button" data-modal-hide="listing-gallery-modal" class="absolute right-3 top-3 z-40 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50" aria-label="بستن نمایش تمام‌صفحه"><x-heroicon-o-x-mark class="h-5 w-5" /></button>
-                        <div id="listing-gallery-fullscreen-carousel" class="relative h-full touch-pan-y overflow-hidden rounded-lg bg-slate-950" data-carousel="static" data-listing-carousel>
+                        <div id="listing-gallery-fullscreen-carousel" class="relative h-full touch-pan-y overflow-hidden rounded-lg bg-slate-950" data-carousel="static" data-carousel-interval="false" data-listing-carousel aria-roledescription="carousel" aria-label="تصاویر آگهی در حالت تمام‌صفحه">
                             @foreach ($listing->images as $image)
                                 <div class="{{ $loop->first ? '' : 'hidden' }} duration-700 ease-in-out" data-carousel-item="{{ $loop->first ? 'active' : '' }}">
                                     <img src="{{ asset('storage/'.$image->path) }}" alt="{{ $listing->title }}" class="absolute block h-full w-full object-contain" decoding="async" @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif>
