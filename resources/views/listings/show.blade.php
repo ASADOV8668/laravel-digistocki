@@ -165,7 +165,12 @@
                                 ? collect($value->value_json)->filter(fn ($item) => filled($item))->implode('، ')
                                 : ($value->value_string ?? $value->value_integer ?? $value->value_decimal ?? ($value->value_boolean ? 'بله' : 'خیر'));
                         @endphp
-                        <span class="mt-1 block text-sm font-bold text-neutral">{{ $displayValue ?: 'ثبت نشده' }}</span>
+                        <span class="mt-1 flex items-center gap-2 text-sm font-bold text-neutral">
+                            @if ($value->attribute->slug === 'color' && filled($displayValue))
+                                <span class="h-4 w-4 rounded-full border border-slate-300" style="background-color: {{ \App\Support\ColorPalette::hex((string) $displayValue) }}"></span>
+                            @endif
+                            <span>{{ $displayValue ?: 'ثبت نشده' }}</span>
+                        </span>
                     </div>
                 @empty
                     <p class="col-span-2 rounded-lg bg-slate-50 p-4 text-sm text-slate-500">مشخصات تکمیلی ثبت نشده است.</p>

@@ -467,6 +467,10 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         return new Intl.NumberFormat('fa-IR').format(Number(value) || 0);
     },
 
+    colorHex(value) {
+        return window.listingColorHex?.[value] || '#94a3b8';
+    },
+
     activeFilterCount() {
         const dynamic = Object.values(this.filters || {}).filter((value) => Array.isArray(value)
             ? value.some((item) => item !== null && item !== '')

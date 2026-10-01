@@ -38,7 +38,18 @@
 
                     <div x-show="hasValue(row)">
                         <label class="mb-2 block text-xs font-bold text-neutral">مقدار</label>
-                        <template x-if="attribute(row.attributeId)?.type === 'select'">
+                        <template x-if="isColor(row.attributeId)">
+                            <div class="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2">
+                                <input type="hidden" :name="inputName(row)" x-model="row.value">
+                                <template x-for="option in options(row.attributeId)" :key="option">
+                                    <button type="button" @click="row.value = option" :title="option" :aria-label="`انتخاب رنگ ${option}`" :aria-pressed="(row.value === option).toString()" class="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 text-xs font-bold text-neutral transition hover:border-primary/30 hover:bg-primary-50" :class="row.value === option ? 'border-primary bg-primary-50 ring-2 ring-primary/20' : ''">
+                                        <span class="h-4 w-4 rounded-full border border-slate-300 shadow-inner" :style="`background-color: ${colorHex(option)}`"></span>
+                                        <span x-text="option"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </template>
+                        <template x-if="attribute(row.attributeId)?.type === 'select' && !isColor(row.attributeId)">
                             <select :name="inputName(row)" x-model="row.value" class="public-select">
                                 <option value="">انتخاب مقدار</option>
                                 <template x-for="option in options(row.attributeId)" :key="option">
@@ -59,7 +70,16 @@
                                 دارد
                             </label>
                         </template>
-                        <template x-if="['integer', 'decimal'].includes(attribute(row.attributeId)?.type)">
+                        <template x-if="isRam(row.attributeId)">
+                            <div>
+                                <input :name="inputName(row)" x-model="row.value" type="number" min="1" :list="optionsId(row)" class="public-input">
+                                <datalist :id="optionsId(row)">
+                                    <template x-for="option in options(row.attributeId)" :key="option"><option :value="option"></option></template>
+                                </datalist>
+                                <p class="mt-1 text-[10px] text-slate-400">مقدارهای پیشنهادی از دیتابیس؛ مقدار جدید هم قابل ثبت است.</p>
+                            </div>
+                        </template>
+                        <template x-if="['integer', 'decimal'].includes(attribute(row.attributeId)?.type) && !isRam(row.attributeId)">
                             <input
                                 :name="inputName(row)"
                                 x-model="row.value"

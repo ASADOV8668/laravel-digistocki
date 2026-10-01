@@ -125,7 +125,20 @@
                                         <template x-if="attribute.type === 'boolean'">
                                             <span class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-normal"><input type="checkbox" :name="`filters[${attribute.id}]`" value="1" x-model="filters[attribute.id]" class="public-check" /> دارد</span>
                                         </template>
-                                        <template x-if="attribute.type === 'select'">
+                                        <template x-if="attribute.slug === 'color'">
+                                            <div class="rounded-lg border border-slate-200 bg-slate-50 p-2">
+                                                <input type="hidden" :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]">
+                                                <div class="flex flex-wrap gap-1.5">
+                                                    <template x-for="option in attribute.options" :key="option">
+                                                        <button type="button" @click="filters[attribute.id] = option" :title="option" :aria-label="`فیلتر رنگ ${option}`" :aria-pressed="(filters[attribute.id] === option).toString()" class="inline-flex items-center gap-1 rounded-md border border-transparent px-2 py-1 text-[11px] font-bold text-neutral transition hover:border-primary/30 hover:bg-white" :class="filters[attribute.id] === option ? 'border-primary bg-white ring-2 ring-primary/20' : ''">
+                                                            <span class="h-3.5 w-3.5 rounded-full border border-slate-300" :style="`background-color: ${colorHex(option)}`"></span>
+                                                            <span x-text="option"></span>
+                                                        </button>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template x-if="attribute.type === 'select' && attribute.slug !== 'color'">
                                             <select :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]" class="public-select font-normal">
                                                 <option value="">همه</option>
                                                 <template x-for="option in attribute.options" :key="option"><option :value="option" x-text="option"></option></template>

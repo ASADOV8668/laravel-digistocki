@@ -1,3 +1,10 @@
+window.listingColorHex = {
+    'مشکی': '#111827', 'سفید': '#ffffff', 'طلایی': '#d4a72c', 'نقره‌ای': '#cbd5e1',
+    'آبی': '#2563eb', 'سبز': '#16a34a', 'بنفش': '#9333ea', 'خاکستری': '#6b7280',
+    'قرمز': '#dc2626', 'صورتی': '#ec4899', 'نارنجی': '#ea580c', 'سرمه‌ای': '#172554',
+    'مسی': '#b45309', 'تیفانی': '#14b8a6', 'کرم': '#f5e6c8', 'زرد': '#eab308',
+};
+
 window.listingAttributeRepeater = () => ({
     definitions: [],
     rows: [],
@@ -37,6 +44,22 @@ window.listingAttributeRepeater = () => ({
 
     options(attributeId) {
         return this.attribute(attributeId)?.options || [];
+    },
+
+    isColor(attributeId) {
+        return this.attribute(attributeId)?.slug === 'color';
+    },
+
+    isRam(attributeId) {
+        return this.attribute(attributeId)?.slug === 'ram';
+    },
+
+    optionsId(row) {
+        return `listing-attribute-options-${row.attributeId}`;
+    },
+
+    colorHex(value) {
+        return window.listingColorHex?.[value] || '#94a3b8';
     },
 
     addRow() {

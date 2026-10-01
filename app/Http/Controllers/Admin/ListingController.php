@@ -186,7 +186,7 @@ class ListingController extends Controller
             'provinces' => Province::query()->orderBy('name')->get(),
             'attributes' => $attributes,
             'initialValues' => $listing ? $listing->attributeValues->mapWithKeys(fn ($value) => [$value->attribute_id => $value->value_json ?? $value->value_string ?? $value->value_integer ?? $value->value_decimal ?? $value->value_boolean])->all() : [],
-            'initialModelAttributes' => $attributes->map(fn (Attribute $attribute) => ['id' => $attribute->id, 'name' => $attribute->name, 'type' => $attribute->type->value, 'unit' => $attribute->unit, 'options' => $attribute->options ?? [], 'is_required' => (bool) ($attribute->pivot->is_required ?? false)])->values()->all(),
+            'initialModelAttributes' => $attributes->map(fn (Attribute $attribute) => ['id' => $attribute->id, 'name' => $attribute->name, 'slug' => $attribute->slug, 'type' => $attribute->type->value, 'unit' => $attribute->unit, 'options' => $attribute->options ?? [], 'is_required' => (bool) ($attribute->pivot->is_required ?? false)])->values()->all(),
             'maxImageUploadMb' => $options->maxImageUploadMb(),
             'allowContactPrice' => $options->allowContactPrice(),
         ];
@@ -202,6 +202,9 @@ class ListingController extends Controller
             if (! $attribute || $value === null || $value === '' || (is_array($value) && $value === [])) {
                 continue;
             }
+
+            app(\App\Services\ListingAttributeOptionRegistrar::class)->remember($attribute, $value);
+
             $payload = ['listing_id' => $listing->id, 'attribute_id' => $attribute->id, 'value_string' => null, 'value_integer' => null, 'value_decimal' => null, 'value_boolean' => null, 'value_json' => null, 'created_at' => $now, 'updated_at' => $now];
             match ($attribute->type) {
                 AttributeType::Integer => $payload['value_integer'] = (int) $value,

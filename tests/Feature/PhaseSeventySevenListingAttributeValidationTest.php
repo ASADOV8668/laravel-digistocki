@@ -104,6 +104,21 @@ class PhaseSeventySevenListingAttributeValidationTest extends TestCase
         $this->assertSame(['قرمز', 'آبی'], $listing->attributeValues()->where('attribute_id', $attribute->id)->firstOrFail()->value_json);
     }
 
+    public function test_new_ram_value_is_added_to_attribute_options(): void
+    {
+        $user = User::factory()->create();
+        [$brand, $model] = $this->catalogContext();
+        $ram = Attribute::where('slug', 'ram')->firstOrFail();
+
+        $this->actingAs($user)
+            ->post(route('listings.store'), $this->listingPayload($brand, $model, [
+                $ram->id => 40,
+            ], 'آگهی رم سفارشی'))
+            ->assertRedirect();
+
+        $this->assertContains(40, $ram->refresh()->options);
+    }
+
     private function catalogContext(): array
     {
         $brand = Brand::where('name_en', 'Apple')->firstOrFail();

@@ -4,7 +4,7 @@
     $showStatusBadge = app(\App\Services\SystemOptions::class)->showListingStatusBadge();
     $isFavorited = filter_var($listing->is_favorited ?? false, FILTER_VALIDATE_BOOLEAN);
     $favoriteTooltipId = 'favorite-tooltip-'.$listing->id;
-    $cardAttributes = collect($listing->attributeValues ?? [])->map(function ($value) {
+    $allCardAttributes = collect($listing->attributeValues ?? [])->map(function ($value) {
         $raw = $value->value_json ?? $value->value_string ?? $value->value_integer ?? $value->value_decimal;
         if ($raw === null && $value->value_boolean !== null) {
             $raw = $value->value_boolean ? 'دارد' : 'ندارد';
@@ -12,8 +12,17 @@
         if (is_array($raw)) {
             $raw = implode('، ', $raw);
         }
-        return ['name' => $value->attribute?->name, 'value' => $raw];
-    })->filter(fn ($item) => filled($item['name']) && filled($item['value']))->take(2);
+        return [
+            'name' => $value->attribute?->name,
+            'slug' => $value->attribute?->slug,
+            'value' => $raw,
+            'color' => $value->attribute?->slug === 'color' ? \App\Support\ColorPalette::hex((string) $raw) : null,
+        ];
+    })->filter(fn ($item) => filled($item['name']) && filled($item['value']));
+    $colorAttribute = $allCardAttributes->firstWhere('slug', 'color');
+    $cardAttributes = ($colorAttribute ? collect([$colorAttribute]) : collect())
+        ->concat($allCardAttributes->reject(fn ($item) => $item['slug'] === 'color'))
+        ->take(2);
 @endphp
 <article x-data="favoriteToggle('{{ route('listings.favorite.toggle', $listing) }}', {{ $isFavorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }})" class="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/5">
     <div class="relative overflow-hidden bg-slate-100">
@@ -28,7 +37,7 @@
         <h3 class="line-clamp-2 min-h-10 text-sm font-black leading-5 text-neutral">{{ $listing->title }}</h3>
         <p class="mt-2 truncate text-[11px] text-slate-500">{{ $listing->brand->name }} · {{ $listing->phoneModel->name_fa ?: $listing->phoneModel->name }}</p>
         @if ($cardAttributes->isNotEmpty())
-            <div class="mt-2 space-y-1.5 text-[11px] text-slate-500">@foreach ($cardAttributes as $attribute)<p class="flex items-center gap-1.5 truncate"><span class="h-2.5 w-2.5 shrink-0 rounded-full bg-primary/80"></span><span class="font-bold">{{ $attribute['name'] }}:</span><span class="truncate">{{ $attribute['value'] }}</span></p>@endforeach</div>
+            <div class="mt-2 space-y-1.5 text-[11px] text-slate-500">@foreach ($cardAttributes as $attribute)<p class="flex items-center gap-1.5 truncate"><span class="h-3 w-3 shrink-0 rounded-full border border-slate-300" @if($attribute['color']) style="background-color: {{ $attribute['color'] }}" @else style="background-color: rgb(148 163 184 / .8)" @endif></span><span class="font-bold">{{ $attribute['name'] }}:</span><span class="truncate">{{ $attribute['value'] }}</span></p>@endforeach</div>
         @endif
         <div class="mt-3 border-t border-slate-100 pt-3"><div class="flex items-center justify-between gap-2 text-[10px] font-medium text-slate-400"><span class="inline-flex min-w-0 items-center gap-1 truncate"><x-heroicon-o-map-pin class="h-3.5 w-3.5 shrink-0" />{{ $listing->province?->name }}{{ $listing->city?->name ? '، '.$listing->city->name : '' }}</span><span class="shrink-0">{{ \App\Support\PersianDate::human($listing->published_at ?? $listing->created_at) }}</span></div><p class="mt-2 text-sm font-black text-primary">{{ $listing->price_on_request ? 'تماس بگیرید' : number_format($listing->price).' تومان' }}</p></div>
     </a>

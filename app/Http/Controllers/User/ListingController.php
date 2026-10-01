@@ -121,6 +121,7 @@ class ListingController extends Controller
         return response()->json($attributes->map(fn (Attribute $attribute) => [
             'id' => $attribute->id,
             'name' => $attribute->name,
+            'slug' => $attribute->slug,
             'type' => $attribute->type->value,
             'unit' => $attribute->unit,
             'options' => $attribute->options ?? [],
@@ -277,6 +278,7 @@ class ListingController extends Controller
         $filterAttributesPayload = $filterAttributes->map(fn (Attribute $attribute) => [
             'id' => $attribute->id,
             'name' => $attribute->name,
+            'slug' => $attribute->slug,
             'type' => $attribute->type->value,
             'unit' => $attribute->unit,
             'options' => $attribute->options ?? [],
@@ -539,6 +541,8 @@ class ListingController extends Controller
                 continue;
             }
 
+            app(\App\Services\ListingAttributeOptionRegistrar::class)->remember($attribute, $value);
+
             $payload = [
                 'listing_id' => $listing->id,
                 'attribute_id' => $attribute->id,
@@ -614,6 +618,7 @@ class ListingController extends Controller
         return collect($attributes)->map(fn (Attribute $attribute) => [
             'id' => $attribute->id,
             'name' => $attribute->name,
+            'slug' => $attribute->slug,
             'type' => $attribute->type->value,
             'unit' => $attribute->unit,
             'options' => $attribute->options ?? [],

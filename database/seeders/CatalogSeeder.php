@@ -57,7 +57,7 @@ class CatalogSeeder extends Seeder
     {
         $definitions = [
             ['name' => 'حافظه داخلی', 'slug' => 'storage', 'type' => 'integer', 'unit' => 'GB', 'options' => [32, 64, 128, 256, 512, 1024], 'is_filterable' => true, 'is_required' => true, 'sort_order' => 1],
-            ['name' => 'رم', 'slug' => 'ram', 'type' => 'integer', 'unit' => 'GB', 'options' => [2, 3, 4, 6, 8, 12, 16, 24], 'is_filterable' => true, 'is_required' => true, 'sort_order' => 2],
+            ['name' => 'رم', 'slug' => 'ram', 'type' => 'integer', 'unit' => 'GB', 'options' => [2, 3, 4, 6, 8, 12, 16, 24, 32, 64, 128, 256], 'is_filterable' => true, 'is_required' => true, 'sort_order' => 2],
             ['name' => 'رنگ', 'slug' => 'color', 'type' => 'select', 'options' => ['مشکی', 'سفید', 'طلایی', 'نقره‌ای', 'آبی', 'سبز', 'بنفش', 'خاکستری', 'قرمز', 'صورتی', 'نارنجی', 'سرمه‌ای', 'مسی', 'تیفانی', 'کرم', 'زرد'], 'is_filterable' => true, 'is_required' => true, 'sort_order' => 3],
             ['name' => 'وضعیت دستگاه', 'slug' => 'condition', 'type' => 'select', 'options' => ['نو', 'در حد نو', 'کارکرده', 'نیاز به تعمیر'], 'is_filterable' => true, 'is_required' => true, 'sort_order' => 4],
             ['name' => 'سلامت باتری', 'slug' => 'battery_health', 'type' => 'integer', 'unit' => '%', 'is_filterable' => true, 'is_required' => false, 'sort_order' => 5],
