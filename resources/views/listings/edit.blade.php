@@ -3,6 +3,12 @@
     <section class="space-y-5 px-4 py-6">
         @if ($errors->any())<x-flowbite-alert type="danger"><ul class="space-y-1">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-flowbite-alert>@endif
         <div class="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/10 p-4 text-xs leading-6 text-neutral"><x-heroicon-o-information-circle class="mt-0.5 h-5 w-5 shrink-0 text-warning" /><span>با ذخیره تغییرات، آگهی دوباره برای بررسی ادمین ارسال می‌شود.</span></div>
+        @if ($listing->status->value === 'rejected' && $listing->rejection_reason)
+            <x-flowbite-alert type="danger">
+                <p class="font-black">علت رد آگهی</p>
+                <p class="mt-1 font-normal leading-6">{{ $listing->rejection_reason }}</p>
+            </x-flowbite-alert>
+        @endif
         <form method="POST" action="{{ route('listings.update', $listing) }}" enctype="multipart/form-data" class="space-y-4 rounded-lg bg-white p-5 shadow-sm border border-slate-200">
             @csrf @method('PUT')
             <div><label class="mb-2 block text-sm font-bold text-neutral">برند</label><select name="brand_id" required class="public-select"><option value="">انتخاب برند</option>@foreach ($brands as $brand)<option value="{{ $brand->id }}" @selected(old('brand_id', $listing->brand_id) == $brand->id)>{{ $brand->name }} ({{ $brand->name_en }})</option>@endforeach</select></div>
