@@ -88,7 +88,7 @@
 
                         <div class="rounded-lg bg-slate-50 p-3 border border-slate-200">
                             <div class="mb-3 flex items-center justify-between gap-3"><span class="text-xs font-bold text-slate-600">بازه قیمت</span><span class="text-[10px] font-bold text-slate-400">تومان</span></div>
-                            <div class="mb-3 flex items-center justify-between gap-3 text-[11px] font-black text-primary"><span x-text="`${formatPrice(minPrice)} تومان`">۰ تومان</span><span x-text="`${formatPrice(maxPrice)} تومان`">۰ تومان</span></div>
+                            <div data-price-range="listing" dir="ltr" class="mb-3 flex items-center justify-between gap-3 text-[11px] font-black text-primary"><span x-text="`${formatPrice(minPrice)} تومان`">۰ تومان</span><span x-text="`${formatPrice(maxPrice)} تومان`">۰ تومان</span></div>
                             <div class="relative h-6" dir="ltr">
                                 <div class="absolute left-0 right-0 top-2 h-2 rounded-full bg-slate-200"></div>
                                 <div class="absolute top-2 h-2 rounded-full bg-primary" :style="`left: ${(minPrice / priceCeiling) * 100}%; right: ${100 - (maxPrice / priceCeiling) * 100}%;`"></div>
