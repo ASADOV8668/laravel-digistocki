@@ -11,7 +11,7 @@ class PhaseTwoHundredFourteenFlowbitePublicContentTest extends TestCase
         $this->get(route('home'))
             ->assertOk()
             ->assertSee('rounded-lg border border-slate-200 bg-white p-5 shadow-sm', false)
-            ->assertSee('focus:ring-4 focus:ring-primary-200', false)
+            ->assertSee('focus:ring-4 focus:ring-primary/30 focus:ring-offset-2', false)
             ->assertSee('x-data="homeSearch(', false);
     }
 
