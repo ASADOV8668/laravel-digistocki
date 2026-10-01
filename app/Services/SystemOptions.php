@@ -24,6 +24,7 @@ class SystemOptions
         'sms_mode' => 'test',
         'registration_mode' => 'mobile',
         'otp_expiry_minutes' => '5',
+        'listing_duplicate_cooldown_hours' => '24',
     ];
 
     private ?Collection $values = null;
@@ -123,6 +124,11 @@ class SystemOptions
     public function otpExpiryMinutes(): int
     {
         return min(30, max(1, (int) $this->get('otp_expiry_minutes')));
+    }
+
+    public function listingDuplicateCooldownHours(): int
+    {
+        return min(720, max(1, (int) $this->get('listing_duplicate_cooldown_hours')));
     }
 
     public function pageTitle(?string $page = null): string

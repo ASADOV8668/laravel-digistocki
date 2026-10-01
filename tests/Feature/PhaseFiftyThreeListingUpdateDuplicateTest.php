@@ -32,6 +32,7 @@ class PhaseFiftyThreeListingUpdateDuplicateTest extends TestCase
         $target = $this->listing($user, $brand->id, $model->id, 'آگهی هدف', ListingStatus::Rejected);
 
         $this->actingAs($user)
+            ->from(route('listings.edit', $target))
             ->put(route('listings.update', $target), [
                 'brand_id' => $brand->id,
                 'phone_model_id' => $model->id,
@@ -39,8 +40,8 @@ class PhaseFiftyThreeListingUpdateDuplicateTest extends TestCase
                 'price' => 2000000,
                 'attributes' => $this->requiredAttributeValues($model),
             ])
-            ->assertStatus(422)
-            ->assertSee('آگهی دیگری');
+            ->assertRedirect(route('listings.edit', $target))
+            ->assertSessionHasErrors(['phone_model_id' => 'برای این مدل در ۲۴ ساعت گذشته آگهی دیگری ثبت کرده‌اید.']);
 
         $otherListing->delete();
 

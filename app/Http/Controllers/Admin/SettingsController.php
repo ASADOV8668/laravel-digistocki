@@ -29,6 +29,7 @@ class SettingsController extends Controller
             'sms_mode' => ['nullable', 'in:test,live'],
             'registration_mode' => ['nullable', 'in:mobile'],
             'otp_expiry_minutes' => ['nullable', 'integer', 'min:1', 'max:30'],
+            'listing_duplicate_cooldown_hours' => ['nullable', 'integer', 'min:1', 'max:720'],
         ]);
 
         $options->setMany([
@@ -45,6 +46,7 @@ class SettingsController extends Controller
             'sms_mode' => [$validated['sms_mode'] ?? $options->smsMode(), 'string'],
             'registration_mode' => [$validated['registration_mode'] ?? $options->registrationMode(), 'string'],
             'otp_expiry_minutes' => [(int) ($validated['otp_expiry_minutes'] ?? $options->otpExpiryMinutes()), 'integer'],
+            'listing_duplicate_cooldown_hours' => [(int) ($validated['listing_duplicate_cooldown_hours'] ?? $options->listingDuplicateCooldownHours()), 'integer'],
         ]);
 
         return back()->with('status', 'تنظیمات سیستم ذخیره شد.');

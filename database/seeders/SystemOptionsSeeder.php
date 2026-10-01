@@ -13,7 +13,7 @@ class SystemOptionsSeeder extends Seeder
         foreach (SystemOptions::DEFAULTS as $key => $value) {
             SystemOption::firstOrCreate(
                 ['key' => $key],
-                ['value' => $value, 'type' => in_array($key, ['max_image_upload_mb', 'max_image_upload_count', 'listings_enabled'], true) ? 'integer' : 'string'],
+                ['value' => $value, 'type' => in_array($key, ['max_image_upload_mb', 'max_image_upload_count', 'listings_enabled', 'listing_duplicate_cooldown_hours'], true) ? 'integer' : 'string'],
             );
         }
     }

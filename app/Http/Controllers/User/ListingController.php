@@ -21,6 +21,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use Sadegh19b\LaravelIranCities\Models\City;
 use Sadegh19b\LaravelIranCities\Models\Province;
@@ -412,13 +413,17 @@ class ListingController extends Controller
         ]);
     }
 
-    public function store(StoreListingRequest $request, ListingRules $rules, ImageService $imageService)
+    public function store(StoreListingRequest $request, ListingRules $rules, ImageService $imageService, SystemOptions $options)
     {
         $validated = $request->validated();
         $brand = Brand::query()->whereKey($validated['brand_id'])->where('is_active', true)->firstOrFail();
         $model = PhoneModel::query()->whereKey($validated['phone_model_id'])->where('brand_id', $brand->id)->where('is_active', true)->firstOrFail();
 
-        abort_if($rules->hasRecentDuplicate($request->user(), $brand->id, $model->id), 422, 'برای این مدل در ۲۴ ساعت گذشته آگهی ثبت کرده‌اید.');
+        if ($rules->hasRecentDuplicate($request->user(), $brand->id, $model->id)) {
+            throw ValidationException::withMessages([
+                'phone_model_id' => 'برای این مدل در '.\App\Support\PersianNumber::digits($options->listingDuplicateCooldownHours()).' ساعت گذشته آگهی ثبت کرده‌اید.',
+            ]);
+        }
 
         $storedFiles = [];
         try {
@@ -447,13 +452,17 @@ class ListingController extends Controller
         return redirect()->route('listings.show', $listing)->with('status', 'آگهی شما برای بررسی ارسال شد.');
     }
 
-    public function update(UpdateListingRequest $request, Listing $listing, ListingRules $rules, ImageService $imageService)
+    public function update(UpdateListingRequest $request, Listing $listing, ListingRules $rules, ImageService $imageService, SystemOptions $options)
     {
         $validated = $request->validated();
         $brand = Brand::query()->whereKey($validated['brand_id'])->where('is_active', true)->firstOrFail();
         $model = PhoneModel::query()->whereKey($validated['phone_model_id'])->where('brand_id', $brand->id)->where('is_active', true)->firstOrFail();
 
-        abort_if($rules->hasRecentDuplicate($request->user(), $brand->id, $model->id, null, $listing->id), 422, 'برای این مدل در ۲۴ ساعت گذشته آگهی دیگری ثبت کرده‌اید.');
+        if ($rules->hasRecentDuplicate($request->user(), $brand->id, $model->id, null, $listing->id)) {
+            throw ValidationException::withMessages([
+                'phone_model_id' => 'برای این مدل در '.\App\Support\PersianNumber::digits($options->listingDuplicateCooldownHours()).' ساعت گذشته آگهی دیگری ثبت کرده‌اید.',
+            ]);
+        }
 
         $storedFiles = [];
         try {

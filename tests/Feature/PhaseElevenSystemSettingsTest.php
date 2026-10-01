@@ -31,7 +31,8 @@ class PhaseElevenSystemSettingsTest extends TestCase
             ->assertOk()
             ->assertSee('تنظیمات سیستم')
             ->assertSee('ارسال پیامک و OTP')
-            ->assertSee('max_image_upload_count', false);
+            ->assertSee('max_image_upload_count', false)
+            ->assertSee('listing_duplicate_cooldown_hours', false);
 
         $this->actingAs($this->admin)->put(route('admin.settings.update'), [
             'site_title' => 'بازار موبایل',
@@ -39,6 +40,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
             'title_separator' => '—',
             'max_image_upload_mb' => 8,
             'max_image_upload_count' => 6,
+            'listing_duplicate_cooldown_hours' => 48,
             'support_office_address' => 'تهران، خیابان تست',
             'support_email' => 'help@example.test',
             'support_phone' => '02112345678',
@@ -49,6 +51,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
         $this->assertDatabaseHas('options', ['key' => 'site_title', 'value' => 'بازار موبایل']);
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_mb', 'value' => '8']);
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_count', 'value' => '6']);
+        $this->assertDatabaseHas('options', ['key' => 'listing_duplicate_cooldown_hours', 'value' => '48']);
         $this->assertDatabaseHas('options', ['key' => 'otp_expiry_minutes', 'value' => '7']);
         $this->assertDatabaseHas('options', ['key' => 'registration_mode', 'value' => 'mobile']);
         $this->get(route('home'))->assertOk()->assertSee('<title>بازار — خانه</title>', false);

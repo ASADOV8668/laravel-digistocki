@@ -41,7 +41,7 @@ class ListingRules
             ->where('brand_id', $brandId)
             ->where('phone_model_id', $phoneModelId)
             ->when($exceptListingId !== null, fn ($query) => $query->where('id', '!=', $exceptListingId))
-            ->where('created_at', '>=', $since ?? now()->subDay())
+            ->where('created_at', '>=', $since ?? now()->subHours(app(SystemOptions::class)->listingDuplicateCooldownHours()))
             ->exists();
     }
 
