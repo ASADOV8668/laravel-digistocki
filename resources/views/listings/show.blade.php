@@ -57,23 +57,23 @@
 
         <div id="listing-gallery" class="relative touch-pan-y overflow-hidden rounded-lg bg-slate-900 p-2 shadow-xl shadow-slate-900/10" data-carousel="static" data-carousel-interval="false" data-listing-carousel aria-roledescription="carousel" aria-label="تصاویر آگهی">
             @if ($listing->images->isNotEmpty())
-                <div class="relative h-64 overflow-hidden rounded-lg sm:h-96">
+                <div class="relative aspect-[4/3] overflow-hidden rounded-lg bg-slate-950">
                     @foreach ($listing->images as $image)
                         <div class="{{ $loop->first ? '' : 'hidden' }} duration-700 ease-in-out" data-carousel-item="{{ $loop->first ? 'active' : '' }}">
-                            <button type="button" data-modal-target="listing-gallery-modal" data-modal-toggle="listing-gallery-modal" data-carousel-open-index="{{ $loop->index }}" class="block h-full w-full cursor-zoom-in focus:outline-none focus:ring-4 focus:ring-primary/40" aria-label="نمایش تصویر {{ $loop->iteration }} در حالت تمام‌صفحه"><img src="{{ asset('storage/'.$image->path) }}" alt="{{ $listing->title }}" class="absolute block h-full w-full object-cover" decoding="async" @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif></button>
+                            <button type="button" data-modal-target="listing-gallery-modal" data-modal-toggle="listing-gallery-modal" data-carousel-open-index="{{ $loop->index }}" class="block h-full w-full cursor-zoom-in focus:outline-none focus:ring-4 focus:ring-primary/40" aria-label="نمایش تصویر {{ $loop->iteration }} در حالت تمام‌صفحه"><img src="{{ asset('storage/'.$image->path) }}" alt="{{ $listing->title }}" class="absolute inset-0 block h-full w-full object-contain" decoding="async" @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif></button>
                         </div>
                     @endforeach
+                    <div class="pointer-events-none absolute inset-x-4 bottom-4 z-40 flex items-end justify-between gap-3 text-white">
+                        <span class="rounded-full bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold backdrop-blur">{{ \App\Support\PersianNumber::digits($listing->images->count()) }} تصویر</span>
+                        <span class="rounded-full bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold backdrop-blur">{{ \App\Support\PersianNumber::digits($listing->views_count) }} بازدید</span>
+                    </div>
                 </div>
                 @if ($listing->images->count() > 1)
-                    <button type="button" data-carousel-prev aria-label="تصویر قبلی" class="group absolute start-4 top-1/2 z-40 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50">
-                        <x-heroicon-o-chevron-right class="h-5 w-5" />
-                    </button>
-                    <button type="button" data-carousel-next aria-label="تصویر بعدی" class="group absolute end-4 top-1/2 z-40 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50">
-                        <x-heroicon-o-chevron-left class="h-5 w-5" />
-                    </button>
-                    <div class="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 gap-1.5">
+                    <div class="mt-3 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="انتخاب تصویر آگهی">
                         @foreach ($listing->images as $image)
-                            <button type="button" data-carousel-slide-to="{{ $loop->index }}" aria-label="نمایش تصویر {{ $loop->iteration }}" class="h-2 w-2 rounded-full bg-white/60 transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-white/70 {{ $loop->first ? 'bg-white' : '' }}"></button>
+                            <button type="button" data-carousel-slide-to="{{ $loop->index }}" data-gallery-thumbnail aria-label="نمایش تصویر {{ $loop->iteration }}" class="h-16 w-20 shrink-0 overflow-hidden rounded-lg border-2 border-transparent bg-slate-800 transition hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary/70 {{ $loop->first ? 'border-primary' : '' }}">
+                                <img src="{{ asset('storage/'.$image->path) }}" alt="تصویر کوچک {{ $loop->iteration }}" class="h-full w-full object-cover" loading="lazy">
+                            </button>
                         @endforeach
                     </div>
                 @endif
@@ -82,10 +82,6 @@
                     <x-heroicon-o-device-phone-mobile class="h-24 w-24" />
                 </div>
             @endif
-            <div class="pointer-events-none absolute inset-x-5 bottom-5 flex items-end justify-between gap-3 text-white">
-                <span class="rounded-full bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold backdrop-blur">{{ \App\Support\PersianNumber::digits($listing->images->count() ?: 0) }} تصویر</span>
-                <span class="rounded-full bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold backdrop-blur">{{ number_format($listing->views_count) }} بازدید</span>
-            </div>
         </div>
 
         @if ($listing->images->isNotEmpty())

@@ -12,6 +12,45 @@ const initListingCarouselGestures = () => {
     document.querySelectorAll('[data-listing-carousel]').forEach((carousel) => {
         if (carousel.dataset.gestureReady === 'true') return;
 
+        const currentSlideIndex = () => {
+            const items = [...carousel.querySelectorAll('[data-carousel-item]')];
+            const active = items.findIndex((item) => item.classList.contains('translate-x-0'));
+            if (active >= 0) return active;
+            return Math.max(0, items.findIndex((item) => item.dataset.carouselItem === 'active'));
+        };
+
+        const slideTo = (position) => {
+            const indicator = carousel.querySelector(`[data-carousel-slide-to="${position}"]`);
+            if (indicator) {
+                indicator.click();
+                return true;
+            }
+
+            const instance = window.FlowbiteInstances?.getInstance('Carousel', carousel.id);
+            if (instance && Number.isInteger(position)) {
+                instance.slideTo(position);
+                return true;
+            }
+
+            return false;
+        };
+
+        const move = (direction) => {
+            const total = carousel.querySelectorAll('[data-carousel-item]').length;
+            if (total < 2) return false;
+            const current = currentSlideIndex();
+            const next = (current + direction + total) % total;
+            return slideTo(next);
+        };
+
+        carousel.querySelectorAll('[data-gallery-thumbnail]').forEach((thumbnail) => {
+            thumbnail.addEventListener('click', () => {
+                const position = Number(thumbnail.dataset.carouselSlideTo);
+                carousel.querySelectorAll('[data-gallery-thumbnail]').forEach((item) => item.classList.remove('border-primary'));
+                if (Number.isInteger(position)) thumbnail.classList.add('border-primary');
+            });
+        });
+
         let startX = 0;
         let startY = 0;
         let moved = false;
@@ -34,9 +73,7 @@ const initListingCarouselGestures = () => {
             const deltaY = touch.clientY - startY;
             if (Math.abs(deltaX) < 45 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
 
-            const instance = window.FlowbiteInstances?.getInstance('Carousel', carousel.id);
-            if (!instance) return;
-            deltaX > 0 ? instance.prev() : instance.next();
+            if (!move(deltaX > 0 ? -1 : 1)) return;
             carousel.dataset.ignoreClick = 'true';
             window.setTimeout(() => delete carousel.dataset.ignoreClick, 350);
         }, { passive: true });
@@ -55,8 +92,9 @@ const initListingCarouselGestures = () => {
         if (trigger.dataset.carouselSyncReady === 'true') return;
         trigger.addEventListener('click', () => {
             const position = Number(trigger.dataset.carouselOpenIndex);
-            const instance = window.FlowbiteInstances?.getInstance('Carousel', 'listing-gallery-fullscreen-carousel');
-            if (instance && Number.isInteger(position)) instance.slideTo(position);
+            const fullscreen = document.querySelector('#listing-gallery-fullscreen-carousel');
+            const indicator = fullscreen?.querySelector(`[data-carousel-slide-to="${position}"]`);
+            if (indicator && Number.isInteger(position)) indicator.click();
         });
         trigger.dataset.carouselSyncReady = 'true';
     });
