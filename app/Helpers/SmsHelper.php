@@ -50,9 +50,10 @@ class SmsHelper
 
         try {
             $response = Http::timeout(max(1, (int) config('services.sms.timeout', 10)))
+                ->asJson()
+                ->acceptJson()
                 ->withHeaders([
                     'Authorization' => $authorization,
-                    'Content-Type' => 'application/json',
                 ])
                 ->post($url, [
                     'sending_type' => config('services.sms.sending_type', 'pattern'),
