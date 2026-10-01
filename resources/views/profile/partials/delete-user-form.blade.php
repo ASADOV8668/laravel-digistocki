@@ -12,8 +12,8 @@
     </header>
 
     <x-danger-button
-        x-data=""
-        x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
+        data-modal-target="confirm-user-deletion"
+        data-modal-toggle="confirm-user-deletion"
     >حذف حساب کاربری</x-danger-button>
 
     <x-modal name="confirm-user-deletion" :show="$errors->userDeletion->isNotEmpty()" focusable>
@@ -41,7 +41,7 @@
             </div>
 
             <div class="flex justify-start gap-3">
-                <x-secondary-button x-on:click="$dispatch('close')">انصراف</x-secondary-button>
+                <x-secondary-button type="button" data-modal-hide="confirm-user-deletion">انصراف</x-secondary-button>
                 <x-danger-button>حذف دائمی حساب</x-danger-button>
             </div>
         </form>

@@ -13,21 +13,16 @@ $width = match ($width) {
 };
 @endphp
 
-<div class="relative" x-data="{ open: false }" @click.outside="open = false" @close.stop="open = false">
-    <div @click="open = ! open">
+@php($dropdownId = 'flowbite-dropdown-'.uniqid())
+
+<div class="relative">
+    <div data-dropdown-toggle="{{ $dropdownId }}" data-dropdown-placement="{{ $align === 'left' ? 'bottom-start' : ($align === 'top' ? 'top' : 'bottom-end') }}">
         {{ $trigger }}
     </div>
 
-    <div x-show="open"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 scale-95"
-            x-transition:enter-end="opacity-100 scale-100"
-            x-transition:leave="transition ease-in duration-75"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-95"
-            class="absolute z-50 mt-2 {{ $width }} rounded-lg border border-slate-100 bg-white shadow-lg {{ $alignmentClasses }}"
-            style="display: none;"
-            @click="open = false">
+    <div id="{{ $dropdownId }}"
+            class="z-50 hidden {{ $width }} rounded-lg border border-slate-200 bg-white shadow-lg {{ $alignmentClasses }}"
+            role="menu">
         <div class="rounded-lg p-1 {{ $contentClasses }}">
             {{ $content }}
         </div>
