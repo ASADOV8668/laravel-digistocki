@@ -16,8 +16,9 @@ class DashboardController extends Controller
         $trendStart = $today->copy()->subDays(6);
         $trendCounts = Listing::query()
             ->whereBetween('created_at', [$trendStart, $today->copy()->endOfDay()])
-            ->get(['created_at'])
-            ->countBy(fn (Listing $listing) => $listing->created_at->toDateString());
+            ->selectRaw('DATE(created_at) as day, COUNT(*) as aggregate')
+            ->groupBy('day')
+            ->pluck('aggregate', 'day');
 
         $listingTrend = collect(range(6, 0))->map(function (int $days) use ($today, $trendCounts) {
             $date = $today->copy()->subDays($days);
