@@ -15,7 +15,8 @@ class PhaseOneHundredNineDeploymentAssetsTest extends TestCase
         $this->assertIsString($vite);
         $this->assertIsString($htaccess);
         $this->assertIsString($projectHtaccess);
-        $this->assertStringContainsString("base: '/app/build/'", $vite);
+        $this->assertStringContainsString("loadEnv(mode, process.cwd(), '')", $vite);
+        $this->assertStringContainsString('const buildBase = applicationBase ? `/${applicationBase}/build/` : \'/build/\'', $vite);
         $this->assertStringContainsString('RewriteEngine On', $htaccess);
         $this->assertStringContainsString('RewriteRule ^ /app/%1 [R=302,L,NE]', $htaccess);
         $this->assertStringContainsString('RewriteRule ^ index.php [L]', $htaccess);
