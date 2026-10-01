@@ -1,9 +1,15 @@
-window.listingAttributeRepeater = (initialAttributes = [], initialValues = {}) => ({
-    definitions: initialAttributes || [],
+window.listingAttributeRepeater = () => ({
+    definitions: [],
     rows: [],
 
     init() {
-        this.replaceAttributes(this.definitions, initialValues, false);
+        const definitionsNode = this.$root.querySelector('[data-repeater-definitions]');
+        const valuesNode = this.$root.querySelector('[data-repeater-values]');
+        let definitions = [];
+        let values = {};
+        try { definitions = definitionsNode ? JSON.parse(definitionsNode.textContent || '[]') : []; } catch { definitions = []; }
+        try { values = valuesNode ? JSON.parse(valuesNode.textContent || '{}') : {}; } catch { values = {}; }
+        this.replaceAttributes(definitions, values, false);
     },
 
     replaceAttributes(attributes = [], values = {}, resetRows = true) {
@@ -72,12 +78,13 @@ window.attachListingModelPicker = () => {
         if (!modelSelect) return;
         brandSelect.dataset.modelPickerBound = '1';
 
-        const populate = (models) => {
+        const populate = (models, selectedValue = '') => {
             modelSelect.innerHTML = '<option value="">انتخاب مدل</option>';
             models.forEach((model) => {
                 const option = document.createElement('option');
                 option.value = model.id;
                 option.textContent = `${model.label || model.name_fa || model.name} — ${model.secondary || model.name_en || model.name}`;
+                option.selected = String(model.id) === String(selectedValue);
                 modelSelect.appendChild(option);
             });
             modelSelect.disabled = false;
@@ -100,12 +107,12 @@ window.attachListingModelPicker = () => {
                 });
                 if (!response.ok) throw new Error('Model request failed');
                 const models = await response.json();
+                const selectedValue = state?.modelId || '';
                 if (state) {
                     state.models = models;
                     state.modelsLoading = false;
-                } else {
-                    populate(models);
                 }
+                populate(models, selectedValue);
             } catch {
                 if (state) state.models = [];
                 modelSelect.innerHTML = '<option value="">مدلی پیدا نشد</option>';

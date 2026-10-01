@@ -1,20 +1,20 @@
-window.adminListingForm = (modelsEndpoint, citiesEndpoint, usersEndpoint, initialBrandId = '', initialModelId = '', initialAttributes = [], initialValues = {}, initialProvinceId = '', initialCityId = '', initialUserId = '') => ({
-    modelsEndpoint,
-    attributesEndpoint: modelsEndpoint,
-    citiesEndpoint,
-    usersEndpoint,
-    brandId: initialBrandId,
-    modelId: initialModelId,
+window.listingAdminForm = () => ({
+    modelsEndpoint: '',
+    attributesEndpoint: '',
+    citiesEndpoint: '',
+    usersEndpoint: '',
+    brandId: '',
+    modelId: '',
     models: [],
-    attributes: initialAttributes,
-    values: initialValues || {},
+    attributes: [],
+    values: {},
     modelsLoading: false,
     attributesLoading: false,
-    provinceId: initialProvinceId,
-    cityId: initialCityId,
+    provinceId: '',
+    cityId: '',
     cities: [],
     citiesLoading: false,
-    userId: initialUserId,
+    userId: '',
     userQuery: '',
     selectedUserLabel: '',
     userResults: [],
@@ -24,6 +24,22 @@ window.adminListingForm = (modelsEndpoint, citiesEndpoint, usersEndpoint, initia
     usersController: null,
 
     init() {
+        const root = this.$root;
+        this.modelsEndpoint = root.dataset.modelsEndpoint || '';
+        this.attributesEndpoint = this.modelsEndpoint;
+        this.citiesEndpoint = root.dataset.citiesEndpoint || '';
+        this.usersEndpoint = root.dataset.usersEndpoint || '';
+        this.brandId = root.dataset.initialBrandId || '';
+        this.modelId = root.dataset.initialModelId || '';
+        this.provinceId = root.dataset.initialProvinceId || '';
+        this.cityId = root.dataset.initialCityId || '';
+        this.userId = root.dataset.initialUserId || '';
+        this.userQuery = root.dataset.initialUserQuery || '';
+        this.selectedUserLabel = root.dataset.initialUserLabel || '';
+        const attributesNode = root.querySelector('[data-admin-initial-attributes]');
+        const valuesNode = root.querySelector('[data-admin-initial-values]');
+        try { this.attributes = attributesNode ? JSON.parse(attributesNode.textContent || '[]') : []; } catch { this.attributes = []; }
+        try { this.values = valuesNode ? JSON.parse(valuesNode.textContent || '{}') : {}; } catch { this.values = {}; }
         this.$watch('brandId', (value, previous) => { if (value && value !== previous) this.loadModels(); });
         if (this.brandId) this.loadModels(false);
         if (this.provinceId) this.loadCities(false);

@@ -693,18 +693,18 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     },
 });
 
-window.listingWizard = (modelsEndpoint, citiesEndpoint, initialBrandId = '', initialModelId = null, initialAttributes = [], initialValues = {}, initialProvinceId = '', initialCityId = '') => ({
-    modelsEndpoint,
-    attributesEndpoint: modelsEndpoint,
-    citiesEndpoint,
+window.listingWizard = () => ({
+    modelsEndpoint: '',
+    attributesEndpoint: '',
+    citiesEndpoint: '',
     step: 1,
-    brandId: initialBrandId || '',
-    modelId: initialModelId || '',
+    brandId: '',
+    modelId: '',
     models: [],
-    attributes: initialAttributes || [],
-    values: initialValues || {},
-    provinceId: initialProvinceId || '',
-    cityId: initialCityId || '',
+    attributes: [],
+    values: {},
+    provinceId: '',
+    cityId: '',
     cities: [],
     attributesLoading: false,
     citiesLoading: false,
@@ -714,6 +714,18 @@ window.listingWizard = (modelsEndpoint, citiesEndpoint, initialBrandId = '', ini
     citiesController: null,
 
     init() {
+        const root = this.$root;
+        this.modelsEndpoint = root.dataset.modelsEndpoint || '';
+        this.attributesEndpoint = this.modelsEndpoint;
+        this.citiesEndpoint = root.dataset.citiesEndpoint || '';
+        this.brandId = root.dataset.initialBrandId || '';
+        this.modelId = root.dataset.initialModelId || '';
+        this.provinceId = root.dataset.initialProvinceId || '';
+        this.cityId = root.dataset.initialCityId || '';
+        const attributesNode = root.querySelector('[data-listing-initial-attributes]');
+        const valuesNode = root.querySelector('[data-listing-initial-values]');
+        try { this.attributes = attributesNode ? JSON.parse(attributesNode.textContent || '[]') : []; } catch { this.attributes = []; }
+        try { this.values = valuesNode ? JSON.parse(valuesNode.textContent || '{}') : {}; } catch { this.values = {}; }
         this.$watch('brandId', (value, previous) => { if (value && value !== previous) this.loadModels(); });
         if (this.brandId) this.loadModels(false);
         if (this.modelId && !this.attributes.length) this.loadAttributes(false);

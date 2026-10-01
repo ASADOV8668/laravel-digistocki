@@ -4,10 +4,12 @@
 ])
 
 <div
-    x-data="listingAttributeRepeater(@js($attributeDefinitions), @js($values))"
+    x-data="listingAttributeRepeater()"
     @listing-attributes-loaded.window="replaceAttributes($event.detail.attributes, $event.detail.values || {})"
     class="space-y-3"
 >
+    <script type="application/json" data-repeater-definitions>@json($attributeDefinitions)</script>
+    <script type="application/json" data-repeater-values>@json($values)</script>
     <div x-show="!definitions.length" x-cloak class="rounded-lg bg-warning/10 p-3 text-xs leading-6 text-neutral">
         برای این مدل هنوز ویژگی‌ای تعریف نشده است.
     </div>
