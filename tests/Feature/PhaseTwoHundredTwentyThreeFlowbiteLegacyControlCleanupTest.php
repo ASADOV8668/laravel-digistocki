@@ -12,7 +12,7 @@ class PhaseTwoHundredTwentyThreeFlowbiteLegacyControlCleanupTest extends TestCas
         $storefront = file_get_contents(resource_path('views/storefront/edit.blade.php'));
 
         $this->assertStringContainsString('focus:ring-2 focus:ring-primary/30', $create);
-        $this->assertStringContainsString('class="public-check"', $storefront);
+        $this->assertStringContainsString('class="public-check h-5', $storefront);
         $this->assertStringContainsString('focus:ring-2 focus:ring-primary/30', $storefront);
         $this->assertStringNotContainsString('border-0 bg-slate-50', $create);
         $this->assertStringNotContainsString('rounded border-slate-300 text-primary', $storefront);
