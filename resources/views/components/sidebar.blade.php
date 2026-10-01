@@ -20,26 +20,26 @@
     @endauth
 
     <nav class="space-y-1" aria-label="ناوبری اصلی">
-        <a href="{{ url('/') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-home class="h-5 w-5" /> خانه</a>
+        <a href="{{ url('/') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-home class="h-5 w-5" /> خانه</a>
         @auth
-            <a href="{{ url('/dashboard') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-rectangle-stack class="h-5 w-5" /> آگهی‌های من</a>
-            <a href="{{ route('notifications.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-bell class="h-5 w-5" /> اعلان‌ها @if ($unreadNotifications)<span class="mr-auto rounded-full bg-primary px-2 py-0.5 text-[10px] font-black text-white">{{ $unreadNotifications }}</span>@endif</a>
-            <a href="{{ route('reports.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-flag class="h-5 w-5" /> گزارش‌های من</a>
-            <a href="{{ route('storefront.edit') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-building-storefront class="h-5 w-5" /> غرفه شما</a>
+            <a href="{{ url('/dashboard') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-rectangle-stack class="h-5 w-5" /> آگهی‌های من</a>
+            <a href="{{ route('notifications.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-bell class="h-5 w-5" /> اعلان‌ها @if ($unreadNotifications)<span class="mr-auto rounded-full bg-primary px-2 py-0.5 text-[10px] font-black text-white">{{ $unreadNotifications }}</span>@endif</a>
+            <a href="{{ route('reports.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-flag class="h-5 w-5" /> گزارش‌های من</a>
+            <a href="{{ route('storefront.edit') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-building-storefront class="h-5 w-5" /> غرفه شما</a>
         @endauth
-        <a href="{{ auth()->check() ? route('favorites.index') : route('login') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-heart class="h-5 w-5" /> علاقه‌مندی‌ها</a>
-        <a href="{{ url('/profile') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-user-circle class="h-5 w-5" /> پروفایل</a>
-        <a href="{{ route('support.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary"><x-heroicon-o-chat-bubble-left-right class="h-5 w-5" /> ارتباط با پشتیبانی</a>
+        <a href="{{ auth()->check() ? route('favorites.index') : route('login') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-heart class="h-5 w-5" /> علاقه‌مندی‌ها</a>
+        <a href="{{ url('/profile') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-user-circle class="h-5 w-5" /> پروفایل</a>
+        <a href="{{ route('support.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-chat-bubble-left-right class="h-5 w-5" /> ارتباط با پشتیبانی</a>
 
         @auth
             @if (auth()->user()->isAdmin())
                 <div class="my-3 border-t border-slate-100"></div>
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 rounded-lg bg-accent/10 px-3 py-3 text-sm font-bold text-accent"><x-heroicon-o-shield-check class="h-5 w-5" /> پنل مدیریت</a>
-                <a href="{{ route('admin.listings.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-accent/10 hover:text-accent"><x-heroicon-o-rectangle-stack class="h-5 w-5" /> مدیریت آگهی‌ها</a>
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 rounded-lg bg-accent/10 px-3 py-3 text-sm font-bold text-accent focus:outline-none focus:ring-4 focus:ring-accent/20"><x-heroicon-o-shield-check class="h-5 w-5" /> پنل مدیریت</a>
+                <a href="{{ route('admin.listings.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-accent/10 hover:text-accent focus:outline-none focus:ring-4 focus:ring-accent/20"><x-heroicon-o-rectangle-stack class="h-5 w-5" /> مدیریت آگهی‌ها</a>
             @endif
             <form method="POST" action="{{ route('logout') }}" class="mt-2">
                 @csrf
-                <button class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-error hover:bg-red-50"><x-heroicon-o-arrow-left-start-on-rectangle class="h-5 w-5" /> خروج</button>
+                <button class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-error hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-error/20"><x-heroicon-o-arrow-left-start-on-rectangle class="h-5 w-5" /> خروج</button>
             </form>
         @endauth
     </nav>

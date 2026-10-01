@@ -18,7 +18,7 @@
                 <div class="min-h-full rounded-lg bg-white p-4 shadow-sm border border-slate-200">
                     <div class="mb-4 flex items-center justify-between">
                         <div><h2 id="listing-filters-title" class="font-black text-neutral">فیلتر آگهی‌ها</h2><p class="mt-1 text-[11px] text-slate-400">انتخاب مرحله‌ای ویژگی‌ها</p></div>
-                        <button type="button" data-drawer-hide="listing-filters" @click="filtersOpen = false" class="rounded-lg p-2 text-slate-500" aria-label="بستن"><x-heroicon-o-x-mark class="h-5 w-5" /></button>
+                        <button type="button" data-drawer-hide="listing-filters" @click="filtersOpen = false" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-primary/20" aria-label="بستن"><x-heroicon-o-x-mark class="h-5 w-5" /></button>
                     </div>
 
                     <form method="GET" action="{{ route('listings.index') }}" role="search" aria-label="جستجوی آگهی‌ها" @submit.prevent="applyFilters($event)" class="space-y-4">

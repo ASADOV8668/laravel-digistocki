@@ -24,7 +24,7 @@ $maxWidth = [
 >
     <div class="relative mx-auto max-h-full w-full {{ $maxWidth }}">
         <div class="relative rounded-lg border border-slate-200 bg-white shadow-xl">
-            <button type="button" data-modal-hide="{{ $name }}" aria-label="بستن" class="absolute end-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-slate-400 hover:bg-slate-100 hover:text-slate-900">
+            <button type="button" data-modal-hide="{{ $name }}" aria-label="بستن" class="absolute end-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-slate-400 hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-4 focus:ring-primary/20">
                 <x-heroicon-o-x-mark class="h-5 w-5" />
             </button>
             {{ $slot }}
