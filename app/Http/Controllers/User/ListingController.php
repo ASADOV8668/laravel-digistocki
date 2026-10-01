@@ -37,7 +37,7 @@ class ListingController extends Controller
             return response()->json([]);
         }
 
-        $likes = array_values(array_unique(['%'.$rawTerm.'%', '%'.$term.'%']));
+        $likes = $this->searchLikes($rawTerm);
         $listings = Listing::query()
             ->published()
             ->with(['brand', 'phoneModel', 'primaryImage'])
@@ -63,16 +63,17 @@ class ListingController extends Controller
 
     public function searchSuggestions(Request $request)
     {
-        $term = $this->normalizeSearchTerm((string) $request->input('q'));
+        $rawTerm = trim((string) $request->input('q'));
+        $term = $this->normalizeSearchTerm($rawTerm);
 
         if (mb_strlen($term) < 2) {
             return response()->json(['brands' => [], 'models' => []]);
         }
 
-        $like = '%'.$term.'%';
+        $likes = $this->searchLikes($rawTerm);
         $brands = Brand::query()
             ->where('is_active', true)
-            ->where(fn (Builder $query) => $query->where('name', 'like', $like)->orWhere('name_en', 'like', $like))
+            ->where(fn (Builder $query) => $this->whereAnyLike($query, ['name', 'name_en'], $likes))
             ->orderBy('name')
             ->limit(6)
             ->get();
@@ -80,11 +81,9 @@ class ListingController extends Controller
         $models = PhoneModel::query()
             ->where('is_active', true)
             ->with('brand')
-            ->where(function (Builder $query) use ($like) {
-                $query->where('name', 'like', $like)
-                    ->orWhere('name_fa', 'like', $like)
-                    ->orWhere('name_en', 'like', $like)
-                    ->orWhereHas('brand', fn (Builder $brand) => $brand->where('name', 'like', $like)->orWhere('name_en', 'like', $like));
+            ->where(function (Builder $query) use ($likes) {
+                $query->where(fn (Builder $model) => $this->whereAnyLike($model, ['name', 'name_fa', 'name_en'], $likes))
+                    ->orWhereHas('brand', fn (Builder $brand) => $this->whereAnyLike($brand, ['name', 'name_en'], $likes));
             })
             ->orderBy('name_fa')
             ->limit(12)
@@ -133,19 +132,16 @@ class ListingController extends Controller
 
     public function models(Request $request)
     {
-        $term = $this->normalizeSearchTerm((string) $request->input('q'));
-        $like = $term !== '' ? '%'.$term.'%' : null;
+        $likes = $this->searchLikes((string) $request->input('q'));
 
         $models = PhoneModel::query()
             ->where('is_active', true)
             ->with('brand')
             ->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId))
-            ->when($like !== null, function (Builder $query) use ($like) {
-                $query->where(function (Builder $query) use ($like) {
-                    $query->where('name', 'like', $like)
-                        ->orWhere('name_fa', 'like', $like)
-                        ->orWhere('name_en', 'like', $like)
-                        ->orWhereHas('brand', fn (Builder $brand) => $brand->where('name', 'like', $like)->orWhere('name_en', 'like', $like));
+            ->when($likes !== [], function (Builder $query) use ($likes) {
+                $query->where(function (Builder $query) use ($likes) {
+                    $query->where(fn (Builder $model) => $this->whereAnyLike($model, ['name', 'name_fa', 'name_en'], $likes))
+                        ->orWhereHas('brand', fn (Builder $brand) => $this->whereAnyLike($brand, ['name', 'name_en'], $likes));
                 });
             })
             ->orderBy('name_fa')
@@ -182,7 +178,7 @@ class ListingController extends Controller
         $query->when($request->integer('max_price'), fn (Builder $query, int $price) => $query->where('price', '<=', $price));
         $query->when($request->filled('q'), function (Builder $query) use ($request) {
             $rawTerm = trim((string) $request->input('q'));
-            $likes = array_values(array_unique(['%'.$rawTerm.'%', '%'.$this->normalizeSearchTerm($rawTerm).'%']));
+            $likes = $this->searchLikes($rawTerm);
             $query->where(function (Builder $query) use ($likes) {
                 $query->where(function (Builder $title) use ($likes) {
                     foreach ($likes as $like) {
@@ -594,12 +590,57 @@ class ListingController extends Controller
     private function normalizeSearchTerm(string $term): string
     {
         return trim(strtr($term, [
-            'ي' => 'ی', 'ى' => 'ی', 'ك' => 'ک', 'ۀ' => 'ه', 'ة' => 'ه',
+            'آ' => 'ا', 'ي' => 'ی', 'ى' => 'ی', 'ك' => 'ک', 'ۀ' => 'ه', 'ة' => 'ه',
             '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
             '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
             '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
             '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
         ]));
+    }
+
+    /** @return array<int, string> */
+    private function searchLikes(string $term): array
+    {
+        $term = trim($term);
+        if (mb_strlen($this->normalizeSearchTerm($term)) < 2) {
+            return [];
+        }
+
+        $variants = array_merge(
+            $this->searchVariants($term),
+            $this->searchVariants($this->normalizeSearchTerm($term)),
+        );
+
+        return collect($variants)
+            ->map(fn (string $variant) => trim($variant))
+            ->filter(fn (string $variant) => mb_strlen($variant) >= 2)
+            ->unique()
+            ->map(fn (string $variant) => '%'.$variant.'%')
+            ->values()
+            ->all();
+    }
+
+    /** @return array<int, string> */
+    private function searchVariants(string $term): array
+    {
+        $choices = [
+            'ا' => ['ا', 'آ'], 'آ' => ['ا', 'آ'],
+            'گ' => ['گ', 'ک', 'ك'], 'ک' => ['ک', 'گ', 'ك'], 'ك' => ['ک', 'گ', 'ك'],
+            'ی' => ['ی', 'ي', 'ى'], 'ي' => ['ی', 'ي', 'ى'], 'ى' => ['ی', 'ي', 'ى'],
+        ];
+        $variants = [''];
+
+        foreach (preg_split('//u', $term, -1, PREG_SPLIT_NO_EMPTY) as $character) {
+            $next = [];
+            foreach ($variants as $variant) {
+                foreach ($choices[$character] ?? [$character] as $choice) {
+                    $next[] = $variant.$choice;
+                }
+            }
+            $variants = array_slice(array_values(array_unique($next)), 0, 256);
+        }
+
+        return $variants;
     }
 
     private function whereAnyLike(Builder $query, array $columns, array $likes): Builder

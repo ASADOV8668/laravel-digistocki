@@ -11,6 +11,7 @@ use App\Models\ListingImage;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Sadegh19b\LaravelIranCities\Models\Province;
 
 class DemoListingSeeder extends Seeder
 {
@@ -22,21 +23,25 @@ class DemoListingSeeder extends Seeder
         );
 
         $listings = [
-            ['brand' => 'Apple', 'model' => 'iPhone 13 Pro', 'slug' => 'demo-iphone-13-pro', 'title' => 'آیفون ۱۳ پرو تمیز و سالم', 'price' => 52000000, 'published_at' => now()->subHours(1), 'image' => 'listings/demo-iphone.svg', 'attributes' => ['storage' => 256, 'ram' => 6, 'color' => 'آبی']],
-            ['brand' => 'Apple', 'model' => 'iPhone 13 Pro Max', 'slug' => 'demo-iphone-13-pro-max', 'title' => 'آیفون ۱۳ پرو مکس با حافظه ۲۵۶', 'price' => 58500000, 'published_at' => now()->subHours(2), 'image' => 'listings/demo-iphone.svg', 'attributes' => ['storage' => 256, 'ram' => 6, 'color' => 'طلایی']],
-            ['brand' => 'Samsung', 'model' => 'Galaxy S23 Ultra', 'slug' => 'demo-galaxy-s23-ultra', 'title' => 'سامسونگ S23 Ultra همراه با جعبه', 'price' => 61000000, 'published_at' => now()->subHours(3), 'image' => 'listings/demo-samsung.svg', 'attributes' => ['storage' => 256, 'ram' => 12, 'color' => 'مشکی']],
-            ['brand' => 'Xiaomi', 'model' => 'Redmi Note 13 Pro+', 'slug' => 'demo-redmi-note-13-pro', 'title' => 'ردمی نوت ۱۳ پرو پلاس در حد نو', 'price' => 18500000, 'published_at' => now()->subHours(6), 'image' => 'listings/demo-xiaomi.svg', 'attributes' => ['storage' => 512, 'ram' => 12, 'color' => 'سبز']],
+            ['brand' => 'Apple', 'model' => 'iPhone 13 Pro', 'slug' => 'demo-iphone-13-pro', 'title' => 'آیفون ۱۳ پرو تمیز و سالم', 'price' => 52000000, 'province' => 'تهران', 'city' => 'تهران', 'published_at' => now()->subHours(1), 'image' => 'listings/demo-iphone.svg', 'attributes' => ['storage' => 256, 'ram' => 6, 'color' => 'آبی']],
+            ['brand' => 'Apple', 'model' => 'iPhone 13 Pro Max', 'slug' => 'demo-iphone-13-pro-max', 'title' => 'آیفون ۱۳ پرو مکس با حافظه ۲۵۶', 'price' => 58500000, 'province' => 'اصفهان', 'city' => 'اصفهان', 'published_at' => now()->subHours(2), 'image' => 'listings/demo-iphone.svg', 'attributes' => ['storage' => 256, 'ram' => 6, 'color' => 'طلایی']],
+            ['brand' => 'Samsung', 'model' => 'Galaxy S23 Ultra', 'slug' => 'demo-galaxy-s23-ultra', 'title' => 'سامسونگ S23 Ultra همراه با جعبه', 'price' => 61000000, 'province' => 'مازندران', 'city' => 'ساری', 'published_at' => now()->subHours(3), 'image' => 'listings/demo-samsung.svg', 'attributes' => ['storage' => 256, 'ram' => 12, 'color' => 'مشکی']],
+            ['brand' => 'Xiaomi', 'model' => 'Redmi Note 13 Pro+', 'slug' => 'demo-redmi-note-13-pro', 'title' => 'ردمی نوت ۱۳ پرو پلاس در حد نو', 'price' => 18500000, 'province' => 'فارس', 'city' => 'شیراز', 'published_at' => now()->subHours(6), 'image' => 'listings/demo-xiaomi.svg', 'attributes' => ['storage' => 512, 'ram' => 12, 'color' => 'سبز']],
         ];
 
         foreach ($listings as $data) {
             $brand = Brand::where('name_en', $data['brand'])->firstOrFail();
             $model = $brand->phoneModels()->where('name', $data['model'])->firstOrFail();
+            $province = Province::query()->where('name', $data['province'])->first();
+            $city = $province?->cities()->where('name', $data['city'])->first();
             $listing = Listing::updateOrCreate(
                 ['slug' => $data['slug']],
                 [
                     'user_id' => $seller->id,
                     'brand_id' => $brand->id,
                     'phone_model_id' => $model->id,
+                    'province_id' => $province?->id,
+                    'city_id' => $city?->id,
                     'title' => $data['title'],
                     'description' => 'آگهی نمونه برای نمایش امکانات صفحه اصلی دیجی‌استاکی.',
                     'price' => $data['price'],
