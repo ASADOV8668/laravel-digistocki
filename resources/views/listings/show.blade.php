@@ -88,7 +88,7 @@
             </div>
         </div>
 
-        <div class="rounded-[2rem] bg-white p-5 shadow-sm border border-slate-200">
+        <div class="rounded-lg bg-white p-5 shadow-sm border border-slate-200">
             <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
@@ -149,7 +149,7 @@
             @endauth
         </div>
 
-        <div class="rounded-[2rem] bg-white p-5 shadow-sm border border-slate-200">
+        <div class="rounded-lg bg-white p-5 shadow-sm border border-slate-200">
             <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
                     <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><x-heroicon-o-information-circle class="h-5 w-5" /></span>
@@ -173,7 +173,7 @@
             </div>
         </div>
 
-        <div class="overflow-hidden rounded-[2rem] bg-neutral p-5 text-white shadow-xl shadow-slate-900/10">
+        <div class="overflow-hidden rounded-lg bg-neutral p-5 text-white shadow-xl shadow-slate-900/10">
             <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
                     <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-black">{{ mb_substr($listing->user->name, 0, 1) }}</div>

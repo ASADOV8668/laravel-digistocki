@@ -15,7 +15,7 @@
     </x-slot>
 
     <section class="flex min-h-[60vh] items-center justify-center px-4 py-10">
-        <div class="w-full max-w-md rounded-[2rem] bg-white p-8 text-center shadow-sm border border-slate-200">
+        <div class="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-sm border border-slate-200">
             <span data-testid="disabled-storefront-icon" class="mx-auto flex h-20 w-20 items-center justify-center rounded-lg bg-warning/10 text-warning">
                 <x-heroicon-o-building-storefront class="h-10 w-10" />
             </span>

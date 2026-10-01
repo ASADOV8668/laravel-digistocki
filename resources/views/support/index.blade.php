@@ -7,7 +7,7 @@
     </x-slot>
 
     <section class="space-y-5 px-4 py-6">
-        <div class="relative overflow-hidden rounded-[2rem] bg-neutral p-6 text-white shadow-xl shadow-slate-900/10">
+        <div class="relative overflow-hidden rounded-lg bg-neutral p-6 text-white shadow-xl shadow-slate-900/10">
             <div class="absolute -left-12 -top-12 h-40 w-40 rounded-full bg-primary/20 blur-3xl"></div>
             <div class="relative">
                 <span class="flex h-12 w-12 items-center justify-center rounded-lg bg-white/10 text-primary"><x-heroicon-o-lifebuoy class="h-7 w-7" /></span>
@@ -16,7 +16,7 @@
             </div>
         </div>
 
-        <div class="rounded-[2rem] bg-white p-5 shadow-sm border border-slate-200">
+        <div class="rounded-lg bg-white p-5 shadow-sm border border-slate-200">
             <div class="mb-4 flex items-center justify-between gap-3"><div><h2 class="font-black text-neutral">راه‌های ارتباطی</h2><p class="mt-1 text-[11px] text-slate-400">برای شروع گفتگو، یکی از گزینه‌های زیر را انتخاب کنید.</p></div><span class="rounded-full bg-success/10 px-3 py-1 text-[10px] font-black text-success">پاسخ‌گویی فعال</span></div>
             <div class="space-y-3">
                 @if ($settings['support_phone'])

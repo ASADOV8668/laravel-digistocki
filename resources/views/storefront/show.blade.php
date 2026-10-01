@@ -41,7 +41,7 @@
     </x-slot>
 
     <section class="space-y-6 px-4 py-6">
-        <div class="overflow-hidden rounded-[2rem] bg-neutral p-5 text-white shadow-xl shadow-slate-900/10">
+        <div class="overflow-hidden rounded-lg bg-neutral p-5 text-white shadow-xl shadow-slate-900/10">
             <div class="flex items-start gap-4">
                 @if ($store->logo_path)
                     <img src="{{ asset('storage/'.$store->logo_path) }}" alt="{{ $store->name }}" class="h-20 w-20 rounded-lg bg-white object-cover p-1">

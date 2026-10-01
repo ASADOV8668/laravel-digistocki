@@ -10,7 +10,7 @@
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900">
     <main class="mx-auto flex min-h-screen max-w-3xl items-center justify-center px-6 py-16">
-        <section class="w-full overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-200/60 sm:p-14">
+        <section class="w-full overflow-hidden rounded-lg border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-200/60 sm:p-14">
             <div class="mx-auto flex h-24 w-24 items-center justify-center rounded-lg bg-rose-50 text-4xl font-black text-rose-500">۴۰۴</div>
             <p class="mt-8 text-sm font-bold text-rose-500">این صفحه در دسترس نیست</p>
             <h1 class="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">چیزی که دنبالش بودید پیدا نشد</h1>
