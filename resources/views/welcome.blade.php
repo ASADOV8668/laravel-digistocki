@@ -10,7 +10,7 @@
             </div>
         </div>
 
-        <div x-data="homeSearch(@js(url('/locations/provinces')), @js(route('listings.search.suggestions')))" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div x-data="homeSearch(@js(url("/locations/provinces")), @js(route("listings.search.suggestions")))" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <div class="mb-4"><p class="text-xs font-bold text-primary">جستجوی نزدیک‌تر</p><h2 class="mt-1 text-lg font-black text-neutral">در کدام استان و شهر هستید؟</h2><p class="mt-1 text-xs leading-6 text-slate-400">موقعیت و مدل گوشی را انتخاب کنید تا سریع‌تر به آگهی مناسب برسید.</p></div>
             <form method="GET" action="{{ route('listings.index') }}" class="space-y-3">
                 <div class="grid grid-cols-2 gap-2">
