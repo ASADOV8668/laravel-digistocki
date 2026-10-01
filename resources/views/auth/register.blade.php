@@ -5,7 +5,7 @@
 
     @if ($step === 'mobile')
         <form method="POST" action="{{ route('register') }}" class="space-y-5">@csrf
-            <div><x-input-label for="mobile" value="شماره موبایل" /><x-text-input id="mobile" aria-describedby="mobile-help mobile-error" class="mt-2 block w-full" type="tel" name="mobile" :value="old('mobile')" required autofocus autocomplete="tel" inputmode="tel" dir="ltr" placeholder="09301303005" /><p id="mobile-help" class="mt-1 text-[11px] text-slate-400">فرمت مجاز: دقیقاً ۱۱ رقم و با ۰۹، مانند 09301303005</p><x-input-error id="mobile-error" :messages="$errors->get('mobile')" class="mt-2" /></div>
+            <div><x-input-label for="mobile" value="شماره موبایل" /><x-text-input id="mobile" aria-describedby="mobile-help mobile-error" class="mt-2 block w-full" type="tel" name="mobile" :value="old('mobile')" required autofocus autocomplete="tel" inputmode="tel" dir="ltr" placeholder="09120000000" /><p id="mobile-help" class="mt-1 text-[11px] text-slate-400">فرمت مجاز: دقیقاً ۱۱ رقم و با ۰۹، مانند 09120000000</p><x-input-error id="mobile-error" :messages="$errors->get('mobile')" class="mt-2" /></div>
             <x-primary-button class="w-full"><x-heroicon-o-arrow-left-on-rectangle class="h-5 w-5" />دریافت کد تأیید</x-primary-button>
         </form>
     @elseif ($step === 'otp')
