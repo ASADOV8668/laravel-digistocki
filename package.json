@@ -17,6 +17,7 @@
     },
     "dependencies": {
         "chart.js": "^4.5.1",
+        "flowbite": "^4.0.2",
         "jquery": "^3.7.1"
     }
 }
