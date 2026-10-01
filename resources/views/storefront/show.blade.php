@@ -85,7 +85,7 @@
             </div>
             <form method="GET" class="mb-4 flex gap-2">
                 <label for="storefront-search" class="sr-only">جستجو در آگهی‌های غرفه</label>
-                <input id="storefront-search" name="q" value="{{ request('q') }}" placeholder="جستجو در آگهی‌های این غرفه" class="min-w-0 flex-1 rounded-lg border-0 bg-white text-sm border border-slate-200 focus:ring-primary">
+                <input id="storefront-search" name="q" value="{{ request('q') }}" placeholder="جستجو در آگهی‌های این غرفه" class="public-input min-w-0 flex-1 bg-white">
                 <button class="rounded-lg bg-neutral px-4 py-3 text-xs font-black text-white"><x-heroicon-o-magnifying-glass class="h-4 w-4" /></button>
             </form>
             @if ($listings->isNotEmpty())

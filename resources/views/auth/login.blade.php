@@ -16,7 +16,7 @@
             <label class="flex items-center gap-2 text-xs font-bold text-slate-500"><input type="checkbox" class="public-check" name="remember"><span>مرا به خاطر بسپار</span></label>
             <button class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-center text-sm font-medium text-white transition hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-200"><x-heroicon-o-lock-closed class="h-5 w-5" />ورود با رمز عبور</button>
         </form>
-        <form method="POST" action="{{ route('login.otp.request') }}" class="mt-4">@csrf<input type="hidden" name="mobile" value="{{ $mobile }}"><button class="w-full rounded-lg border border-primary/20 bg-primary-50 px-4 py-3 text-sm font-black text-primary transition hover:bg-primary/10">ارسال رمز یکبار مصرف با پیامک</button></form>
+        <form method="POST" action="{{ route('login.otp.request') }}" class="mt-4">@csrf<input type="hidden" name="mobile" value="{{ $mobile }}"><button class="mobile-button w-full border border-primary/20 bg-primary-50 text-primary hover:bg-primary-100 focus:ring-primary/20">ارسال رمز یکبار مصرف با پیامک</button></form>
     @else
         <form method="POST" action="{{ route('login.otp.verify') }}" class="space-y-5">@csrf
             <input type="hidden" name="mobile" value="{{ $mobile }}">
@@ -24,7 +24,7 @@
             <p id="otp-expiry" class="text-center text-xs font-bold text-slate-500">اعتبار کد: <span id="otp-countdown" role="timer" aria-live="polite" aria-atomic="true" data-expires-at="{{ $otpExpiresAt }}" class="text-primary">در حال محاسبه...</span></p>
             <button class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-center text-sm font-medium text-white transition hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-200"><x-heroicon-o-check-circle class="h-5 w-5" />تأیید و ورود</button>
         </form>
-        <form id="otp-resend-form" method="POST" action="{{ route('login.otp.request') }}" class="mt-3" hidden>@csrf<input type="hidden" name="mobile" value="{{ $mobile }}"><button type="submit" class="w-full rounded-lg border border-primary/20 bg-primary-50 px-4 py-3 text-sm font-black text-primary transition hover:bg-primary/10">ارسال مجدد کد</button></form>
+            <form id="otp-resend-form" method="POST" action="{{ route('login.otp.request') }}" class="mt-3" hidden>@csrf<input type="hidden" name="mobile" value="{{ $mobile }}"><button type="submit" class="mobile-button w-full border border-primary/20 bg-primary-50 text-primary hover:bg-primary-100 focus:ring-primary/20">ارسال مجدد کد</button></form>
     @endif
 
     <div class="mt-6 border-t border-slate-100 pt-5 text-center text-xs text-slate-500">حساب کاربری ندارید؟ <a href="{{ route('register') }}" class="font-black text-primary hover:text-primary-600">ثبت‌نام با موبایل</a></div>
