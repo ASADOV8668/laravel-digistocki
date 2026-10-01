@@ -10,6 +10,6 @@
         @empty
             <div class="rounded-lg border border-dashed border-slate-200 bg-white p-10 text-center shadow-sm"><span class="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-primary-50 text-primary"><x-heroicon-o-bell class="h-7 w-7" /></span><h2 class="mt-4 font-black text-neutral">هنوز اعلانی ندارید</h2><p class="mt-2 text-sm leading-6 text-slate-500">وضعیت آگهی‌ها و پیام‌های مهم اینجا نمایش داده می‌شود.</p></div>
         @endforelse
-        {{ $notifications->links() }}
+        {{ $notifications->links('vendor.pagination.flowbite') }}
     </section>
 </x-app-layout>

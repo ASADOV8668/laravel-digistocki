@@ -94,7 +94,7 @@
                         <x-listing-card :listing="$listing" />
                     @endforeach
                 </div>
-                <div class="pt-2">{{ $listings->links() }}</div>
+                <div class="pt-2">{{ $listings->links('vendor.pagination.flowbite') }}</div>
             @else
                 <div class="rounded-lg bg-white p-8 text-center shadow-sm border border-slate-200">
                     <x-heroicon-o-device-phone-mobile class="mx-auto h-12 w-12 text-slate-300" />

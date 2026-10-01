@@ -9,6 +9,6 @@
         @empty
             <div class="rounded-lg border border-dashed border-slate-200 bg-white p-10 text-center shadow-sm"><x-heroicon-o-flag class="mx-auto h-12 w-12 text-primary/30" /><h2 class="mt-4 font-black text-neutral">هنوز گزارشی ثبت نکرده‌اید</h2><p class="mt-2 text-sm leading-6 text-slate-500">گزارش‌های مربوط به آگهی‌ها و وضعیت رسیدگی آن‌ها اینجا نمایش داده می‌شود.</p><a href="{{ route('listings.index') }}" class="mt-4 inline-flex rounded-lg bg-primary px-4 py-2.5 text-xs font-bold text-white">مشاهده آگهی‌ها</a></div>
         @endforelse
-        {{ $reports->links() }}
+        {{ $reports->links('vendor.pagination.flowbite') }}
     </section>
 </x-app-layout>
