@@ -55,15 +55,30 @@
             <x-flowbite-alert type="danger">{{ $errors->first() }}</x-flowbite-alert>
         @endif
 
-        <div class="relative overflow-hidden rounded-[2rem] bg-slate-900 p-2 shadow-xl shadow-slate-900/10">
+        <div id="listing-gallery" class="relative overflow-hidden rounded-lg bg-slate-900 p-2 shadow-xl shadow-slate-900/10" data-carousel="slide">
             @if ($listing->images->isNotEmpty())
-                <div class="grid grid-cols-2 gap-2">
+                <div class="relative h-64 overflow-hidden rounded-lg sm:h-96">
                     @foreach ($listing->images as $image)
-                        <img src="{{ asset('storage/'.$image->path) }}" alt="{{ $listing->title }}" class="h-36 w-full rounded-lg object-cover first:col-span-2 first:h-64" decoding="async" @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif>
+                        <div class="{{ $loop->first ? '' : 'hidden' }} duration-700 ease-in-out" data-carousel-item="{{ $loop->first ? 'active' : '' }}">
+                            <img src="{{ asset('storage/'.$image->path) }}" alt="{{ $listing->title }}" class="absolute block h-full w-full object-cover" decoding="async" @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif>
+                        </div>
                     @endforeach
                 </div>
+                @if ($listing->images->count() > 1)
+                    <button type="button" data-carousel-prev aria-label="تصویر قبلی" class="group absolute start-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50">
+                        <x-heroicon-o-chevron-right class="h-5 w-5" />
+                    </button>
+                    <button type="button" data-carousel-next aria-label="تصویر بعدی" class="group absolute end-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50">
+                        <x-heroicon-o-chevron-left class="h-5 w-5" />
+                    </button>
+                    <div class="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+                        @foreach ($listing->images as $image)
+                            <button type="button" data-carousel-slide-to="{{ $loop->index }}" aria-label="نمایش تصویر {{ $loop->iteration }}" class="h-2 w-2 rounded-full bg-white/60 transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-white/70 {{ $loop->first ? 'bg-white' : '' }}"></button>
+                        @endforeach
+                    </div>
+                @endif
             @else
-                <div class="flex h-64 items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-primary-50 via-white to-accent/10 text-primary">
+                <div class="flex h-64 items-center justify-center rounded-lg bg-gradient-to-br from-primary-50 via-white to-accent/10 text-primary">
                     <x-heroicon-o-device-phone-mobile class="h-24 w-24" />
                 </div>
             @endif
