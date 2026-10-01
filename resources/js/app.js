@@ -1,9 +1,11 @@
 import './bootstrap';
 import 'flowbite';
+import { initTooltips } from 'flowbite';
 
 import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;
+window.refreshFlowbiteTooltips = () => initTooltips();
 
 window.searchSuggest = (endpoint) => ({
     endpoint,
@@ -496,7 +498,10 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
             if (!response.ok) throw new Error('Results request failed');
             const data = await response.json();
             const container = document.getElementById('listing-results');
-            if (container && data.html) container.innerHTML = data.html;
+            if (container && data.html) {
+                container.innerHTML = data.html;
+                window.refreshFlowbiteTooltips?.();
+            }
             if (historyMode === 'push') window.history.pushState({}, '', url);
             if (historyMode === 'replace') window.history.replaceState({}, '', url);
             if (syncState) await this.syncFormFromUrl(new URL(url, window.location.href));
