@@ -1,6 +1,10 @@
 @php($systemOptions = app(\App\Services\SystemOptions::class))
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl"
+    x-data="{ loaded: true, darkMode: false, sidebarOpen: false, sidebarCollapsed: false }"
+    x-init="const storedTheme = localStorage.getItem('admin-dark-mode'); const storedSidebar = localStorage.getItem('admin-sidebar-collapsed'); darkMode = storedTheme ? JSON.parse(storedTheme) : false; sidebarCollapsed = storedSidebar ? JSON.parse(storedSidebar) : false; $watch('darkMode', value => localStorage.setItem('admin-dark-mode', JSON.stringify(value))); $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapsed', JSON.stringify(value)))"
+    :class="darkMode ? 'dark' : ''"
+>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,12 +15,7 @@
         <link rel="apple-touch-icon" sizes="192x192" href="{{ asset('images/logo-192.png') }}">
         @vite(['resources/css/admin.css', 'resources/js/admin.js'])
     </head>
-    <body
-        x-data="{ loaded: true, darkMode: false, sidebarOpen: false, sidebarCollapsed: false }"
-        x-init="const storedTheme = localStorage.getItem('admin-dark-mode'); const storedSidebar = localStorage.getItem('admin-sidebar-collapsed'); darkMode = storedTheme ? JSON.parse(storedTheme) : false; sidebarCollapsed = storedSidebar ? JSON.parse(storedSidebar) : false; $watch('darkMode', value => localStorage.setItem('admin-dark-mode', JSON.stringify(value))); $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapsed', JSON.stringify(value)))"
-        :class="darkMode ? 'dark bg-gray-900' : 'bg-gray-50'"
-        class="font-sans antialiased"
-    >
+    <body :class="darkMode ? 'bg-gray-900' : 'bg-gray-50'" class="font-sans antialiased">
         <div x-cloak x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-[9998] bg-gray-900/50 lg:hidden" @click="sidebarOpen = false" aria-hidden="true"></div>
 
         <div class="tailadmin-shell" data-admin-ui="tailadmin-v2">

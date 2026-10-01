@@ -37,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
                 $request->server->set('PHP_SELF', '/app/index.php');
                 URL::forceRootUrl(rtrim((string) config('app.url'), '/'));
                 URL::forceScheme($request->getScheme());
+            } else {
+                URL::useAssetOrigin($request->getSchemeAndHttpHost().rtrim($request->getBaseUrl(), '/'));
             }
         }
     }

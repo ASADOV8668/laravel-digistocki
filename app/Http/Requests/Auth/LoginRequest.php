@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use App\Support\MobileNumber;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -42,11 +43,18 @@ class LoginRequest extends FormRequest
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
+        $mobile = $this->string('mobile')->toString();
+        $inactiveAccount = User::query()
+            ->where('mobile', $mobile)
+            ->where('is_active', false)
+            ->exists();
 
-        if (! auth()->attempt(['mobile' => $this->string('mobile')->toString(), 'password' => $this->string('password')->toString(), 'is_active' => true], $this->boolean('remember'))) {
+        if (! auth()->attempt(['mobile' => $mobile, 'password' => $this->string('password')->toString(), 'is_active' => true], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
-            throw ValidationException::withMessages(['mobile' => trans('auth.failed')]);
+            throw ValidationException::withMessages([
+                $inactiveAccount ? 'mobile' : 'password' => $inactiveAccount ? 'این حساب کاربری غیرفعال است.' : 'رمز عبور واردشده صحیح نیست.',
+            ]);
         }
 
         RateLimiter::clear($this->throttleKey());

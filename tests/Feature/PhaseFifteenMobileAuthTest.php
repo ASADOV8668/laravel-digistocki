@@ -36,6 +36,22 @@ class PhaseFifteenMobileAuthTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_wrong_password_is_shown_on_the_password_step(): void
+    {
+        User::factory()->create(['mobile' => '09121112233']);
+
+        $this->post(route('login'), ['mobile' => '09121112233'])
+            ->assertRedirect(route('login'));
+
+        $this->post(route('login'), [
+            'mobile' => '09121112233',
+            'password' => 'wrong-password',
+        ])->assertSessionHasErrors('password');
+
+        $this->get(route('login'))
+            ->assertSee('رمز عبور واردشده صحیح نیست.');
+    }
+
     public function test_user_can_register_with_mobile_only(): void
     {
         $this->post(route('register'), ['mobile' => '09121112233'])->assertRedirect(route('register'));
