@@ -3,11 +3,12 @@
 namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Route;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class PhaseFiftyFiveSearchThrottleTest extends TestCase
 {
-    /** @dataProvider ajaxSearchRoutes */
+    #[DataProvider('ajaxSearchRoutes')]
     public function test_ajax_search_routes_are_rate_limited(string $routeName): void
     {
         $route = Route::getRoutes()->getByName($routeName);

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class PhaseOneHundredFortySixAdminSurfaceTest extends TestCase
@@ -25,7 +26,7 @@ class PhaseOneHundredFortySixAdminSurfaceTest extends TestCase
         ];
     }
 
-    /** @dataProvider adminSurfaceRoutes */
+    #[DataProvider('adminSurfaceRoutes')]
     public function test_every_admin_surface_renders_inside_the_tailadmin_shell(string $routeName): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
