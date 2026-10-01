@@ -11,8 +11,8 @@ class SystemOptions
     private const CACHE_KEY = 'system_options.values';
 
     public const DEFAULTS = [
-        'site_title' => 'دیجی استوک',
-        'page_title_prefix' => 'دیجی استوک',
+        'site_title' => 'دیجی استوکی',
+        'page_title_prefix' => 'دیجی استوکی',
         'title_separator' => '|',
         'max_image_upload_mb' => '5',
         'max_image_upload_count' => '5',
@@ -142,6 +142,13 @@ class SystemOptions
         }
 
         return trim($prefix ?: $siteTitle).' '.$separator.' '.trim($page);
+    }
+
+    public function siteDescription(): string
+    {
+        $siteTitle = trim((string) $this->get('site_title')) ?: self::DEFAULTS['site_title'];
+
+        return 'خرید و فروش مطمئن موبایل با آگهی‌های بررسی‌شده و جستجوی هوشمند در '.$siteTitle.'.';
     }
 
     private function load(): void

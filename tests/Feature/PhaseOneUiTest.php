@@ -8,7 +8,7 @@ class PhaseOneUiTest extends TestCase
 {
     public function test_home_page_uses_the_digistocki_mobile_shell(): void
     {
-        $this->get('/')->assertOk()->assertSee('دیجی استوک')->assertSee('ثبت آگهی')->assertSee('جستجوی آگهی‌ها')->assertSee('logo.png')->assertSee('rel="canonical"', false)->assertSee('og:description', false);
+        $this->get('/')->assertOk()->assertSee('دیجی استوکی')->assertSee('ثبت آگهی')->assertSee('جستجوی آگهی‌ها')->assertSee('logo.png')->assertSee('rel="canonical"', false)->assertSee('og:description', false);
     }
 
     public function test_listings_page_is_public(): void

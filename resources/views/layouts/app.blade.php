@@ -8,7 +8,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         @php($seoTitle = $systemOptions->pageTitle($title ?? null))
-        @php($seoDescription = $metaDescription ?? 'خرید و فروش مطمئن موبایل با آگهی‌های بررسی‌شده و جستجوی هوشمند در دیجی استوک.')
+        @php($seoDescription = $metaDescription ?? $systemOptions->siteDescription())
         <title>{{ $seoTitle }}</title>
         <meta name="description" content="{{ $seoDescription }}">
         <link rel="canonical" href="{{ url()->current() }}">

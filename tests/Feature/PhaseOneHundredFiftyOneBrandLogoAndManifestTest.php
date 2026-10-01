@@ -25,7 +25,7 @@ class PhaseOneHundredFiftyOneBrandLogoAndManifestTest extends TestCase
     {
         $manifest = json_decode(file_get_contents(public_path('manifest.json')), true, 512, JSON_THROW_ON_ERROR);
 
-        $this->assertSame('دیجی استوک', $manifest['name']);
+        $this->assertSame('دیجی استوکی', $manifest['name']);
         $this->assertSame('./', $manifest['start_url']);
         $this->assertSame('./', $manifest['scope']);
         $this->assertSame('standalone', $manifest['display']);
