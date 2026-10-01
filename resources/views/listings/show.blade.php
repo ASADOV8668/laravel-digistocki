@@ -55,7 +55,7 @@
             <x-flowbite-alert type="danger">{{ $errors->first() }}</x-flowbite-alert>
         @endif
 
-        <div id="listing-gallery" class="relative touch-pan-y overflow-hidden rounded-lg bg-slate-900 p-2 shadow-xl shadow-slate-900/10" data-carousel="static" data-carousel-interval="false" data-listing-carousel aria-roledescription="carousel" aria-label="تصاویر آگهی">
+        <div id="listing-gallery" class="relative z-0 touch-pan-y overflow-hidden rounded-lg bg-slate-900 p-2 shadow-xl shadow-slate-900/10" data-carousel="static" data-carousel-interval="false" data-listing-carousel aria-roledescription="carousel" aria-label="تصاویر آگهی">
             @if ($listing->images->isNotEmpty())
                 <div class="relative aspect-[4/3] overflow-hidden rounded-lg bg-slate-950">
                     @foreach ($listing->images as $image)
@@ -63,7 +63,7 @@
                             <button type="button" data-modal-target="listing-gallery-modal" data-modal-toggle="listing-gallery-modal" data-carousel-open-index="{{ $loop->index }}" class="block h-full w-full cursor-zoom-in focus:outline-none focus:ring-4 focus:ring-primary/40" aria-label="نمایش تصویر {{ $loop->iteration }} در حالت تمام‌صفحه"><img src="{{ asset('storage/'.$image->path) }}" alt="{{ $listing->title }}" class="absolute inset-0 block h-full w-full object-contain" decoding="async" @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif></button>
                         </div>
                     @endforeach
-                    <div class="pointer-events-none absolute inset-x-4 bottom-4 z-40 flex items-end justify-between gap-3 text-white">
+                    <div class="pointer-events-none absolute inset-x-4 bottom-4 z-10 flex items-end justify-between gap-3 text-white">
                         <span class="rounded-full bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold backdrop-blur">{{ \App\Support\PersianNumber::digits($listing->images->count()) }} تصویر</span>
                         <span class="rounded-full bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold backdrop-blur">{{ \App\Support\PersianNumber::digits($listing->views_count) }} بازدید</span>
                     </div>
