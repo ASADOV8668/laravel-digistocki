@@ -26,6 +26,7 @@ class PhaseOneHundredSeventyTwoListingSidebarFiltersTest extends TestCase
         $this->get(route('listings.index'))
             ->assertOk()
             ->assertSee('id="listing-filters"', false)
+            ->assertSee('id="listing-brand"', false)
             ->assertSee('id="listing-model"', false)
             ->assertSee('id="listing-province"', false)
             ->assertSee('id="listing-city"', false)
@@ -43,6 +44,7 @@ class PhaseOneHundredSeventyTwoListingSidebarFiltersTest extends TestCase
         $view = file_get_contents(resource_path('views/listings/index.blade.php'));
         $this->assertNotFalse($view);
         $this->assertStringContainsString('url("/listings/models")', $view);
+        $this->assertStringContainsString('selectBrandId', $view);
 
         $script = file_get_contents(resource_path('js/app.js'));
         $this->assertNotFalse($script);

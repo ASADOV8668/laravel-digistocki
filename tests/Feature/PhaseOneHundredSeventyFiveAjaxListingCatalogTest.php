@@ -41,6 +41,7 @@ class PhaseOneHundredSeventyFiveAjaxListingCatalogTest extends TestCase
         $this->assertNotFalse($script);
         $this->assertStringContainsString('modelsEndpoint', $script);
         $this->assertStringContainsString('loadModels', $script);
+        $this->assertStringContainsString('selectBrandId', $script);
         $this->assertStringContainsString('modelsLoading', $script);
     }
 }

@@ -35,22 +35,22 @@ Route::get('/locations/provinces/{province}/cities', [ListingController::class, 
 Route::get('/listings/create', [ListingController::class, 'create'])->middleware(['auth', 'active'])->name('listings.create');
 Route::post('/listings', [ListingController::class, 'store'])->middleware(['auth', 'active'])->name('listings.store');
 Route::get('/store/{sellerStore:slug}', [StorefrontController::class, 'show'])->name('storefront.show');
-Route::get('/listings/{listing:slug}', [ListingController::class, 'show'])->name('listings.show');
+Route::get('/listings/{listing}', [ListingController::class, 'show'])->name('listings.show');
 
 Route::get('/dashboard', [UserDashboardController::class, 'index'])->middleware(['auth', 'active', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
-    Route::post('/listings/{listing:slug}/favorite', [FavoriteController::class, 'toggle'])->middleware('throttle:30,1')->name('listings.favorite.toggle');
-    Route::post('/listings/{listing:slug}/report', [UserReportController::class, 'store'])->name('listings.report');
-    Route::post('/listings/{listing:slug}/contact-otp', [ListingController::class, 'requestContactOtp'])->middleware('throttle:5,1')->name('listings.contact-otp');
-    Route::post('/listings/{listing:slug}/contact-otp/verify', [ListingController::class, 'verifyContactOtp'])->middleware('throttle:5,1')->name('listings.contact-otp.verify');
-    Route::get('/listings/{listing:slug}/edit', [ListingController::class, 'edit'])->name('listings.edit');
-    Route::put('/listings/{listing:slug}', [ListingController::class, 'update'])->name('listings.update');
-    Route::delete('/listings/{listing:slug}', [ListingController::class, 'destroy'])->name('listings.destroy');
-    Route::patch('/listings/{listing:slug}/sold', [ListingController::class, 'markSold'])->name('listings.sold');
-    Route::patch('/listings/{listing:slug}/renew', [ListingController::class, 'renew'])->name('listings.renew');
-    Route::delete('/listings/{listing:slug}/images/{image}', [ListingController::class, 'destroyImage'])->name('listings.images.destroy');
+    Route::post('/listings/{listing}/favorite', [FavoriteController::class, 'toggle'])->middleware('throttle:30,1')->name('listings.favorite.toggle');
+    Route::post('/listings/{listing}/report', [UserReportController::class, 'store'])->name('listings.report');
+    Route::post('/listings/{listing}/contact-otp', [ListingController::class, 'requestContactOtp'])->middleware('throttle:5,1')->name('listings.contact-otp');
+    Route::post('/listings/{listing}/contact-otp/verify', [ListingController::class, 'verifyContactOtp'])->middleware('throttle:5,1')->name('listings.contact-otp.verify');
+    Route::get('/listings/{listing}/edit', [ListingController::class, 'edit'])->name('listings.edit');
+    Route::put('/listings/{listing}', [ListingController::class, 'update'])->name('listings.update');
+    Route::delete('/listings/{listing}', [ListingController::class, 'destroy'])->name('listings.destroy');
+    Route::patch('/listings/{listing}/sold', [ListingController::class, 'markSold'])->name('listings.sold');
+    Route::patch('/listings/{listing}/renew', [ListingController::class, 'renew'])->name('listings.renew');
+    Route::delete('/listings/{listing}/images/{image}', [ListingController::class, 'destroyImage'])->name('listings.images.destroy');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/my-store', [StorefrontController::class, 'edit'])->name('storefront.edit');

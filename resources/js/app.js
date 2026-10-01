@@ -491,6 +491,12 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.modelsController?.abort();
         const controller = new AbortController();
         this.modelsController = controller;
+        if (!brandId) {
+            this.models = [];
+            this.modelsLoading = false;
+            this.modelsController = null;
+            return;
+        }
         this.modelsLoading = true;
         const params = new URLSearchParams();
         if (brandId) params.set('brand_id', brandId);
@@ -707,6 +713,16 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         await this.loadModels(brand.id);
     },
 
+    async selectBrandId(brandId) {
+        this.selectedBrandId = brandId || '';
+        this.selectedModelId = '';
+        this.query = '';
+        this.cancelAttributeRequest();
+        this.attributes = [];
+        this.filters = {};
+        await this.loadModels(this.selectedBrandId);
+    },
+
     async selectModel(model) {
         const previousModelId = this.selectedModelId;
         this.selectedBrandId = model.brand_id;
@@ -738,7 +754,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.attributesLoading = true;
 
         try {
-            const response = await fetch(`${this.attributesEndpoint}/${this.selectedModelId}`, {
+            const response = await fetch(`${this.attributesEndpoint}/${this.selectedModelId}/attributes`, {
                 headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 signal: controller.signal,
             });
@@ -882,7 +898,7 @@ window.listingWizard = () => ({
         this.attributesController = controller;
 
         try {
-            const response = await fetch(`${this.attributesEndpoint}/${this.modelId}?all=1`, {
+            const response = await fetch(`${this.attributesEndpoint}/${this.modelId}/attributes?all=1`, {
                 headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 signal: controller.signal,
             });

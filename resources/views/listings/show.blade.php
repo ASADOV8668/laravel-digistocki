@@ -31,16 +31,16 @@
     <script type="application/ld+json">{!! json_encode($listingSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
     <script type="application/ld+json">{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 @endpush
-<x-app-layout title="جزئیات آگهی">
+<x-app-layout :title="$listing->title">
     <x-slot name="header">
         <div class="flex items-center justify-between gap-3">
             <div class="flex items-center gap-2">
                 <a href="{{ route('listings.index') }}" class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100" aria-label="بازگشت">
                     <x-heroicon-o-arrow-right class="h-5 w-5" />
                 </a>
-                <div>
-                    <p class="text-[11px] font-bold text-primary">جزئیات محصول</p>
-                    <h1 class="mt-0.5 text-xl font-black text-neutral">آگهی موبایل</h1>
+                <div class="min-w-0">
+                    <p class="text-[11px] font-bold text-primary">آگهی</p>
+                    <h1 class="mt-0.5 truncate text-xl font-black text-neutral">{{ $listing->title }}</h1>
                 </div>
             </div>
             <span class="rounded-full bg-success/10 px-3 py-1.5 text-[10px] font-black text-success">تأییدشده</span>

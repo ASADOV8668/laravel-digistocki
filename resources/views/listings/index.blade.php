@@ -52,10 +52,18 @@
                             </div>
                         </div>
 
-                        <input type="hidden" name="brand_id" x-model="selectedBrandId" />
+                        <div>
+                            <label for="listing-brand" class="mb-1 block text-xs font-bold text-slate-600">برند</label>
+                            <select id="listing-brand" name="brand_id" x-model="selectedBrandId" @change="selectBrandId($event.target.value)" class="public-select">
+                                <option value="">همه برندها</option>
+                                @foreach ($brands as $brand)
+                                    <option value="{{ $brand->id }}">{{ $brand->name }} ({{ $brand->name_en }})</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div>
                             <label for="listing-model" class="mb-1 block text-xs font-bold text-slate-600">مدل گوشی</label>
-                            <select id="listing-model" name="phone_model_id" x-model="selectedModelId" @change="selectModelId($event.target.value)" :disabled="modelsLoading" class="public-select">
+                            <select id="listing-model" name="phone_model_id" x-model="selectedModelId" @change="selectModelId($event.target.value)" :disabled="!selectedBrandId || modelsLoading" class="public-select">
                                 <option value="">همه مدل‌ها</option>
                                 <template x-for="model in models" :key="model.id">
                                     <option :value="model.id" x-text="`${model.brand} · ${model.label}${model.secondary ? ` / ${model.secondary}` : ''}`"></option>

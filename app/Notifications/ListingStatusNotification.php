@@ -36,8 +36,7 @@ class ListingStatusNotification extends Notification
             'reason' => $this->reason,
             'status' => $this->event,
             'listing_id' => $this->listing->getKey(),
-            'listing_slug' => $this->listing->slug,
-            'url' => route('listings.show', ['listing' => $this->listing->slug]),
+            'url' => route('listings.show', ['listing' => $this->listing->id]),
         ];
     }
 }

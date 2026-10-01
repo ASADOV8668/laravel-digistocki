@@ -30,7 +30,8 @@ class PhaseOneHundredEightyOneLaravelNavigationTest extends TestCase
 
         $this->assertNotFalse($routes);
         $this->assertStringContainsString("Route::get('/', [HomeController::class, 'index'])->name('home');", $routes);
-        $this->assertStringContainsString("Route::get('/listings/{listing:slug}', [ListingController::class, 'show'])->name('listings.show');", $routes);
+        $this->assertStringContainsString("Route::get('/listings/{listing}', [ListingController::class, 'show'])->name('listings.show');", $routes);
+        $this->assertStringNotContainsString("Route::get('/listings/{listing:slug}'", $routes);
         $this->assertStringContainsString("Route::get('/', DashboardController::class)->name('admin.dashboard');", $routes);
     }
 }

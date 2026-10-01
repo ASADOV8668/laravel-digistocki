@@ -21,7 +21,7 @@ class SeoController extends Controller
                 ->latest('published_at')
                 ->get()
                 ->map(fn (Listing $listing) => [
-                    'loc' => route('listings.show', ['listing' => $listing->slug]),
+                    'loc' => route('listings.show', ['listing' => $listing->id]),
                     'lastmod' => $listing->updated_at?->toAtomString(),
                     'changefreq' => 'weekly',
                     'priority' => '0.8',
