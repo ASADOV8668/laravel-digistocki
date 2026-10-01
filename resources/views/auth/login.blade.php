@@ -13,7 +13,7 @@
             <input type="hidden" name="mobile" value="{{ $mobile }}">
             <div class="rounded-lg bg-slate-50 px-4 py-3 text-center text-sm font-bold text-slate-700" dir="ltr">{{ $mobile }}</div>
             <div><x-input-label for="password" value="رمز عبور" /><x-text-input id="password" aria-describedby="password-error" class="mt-2 block w-full" type="password" name="password" required autofocus autocomplete="current-password" /><x-input-error id="password-error" :messages="$errors->get('password')" class="mt-2" /></div>
-            <label class="flex items-center gap-2 text-xs font-bold text-slate-500"><input type="checkbox" class="rounded border-slate-300 text-primary shadow-sm focus:ring-primary" name="remember"><span>مرا به خاطر بسپار</span></label>
+            <label class="flex items-center gap-2 text-xs font-bold text-slate-500"><input type="checkbox" class="public-check" name="remember"><span>مرا به خاطر بسپار</span></label>
             <button class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-center text-sm font-medium text-white transition hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-200"><x-heroicon-o-lock-closed class="h-5 w-5" />ورود با رمز عبور</button>
         </form>
         <form method="POST" action="{{ route('login.otp.request') }}" class="mt-4">@csrf<input type="hidden" name="mobile" value="{{ $mobile }}"><button class="w-full rounded-lg border border-primary/20 bg-primary-50 px-4 py-3 text-sm font-black text-primary transition hover:bg-primary/10">ارسال رمز یکبار مصرف با پیامک</button></form>

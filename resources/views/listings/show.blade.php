@@ -212,8 +212,8 @@
                     </h2>
                     <div id="listing-report-panel" class="hidden" aria-labelledby="listing-report-heading">
                     <form method="POST" action="{{ route('listings.report', $listing) }}" class="space-y-3 border-t border-slate-100 p-5">@csrf
-                        <label for="listing-report-reason" class="sr-only">دلیل گزارش</label><select id="listing-report-reason" name="reason" required class="w-full rounded-lg border-0 bg-slate-50 text-sm border border-slate-200 focus:ring-primary"><option value="">دلیل گزارش را انتخاب کنید</option><option value="اطلاعات نادرست">اطلاعات نادرست</option><option value="آگهی تکراری">آگهی تکراری</option><option value="محتوای نامناسب">محتوای نامناسب</option><option value="فروشنده مشکوک">فروشنده مشکوک</option></select>
-                        <label for="listing-report-description" class="sr-only">توضیح تکمیلی گزارش</label><textarea id="listing-report-description" name="description" rows="3" placeholder="توضیح تکمیلی (اختیاری)" class="w-full rounded-lg border-0 bg-slate-50 text-sm border border-slate-200 focus:ring-primary"></textarea>
+                        <label for="listing-report-reason" class="sr-only">دلیل گزارش</label><select id="listing-report-reason" name="reason" required class="public-select"><option value="">دلیل گزارش را انتخاب کنید</option><option value="اطلاعات نادرست">اطلاعات نادرست</option><option value="آگهی تکراری">آگهی تکراری</option><option value="محتوای نامناسب">محتوای نامناسب</option><option value="فروشنده مشکوک">فروشنده مشکوک</option></select>
+                        <label for="listing-report-description" class="sr-only">توضیح تکمیلی گزارش</label><textarea id="listing-report-description" name="description" rows="3" placeholder="توضیح تکمیلی (اختیاری)" class="block w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30"></textarea>
                         <button class="w-full rounded-lg bg-error px-4 py-3 text-sm font-bold text-white">ثبت گزارش</button>
                     </form>
                     </div>

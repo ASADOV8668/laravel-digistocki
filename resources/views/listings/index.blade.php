@@ -25,7 +25,7 @@
                         <div class="relative">
                             <x-heroicon-o-magnifying-glass class="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                             <label for="listing-search" class="sr-only">جستجوی برند یا مدل</label>
-                            <input id="listing-search" name="q" x-model="query" @input="search" @focus="query.length >= 2 && (open = true)" @keydown.escape="open = false" type="search" autocomplete="off" placeholder="مثلاً آیفون یا iPhone 13" class="w-full rounded-lg border-0 bg-slate-50 py-3 pr-10 pl-3 text-sm border border-slate-200 focus:ring-primary" />
+                            <input id="listing-search" name="q" x-model="query" @input="search" @focus="query.length >= 2 && (open = true)" @keydown.escape="open = false" type="search" autocomplete="off" placeholder="مثلاً آیفون یا iPhone 13" class="block w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pr-10 pl-3 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30" />
                             <div x-show="open" x-cloak @click.outside="open = false" class="absolute inset-x-0 top-full z-20 mt-2 max-h-80 overflow-y-auto rounded-lg bg-white p-2 shadow-xl border border-slate-200">
                                 <div x-show="loading" class="px-3 py-3 text-xs text-slate-500">در حال جستجو...</div>
                                 <template x-if="!loading && suggestions.brands.length">
@@ -55,7 +55,7 @@
                         <input type="hidden" name="brand_id" x-model="selectedBrandId" />
                         <div>
                             <label for="listing-model" class="mb-1 block text-xs font-bold text-slate-600">مدل گوشی</label>
-                            <select id="listing-model" name="phone_model_id" x-model="selectedModelId" @change="selectModelId($event.target.value)" :disabled="modelsLoading" class="w-full rounded-lg border-0 bg-slate-50 text-sm border border-slate-200 focus:ring-primary disabled:bg-slate-100">
+                            <select id="listing-model" name="phone_model_id" x-model="selectedModelId" @change="selectModelId($event.target.value)" :disabled="modelsLoading" class="public-select">
                                 <option value="">همه مدل‌ها</option>
                                 <template x-for="model in models" :key="model.id">
                                     <option :value="model.id" x-text="`${model.brand} · ${model.label}${model.secondary ? ` / ${model.secondary}` : ''}`"></option>
@@ -67,7 +67,7 @@
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label for="listing-province" class="mb-1 block text-xs font-bold text-slate-600">استان</label>
-                                <select id="listing-province" name="province_id" x-model="provinceId" @change="loadCities()" class="w-full rounded-lg border-0 bg-slate-50 text-sm border border-slate-200 focus:ring-primary">
+                                <select id="listing-province" name="province_id" x-model="provinceId" @change="loadCities()" class="public-select">
                                     <option value="">همه استان‌ها</option>
                                     @foreach ($provinces as $province)
                                         <option value="{{ $province->id }}">{{ $province->name }}</option>
@@ -76,7 +76,7 @@
                             </div>
                             <div>
                                 <label for="listing-city" class="mb-1 block text-xs font-bold text-slate-600">شهر</label>
-                                <select id="listing-city" name="city_id" x-model="cityId" :disabled="!provinceId || citiesLoading" class="w-full rounded-lg border-0 bg-slate-50 text-sm border border-slate-200 focus:ring-primary disabled:bg-slate-100">
+                                <select id="listing-city" name="city_id" x-model="cityId" :disabled="!provinceId || citiesLoading" class="public-select">
                                     <option value="">همه شهرها</option>
                                     <template x-for="city in cities" :key="city.id">
                                         <option :value="city.id" x-text="city.name"></option>
@@ -104,7 +104,7 @@
 
                         <div>
                             <label for="listing-sort" class="mb-1 block text-xs font-bold text-slate-600">مرتب‌سازی</label>
-                            <select id="listing-sort" name="sort" x-model="sort" class="w-full rounded-lg border-0 bg-slate-50 text-sm border border-slate-200 focus:ring-primary">
+                            <select id="listing-sort" name="sort" x-model="sort" class="public-select">
                                 <option value="newest">جدیدترین</option>
                                 <option value="price_asc">ارزان‌ترین</option>
                                 <option value="price_desc">گران‌ترین</option>
@@ -123,22 +123,22 @@
                                     <label class="block text-xs font-bold text-slate-600">
                                         <span class="mb-1 block"><span x-text="attribute.name"></span><span x-show="attribute.unit" x-text="` (${attribute.unit})`" class="mr-1 text-[10px] font-normal text-slate-400"></span></span>
                                         <template x-if="attribute.type === 'boolean'">
-                                            <span class="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 font-normal border border-slate-200"><input type="checkbox" :name="`filters[${attribute.id}]`" value="1" x-model="filters[attribute.id]" class="rounded border-slate-300 text-primary focus:ring-primary" /> دارد</span>
+                                            <span class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-normal"><input type="checkbox" :name="`filters[${attribute.id}]`" value="1" x-model="filters[attribute.id]" class="public-check" /> دارد</span>
                                         </template>
                                         <template x-if="attribute.type === 'select'">
-                                            <select :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]" class="w-full rounded-lg border-0 bg-slate-50 text-sm font-normal border border-slate-200 focus:ring-primary">
+                                            <select :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]" class="public-select font-normal">
                                                 <option value="">همه</option>
                                                 <template x-for="option in attribute.options" :key="option"><option :value="option" x-text="option"></option></template>
                                             </select>
                                         </template>
                                         <template x-if="attribute.type === 'multi_select'">
-                                            <select multiple :name="`filters[${attribute.id}][]`" x-model="filters[attribute.id]" x-init="filters[attribute.id] = Array.isArray(filters[attribute.id]) ? filters[attribute.id] : (filters[attribute.id] ? [filters[attribute.id]] : [])" class="min-h-28 w-full rounded-lg border-0 bg-slate-50 text-sm font-normal border border-slate-200 focus:ring-primary">
+                                            <select multiple :name="`filters[${attribute.id}][]`" x-model="filters[attribute.id]" x-init="filters[attribute.id] = Array.isArray(filters[attribute.id]) ? filters[attribute.id] : (filters[attribute.id] ? [filters[attribute.id]] : [])" class="public-select min-h-28 font-normal">
                                                 <template x-for="option in attribute.options" :key="option"><option :value="option" x-text="option"></option></template>
                                             </select>
                                             <p class="mt-1 text-[10px] font-normal text-slate-400">برای چند انتخاب، کلید Ctrl یا لمس چندگانه را استفاده کنید.</p>
                                         </template>
                                         <template x-if="attribute.type === 'integer' || attribute.type === 'decimal'">
-                                            <input :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]" :type="attribute.type === 'integer' ? 'number' : 'number'" :step="attribute.type === 'decimal' ? '0.01' : '1'" class="w-full rounded-lg border-0 bg-slate-50 text-sm font-normal border border-slate-200 focus:ring-primary" />
+                                            <input :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]" :type="attribute.type === 'integer' ? 'number' : 'number'" :step="attribute.type === 'decimal' ? '0.01' : '1'" class="block w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30" />
                                         </template>
                                     </label>
                                 </template>
