@@ -164,6 +164,7 @@
                             $displayValue = filled($value->value_json)
                                 ? collect($value->value_json)->filter(fn ($item) => filled($item))->implode('، ')
                                 : ($value->value_string ?? $value->value_integer ?? $value->value_decimal ?? ($value->value_boolean ? 'بله' : 'خیر'));
+                            $displayValue = \App\Support\PersianNumber::digits($displayValue);
                         @endphp
                         <span class="mt-1 flex items-center gap-2 text-sm font-bold text-neutral">
                             @if ($value->attribute->slug === 'color' && filled($displayValue))

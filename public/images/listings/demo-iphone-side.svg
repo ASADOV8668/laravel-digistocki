@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
+  <title id="title">نمای کناری آیفون نمونه</title><desc id="desc">تصویر نمونه نمای کناری آیفون برای آگهی نمایشی</desc>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fef3c7"/><stop offset="1" stop-color="#ede9fe"/></linearGradient><linearGradient id="edge" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#64748b"/><stop offset="1" stop-color="#1e293b"/></linearGradient></defs>
+  <rect width="800" height="600" rx="44" fill="url(#bg)"/><ellipse cx="400" cy="510" rx="175" ry="22" fill="#475569" opacity=".2"/>
+  <path d="M350 82c0-18 14-32 32-32h36c18 0 32 14 32 32v410c0 18-14 32-32 32h-36c-18 0-32-14-32-32z" fill="url(#edge)" transform="rotate(12 400 290)"/>
+  <path d="M374 130h52M374 178h52M374 397h52" stroke="#cbd5e1" stroke-width="9" stroke-linecap="round" opacity=".8" transform="rotate(12 400 290)"/>
+  <text x="400" y="565" text-anchor="middle" font-family="Arial,sans-serif" font-size="25" font-weight="700" fill="#1e293b">iPhone 13 Pro · نمای کناری</text>
+</svg>
