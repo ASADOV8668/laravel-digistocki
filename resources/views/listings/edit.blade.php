@@ -1,7 +1,7 @@
 <x-app-layout title="ویرایش آگهی">
     <x-slot name="header"><div class="flex items-center gap-3"><a href="{{ route('dashboard') }}" class="rounded-lg bg-slate-100 p-2 text-slate-500 transition hover:bg-primary-50 hover:text-primary"><x-heroicon-o-arrow-right class="h-5 w-5" /></a><div><p class="text-xs font-bold text-primary">مدیریت آگهی</p><h1 class="mt-1 text-xl font-black text-neutral">ویرایش آگهی</h1></div></div></x-slot>
     <section class="space-y-5 px-4 py-6">
-        @if ($errors->any())<div class="flex items-start gap-3 rounded-lg border border-error/20 bg-error/10 p-4 text-sm font-bold text-error"><x-heroicon-o-exclamation-triangle class="h-5 w-5 shrink-0" /><ul class="space-y-1">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+        @if ($errors->any())<x-flowbite-alert type="danger"><ul class="space-y-1">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-flowbite-alert>@endif
         <div class="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/10 p-4 text-xs leading-6 text-neutral"><x-heroicon-o-information-circle class="mt-0.5 h-5 w-5 shrink-0 text-warning" /><span>با ذخیره تغییرات، آگهی دوباره برای بررسی ادمین ارسال می‌شود.</span></div>
         <form method="POST" action="{{ route('listings.update', $listing) }}" enctype="multipart/form-data" class="space-y-4 rounded-lg bg-white p-5 shadow-sm border border-slate-200">
             @csrf @method('PUT')

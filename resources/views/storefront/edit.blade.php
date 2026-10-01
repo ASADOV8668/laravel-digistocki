@@ -1,8 +1,8 @@
 <x-app-layout title="غرفه شما">
     <x-slot name="header"><div class="flex items-center gap-3"><span class="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-50 text-primary"><x-heroicon-o-building-storefront class="h-6 w-6" /></span><div><p class="text-xs font-bold text-primary">فروش حرفه‌ای‌تر</p><h1 class="mt-1 text-xl font-black text-neutral">غرفه شما</h1></div></div></x-slot>
     <section class="space-y-5 px-4 py-6">
-        @if (session('status'))<div class="flex items-center gap-2 rounded-lg border border-secondary/20 bg-secondary/10 p-4 text-sm font-bold text-success" role="status"><x-heroicon-o-check-circle class="h-5 w-5" />{{ session('status') }}</div>@endif
-        @if ($errors->any())<div class="rounded-lg border border-error/20 bg-error/10 p-4 text-sm font-bold text-error" role="alert"><ul class="space-y-1">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+        @if (session('status'))<x-flowbite-alert type="success">{{ session('status') }}</x-flowbite-alert>@endif
+        @if ($errors->any())<x-flowbite-alert type="danger"><ul class="space-y-1">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-flowbite-alert>@endif
         <div class="rounded-lg bg-neutral p-5 text-white"><p class="text-xs font-bold text-primary-100">ویترین اختصاصی فروشنده</p><h2 class="mt-2 text-xl font-black">آگهی‌هایتان را یکجا نمایش دهید</h2><p class="mt-2 text-xs leading-6 text-white/65">آدرس غرفه فقط یک‌بار انتخاب می‌شود و پس از ایجاد، تغییر آن فقط از طریق مدیریت امکان‌پذیر است.</p></div>
         @if ($store?->is_admin_disabled)<div class="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/10 p-4 text-sm font-bold text-amber-900"><x-heroicon-o-shield-exclamation class="mt-0.5 h-5 w-5 shrink-0" /><span>غرفه شما توسط مدیریت غیرفعال شده است و تا زمان رفع این محدودیت قابل نمایش عمومی نیست.</span></div>@endif
         <form method="POST" action="{{ route('storefront.update') }}" enctype="multipart/form-data" class="space-y-5 rounded-lg bg-white p-5 shadow-sm border border-slate-200">
