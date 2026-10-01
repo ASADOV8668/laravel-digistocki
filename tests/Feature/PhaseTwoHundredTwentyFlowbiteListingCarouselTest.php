@@ -10,11 +10,15 @@ class PhaseTwoHundredTwentyFlowbiteListingCarouselTest extends TestCase
     {
         $source = file_get_contents(resource_path('views/listings/show.blade.php'));
 
-        $this->assertStringContainsString('data-carousel="slide"', $source);
+        $this->assertStringContainsString('data-carousel="static"', $source);
+        $this->assertStringContainsString('data-listing-carousel', $source);
+        $this->assertStringContainsString('listing-gallery-modal', $source);
+        $this->assertStringContainsString('data-modal-toggle="listing-gallery-modal"', $source);
         $this->assertStringContainsString('data-carousel-item', $source);
         $this->assertStringContainsString('data-carousel-prev', $source);
         $this->assertStringContainsString('data-carousel-next', $source);
         $this->assertStringContainsString('data-carousel-slide-to', $source);
         $this->assertStringContainsString('loading="lazy"', $source);
+        $this->assertStringContainsString('initListingCarouselGestures', file_get_contents(resource_path('js/app.js')));
     }
 }

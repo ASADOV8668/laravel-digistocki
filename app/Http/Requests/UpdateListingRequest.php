@@ -21,7 +21,7 @@ class UpdateListingRequest extends FormRequest
     {
         $listing = $this->route('listing');
         $existingImages = $listing instanceof Listing ? $listing->images()->count() : 0;
-        $remainingImageSlots = max(0, 8 - $existingImages);
+        $remainingImageSlots = max(0, app(SystemOptions::class)->maxImageUploadCount() - $existingImages);
         $priceRules = ['nullable', 'integer', 'min:0'];
         if (app(SystemOptions::class)->allowContactPrice()) {
             $priceRules[] = 'required_unless:price_on_request,1';

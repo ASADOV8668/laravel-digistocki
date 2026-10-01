@@ -38,7 +38,7 @@ class StoreListingRequest extends FormRequest
             'city_id' => ['nullable', 'integer', Rule::exists('cities', 'id')->where(fn ($query) => $query->where('province_id', $this->input('province_id')))],
             'attributes' => ['nullable', 'array'],
             'attributes.*' => ['nullable'],
-            'images' => ['nullable', 'array', 'max:8'],
+            'images' => ['nullable', 'array', 'max:'.app(SystemOptions::class)->maxImageUploadCount()],
             'images.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
         ];
     }

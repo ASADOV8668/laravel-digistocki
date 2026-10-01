@@ -8,6 +8,62 @@ import './listing-attribute-repeater';
 window.Alpine = Alpine;
 window.refreshFlowbiteTooltips = () => initTooltips();
 
+const initListingCarouselGestures = () => {
+    document.querySelectorAll('[data-listing-carousel]').forEach((carousel) => {
+        if (carousel.dataset.gestureReady === 'true') return;
+
+        let startX = 0;
+        let startY = 0;
+        let moved = false;
+
+        carousel.addEventListener('touchstart', (event) => {
+            const touch = event.changedTouches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+            moved = false;
+        }, { passive: true });
+
+        carousel.addEventListener('touchmove', (event) => {
+            const touch = event.changedTouches[0];
+            moved = Math.abs(touch.clientX - startX) > 10 || Math.abs(touch.clientY - startY) > 10;
+        }, { passive: true });
+
+        carousel.addEventListener('touchend', (event) => {
+            const touch = event.changedTouches[0];
+            const deltaX = touch.clientX - startX;
+            const deltaY = touch.clientY - startY;
+            if (Math.abs(deltaX) < 45 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+
+            const instance = window.FlowbiteInstances?.getInstance('Carousel', carousel.id);
+            if (!instance) return;
+            deltaX > 0 ? instance.prev() : instance.next();
+            carousel.dataset.ignoreClick = 'true';
+            window.setTimeout(() => delete carousel.dataset.ignoreClick, 350);
+        }, { passive: true });
+
+        carousel.addEventListener('click', (event) => {
+            if (carousel.dataset.ignoreClick !== 'true') return;
+            event.preventDefault();
+            event.stopPropagation();
+            delete carousel.dataset.ignoreClick;
+        }, true);
+
+        carousel.dataset.gestureReady = 'true';
+    });
+
+    document.querySelectorAll('[data-carousel-open-index]').forEach((trigger) => {
+        if (trigger.dataset.carouselSyncReady === 'true') return;
+        trigger.addEventListener('click', () => {
+            const position = Number(trigger.dataset.carouselOpenIndex);
+            const instance = window.FlowbiteInstances?.getInstance('Carousel', 'listing-gallery-fullscreen-carousel');
+            if (instance && Number.isInteger(position)) instance.slideTo(position);
+        });
+        trigger.dataset.carouselSyncReady = 'true';
+    });
+};
+
+window.addEventListener('load', initListingCarouselGestures);
+
 window.searchSuggest = (endpoint) => ({
     endpoint,
     query: '',

@@ -55,12 +55,12 @@
             <x-flowbite-alert type="danger">{{ $errors->first() }}</x-flowbite-alert>
         @endif
 
-        <div id="listing-gallery" class="relative overflow-hidden rounded-lg bg-slate-900 p-2 shadow-xl shadow-slate-900/10" data-carousel="slide">
+        <div id="listing-gallery" class="relative touch-pan-y overflow-hidden rounded-lg bg-slate-900 p-2 shadow-xl shadow-slate-900/10" data-carousel="static" data-listing-carousel>
             @if ($listing->images->isNotEmpty())
                 <div class="relative h-64 overflow-hidden rounded-lg sm:h-96">
                     @foreach ($listing->images as $image)
                         <div class="{{ $loop->first ? '' : 'hidden' }} duration-700 ease-in-out" data-carousel-item="{{ $loop->first ? 'active' : '' }}">
-                            <img src="{{ asset('storage/'.$image->path) }}" alt="{{ $listing->title }}" class="absolute block h-full w-full object-cover" decoding="async" @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif>
+                            <button type="button" data-modal-target="listing-gallery-modal" data-modal-toggle="listing-gallery-modal" data-carousel-open-index="{{ $loop->index }}" class="block h-full w-full cursor-zoom-in focus:outline-none focus:ring-4 focus:ring-primary/40" aria-label="نمایش تصویر {{ $loop->iteration }} در حالت تمام‌صفحه"><img src="{{ asset('storage/'.$image->path) }}" alt="{{ $listing->title }}" class="absolute block h-full w-full object-cover" decoding="async" @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif></button>
                         </div>
                     @endforeach
                 </div>
@@ -83,10 +83,37 @@
                 </div>
             @endif
             <div class="pointer-events-none absolute inset-x-5 bottom-5 flex items-end justify-between gap-3 text-white">
-                <span class="rounded-full bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold backdrop-blur">{{ $listing->images->count() ?: 0 }} تصویر</span>
+                <span class="rounded-full bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold backdrop-blur">{{ \App\Support\PersianNumber::digits($listing->images->count() ?: 0) }} تصویر</span>
                 <span class="rounded-full bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold backdrop-blur">{{ number_format($listing->views_count) }} بازدید</span>
             </div>
         </div>
+
+        @if ($listing->images->isNotEmpty())
+            <div id="listing-gallery-modal" tabindex="-1" aria-hidden="true" data-modal-backdrop="dynamic" class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto">
+                <div class="relative flex min-h-full w-full items-center justify-center p-2 sm:p-5">
+                    <div class="relative h-[92vh] w-full max-w-6xl">
+                        <button type="button" data-modal-hide="listing-gallery-modal" class="absolute right-3 top-3 z-40 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50" aria-label="بستن نمایش تمام‌صفحه"><x-heroicon-o-x-mark class="h-5 w-5" /></button>
+                        <div id="listing-gallery-fullscreen-carousel" class="relative h-full touch-pan-y overflow-hidden rounded-lg bg-slate-950" data-carousel="static" data-listing-carousel>
+                            @foreach ($listing->images as $image)
+                                <div class="{{ $loop->first ? '' : 'hidden' }} duration-700 ease-in-out" data-carousel-item="{{ $loop->first ? 'active' : '' }}">
+                                    <img src="{{ asset('storage/'.$image->path) }}" alt="{{ $listing->title }}" class="absolute block h-full w-full object-contain" decoding="async" @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif>
+                                </div>
+                            @endforeach
+                            @if ($listing->images->count() > 1)
+                                <button type="button" data-carousel-prev aria-label="تصویر قبلی" class="group absolute start-4 top-1/2 z-30 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50"><x-heroicon-o-chevron-right class="h-5 w-5" /></button>
+                                <button type="button" data-carousel-next aria-label="تصویر بعدی" class="group absolute end-4 top-1/2 z-30 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/50"><x-heroicon-o-chevron-left class="h-5 w-5" /></button>
+                                <div class="absolute bottom-5 left-1/2 z-30 flex -translate-x-1/2 gap-2">
+                                    @foreach ($listing->images as $image)
+                                        <button type="button" data-carousel-slide-to="{{ $loop->index }}" aria-label="نمایش تصویر {{ $loop->iteration }}" class="h-2.5 w-2.5 rounded-full bg-white/60 transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-white/70 {{ $loop->first ? 'bg-white' : '' }}"></button>
+                                    @endforeach
+                                </div>
+                            @endif
+                            <div class="pointer-events-none absolute inset-x-5 bottom-5 z-20 flex items-end justify-between gap-3 text-white"><span class="rounded-full bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold backdrop-blur">{{ \App\Support\PersianNumber::digits($listing->images->count()) }} تصویر</span><span class="rounded-full bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold backdrop-blur">برای جابه‌جایی لمس کنید</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <div class="rounded-lg bg-white p-5 shadow-sm border border-slate-200">
             <div class="flex items-start justify-between gap-4">

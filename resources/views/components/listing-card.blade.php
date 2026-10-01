@@ -1,7 +1,6 @@
 @props(['listing'])
 @php
     $image = $listing->primaryImage ?? $listing->images->first();
-    $showStatusBadge = app(\App\Services\SystemOptions::class)->showListingStatusBadge();
     $isFavorited = filter_var($listing->is_favorited ?? false, FILTER_VALIDATE_BOOLEAN);
     $favoriteTooltipId = 'favorite-tooltip-'.$listing->id;
     $allCardAttributes = collect($listing->attributeValues ?? [])->map(function ($value) {
@@ -31,7 +30,7 @@
         </a>
         <button type="button" @click.stop.prevent="toggle" data-tooltip-target="{{ $favoriteTooltipId }}" data-tooltip-placement="left" :aria-pressed="favorited.toString()" :aria-label="favorited ? 'حذف آگهی از علاقه‌مندی‌ها' : 'افزودن آگهی به علاقه‌مندی‌ها'" class="absolute left-2 top-2 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-300 shadow-sm transition hover:text-error focus:outline-none focus:ring-4 focus:ring-primary/20" :class="favorited ? 'text-error' : 'text-slate-300'"><x-heroicon-o-heart x-show="!favorited" class="h-5 w-5" /><x-heroicon-s-heart x-show="favorited" x-cloak class="h-5 w-5 fill-current" /></button>
         <div id="{{ $favoriteTooltipId }}" role="tooltip" class="invisible absolute left-14 top-2 z-10 inline-block rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white opacity-0 shadow-sm transition-opacity"><span x-text="favorited ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'"></span><div class="tooltip-arrow" data-popper-arrow></div></div>
-        @if ($showStatusBadge)<span class="absolute right-2 top-2 rounded-full bg-neutral px-2.5 py-1.5 text-[10px] font-black text-white shadow-sm">آگهی فعال</span>@endif
+        <span class="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-neutral/90 px-2.5 py-1.5 text-[10px] font-black text-white shadow-sm" aria-label="{{ \App\Support\PersianNumber::digits($listing->images->count()) }} تصویر"><x-heroicon-o-camera class="h-3.5 w-3.5" /><span>{{ \App\Support\PersianNumber::digits($listing->images->count()) }}</span></span>
     </div>
     <a href="{{ route('listings.show', $listing) }}" class="block p-3.5">
         <h3 class="line-clamp-2 min-h-10 text-sm font-black leading-5 text-neutral">{{ $listing->title }}</h3>

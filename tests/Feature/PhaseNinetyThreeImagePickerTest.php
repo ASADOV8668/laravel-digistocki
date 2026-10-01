@@ -23,7 +23,7 @@ class PhaseNinetyThreeImagePickerTest extends TestCase
             ->get(route('listings.create'))
             ->assertOk()
             ->assertSee('imagePicker', false)
-            ->assertSee('حداکثر ۸ تصویر')
+            ->assertSee('حداکثر ۵ تصویر')
             ->assertSee('preview.url', false);
     }
 

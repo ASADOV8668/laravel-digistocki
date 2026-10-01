@@ -36,10 +36,11 @@ class PhaseTwoHundredOneListingCardInteractionTest extends TestCase
 
         Favorite::create(['user_id' => $user->id, 'listing_id' => $listing->id]);
 
-        $this->actingAs($user)->get(route('listings.index'))
+        $response = $this->actingAs($user)->get(route('listings.index'))
             ->assertOk()
             ->assertSee('حذف آگهی از علاقه‌مندی‌ها', false)
-            ->assertSee('آگهی فعال');
+            ->assertSee('تصویر');
+        $this->assertStringNotContainsString('آگهی فعال', (string) $response->getContent());
     }
 
     public function test_admin_listing_date_filter_converts_jalali_input_to_gregorian_query(): void

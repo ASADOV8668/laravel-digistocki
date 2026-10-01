@@ -385,6 +385,7 @@ class ListingController extends Controller
             'provinces' => Province::query()->orderBy('name')->get(),
             'initialModelAttributes' => $this->attributePayload($selectedModel?->attributes ?? collect()),
             'maxImageUploadMb' => $options->maxImageUploadMb(),
+            'maxImageUploadCount' => $options->maxImageUploadCount(),
             'allowContactPrice' => $options->allowContactPrice(),
         ]);
     }
@@ -406,6 +407,7 @@ class ListingController extends Controller
             'initialValues' => $listing->attributeValues->mapWithKeys(fn ($value) => [$value->attribute_id => $value->value_json ?? $value->value_string ?? $value->value_integer ?? $value->value_decimal ?? $value->value_boolean])->all(),
             'initialModelAttributes' => $this->attributePayload($attributes),
             'maxImageUploadMb' => $options->maxImageUploadMb(),
+            'maxImageUploadCount' => $options->maxImageUploadCount(),
             'allowContactPrice' => $options->allowContactPrice(),
         ]);
     }

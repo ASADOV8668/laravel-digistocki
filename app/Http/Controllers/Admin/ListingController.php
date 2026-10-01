@@ -188,6 +188,7 @@ class ListingController extends Controller
             'initialValues' => $listing ? $listing->attributeValues->mapWithKeys(fn ($value) => [$value->attribute_id => $value->value_json ?? $value->value_string ?? $value->value_integer ?? $value->value_decimal ?? $value->value_boolean])->all() : [],
             'initialModelAttributes' => $attributes->map(fn (Attribute $attribute) => ['id' => $attribute->id, 'name' => $attribute->name, 'slug' => $attribute->slug, 'type' => $attribute->type->value, 'unit' => $attribute->unit, 'options' => $attribute->options ?? [], 'is_required' => (bool) ($attribute->pivot->is_required ?? false)])->values()->all(),
             'maxImageUploadMb' => $options->maxImageUploadMb(),
+            'maxImageUploadCount' => $options->maxImageUploadCount(),
             'allowContactPrice' => $options->allowContactPrice(),
         ];
     }

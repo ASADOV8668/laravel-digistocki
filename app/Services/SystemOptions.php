@@ -15,6 +15,7 @@ class SystemOptions
         'page_title_prefix' => 'دیجی استوک',
         'title_separator' => '|',
         'max_image_upload_mb' => '5',
+        'max_image_upload_count' => '5',
         'support_office_address' => '',
         'support_email' => '',
         'support_phone' => '',
@@ -23,7 +24,6 @@ class SystemOptions
         'sms_mode' => 'test',
         'registration_mode' => 'mobile',
         'otp_expiry_minutes' => '5',
-        'show_listing_status_badge' => '1',
     ];
 
     private ?Collection $values = null;
@@ -93,6 +93,11 @@ class SystemOptions
         return min(50, $this->int('max_image_upload_mb'));
     }
 
+    public function maxImageUploadCount(): int
+    {
+        return min(20, $this->int('max_image_upload_count'));
+    }
+
     public function listingsEnabled(): bool
     {
         return $this->bool('listings_enabled');
@@ -118,11 +123,6 @@ class SystemOptions
     public function otpExpiryMinutes(): int
     {
         return min(30, max(1, (int) $this->get('otp_expiry_minutes')));
-    }
-
-    public function showListingStatusBadge(): bool
-    {
-        return $this->bool('show_listing_status_badge');
     }
 
     public function pageTitle(?string $page = null): string

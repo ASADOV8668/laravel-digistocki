@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Services\SystemOptions;
 use App\Support\PersianDate;
 use Carbon\Carbon;
 use Tests\TestCase;
@@ -19,16 +18,17 @@ class PhaseTwoHundredCardAndPersianDateTest extends TestCase
         $this->assertNull(PersianDate::parseDate('تاریخ نادرست'));
     }
 
-    public function test_listing_card_has_reference_layout_and_configurable_status_badge(): void
+    public function test_listing_card_has_reference_layout_and_image_count_badge(): void
     {
         $view = file_get_contents(resource_path('views/components/listing-card.blade.php'));
 
         $this->assertStringContainsString('favoriteToggle', $view);
         $this->assertStringContainsString('show-notification', file_get_contents(resource_path('js/app.js')));
         $this->assertStringContainsString('listing-placeholder.svg', $view);
-        $this->assertStringContainsString('آگهی فعال', $view);
+        $this->assertStringContainsString('heroicon-o-camera', $view);
+        $this->assertStringContainsString('PersianNumber::digits', $view);
         $this->assertStringContainsString('PersianDate::human', $view);
-        $this->assertTrue(app(SystemOptions::class)->showListingStatusBadge());
+        $this->assertStringNotContainsString('آگهی فعال', $view);
     }
 
     public function test_admin_filters_use_persian_datepicker_and_server_side_jalali_conversion(): void

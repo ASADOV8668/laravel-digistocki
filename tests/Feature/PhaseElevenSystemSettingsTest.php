@@ -30,13 +30,15 @@ class PhaseElevenSystemSettingsTest extends TestCase
         $this->actingAs($this->admin)->get(route('admin.settings.edit'))
             ->assertOk()
             ->assertSee('تنظیمات سیستم')
-            ->assertSee('ارسال پیامک و OTP');
+            ->assertSee('ارسال پیامک و OTP')
+            ->assertSee('max_image_upload_count', false);
 
         $this->actingAs($this->admin)->put(route('admin.settings.update'), [
             'site_title' => 'بازار موبایل',
             'page_title_prefix' => 'بازار',
             'title_separator' => '—',
             'max_image_upload_mb' => 8,
+            'max_image_upload_count' => 6,
             'support_office_address' => 'تهران، خیابان تست',
             'support_email' => 'help@example.test',
             'support_phone' => '02112345678',
@@ -46,6 +48,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
 
         $this->assertDatabaseHas('options', ['key' => 'site_title', 'value' => 'بازار موبایل']);
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_mb', 'value' => '8']);
+        $this->assertDatabaseHas('options', ['key' => 'max_image_upload_count', 'value' => '6']);
         $this->assertDatabaseHas('options', ['key' => 'otp_expiry_minutes', 'value' => '7']);
         $this->assertDatabaseHas('options', ['key' => 'registration_mode', 'value' => 'mobile']);
         $this->get(route('home'))->assertOk()->assertSee('<title>بازار — خانه</title>', false);
