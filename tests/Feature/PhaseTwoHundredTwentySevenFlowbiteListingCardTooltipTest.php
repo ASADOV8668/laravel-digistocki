@@ -6,14 +6,15 @@ use Tests\TestCase;
 
 class PhaseTwoHundredTwentySevenFlowbiteListingCardTooltipTest extends TestCase
 {
-    public function test_listing_card_favorite_control_uses_flowbite_tooltip_and_red_active_state(): void
+    public function test_listing_card_favorite_control_has_no_tooltip_and_guest_toast_hook(): void
     {
         $card = file_get_contents(resource_path('views/components/listing-card.blade.php'));
 
-        $this->assertStringContainsString('data-tooltip-target="{{ $favoriteTooltipId }}"', $card);
-        $this->assertStringContainsString('data-tooltip-placement="left"', $card);
-        $this->assertStringContainsString('role="tooltip"', $card);
+        $this->assertStringNotContainsString('data-tooltip-target=', $card);
+        $this->assertStringNotContainsString('favoriteTooltipId', $card);
+        $this->assertStringContainsString('@click.stop.prevent="toggle"', $card);
         $this->assertStringContainsString("favorited ? 'text-error'", $card);
-        $this->assertStringContainsString("favorited ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'", $card);
+        $this->assertStringContainsString("favorited ? 'حذف آگهی از علاقه‌مندی‌ها' : 'افزودن آگهی به علاقه‌مندی‌ها'", $card);
+        $this->assertStringContainsString('برای افزودن آگهی به علاقه‌مندی‌ها باید وارد سایت شوید.', file_get_contents(resource_path('js/app.js')));
     }
 }

@@ -3,10 +3,9 @@
 
 <header class="sticky top-0 z-30 border-b border-slate-100 bg-white/95 backdrop-blur">
     <div class="flex h-16 items-center justify-between px-4">
-        <button type="button" data-drawer-target="public-sidebar" data-drawer-show="public-sidebar" data-drawer-placement="left" data-tooltip-target="public-menu-tooltip" data-tooltip-placement="bottom" aria-controls="public-sidebar" aria-label="باز کردن منو" class="rounded-lg p-2 text-neutral transition-all duration-300 hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20">
+        <button type="button" data-drawer-target="public-sidebar" data-drawer-show="public-sidebar" data-drawer-placement="left" aria-controls="public-sidebar" aria-label="باز کردن منو" class="rounded-lg p-2 text-neutral transition-all duration-300 hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20">
             <x-heroicon-o-bars-3 class="h-6 w-6" />
         </button>
-        <div id="public-menu-tooltip" role="tooltip" class="invisible absolute z-10 rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white opacity-0 shadow-sm">باز کردن منو<div class="tooltip-arrow" data-popper-arrow></div></div>
 
         <a href="{{ route('home') }}" aria-label="{{ $siteTitle }}" class="mx-auto inline-flex items-center justify-center rounded-lg p-1">
             <img src="{{ asset('images/logo.png') }}" alt="{{ $siteTitle }}" class="h-10 w-10 object-contain" />
@@ -14,10 +13,9 @@
 
         <div class="flex items-center gap-1">
             @if ($showBack)
-                <button type="button" onclick="history.back()" data-tooltip-target="public-back-tooltip" data-tooltip-placement="bottom" aria-label="بازگشت" class="rounded-lg p-2 text-neutral transition-all duration-300 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-primary/20">
+                <button type="button" onclick="history.back()" aria-label="بازگشت" class="rounded-lg p-2 text-neutral transition-all duration-300 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-primary/20">
                     <x-heroicon-o-arrow-left class="h-6 w-6" />
                 </button>
-                <div id="public-back-tooltip" role="tooltip" class="invisible absolute z-10 rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white opacity-0 shadow-sm">بازگشت<div class="tooltip-arrow" data-popper-arrow></div></div>
             @else
                 <a href="{{ auth()->check() ? route('notifications.index') : route('login') }}" data-tooltip-target="public-notifications-tooltip" data-tooltip-placement="bottom" aria-label="اعلان‌ها" class="relative rounded-lg p-2 text-neutral transition-all duration-300 hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20">
                     <x-heroicon-o-bell class="h-5 w-5" />

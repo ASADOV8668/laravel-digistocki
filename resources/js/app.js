@@ -951,7 +951,7 @@ window.favoriteToggle = (endpoint, initialFavorited = false, authenticated = fal
 
     toggle() {
         if (!this.authenticated) {
-            window.dispatchEvent(new CustomEvent('show-notification', { detail: { title: 'ورود لازم است', message: 'برای افزودن آگهی به علاقه‌مندی‌ها ابتدا وارد حساب کاربری شوید.', tone: 'info' } }));
+            window.dispatchEvent(new CustomEvent('show-notification', { detail: { title: 'ورود لازم است', message: 'برای افزودن آگهی به علاقه‌مندی‌ها باید وارد سایت شوید.', tone: 'info' } }));
 
             return;
         }

@@ -2,7 +2,6 @@
 @php
     $image = $listing->primaryImage ?? $listing->images->first();
     $isFavorited = filter_var($listing->is_favorited ?? false, FILTER_VALIDATE_BOOLEAN);
-    $favoriteTooltipId = 'favorite-tooltip-'.$listing->id;
     $allCardAttributes = collect($listing->attributeValues ?? [])->map(function ($value) {
         $raw = $value->value_json ?? $value->value_string ?? $value->value_integer ?? $value->value_decimal;
         if ($raw === null && $value->value_boolean !== null) {
@@ -28,8 +27,7 @@
         <a href="{{ route('listings.show', $listing) }}" class="block">
             <img src="{{ $image ? asset('storage/'.($image->thumbnail_path ?: $image->path)) : asset('images/listing-placeholder.svg') }}" alt="{{ $image ? $listing->title : 'تصویر پیش‌فرض آگهی موبایل' }}" class="h-40 w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" decoding="async">
         </a>
-        <button type="button" @click.stop.prevent="toggle" data-tooltip-target="{{ $favoriteTooltipId }}" data-tooltip-placement="left" :aria-pressed="favorited.toString()" :aria-label="favorited ? 'حذف آگهی از علاقه‌مندی‌ها' : 'افزودن آگهی به علاقه‌مندی‌ها'" class="absolute left-2 top-2 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-300 shadow-sm transition hover:text-error focus:outline-none focus:ring-4 focus:ring-primary/20" :class="favorited ? 'text-error' : 'text-slate-300'"><x-heroicon-o-heart x-show="!favorited" class="h-5 w-5" /><x-heroicon-s-heart x-show="favorited" x-cloak class="h-5 w-5 fill-current" /></button>
-        <div id="{{ $favoriteTooltipId }}" role="tooltip" class="invisible absolute left-14 top-2 z-10 inline-block rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white opacity-0 shadow-sm transition-opacity"><span x-text="favorited ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'"></span><div class="tooltip-arrow" data-popper-arrow></div></div>
+        <button type="button" @click.stop.prevent="toggle" :aria-pressed="favorited.toString()" :aria-label="favorited ? 'حذف آگهی از علاقه‌مندی‌ها' : 'افزودن آگهی به علاقه‌مندی‌ها'" class="absolute left-2 top-2 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-300 shadow-sm transition hover:text-error focus:outline-none focus:ring-4 focus:ring-primary/20" :class="favorited ? 'text-error' : 'text-slate-300'"><x-heroicon-o-heart x-show="!favorited" class="h-5 w-5" /><x-heroicon-s-heart x-show="favorited" x-cloak class="h-5 w-5 fill-current" /></button>
         <span class="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-neutral/90 px-2.5 py-1.5 text-[10px] font-black text-white shadow-sm" aria-label="{{ \App\Support\PersianNumber::digits($listing->images->count()) }} تصویر"><x-heroicon-o-camera class="h-3.5 w-3.5" /><span>{{ \App\Support\PersianNumber::digits($listing->images->count()) }}</span></span>
     </div>
     <a href="{{ route('listings.show', $listing) }}" class="block p-3.5">

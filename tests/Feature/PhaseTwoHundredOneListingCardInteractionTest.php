@@ -33,6 +33,7 @@ class PhaseTwoHundredOneListingCardInteractionTest extends TestCase
             ->assertOk()
             ->assertSee('favoriteToggle', false);
         $this->assertStringContainsString('ورود لازم است', file_get_contents(resource_path('js/app.js')));
+        $this->assertStringContainsString('برای افزودن آگهی به علاقه‌مندی‌ها باید وارد سایت شوید.', file_get_contents(resource_path('js/app.js')));
 
         Favorite::create(['user_id' => $user->id, 'listing_id' => $listing->id]);
 
