@@ -1,6 +1,6 @@
 <section class="space-y-6">
     <header class="flex items-start gap-3">
-        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
             <x-heroicon-o-trash class="h-5 w-5" />
         </span>
         <div>

@@ -30,7 +30,7 @@
 <x-app-layout :title="$store->name">
     <x-slot name="header">
         <div class="flex items-center gap-3">
-            <a href="{{ route('listings.index') }}" class="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100" aria-label="بازگشت">
+            <a href="{{ route('listings.index') }}" class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100" aria-label="بازگشت">
                 <x-heroicon-o-arrow-right class="h-5 w-5" />
             </a>
             <div>
@@ -44,9 +44,9 @@
         <div class="overflow-hidden rounded-[2rem] bg-neutral p-5 text-white shadow-xl shadow-slate-900/10">
             <div class="flex items-start gap-4">
                 @if ($store->logo_path)
-                    <img src="{{ asset('storage/'.$store->logo_path) }}" alt="{{ $store->name }}" class="h-20 w-20 rounded-3xl bg-white object-cover p-1">
+                    <img src="{{ asset('storage/'.$store->logo_path) }}" alt="{{ $store->name }}" class="h-20 w-20 rounded-lg bg-white object-cover p-1">
                 @else
-                    <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-primary text-3xl font-black">{{ mb_substr($store->name, 0, 1) }}</div>
+                    <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg bg-primary text-3xl font-black">{{ mb_substr($store->name, 0, 1) }}</div>
                 @endif
                 <div class="min-w-0">
                     <p class="text-xs font-bold text-primary-100">فروشگاه فعال</p>
@@ -70,8 +70,8 @@
                 </div>
             @endif
             <div x-data="shareLink(@js(route('storefront.show', $store)))" class="mt-5 flex flex-wrap gap-2 border-t border-white/10 pt-4">
-                <button type="button" @click="share()" class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-black text-white transition hover:bg-primary-600"><x-heroicon-o-share class="h-4 w-4" />اشتراک‌گذاری غرفه</button>
-                <button type="button" @click="copy()" class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/15"><x-heroicon-o-clipboard-document class="h-4 w-4" /><span x-text="copied ? 'لینک کپی شد' : 'کپی لینک'">کپی لینک</span></button>
+                <button type="button" @click="share()" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-black text-white transition hover:bg-primary-600"><x-heroicon-o-share class="h-4 w-4" />اشتراک‌گذاری غرفه</button>
+                <button type="button" @click="copy()" class="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/15"><x-heroicon-o-clipboard-document class="h-4 w-4" /><span x-text="copied ? 'لینک کپی شد' : 'کپی لینک'">کپی لینک</span></button>
             </div>
         </div>
 
@@ -85,8 +85,8 @@
             </div>
             <form method="GET" class="mb-4 flex gap-2">
                 <label for="storefront-search" class="sr-only">جستجو در آگهی‌های غرفه</label>
-                <input id="storefront-search" name="q" value="{{ request('q') }}" placeholder="جستجو در آگهی‌های این غرفه" class="min-w-0 flex-1 rounded-2xl border-0 bg-white text-sm ring-1 ring-slate-100 focus:ring-primary">
-                <button class="rounded-2xl bg-neutral px-4 py-3 text-xs font-black text-white"><x-heroicon-o-magnifying-glass class="h-4 w-4" /></button>
+                <input id="storefront-search" name="q" value="{{ request('q') }}" placeholder="جستجو در آگهی‌های این غرفه" class="min-w-0 flex-1 rounded-lg border-0 bg-white text-sm border border-slate-200 focus:ring-primary">
+                <button class="rounded-lg bg-neutral px-4 py-3 text-xs font-black text-white"><x-heroicon-o-magnifying-glass class="h-4 w-4" /></button>
             </form>
             @if ($listings->isNotEmpty())
                 <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -96,7 +96,7 @@
                 </div>
                 <div class="pt-2">{{ $listings->links() }}</div>
             @else
-                <div class="rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-100">
+                <div class="rounded-lg bg-white p-8 text-center shadow-sm border border-slate-200">
                     <x-heroicon-o-device-phone-mobile class="mx-auto h-12 w-12 text-slate-300" />
                     <p class="mt-3 text-sm font-bold text-slate-500">این غرفه هنوز آگهی فعالی ندارد.</p>
                 </div>

@@ -35,7 +35,7 @@
     <x-slot name="header">
         <div class="flex items-center justify-between gap-3">
             <div class="flex items-center gap-2">
-                <a href="{{ route('listings.index') }}" class="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100" aria-label="بازگشت">
+                <a href="{{ route('listings.index') }}" class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100" aria-label="بازگشت">
                     <x-heroicon-o-arrow-right class="h-5 w-5" />
                 </a>
                 <div>
@@ -49,20 +49,20 @@
 
     <section class="space-y-5 px-4 py-6">
         @if (session('status'))
-            <div class="flex items-center gap-2 rounded-2xl bg-secondary/10 p-3 text-sm font-bold text-success" role="status">
+            <div class="flex items-center gap-2 rounded-lg bg-secondary/10 p-3 text-sm font-bold text-success" role="status">
                 <x-heroicon-o-check-circle class="h-5 w-5 shrink-0" />
                 {{ session('status') }}
             </div>
         @endif
         @if ($errors->any())
-            <div class="rounded-2xl bg-error/10 p-3 text-sm font-bold text-error" role="alert">{{ $errors->first() }}</div>
+            <div class="rounded-lg bg-error/10 p-3 text-sm font-bold text-error" role="alert">{{ $errors->first() }}</div>
         @endif
 
         <div class="relative overflow-hidden rounded-[2rem] bg-slate-900 p-2 shadow-xl shadow-slate-900/10">
             @if ($listing->images->isNotEmpty())
                 <div class="grid grid-cols-2 gap-2">
                     @foreach ($listing->images as $image)
-                        <img src="{{ asset('storage/'.$image->path) }}" alt="{{ $listing->title }}" class="h-36 w-full rounded-2xl object-cover first:col-span-2 first:h-64" decoding="async" @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif>
+                        <img src="{{ asset('storage/'.$image->path) }}" alt="{{ $listing->title }}" class="h-36 w-full rounded-lg object-cover first:col-span-2 first:h-64" decoding="async" @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif>
                     @endforeach
                 </div>
             @else
@@ -76,7 +76,7 @@
             </div>
         </div>
 
-        <div class="rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <div class="rounded-[2rem] bg-white p-5 shadow-sm border border-slate-200">
             <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
@@ -88,18 +88,18 @@
                 @auth
                     <form method="POST" action="{{ route('listings.favorite.toggle', $listing) }}" class="shrink-0">
                         @csrf
-                        <button type="submit" title="{{ $isFavorited ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها' }}" class="rounded-2xl {{ $isFavorited ? 'bg-primary text-white' : 'bg-primary-50 text-primary' }} p-3 transition hover:scale-105">
+                        <button type="submit" title="{{ $isFavorited ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها' }}" class="rounded-lg {{ $isFavorited ? 'bg-primary text-white' : 'bg-primary-50 text-primary' }} p-3 transition hover:scale-105">
                             <x-heroicon-o-heart class="h-6 w-6" />
                         </button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" title="ورود برای ذخیره آگهی" class="shrink-0 rounded-2xl bg-primary-50 p-3 text-primary transition hover:scale-105">
+                    <a href="{{ route('login') }}" title="ورود برای ذخیره آگهی" class="shrink-0 rounded-lg bg-primary-50 p-3 text-primary transition hover:scale-105">
                         <x-heroicon-o-heart class="h-6 w-6" />
                     </a>
                 @endauth
             </div>
 
-            <div class="mt-6 flex items-end justify-between gap-3 rounded-2xl bg-slate-50 p-4">
+            <div class="mt-6 flex items-end justify-between gap-3 rounded-lg bg-slate-50 p-4">
                 <div>
                     <p class="text-[11px] font-bold text-slate-400">قیمت پیشنهادی</p>
                     <p class="mt-1 text-2xl font-black text-primary">{{ $listing->price_on_request ? 'تماس بگیرید' : number_format($listing->price).' تومان' }}</p>
@@ -121,14 +121,14 @@
             @auth
                 <div class="mt-5 flex flex-wrap gap-2">
                     @if (auth()->user()->can('update', $listing))
-                        <a href="{{ route('listings.edit', $listing) }}" class="inline-flex items-center gap-2 rounded-xl bg-primary/10 px-4 py-2.5 text-sm font-bold text-primary transition hover:bg-primary/15">
+                        <a href="{{ route('listings.edit', $listing) }}" class="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-4 py-2.5 text-sm font-bold text-primary transition hover:bg-primary/15">
                             <x-heroicon-o-pencil-square class="h-4 w-4" /> ویرایش آگهی
                         </a>
                     @endif
                     @if (auth()->user()->can('markSold', $listing))
                         <form method="POST" action="{{ route('listings.sold', $listing) }}">
                             @csrf @method('PATCH')
-                            <button class="inline-flex items-center gap-2 rounded-xl bg-secondary/10 px-4 py-2.5 text-sm font-bold text-success transition hover:bg-secondary/15">
+                            <button class="inline-flex items-center gap-2 rounded-lg bg-secondary/10 px-4 py-2.5 text-sm font-bold text-success transition hover:bg-secondary/15">
                                 <x-heroicon-o-check-badge class="h-4 w-4" /> علامت‌گذاری به‌عنوان فروخته‌شده
                             </button>
                         </form>
@@ -137,16 +137,16 @@
             @endauth
         </div>
 
-        <div class="rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <div class="rounded-[2rem] bg-white p-5 shadow-sm border border-slate-200">
             <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary"><x-heroicon-o-information-circle class="h-5 w-5" /></span>
+                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><x-heroicon-o-information-circle class="h-5 w-5" /></span>
                     <div><h3 class="font-black text-neutral">مشخصات دستگاه</h3><p class="text-[11px] text-slate-400">اطلاعات ثبت‌شده برای این محصول</p></div>
                 </div>
             </div>
             <div class="mt-4 grid grid-cols-2 gap-2">
                 @forelse ($listing->attributeValues as $value)
-                    <div class="rounded-2xl bg-slate-50 p-3">
+                    <div class="rounded-lg bg-slate-50 p-3">
                         <span class="block text-[11px] text-slate-500">{{ $value->attribute->name }}</span>
                         @php
                             $displayValue = filled($value->value_json)
@@ -156,7 +156,7 @@
                         <span class="mt-1 block text-sm font-bold text-neutral">{{ $displayValue ?: 'ثبت نشده' }}</span>
                     </div>
                 @empty
-                    <p class="col-span-2 rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">مشخصات تکمیلی ثبت نشده است.</p>
+                    <p class="col-span-2 rounded-lg bg-slate-50 p-4 text-sm text-slate-500">مشخصات تکمیلی ثبت نشده است.</p>
                 @endforelse
             </div>
         </div>
@@ -175,28 +175,28 @@
             </div>
             <div class="mt-5 border-t border-white/10 pt-4">
                 @if ($contactRevealed)
-                    <a href="tel:{{ $listing->user->mobile }}" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-secondary px-4 py-4 text-sm font-black text-white transition hover:bg-secondary/90"><x-heroicon-o-phone class="h-5 w-5" /> {{ $listing->user->mobile }}</a>
+                    <a href="tel:{{ $listing->user->mobile }}" class="flex w-full items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-4 text-sm font-black text-white transition hover:bg-secondary/90"><x-heroicon-o-phone class="h-5 w-5" /> {{ $listing->user->mobile }}</a>
                 @elseif (auth()->check())
                     <p class="mb-3 text-xs leading-6 text-white/60">برای حفظ امنیت، شماره تماس بعد از تأیید شماره موبایل شما نمایش داده می‌شود.</p>
-                    <form method="POST" action="{{ route('listings.contact-otp', $listing) }}">@csrf<button class="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3.5 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-shield-check class="h-5 w-5" /> دریافت کد تأیید</button></form>
+                    <form method="POST" action="{{ route('listings.contact-otp', $listing) }}">@csrf<button class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3.5 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-shield-check class="h-5 w-5" /> دریافت کد تأیید</button></form>
                     @if (session('contact_otp_listing_id') == $listing->id)
-                        <form method="POST" action="{{ route('listings.contact-otp.verify', $listing) }}" class="mt-3 flex gap-2">@csrf<label for="listing-contact-otp" class="sr-only">کد پنج رقمی تأیید شماره تماس</label><input id="listing-contact-otp" name="otp" inputmode="numeric" maxlength="5" placeholder="کد ۵ رقمی" class="min-w-0 flex-1 rounded-2xl border-0 bg-white text-center text-sm text-neutral placeholder:text-slate-400 focus:ring-2 focus:ring-primary"><button class="rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral">تأیید</button></form>
+                        <form method="POST" action="{{ route('listings.contact-otp.verify', $listing) }}" class="mt-3 flex gap-2">@csrf<label for="listing-contact-otp" class="sr-only">کد پنج رقمی تأیید شماره تماس</label><input id="listing-contact-otp" name="otp" inputmode="numeric" maxlength="5" placeholder="کد ۵ رقمی" class="min-w-0 flex-1 rounded-lg border-0 bg-white text-center text-sm text-neutral placeholder:text-slate-400 focus:ring-2 focus:ring-primary"><button class="rounded-lg bg-white px-4 py-3 text-sm font-black text-neutral">تأیید</button></form>
                         <p class="mt-2 text-[11px] text-white/50">کد ۵ دقیقه اعتبار دارد.</p>
                     @endif
                 @else
-                    <a href="{{ route('login') }}" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3.5 text-sm font-black text-neutral"><x-heroicon-o-lock-closed class="h-5 w-5" /> ورود برای مشاهده شماره تماس</a>
+                    <a href="{{ route('login') }}" class="flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-3.5 text-sm font-black text-neutral"><x-heroicon-o-lock-closed class="h-5 w-5" /> ورود برای مشاهده شماره تماس</a>
                 @endif
             </div>
         </div>
 
         @auth
             @if (! $listing->isOwnedBy(auth()->user()))
-                <details class="rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-slate-100">
+                <details class="rounded-[2rem] bg-white p-5 shadow-sm border border-slate-200">
                     <summary class="cursor-pointer list-none text-sm font-black text-neutral"><span class="flex items-center gap-2"><x-heroicon-o-flag class="h-5 w-5 text-error" /> گزارش مشکل در این آگهی</span></summary>
                     <form method="POST" action="{{ route('listings.report', $listing) }}" class="mt-4 space-y-3 border-t border-slate-100 pt-4">@csrf
-                        <label for="listing-report-reason" class="sr-only">دلیل گزارش</label><select id="listing-report-reason" name="reason" required class="w-full rounded-2xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary"><option value="">دلیل گزارش را انتخاب کنید</option><option value="اطلاعات نادرست">اطلاعات نادرست</option><option value="آگهی تکراری">آگهی تکراری</option><option value="محتوای نامناسب">محتوای نامناسب</option><option value="فروشنده مشکوک">فروشنده مشکوک</option></select>
-                        <label for="listing-report-description" class="sr-only">توضیح تکمیلی گزارش</label><textarea id="listing-report-description" name="description" rows="3" placeholder="توضیح تکمیلی (اختیاری)" class="w-full rounded-2xl border-0 bg-slate-50 text-sm ring-1 ring-slate-100 focus:ring-primary"></textarea>
-                        <button class="w-full rounded-2xl bg-error px-4 py-3 text-sm font-bold text-white">ثبت گزارش</button>
+                        <label for="listing-report-reason" class="sr-only">دلیل گزارش</label><select id="listing-report-reason" name="reason" required class="w-full rounded-lg border-0 bg-slate-50 text-sm border border-slate-200 focus:ring-primary"><option value="">دلیل گزارش را انتخاب کنید</option><option value="اطلاعات نادرست">اطلاعات نادرست</option><option value="آگهی تکراری">آگهی تکراری</option><option value="محتوای نامناسب">محتوای نامناسب</option><option value="فروشنده مشکوک">فروشنده مشکوک</option></select>
+                        <label for="listing-report-description" class="sr-only">توضیح تکمیلی گزارش</label><textarea id="listing-report-description" name="description" rows="3" placeholder="توضیح تکمیلی (اختیاری)" class="w-full rounded-lg border-0 bg-slate-50 text-sm border border-slate-200 focus:ring-primary"></textarea>
+                        <button class="w-full rounded-lg bg-error px-4 py-3 text-sm font-bold text-white">ثبت گزارش</button>
                     </form>
                 </details>
             @endif

@@ -36,7 +36,7 @@
                 x-cloak
                 x-show="!online"
                 x-transition
-                class="fixed inset-x-4 top-3 z-[60] mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-warning/30 bg-warning-50 px-4 py-3 text-sm font-bold text-amber-900 shadow-lg"
+                class="fixed inset-x-4 top-3 z-[60] mx-auto flex max-w-md items-center gap-3 rounded-lg border border-warning/30 bg-warning-50 px-4 py-3 text-sm font-bold text-amber-900 shadow-lg"
                 role="status"
                 aria-live="polite"
             >
@@ -51,10 +51,10 @@
                 x-init="init()"
                 x-cloak
                 x-show="(canInstall || isIos) && !installed && !dismissed"
-                class="mx-4 mt-3 rounded-2xl border border-primary/20 bg-primary-50 p-4 shadow-sm"
+                class="mx-4 mt-3 rounded-lg border border-primary/20 bg-primary-50 p-4 shadow-sm"
             >
                 <div class="flex items-start gap-3">
-                    <img src="{{ asset('images/logo-192.png') }}" alt="" class="h-12 w-12 rounded-2xl">
+                    <img src="{{ asset('images/logo-192.png') }}" alt="" class="h-12 w-12 rounded-lg">
                     <div class="min-w-0 flex-1">
                         <p class="font-black text-neutral">{{ $systemOptions->get('site_title') }} را به صفحه اصلی اضافه کن</p>
                         <p x-show="!isIos" class="mt-1 text-xs leading-6 text-slate-600">برای دسترسی سریع‌تر و تجربه‌ای شبیه اپلیکیشن.</p>
@@ -66,7 +66,7 @@
                             <button x-show="isIos" type="button" @click="dismiss()" class="mobile-button bg-primary text-white">
                                 متوجه شدم
                             </button>
-                            <button type="button" @click="dismiss()" class="mobile-button bg-white text-slate-600 ring-1 ring-slate-200">
+                            <button type="button" @click="dismiss()" class="mobile-button bg-white text-slate-600 border border-slate-200">
                                 بعداً
                             </button>
                         </div>
