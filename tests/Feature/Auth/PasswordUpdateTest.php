@@ -48,4 +48,25 @@ class PasswordUpdateTest extends TestCase
             ->assertSessionHasErrorsIn('updatePassword', 'current_password')
             ->assertRedirect('/profile');
     }
+
+    public function test_first_password_setup_uses_the_session_flag_without_current_password(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->withSession(['password_setup_available' => true])
+            ->from('/profile')
+            ->put('/password', [
+                'password' => 'new-password',
+                'password_confirmation' => 'new-password',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
+
+        $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+        $this->assertFalse(session()->has('password_setup_available'));
+    }
 }
