@@ -22,6 +22,7 @@ class ListingRules
     {
         return $user->is_active
             && $user->can_post_listings
+            && $this->hasStoreApplication($user)
             && app(SystemOptions::class)->listingsEnabled()
             && $this->activeCount($user) < self::MAX_ACTIVE_LISTINGS;
     }
@@ -30,8 +31,16 @@ class ListingRules
     {
         return $user->is_active
             && $user->can_post_listings
+            && $this->hasStoreApplication($user)
             && app(SystemOptions::class)->listingsEnabled()
             && $this->activeCount($user) < self::MAX_ACTIVE_LISTINGS;
+    }
+
+    private function hasStoreApplication(User $user): bool
+    {
+        return $user->relationLoaded('storefront')
+            ? $user->storefront !== null
+            : $user->storefront()->exists();
     }
 
     public function hasRecentDuplicate(User $user, int $brandId, int $phoneModelId, ?CarbonInterface $since = null, ?int $exceptListingId = null): bool

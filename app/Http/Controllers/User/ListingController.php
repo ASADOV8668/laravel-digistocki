@@ -425,6 +425,10 @@ class ListingController extends Controller
     public function create(Request $request, ListingRules $rules, SystemOptions $options)
     {
         if (! $rules->canCreate(auth()->user())) {
+            if (! auth()->user()->storefront()->exists()) {
+                return redirect()->route('storefront.edit')->with('status', 'برای ثبت آگهی، ابتدا درخواست فروشگاه خود را ثبت کنید.');
+            }
+
             return redirect()->route('home')->with('status', 'در حال حاضر امکان ثبت آگهی برای حساب شما فعال نیست.');
         }
         $cloneListing = $request->filled('clone')
