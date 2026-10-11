@@ -4,7 +4,9 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Listing;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 
 class NotificationController extends Controller
 {
@@ -36,16 +38,30 @@ class NotificationController extends Controller
         ]);
     }
 
-    public function markAsRead(Request $request, string $notification)
+    public function markAsRead(Request $request, string $notification): RedirectResponse|JsonResponse
     {
         $request->user()->notifications()->whereKey($notification)->firstOrFail()->markAsRead();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'اعلان خوانده‌شده علامت خورد.',
+                'unread_count' => $request->user()->unreadNotifications()->count(),
+            ]);
+        }
 
         return back()->with('status', 'اعلان خوانده‌شده علامت خورد.');
     }
 
-    public function markAllAsRead(Request $request)
+    public function markAllAsRead(Request $request): RedirectResponse|JsonResponse
     {
         $request->user()->unreadNotifications()->update(['read_at' => now()]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'همه اعلان‌ها خوانده‌شده علامت خوردند.',
+                'unread_count' => 0,
+            ]);
+        }
 
         return back()->with('status', 'همه اعلان‌ها خوانده‌شده علامت خوردند.');
     }

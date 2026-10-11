@@ -1351,4 +1351,66 @@ window.toastNotifications = () => ({
     },
 });
 
+const updateUnreadNotificationBadges = (count) => {
+    document.querySelectorAll('[data-unread-notifications-badge]').forEach((badge) => {
+        const value = Number(count) || 0;
+        badge.textContent = value > 9 ? '۹+' : String(value).replace(/\d/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'[digit]);
+        badge.setAttribute('aria-label', `${value} اعلان خوانده‌نشده`);
+        badge.classList.toggle('hidden', value === 0);
+    });
+};
+
+const markNotificationReadInDom = (article) => {
+    if (!article) return;
+    article.classList.remove('border-primary/20', 'bg-primary-50');
+    article.classList.add('border-slate-200', 'bg-white');
+    const icon = article.querySelector('div.flex.items-start > span');
+    icon?.classList.remove('bg-primary', 'text-white');
+    icon?.classList.add('bg-slate-100', 'text-slate-400');
+    article.querySelector('[data-notification-unread]')?.remove();
+    article.querySelector('[data-notification-read]')?.remove();
+};
+
+document.addEventListener('submit', async (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || event.defaultPrevented) return;
+
+    const readAll = form.matches('[data-notifications-read-all]');
+    const readOne = form.matches('[data-notification-read]');
+    if (!readAll && !readOne) return;
+
+    event.preventDefault();
+    const button = form.querySelector('button[type="submit"], button:not([type])');
+    if (button?.disabled) return;
+    if (button) button.disabled = true;
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
+            body: new FormData(form),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || 'تغییر وضعیت اعلان انجام نشد؛ دوباره تلاش کنید.');
+
+        if (readAll) {
+            document.querySelectorAll('[data-notification-id]').forEach(markNotificationReadInDom);
+            form.remove();
+        } else {
+            markNotificationReadInDom(form.closest('[data-notification-id]'));
+        }
+
+        updateUnreadNotificationBadges(data.unread_count);
+        window.dispatchEvent(new CustomEvent('show-notification', { detail: { title: 'اعلان‌ها به‌روزرسانی شد', message: data.message, tone: 'success' } }));
+    } catch (error) {
+        window.dispatchEvent(new CustomEvent('show-notification', { detail: { title: 'خطا در عملیات اعلان', message: error.message || 'دوباره تلاش کنید.', tone: 'error' } }));
+    } finally {
+        if (button) button.disabled = false;
+    }
+});
+
 Alpine.start();
