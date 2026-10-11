@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\SystemOptions;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 
 class SettingsController extends Controller
 {
@@ -13,7 +15,7 @@ class SettingsController extends Controller
         return view('admin.settings.index', ['settings' => $options->all()]);
     }
 
-    public function update(Request $request, SystemOptions $options)
+    public function update(Request $request, SystemOptions $options): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'site_title' => ['required', 'string', 'max:100'],
@@ -49,6 +51,15 @@ class SettingsController extends Controller
             'listing_duplicate_cooldown_hours' => [(int) ($validated['listing_duplicate_cooldown_hours'] ?? $options->listingDuplicateCooldownHours()), 'integer'],
         ]);
 
-        return back()->with('status', 'تنظیمات سیستم ذخیره شد.');
+        $message = 'تنظیمات سیستم ذخیره شد.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'settings' => $options->all(),
+            ]);
+        }
+
+        return back()->with('status', $message);
     }
 }

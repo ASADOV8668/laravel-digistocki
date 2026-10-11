@@ -33,6 +33,55 @@ const adminStatusClasses = {
     expired: 'bg-slate-100 text-slate-500',
 };
 
+const showAdminSettingsFeedback = (form, message, tone = 'success') => {
+    const feedback = form.querySelector('[data-admin-settings-feedback]');
+    if (!feedback) return;
+    feedback.className = 'rounded-2xl border px-4 py-3 text-sm font-bold ' + (tone === 'error' ? 'border-error/20 bg-error/10 text-error' : 'border-success/20 bg-success/10 text-success');
+    feedback.textContent = message;
+};
+
+document.addEventListener('submit', async (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || event.defaultPrevented || !form.matches('[data-admin-settings-form]')) return;
+
+    event.preventDefault();
+    const button = form.querySelector('button[type="submit"], button:not([type])');
+    if (button?.disabled) return;
+    if (button) button.disabled = true;
+    const originalText = button?.textContent;
+    if (button) button.textContent = 'در حال ذخیره...';
+    const feedback = form.querySelector('[data-admin-settings-feedback]');
+    if (feedback) feedback.classList.add('hidden');
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
+            body: new FormData(form),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            const errors = Object.values(data.errors || {}).flat();
+            throw new Error(errors[0] || data.message || 'ذخیره تنظیمات انجام نشد؛ دوباره تلاش کنید.');
+        }
+
+        showAdminSettingsFeedback(form, data.message || 'تنظیمات سیستم ذخیره شد.');
+        window.dispatchEvent(new CustomEvent('admin-notification', { detail: { title: 'تنظیمات ذخیره شد', message: data.message, tone: 'success' } }));
+    } catch (error) {
+        showAdminSettingsFeedback(form, error.message || 'ذخیره تنظیمات انجام نشد؛ دوباره تلاش کنید.', 'error');
+        window.dispatchEvent(new CustomEvent('admin-notification', { detail: { title: 'خطا در تنظیمات', message: error.message || 'دوباره تلاش کنید.', tone: 'error' } }));
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    }
+});
+
 document.addEventListener('submit', async (event) => {
     const form = event.target;
     if (!(form instanceof HTMLFormElement) || event.defaultPrevented || !form.action.match(/\/admin\/listings\/\d+\/(approve|reject)$/)) return;
