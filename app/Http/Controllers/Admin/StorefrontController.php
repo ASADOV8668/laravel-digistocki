@@ -65,7 +65,7 @@ class StorefrontController extends Controller
     {
         $sellerStore->update(['is_admin_disabled' => ! $sellerStore->is_admin_disabled]);
 
-        return back()->with('status', $sellerStore->is_admin_disabled ? 'غرفه توسط مدیریت غیرفعال شد.' : 'غرفه از حالت غیرفعال مدیریتی خارج شد.');
+        return back()->with('status', $sellerStore->is_admin_disabled ? 'فروشگاه توسط مدیریت غیرفعال شد.' : 'فروشگاه از حالت غیرفعال مدیریتی خارج شد.');
     }
 
     public function approve(SellerStore $sellerStore): RedirectResponse
@@ -151,6 +151,6 @@ class StorefrontController extends Controller
             SellerStore::create($payload);
         }
 
-        return redirect()->route('admin.storefronts.index')->with('status', 'اطلاعات غرفه به‌روزرسانی شد.');
+        return redirect()->route('admin.storefronts.index')->with('status', 'اطلاعات فروشگاه به‌روزرسانی شد.');
     }
 }

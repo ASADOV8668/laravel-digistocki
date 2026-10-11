@@ -178,8 +178,11 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint) => ({
     suggestionsEndpoint,
     provinceId: '',
     cityId: '',
+    cityIds: [],
     cities: [],
     citiesLoading: false,
+    locationLoading: false,
+    locationLabel: 'همه ایران',
     query: '',
     selectedBrandId: '',
     selectedModelId: '',
@@ -194,6 +197,7 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint) => ({
         this.citiesController?.abort();
         this.citiesController = null;
         this.cityId = '';
+        this.cityIds = [];
         this.cities = [];
         if (!this.provinceId) {
             this.citiesLoading = false;
@@ -218,6 +222,47 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint) => ({
                 this.citiesLoading = false;
             }
         }
+    },
+
+    toggleCity(cityId) {
+        const id = String(cityId);
+        this.cityIds = this.cityIds.includes(id)
+            ? this.cityIds.filter((item) => item !== id)
+            : [...this.cityIds, id];
+        this.cityId = this.cityIds[0] || '';
+        const city = this.cities.find((item) => String(item.id) === id);
+        if (this.cityIds.length === 1 && city) this.locationLabel = city.name;
+        if (!this.cityIds.length) this.locationLabel = this.provinceId ? 'همه شهرها' : 'همه ایران';
+    },
+
+    useLocation() {
+        if (!navigator.geolocation) {
+            window.dispatchEvent(new CustomEvent('show-notification', { detail: { tone: 'error', title: 'مکان‌یابی در دسترس نیست', message: 'مرورگر شما از مکان‌یابی پشتیبانی نمی‌کند.' } }));
+            return;
+        }
+
+        this.locationLoading = true;
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            try {
+                const params = new URLSearchParams({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+                const response = await fetch(`/locations/reverse?${params}`, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+                const location = await response.json();
+                if (!response.ok || !location.city_id) throw new Error('Location not found');
+                this.provinceId = String(location.province_id || '');
+                await this.loadCities();
+                this.cityIds = [String(location.city_id)];
+                this.cityId = String(location.city_id);
+                this.locationLabel = location.city_name || 'موقعیت شما';
+                window.dispatchEvent(new CustomEvent('show-notification', { detail: { tone: 'success', title: 'موقعیت انتخاب شد', message: `آگهی‌های ${this.locationLabel} آماده جستجو هستند.` } }));
+            } catch {
+                window.dispatchEvent(new CustomEvent('show-notification', { detail: { tone: 'error', title: 'موقعیت پیدا نشد', message: 'استان و شهر را به‌صورت دستی انتخاب کنید.' } }));
+            } finally {
+                this.locationLoading = false;
+            }
+        }, () => {
+            this.locationLoading = false;
+            window.dispatchEvent(new CustomEvent('show-notification', { detail: { tone: 'error', title: 'دسترسی مکان‌یابی رد شد', message: 'برای استفاده از این قابلیت، اجازه مکان‌یابی را فعال کنید.' } }));
+        }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 });
     },
 
     search() {

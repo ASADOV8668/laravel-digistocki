@@ -21,6 +21,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use Sadegh19b\LaravelIranCities\Models\City;
@@ -162,6 +163,45 @@ class ListingController extends Controller
         return response()->json($province->cities()->orderBy('name')->get(['id', 'name', 'province_id']));
     }
 
+    public function reverseLocation(Request $request)
+    {
+        $validated = $request->validate([
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+        ]);
+
+        try {
+            $response = Http::acceptJson()
+                ->withHeaders(['User-Agent' => 'Digistoki/2.0 (location search)'])
+                ->timeout(5)
+                ->get('https://nominatim.openstreetmap.org/reverse', [
+                    'lat' => $validated['latitude'],
+                    'lon' => $validated['longitude'],
+                    'format' => 'jsonv2',
+                    'accept-language' => 'fa',
+                    'zoom' => 10,
+                ]);
+
+            if (! $response->successful()) {
+                return response()->json(['message' => 'موقعیت پیدا نشد.'], 422);
+            }
+
+            $address = $response->json('address', []);
+            $cityName = $address['city'] ?? $address['town'] ?? $address['municipality'] ?? $address['village'] ?? null;
+            $provinceName = $address['state'] ?? null;
+            $city = $cityName ? City::query()->where('name', 'like', '%'.$cityName.'%')->first() : null;
+
+            return response()->json([
+                'city_id' => $city?->id,
+                'province_id' => $city?->province_id,
+                'city_name' => $city?->name ?? $cityName,
+                'province_name' => $city?->province?->name ?? $provinceName,
+            ]);
+        } catch (Throwable) {
+            return response()->json(['message' => 'سرویس مکان‌یابی در دسترس نیست.'], 422);
+        }
+    }
+
     public function index(Request $request)
     {
         $selectedModel = $request->integer('phone_model_id')
@@ -174,7 +214,13 @@ class ListingController extends Controller
         $query->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId));
         $query->when($request->integer('phone_model_id'), fn (Builder $query, int $modelId) => $query->where('phone_model_id', $modelId));
         $query->when($request->integer('province_id'), fn (Builder $query, int $provinceId) => $query->where('province_id', $provinceId));
-        $query->when($request->integer('city_id'), fn (Builder $query, int $cityId) => $query->where('city_id', $cityId));
+        $cityIds = collect((array) $request->input('city_ids', []))
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+        $query->when($cityIds->isNotEmpty(), fn (Builder $query) => $query->whereIn('city_id', $cityIds->all()))
+            ->when($cityIds->isEmpty() && $request->integer('city_id'), fn (Builder $query, int $cityId) => $query->where('city_id', $cityId));
         $query->when($request->integer('min_price'), fn (Builder $query, int $price) => $query->where('price', '>=', $price));
         $query->when($request->integer('max_price'), fn (Builder $query, int $price) => $query->where('price', '<=', $price));
         $query->when($request->filled('q'), function (Builder $query) use ($request) {
@@ -234,7 +280,8 @@ class ListingController extends Controller
 
         $selectedBrand = $request->integer('brand_id') ? Brand::query()->where('is_active', true)->find($request->integer('brand_id')) : null;
         $selectedProvince = $request->integer('province_id') ? Province::query()->find($request->integer('province_id')) : null;
-        $selectedCity = $request->integer('city_id') ? City::query()->find($request->integer('city_id')) : null;
+        $selectedCity = $cityIds->isEmpty() && $request->integer('city_id') ? City::query()->find($request->integer('city_id')) : null;
+        $selectedCities = $cityIds->isNotEmpty() ? City::query()->whereIn('id', $cityIds)->orderBy('name')->get() : collect();
         $without = fn (array $keys): string => route('listings.index', Arr::except($request->query(), $keys));
         $activeFilters = [];
 
@@ -252,6 +299,9 @@ class ListingController extends Controller
         }
         if ($selectedCity) {
             $activeFilters[] = ['label' => 'شهر: '.$selectedCity->name, 'url' => $without(['city_id'])];
+        }
+        if ($selectedCities->isNotEmpty()) {
+            $activeFilters[] = ['label' => 'شهرها: '.$selectedCities->pluck('name')->join('، '), 'url' => $without(['city_ids'])];
         }
         if ($request->filled('min_price')) {
             $activeFilters[] = ['label' => 'حداقل: '.number_format((int) $request->input('min_price')), 'url' => $without(['min_price'])];
@@ -302,6 +352,7 @@ class ListingController extends Controller
             'sort' => $sort,
             'activeFilters' => $activeFilters,
             'priceCeiling' => $priceCeiling,
+            'selectedCityIds' => $cityIds->all(),
         ]);
     }
 

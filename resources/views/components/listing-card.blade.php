@@ -41,7 +41,7 @@
     @if ($listing->user?->storefront?->isPubliclyEnabled())
         <div class="border-t border-slate-100 px-3.5 py-2.5">
             <a href="{{ route('storefront.show', $listing->user->storefront) }}" class="inline-flex items-center gap-1 text-[11px] font-bold text-primary transition hover:text-primary-600">
-                <x-heroicon-o-building-storefront class="h-4 w-4" /> غرفه فروشنده
+                <x-heroicon-o-building-storefront class="h-4 w-4" /> فروشگاه فروشنده
             </a>
         </div>
     @endif
