@@ -47,6 +47,10 @@ class PhaseOneHundredThirtyThreeAdminListingManagementTest extends TestCase
         $this->assertSame('آگهی ویرایش‌شده توسط مدیریت', $listing->refresh()->title);
         $this->assertSame('approved', $listing->status->value);
         $this->assertNotNull($listing->published_at);
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $owner->id,
+            'type' => 'App\\Notifications\\ListingStatusNotification',
+        ]);
     }
 
     public function test_admin_user_search_returns_name_and_mobile_matches(): void

@@ -73,6 +73,7 @@ class ListingController extends Controller
         $validated = $request->validated();
         $brand = Brand::query()->whereKey($validated['brand_id'])->firstOrFail();
         $model = PhoneModel::query()->whereKey($validated['phone_model_id'])->where('brand_id', $brand->id)->firstOrFail();
+        $previousStatus = $listing->status->value;
         $storedFiles = [];
 
         try {
@@ -88,6 +89,11 @@ class ListingController extends Controller
         } catch (Throwable $exception) {
             $imageService->deleteMany($storedFiles);
             throw $exception;
+        }
+
+        $listing->refresh();
+        if ($previousStatus !== $listing->status->value && in_array($listing->status->value, ['approved', 'rejected'], true)) {
+            $listing->user?->notify(new ListingStatusNotification($listing, $listing->status->value, $listing->rejection_reason));
         }
 
         return redirect()->route('admin.listings.index')->with('status', 'تغییرات آگهی ذخیره و برای بررسی ارسال شد.');
