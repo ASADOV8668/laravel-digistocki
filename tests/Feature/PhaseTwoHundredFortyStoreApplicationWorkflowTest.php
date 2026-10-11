@@ -87,6 +87,8 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
             ->assertSee('name="business_license_expires_at_day"', false)
             ->assertSee('name="business_license_expires_at_month"', false)
             ->assertSee('name="business_license_expires_at_year"', false)
+            ->assertSee('value="1350"', false)
+            ->assertSee('value="'.(int) PersianDate::format(now(), 'Y').'"', false)
             ->assertDontSee('data-persian-datepicker', false);
     }
 }

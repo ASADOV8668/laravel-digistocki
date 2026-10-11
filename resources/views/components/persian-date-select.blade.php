@@ -12,9 +12,11 @@
         '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
     ]);
     $parts = preg_split('/[\/-]/', $englishDigits((string) $value)) ?: [];
-    $year = old($name.'_year', $parts[0] ?? '');
-    $month = old($name.'_month', isset($parts[1]) ? ltrim($parts[1], '0') : '');
-    $day = old($name.'_day', isset($parts[2]) ? ltrim($parts[2], '0') : '');
+    $todayParts = explode('/', \App\Support\PersianDate::format(now()));
+    $year = old($name.'_year', $parts[0] ?? ($todayParts[0] ?? ''));
+    $month = old($name.'_month', isset($parts[1]) ? ltrim($parts[1], '0') : ltrim($todayParts[1] ?? '', '0'));
+    $day = old($name.'_day', isset($parts[2]) ? ltrim($parts[2], '0') : ltrim($todayParts[2] ?? '', '0'));
+    $currentYear = (int) ($todayParts[0] ?? 1405);
     $idPrefix = str_replace('_', '-', $name);
     $months = [
         1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
@@ -46,7 +48,7 @@
         <label for="{{ $idPrefix }}-year" class="sr-only">سال</label>
         <select id="{{ $idPrefix }}-year" name="{{ $name }}_year" @required($required) class="{{ $attributes->get('class', 'public-select') }}">
             <option value="">سال</option>
-            @for ($option = 1300; $option <= 1500; $option++)
+            @for ($option = 1350; $option <= $currentYear; $option++)
                 <option value="{{ $option }}" @selected((string) $year === (string) $option)>{{ \App\Support\PersianNumber::digits($option) }}</option>
             @endfor
         </select>
