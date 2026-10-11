@@ -289,7 +289,7 @@ class ListingController extends Controller
         $without = fn (array $keys): string => route('listings.index', Arr::except($request->query(), $keys));
         $activeFilters = [];
 
-        if ($request->filled('q')) {
+        if ($searchLikes !== []) {
             $activeFilters[] = ['label' => 'جستجو: '.trim((string) $request->input('q')), 'url' => $without(['q'])];
         }
         if ($selectedBrand) {
