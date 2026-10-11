@@ -19,6 +19,7 @@ use App\Services\ListingRules;
 use App\Services\SystemOptions;
 use App\Support\MobileNumber;
 use App\Support\PersianDate;
+use App\Support\PersianSearch;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -128,6 +129,7 @@ class ListingController extends Controller
         $statuses = ['pending', 'approved', 'rejected', 'sold', 'expired'];
         $dateFrom = PersianDate::parseDate($request->input('date_from'));
         $dateTo = PersianDate::parseDate($request->input('date_to'));
+        $searchLikes = PersianSearch::likes((string) $request->input('q'));
         $statusCounts = Listing::query()
             ->selectRaw('status, COUNT(*) as aggregate')
             ->groupBy('status')
@@ -135,13 +137,14 @@ class ListingController extends Controller
 
         $listings = Listing::with(['user', 'brand', 'phoneModel', 'primaryImage'])
             ->when(in_array($status, $statuses, true), fn (Builder $query) => $query->where('status', $status))
-            ->when($request->filled('q'), function (Builder $query) use ($request) {
-                $term = '%'.$request->string('q').'%';
-                $query->where(function (Builder $query) use ($term) {
-                    $query->where('title', 'like', $term)
-                        ->orWhereHas('user', fn (Builder $user) => $user->where('name', 'like', $term)->orWhere('mobile', 'like', $term)->orWhere('email', 'like', $term))
-                        ->orWhereHas('brand', fn (Builder $brand) => $brand->where('name', 'like', $term)->orWhere('name_en', 'like', $term))
-                        ->orWhereHas('phoneModel', fn (Builder $model) => $model->where('name', 'like', $term)->orWhere('name_fa', 'like', $term)->orWhere('name_en', 'like', $term));
+            ->when($searchLikes !== [], function (Builder $query) use ($searchLikes) {
+                $query->where(function (Builder $query) use ($searchLikes) {
+                    foreach ($searchLikes as $like) {
+                        $query->orWhere('title', 'like', $like)
+                            ->orWhereHas('user', fn (Builder $user) => $user->where('name', 'like', $like)->orWhere('mobile', 'like', $like)->orWhere('email', 'like', $like))
+                            ->orWhereHas('brand', fn (Builder $brand) => $brand->where('name', 'like', $like)->orWhere('name_en', 'like', $like))
+                            ->orWhereHas('phoneModel', fn (Builder $model) => $model->where('name', 'like', $like)->orWhere('name_fa', 'like', $like)->orWhere('name_en', 'like', $like));
+                    }
                 });
             })
             ->when($dateFrom, fn (Builder $query) => $query->where('created_at', '>=', $dateFrom->startOfDay()))

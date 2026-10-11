@@ -8,6 +8,7 @@ use App\Models\SellerStore;
 use App\Models\User;
 use App\Notifications\StorefrontStatusNotification;
 use App\Support\PersianDate;
+use App\Support\PersianSearch;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class StorefrontController extends Controller
     {
         $status = $request->input('status');
         $status = is_string($status) && in_array($status, ['active', 'disabled', 'blocked'], true) ? $status : null;
+        $searchLikes = PersianSearch::likes((string) $request->input('q'));
         $storeStats = [
             'total' => SellerStore::query()->count(),
             'active' => SellerStore::query()->where('is_enabled', true)->where('is_admin_disabled', false)->count(),
@@ -37,12 +39,13 @@ class StorefrontController extends Controller
             ->when($status === 'blocked', fn (Builder $query) => $query->where('is_admin_disabled', true))
             ->when($request->input('approval_status') === 'pending', fn (Builder $query) => $query->where('approval_status', 'pending'))
             ->when($request->input('approval_status') === 'rejected', fn (Builder $query) => $query->where('approval_status', 'rejected'))
-            ->when($request->filled('q'), function (Builder $query) use ($request): void {
-                $term = '%'.$request->string('q').'%';
-                $query->where(function (Builder $search) use ($term): void {
-                    $search->where('name', 'like', $term)
-                        ->orWhere('slug', 'like', $term)
-                        ->orWhereHas('user', fn (Builder $user) => $user->where('name', 'like', $term)->orWhere('mobile', 'like', $term));
+            ->when($searchLikes !== [], function (Builder $query) use ($searchLikes): void {
+                $query->where(function (Builder $search) use ($searchLikes): void {
+                    foreach ($searchLikes as $like) {
+                        $search->orWhere('name', 'like', $like)
+                            ->orWhere('slug', 'like', $like)
+                            ->orWhereHas('user', fn (Builder $user) => $user->where('name', 'like', $like)->orWhere('mobile', 'like', $like));
+                    }
                 });
             })
             ->latest()

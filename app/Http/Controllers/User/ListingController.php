@@ -226,6 +226,10 @@ class ListingController extends Controller
         $query->when($request->filled('q'), function (Builder $query) use ($request) {
             $rawTerm = trim((string) $request->input('q'));
             $likes = $this->searchLikes($rawTerm);
+            if ($likes === []) {
+                return;
+            }
+
             $query->where(function (Builder $query) use ($likes) {
                 $query->where(function (Builder $title) use ($likes) {
                     foreach ($likes as $like) {

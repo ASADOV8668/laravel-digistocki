@@ -36,6 +36,12 @@ class ListingFlowTest extends TestCase
         $this->assertSame(1, $approved->refresh()->views_count);
     }
 
+    public function test_public_index_handles_a_single_character_search_without_a_query_error(): void
+    {
+        $this->get(route('listings.index', ['q' => 'ا']))
+            ->assertOk();
+    }
+
     public function test_authenticated_user_can_create_pending_listing_with_eav_value(): void
     {
         [$user, $brand, $model] = $this->context();
