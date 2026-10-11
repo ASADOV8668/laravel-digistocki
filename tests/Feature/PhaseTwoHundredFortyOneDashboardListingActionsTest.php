@@ -7,6 +7,7 @@ use App\Models\Brand;
 use App\Models\Listing;
 use App\Models\SellerStore;
 use App\Models\User;
+use App\Support\PersianDate;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -61,5 +62,41 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
             ->assertOk()
             ->assertSee('آگهی قابل کپی (کپی)')
             ->assertSee('name="clone"', false);
+    }
+
+    public function test_dashboard_filters_by_persian_date_and_supports_bulk_price_actions(): void
+    {
+        $user = User::factory()->create();
+        $brand = Brand::firstOrFail();
+        $insideDate = PersianDate::parseDate('1404/10/10');
+        $outsideDate = PersianDate::parseDate('1404/09/30');
+        $inside = Listing::create(['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $brand->phoneModels()->first()->id, 'title' => 'آگهی در بازه', 'slug' => Str::uuid(), 'price' => 1000000, 'status' => ListingStatus::Approved]);
+        $inside->forceFill(['created_at' => $insideDate])->save();
+        $outside = Listing::create(['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $brand->phoneModels()->first()->id, 'title' => 'آگهی خارج بازه', 'slug' => Str::uuid(), 'price' => 2000000, 'status' => ListingStatus::Approved]);
+        $outside->forceFill(['created_at' => $outsideDate])->save();
+
+        $this->actingAs($user)->get(route('dashboard', ['from_date' => '1404/10/01', 'to_date' => '1404/10/30']))
+            ->assertOk()
+            ->assertSee('آگهی در بازه')
+            ->assertDontSee('آگهی خارج بازه')
+            ->assertSee('name="from_date"', false)
+            ->assertSee('bulk-price-modal', false);
+
+        $this->actingAs($user)->post(route('dashboard.listings.bulk'), [
+            'action' => 'price',
+            'bulk_price' => '3500000',
+            'listing_ids' => [$inside->id, $outside->id],
+        ])->assertRedirect();
+        $this->assertSame(3500000, $inside->refresh()->price);
+        $this->assertSame(3500000, $outside->refresh()->price);
+
+        $this->actingAs($user)->post(route('dashboard.listings.bulk'), [
+            'action' => 'contact_price',
+            'listing_ids' => [$inside->id, $outside->id],
+        ])->assertRedirect();
+        $this->assertTrue($inside->refresh()->price_on_request);
+        $this->assertNull($inside->price);
+        $this->assertTrue($outside->refresh()->price_on_request);
+        $this->assertNull($outside->price);
     }
 }

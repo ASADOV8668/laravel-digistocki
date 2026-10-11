@@ -1188,6 +1188,19 @@ window.favoriteToggle = (endpoint, initialFavorited = false, authenticated = fal
     },
 });
 
+window.dashboardBulkActions = (visibleIds = []) => ({
+    visibleIds,
+    selectedIds: [],
+
+    toggleVisible(event) {
+        this.selectedIds = event.target.checked ? [...this.visibleIds] : [];
+    },
+
+    isVisibleSelected() {
+        return this.visibleIds.length > 0 && this.visibleIds.every((id) => this.selectedIds.includes(id));
+    },
+});
+
 window.toastNotifications = () => ({
     visible: false,
     title: '',

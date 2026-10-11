@@ -14,16 +14,20 @@ use App\Models\ListingImage;
 use App\Models\PhoneModel;
 use App\Services\ContactOtpService;
 use App\Services\ImageService;
+use App\Services\ListingAttributeOptionRegistrar;
 use App\Services\ListingRules;
 use App\Services\SystemOptions;
+use App\Support\PersianNumber;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Sadegh19b\LaravelIranCities\Models\City;
 use Sadegh19b\LaravelIranCities\Models\Province;
 use Throwable;
@@ -489,7 +493,7 @@ class ListingController extends Controller
 
         if ($rules->hasRecentDuplicate($request->user(), $brand->id, $model->id)) {
             throw ValidationException::withMessages([
-                'phone_model_id' => 'برای این مدل در '.\App\Support\PersianNumber::digits($options->listingDuplicateCooldownHours()).' ساعت گذشته آگهی ثبت کرده‌اید.',
+                'phone_model_id' => 'برای این مدل در '.PersianNumber::digits($options->listingDuplicateCooldownHours()).' ساعت گذشته آگهی ثبت کرده‌اید.',
             ]);
         }
 
@@ -524,19 +528,23 @@ class ListingController extends Controller
         return redirect()->route('listings.show', $listing)->with('status', 'آگهی شما برای بررسی ارسال شد.');
     }
 
-    public function quickUpdate(Request $request, Listing $listing, SystemOptions $options): \Illuminate\Http\RedirectResponse
+    public function quickUpdate(Request $request, Listing $listing, SystemOptions $options): RedirectResponse
     {
         abort_unless($listing->isOwnedBy($request->user()) || $request->user()->isAdmin(), 403);
         $validated = $request->validate(['price_on_request' => ['nullable', 'boolean'], 'price' => ['nullable', 'integer', 'min:0']]);
         $onRequest = $request->boolean('price_on_request');
-        if ($onRequest && ! $options->allowContactPrice()) return back()->withErrors(['price' => 'امکان «تماس بگیرید» در تنظیمات سیستم فعال نیست.']);
-        if (! $onRequest && ($validated['price'] ?? null) === null) return back()->withErrors(['price' => 'قیمت را وارد کنید یا گزینه «تماس بگیرید» را انتخاب کنید.']);
+        if ($onRequest && ! $options->allowContactPrice()) {
+            return back()->withErrors(['price' => 'امکان «تماس بگیرید» در تنظیمات سیستم فعال نیست.']);
+        }
+        if (! $onRequest && ($validated['price'] ?? null) === null) {
+            return back()->withErrors(['price' => 'قیمت را وارد کنید یا گزینه «تماس بگیرید» را انتخاب کنید.']);
+        }
         $listing->update(['price_on_request' => $onRequest, 'price' => $onRequest ? null : $validated['price']]);
 
         return back()->with('status', 'قیمت آگهی به‌سرعت به‌روزرسانی شد.');
     }
 
-    public function toggleDisabled(Request $request, Listing $listing): \Illuminate\Http\RedirectResponse
+    public function toggleDisabled(Request $request, Listing $listing): RedirectResponse
     {
         abort_unless($listing->isOwnedBy($request->user()) || $request->user()->isAdmin(), 403);
         $listing->update(['is_user_disabled' => ! $listing->is_user_disabled]);
@@ -544,19 +552,40 @@ class ListingController extends Controller
         return back()->with('status', $listing->is_user_disabled ? 'آگهی غیرفعال شد.' : 'آگهی دوباره فعال شد.');
     }
 
-    public function bulkAction(Request $request, ImageService $imageService): \Illuminate\Http\RedirectResponse
+    public function bulkAction(Request $request, ImageService $imageService, SystemOptions $options): RedirectResponse
     {
-        $validated = $request->validate(['action' => ['required', 'in:disable,enable,delete'], 'listing_ids' => ['required', 'array'], 'listing_ids.*' => ['integer']]);
+        $validated = $request->validate([
+            'action' => ['required', 'in:disable,enable,delete,contact_price,price'],
+            'listing_ids' => ['required', 'array', 'min:1'],
+            'listing_ids.*' => ['integer'],
+            'bulk_price' => ['nullable', 'integer', 'min:0', 'required_if:action,price'],
+        ]);
         $listings = Listing::query()->where('user_id', $request->user()->id)->whereKey($validated['listing_ids'])->with('images')->get();
         if ($validated['action'] === 'delete') {
             $files = $listings->flatMap(fn (Listing $listing) => $listing->images->map(fn (ListingImage $image) => [$image->path, $image->thumbnail_path]));
             $listings->each->delete();
             $imageService->deleteMany($files);
+        } elseif ($validated['action'] === 'contact_price') {
+            if (! $options->allowContactPrice()) {
+                return back()->withErrors(['action' => 'امکان «تماس بگیرید» در تنظیمات سیستم فعال نیست.']);
+            }
+
+            $listings->each->update(['price' => null, 'price_on_request' => true]);
+        } elseif ($validated['action'] === 'price') {
+            $listings->each->update(['price' => $validated['bulk_price'], 'price_on_request' => false]);
         } else {
             $listings->each->update(['is_user_disabled' => $validated['action'] === 'disable']);
         }
 
-        return back()->with('status', 'عملیات گروهی روی آگهی‌های انتخاب‌شده انجام شد.');
+        $messages = [
+            'delete' => 'آگهی‌های انتخاب‌شده حذف شدند.',
+            'contact_price' => 'قیمت آگهی‌های انتخاب‌شده حذف و حالت «تماس بگیرید» فعال شد.',
+            'price' => 'قیمت آگهی‌های انتخاب‌شده به‌روزرسانی شد.',
+            'disable' => 'آگهی‌های انتخاب‌شده غیرفعال شدند.',
+            'enable' => 'آگهی‌های انتخاب‌شده فعال شدند.',
+        ];
+
+        return back()->with('status', $messages[$validated['action']]);
     }
 
     public function update(UpdateListingRequest $request, Listing $listing, ListingRules $rules, ImageService $imageService, SystemOptions $options)
@@ -567,7 +596,7 @@ class ListingController extends Controller
 
         if ($rules->hasRecentDuplicate($request->user(), $brand->id, $model->id, null, $listing->id)) {
             throw ValidationException::withMessages([
-                'phone_model_id' => 'برای این مدل در '.\App\Support\PersianNumber::digits($options->listingDuplicateCooldownHours()).' ساعت گذشته آگهی دیگری ثبت کرده‌اید.',
+                'phone_model_id' => 'برای این مدل در '.PersianNumber::digits($options->listingDuplicateCooldownHours()).' ساعت گذشته آگهی دیگری ثبت کرده‌اید.',
             ]);
         }
 
@@ -655,7 +684,7 @@ class ListingController extends Controller
                 continue;
             }
 
-            app(\App\Services\ListingAttributeOptionRegistrar::class)->remember($attribute, $value);
+            app(ListingAttributeOptionRegistrar::class)->remember($attribute, $value);
 
             $payload = [
                 'listing_id' => $listing->id,
@@ -708,15 +737,21 @@ class ListingController extends Controller
     private function cloneImages(Listing $listing, int $sourceId, SystemOptions $options, array &$storedFiles): void
     {
         $source = Listing::query()->where('user_id', $listing->user_id)->with('images')->find($sourceId);
-        if (! $source) return;
-        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+        if (! $source) {
+            return;
+        }
+        $disk = Storage::disk('public');
         foreach ($source->images->take($options->maxImageUploadCount()) as $sourceImage) {
             $name = (string) Str::uuid();
             $extension = pathinfo($sourceImage->path, PATHINFO_EXTENSION) ?: 'webp';
             $path = 'listings/'.$listing->id.'/'.$name.'.'.$extension;
             $thumbnail = $sourceImage->thumbnail_path ? 'listings/'.$listing->id.'/thumbs/'.$name.'.'.(pathinfo($sourceImage->thumbnail_path, PATHINFO_EXTENSION) ?: 'webp') : null;
-            if (! $disk->exists($sourceImage->path) || ! $disk->copy($sourceImage->path, $path)) continue;
-            if ($thumbnail && $disk->exists($sourceImage->thumbnail_path)) $disk->copy($sourceImage->thumbnail_path, $thumbnail);
+            if (! $disk->exists($sourceImage->path) || ! $disk->copy($sourceImage->path, $path)) {
+                continue;
+            }
+            if ($thumbnail && $disk->exists($sourceImage->thumbnail_path)) {
+                $disk->copy($sourceImage->thumbnail_path, $thumbnail);
+            }
             $listing->images()->create(['path' => $path, 'thumbnail_path' => $thumbnail, 'is_primary' => $sourceImage->is_primary, 'sort_order' => $sourceImage->sort_order]);
             $storedFiles[] = [$path, $thumbnail];
         }
