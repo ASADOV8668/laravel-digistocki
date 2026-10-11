@@ -2,6 +2,7 @@
     'name' => 'date',
     'value' => '',
     'required' => false,
+    'defaultToday' => true,
 ])
 
 @php
@@ -13,9 +14,9 @@
     ]);
     $parts = preg_split('/[\/-]/', $englishDigits((string) $value)) ?: [];
     $todayParts = explode('/', \App\Support\PersianDate::format(now()));
-    $initialYear = filled($parts[0] ?? null) ? $parts[0] : ($todayParts[0] ?? '');
-    $initialMonth = filled($parts[1] ?? null) ? ltrim($parts[1], '0') : ltrim($todayParts[1] ?? '', '0');
-    $initialDay = filled($parts[2] ?? null) ? ltrim($parts[2], '0') : ltrim($todayParts[2] ?? '', '0');
+    $initialYear = filled($parts[0] ?? null) ? $parts[0] : ($defaultToday ? ($todayParts[0] ?? '') : '');
+    $initialMonth = filled($parts[1] ?? null) ? ltrim($parts[1], '0') : ($defaultToday ? ltrim($todayParts[1] ?? '', '0') : '');
+    $initialDay = filled($parts[2] ?? null) ? ltrim($parts[2], '0') : ($defaultToday ? ltrim($todayParts[2] ?? '', '0') : '');
     $year = old($name.'_year', $initialYear);
     $month = old($name.'_month', $initialMonth);
     $day = old($name.'_day', $initialDay);

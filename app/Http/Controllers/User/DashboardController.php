@@ -21,8 +21,11 @@ class DashboardController extends Controller
         $statuses = ['pending', 'approved', 'rejected', 'sold', 'expired'];
         $q = trim((string) $request->input('q'));
         $searchLikes = PersianSearch::likes($q);
-        $fromDate = PersianDate::parseDate($request->input('from_date'));
-        $toDate = PersianDate::parseDate($request->input('to_date'));
+        $fromDateValue = PersianDate::fromParts($request->input('from_date_year'), $request->input('from_date_month'), $request->input('from_date_day')) ?: $request->input('from_date');
+        $toDateValue = PersianDate::fromParts($request->input('to_date_year'), $request->input('to_date_month'), $request->input('to_date_day')) ?: $request->input('to_date');
+        $fromDate = PersianDate::parseDate($fromDateValue);
+        $toDate = PersianDate::parseDate($toDateValue);
+        $dateRangeInvalid = $fromDate && $toDate && $fromDate->gt($toDate);
 
         $listings = Listing::query()
             ->where('user_id', $user->id)
@@ -30,8 +33,8 @@ class DashboardController extends Controller
             ->when(in_array($status, $statuses, true), fn ($query) => $query->where('status', $status))
             ->when($request->integer('brand_id'), fn (Builder $query) => $query->where('brand_id', $request->integer('brand_id')))
             ->when($request->integer('phone_model_id'), fn (Builder $query) => $query->where('phone_model_id', $request->integer('phone_model_id')))
-            ->when($fromDate, fn (Builder $query) => $query->where('created_at', '>=', $fromDate->copy()->startOfDay()))
-            ->when($toDate, fn (Builder $query) => $query->where('created_at', '<=', $toDate->copy()->endOfDay()))
+            ->when($fromDate && ! $dateRangeInvalid, fn (Builder $query) => $query->where('created_at', '>=', $fromDate->copy()->startOfDay()))
+            ->when($toDate && ! $dateRangeInvalid, fn (Builder $query) => $query->where('created_at', '<=', $toDate->copy()->endOfDay()))
             ->when($searchLikes !== [], function (Builder $query) use ($searchLikes): void {
                 $query->where(function (Builder $search) use ($searchLikes): void {
                     foreach ($searchLikes as $like) {
@@ -70,12 +73,13 @@ class DashboardController extends Controller
             'modelBrands' => $modelBrands,
             'allowContactPrice' => app(SystemOptions::class)->allowContactPrice(),
             'visibleListingIds' => $listings->getCollection()->pluck('id')->map(fn (int $id): string => (string) $id)->values()->all(),
+            'dateRangeInvalid' => $dateRangeInvalid,
             'filters' => [
                 'q' => $q,
                 'brand_id' => $request->input('brand_id'),
                 'phone_model_id' => $request->input('phone_model_id'),
-                'from_date' => $request->input('from_date'),
-                'to_date' => $request->input('to_date'),
+                'from_date' => $fromDateValue,
+                'to_date' => $toDateValue,
             ],
         ]);
     }

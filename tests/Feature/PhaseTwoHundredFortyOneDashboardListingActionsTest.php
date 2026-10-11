@@ -75,12 +75,20 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
         $outside = Listing::create(['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $brand->phoneModels()->first()->id, 'title' => 'آگهی خارج بازه', 'slug' => Str::uuid(), 'price' => 2000000, 'status' => ListingStatus::Approved]);
         $outside->forceFill(['created_at' => $outsideDate])->save();
 
-        $this->actingAs($user)->get(route('dashboard', ['from_date' => '1404/10/01', 'to_date' => '1404/10/30']))
+        $this->actingAs($user)->get(route('dashboard', [
+            'from_date_year' => '1404', 'from_date_month' => '10', 'from_date_day' => '1',
+            'to_date_year' => '1404', 'to_date_month' => '10', 'to_date_day' => '30',
+        ]))
             ->assertOk()
             ->assertSee('آگهی در بازه')
             ->assertDontSee('آگهی خارج بازه')
-            ->assertSee('name="from_date"', false)
+            ->assertSee('name="from_date_year"', false)
             ->assertSee('bulk-price-modal', false);
+
+        $this->actingAs($user)->get(route('dashboard', [
+            'from_date_year' => '1404', 'from_date_month' => '11', 'from_date_day' => '1',
+            'to_date_year' => '1404', 'to_date_month' => '10', 'to_date_day' => '1',
+        ]))->assertOk()->assertSee('بازه تاریخ معتبر نیست');
 
         $this->actingAs($user)->post(route('dashboard.listings.bulk'), [
             'action' => 'price',
