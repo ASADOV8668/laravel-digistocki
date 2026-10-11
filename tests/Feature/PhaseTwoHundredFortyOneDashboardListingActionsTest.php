@@ -38,6 +38,23 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
         $this->assertTrue($listing->is_user_disabled);
     }
 
+    public function test_quick_dashboard_actions_return_json_for_ajax_requests(): void
+    {
+        $user = User::factory()->create();
+        $brand = Brand::firstOrFail();
+        $listing = Listing::create(['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $brand->phoneModels()->first()->id, 'title' => 'آگهی آجاکس', 'slug' => Str::uuid(), 'price' => 1000000, 'status' => ListingStatus::Approved]);
+
+        $this->actingAs($user)
+            ->patchJson(route('listings.quick-update', $listing), ['price' => 2750000])
+            ->assertOk()
+            ->assertJson(['price' => 2750000, 'price_on_request' => false]);
+
+        $this->actingAs($user)
+            ->patchJson(route('listings.toggle-disabled', $listing))
+            ->assertOk()
+            ->assertJson(['is_user_disabled' => true]);
+    }
+
     public function test_quick_update_requires_a_price_when_contact_mode_is_not_selected(): void
     {
         $user = User::factory()->create();

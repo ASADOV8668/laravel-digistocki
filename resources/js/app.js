@@ -1188,6 +1188,55 @@ window.favoriteToggle = (endpoint, initialFavorited = false, authenticated = fal
     },
 });
 
+const showDashboardNotification = (title, message, tone = 'info') => {
+    window.dispatchEvent(new CustomEvent('show-notification', { detail: { title, message, tone } }));
+};
+
+const formatDashboardPrice = (value) => new Intl.NumberFormat('fa-IR').format(Number(value || 0));
+
+document.addEventListener('submit', async (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || (!form.action.includes('/quick-update') && !form.action.includes('/toggle-disabled'))) return;
+
+    event.preventDefault();
+    const submitButton = form.querySelector('button[type="submit"], button:not([type])');
+    if (submitButton?.disabled) return;
+    if (submitButton) submitButton.disabled = true;
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
+            body: new FormData(form),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || 'عملیات انجام نشد؛ دوباره تلاش کنید.');
+
+        const card = form.closest('article');
+        if (form.action.includes('/quick-update')) {
+            const priceNode = card?.querySelector('p.mt-2.text-xs.font-black.text-primary');
+            if (priceNode) priceNode.textContent = data.price_on_request ? 'تماس بگیرید' : formatDashboardPrice(data.price) + ' تومان';
+            form.querySelector('input[name="price"]')?.setAttribute('value', data.price ?? '');
+            form.querySelector('[data-modal-hide]')?.click();
+            showDashboardNotification('آگهی به‌روزرسانی شد', data.message || 'قیمت آگهی ذخیره شد.', 'success');
+        } else {
+            const toggleButton = form.querySelector('button');
+            if (toggleButton) toggleButton.textContent = data.is_user_disabled ? 'فعال‌سازی' : 'غیرفعال‌کردن';
+            const statusNode = card?.querySelector('h2')?.parentElement?.querySelector('span');
+            if (statusNode) statusNode.textContent = data.is_user_disabled ? 'غیرفعال' : 'فعال';
+            showDashboardNotification('وضعیت آگهی تغییر کرد', data.message || '', 'success');
+        }
+    } catch (error) {
+        showDashboardNotification('خطا در عملیات', error.message || 'عملیات انجام نشد؛ دوباره تلاش کنید.', 'error');
+    } finally {
+        if (submitButton) submitButton.disabled = false;
+    }
+});
+
 window.dashboardBulkActions = (visibleIds = [], matchingIds = []) => ({
     visibleIds,
     matchingIds,

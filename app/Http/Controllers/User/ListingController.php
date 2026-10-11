@@ -19,6 +19,7 @@ use App\Services\ListingRules;
 use App\Services\SystemOptions;
 use App\Support\PersianNumber;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -528,28 +529,53 @@ class ListingController extends Controller
         return redirect()->route('listings.show', $listing)->with('status', 'آگهی شما برای بررسی ارسال شد.');
     }
 
-    public function quickUpdate(Request $request, Listing $listing, SystemOptions $options): RedirectResponse
+    public function quickUpdate(Request $request, Listing $listing, SystemOptions $options): RedirectResponse|JsonResponse
     {
         abort_unless($listing->isOwnedBy($request->user()) || $request->user()->isAdmin(), 403);
         $validated = $request->validate(['price_on_request' => ['nullable', 'boolean'], 'price' => ['nullable', 'integer', 'min:0']]);
         $onRequest = $request->boolean('price_on_request');
         if ($onRequest && ! $options->allowContactPrice()) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'امکان «تماس بگیرید» در تنظیمات سیستم فعال نیست.'], 422);
+            }
+
             return back()->withErrors(['price' => 'امکان «تماس بگیرید» در تنظیمات سیستم فعال نیست.']);
         }
         if (! $onRequest && ($validated['price'] ?? null) === null) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'قیمت را وارد کنید یا گزینه «تماس بگیرید» را انتخاب کنید.'], 422);
+            }
+
             return back()->withErrors(['price' => 'قیمت را وارد کنید یا گزینه «تماس بگیرید» را انتخاب کنید.']);
         }
         $listing->update(['price_on_request' => $onRequest, 'price' => $onRequest ? null : $validated['price']]);
+        $message = 'قیمت آگهی به‌سرعت به‌روزرسانی شد.';
 
-        return back()->with('status', 'قیمت آگهی به‌سرعت به‌روزرسانی شد.');
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'price' => $listing->price,
+                'price_on_request' => $listing->price_on_request,
+            ]);
+        }
+
+        return back()->with('status', $message);
     }
 
-    public function toggleDisabled(Request $request, Listing $listing): RedirectResponse
+    public function toggleDisabled(Request $request, Listing $listing): RedirectResponse|JsonResponse
     {
         abort_unless($listing->isOwnedBy($request->user()) || $request->user()->isAdmin(), 403);
         $listing->update(['is_user_disabled' => ! $listing->is_user_disabled]);
+        $message = $listing->is_user_disabled ? 'آگهی غیرفعال شد.' : 'آگهی دوباره فعال شد.';
 
-        return back()->with('status', $listing->is_user_disabled ? 'آگهی غیرفعال شد.' : 'آگهی دوباره فعال شد.');
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'is_user_disabled' => $listing->is_user_disabled,
+            ]);
+        }
+
+        return back()->with('status', $message);
     }
 
     public function bulkAction(Request $request, ImageService $imageService, SystemOptions $options): RedirectResponse
