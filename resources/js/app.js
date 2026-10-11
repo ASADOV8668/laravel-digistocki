@@ -1188,16 +1188,33 @@ window.favoriteToggle = (endpoint, initialFavorited = false, authenticated = fal
     },
 });
 
-window.dashboardBulkActions = (visibleIds = []) => ({
+window.dashboardBulkActions = (visibleIds = [], matchingIds = []) => ({
     visibleIds,
+    matchingIds,
     selectedIds: [],
+    allMatching: false,
 
     toggleVisible(event) {
+        this.allMatching = false;
         this.selectedIds = event.target.checked ? [...this.visibleIds] : [];
+    },
+
+    selectAllMatching() {
+        this.allMatching = true;
+        this.selectedIds = [...this.matchingIds];
+    },
+
+    clearSelection() {
+        this.allMatching = false;
+        this.selectedIds = [];
     },
 
     isVisibleSelected() {
         return this.visibleIds.length > 0 && this.visibleIds.every((id) => this.selectedIds.includes(id));
+    },
+
+    selectedOutsidePage() {
+        return this.selectedIds.filter((id) => !this.visibleIds.includes(id));
     },
 });
 

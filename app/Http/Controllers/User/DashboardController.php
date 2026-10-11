@@ -27,7 +27,7 @@ class DashboardController extends Controller
         $toDate = PersianDate::parseDate($toDateValue);
         $dateRangeInvalid = $fromDate && $toDate && $fromDate->gt($toDate);
 
-        $listings = Listing::query()
+        $listingQuery = Listing::query()
             ->where('user_id', $user->id)
             ->with(['brand', 'phoneModel', 'primaryImage'])
             ->when(in_array($status, $statuses, true), fn ($query) => $query->where('status', $status))
@@ -48,7 +48,16 @@ class DashboardController extends Controller
                             }));
                     }
                 });
-            })
+            });
+
+        $matchingListingIds = (clone $listingQuery)
+            ->reorder()
+            ->pluck('id')
+            ->map(fn (int $id): string => (string) $id)
+            ->values()
+            ->all();
+
+        $listings = $listingQuery
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -73,6 +82,7 @@ class DashboardController extends Controller
             'modelBrands' => $modelBrands,
             'allowContactPrice' => app(SystemOptions::class)->allowContactPrice(),
             'visibleListingIds' => $listings->getCollection()->pluck('id')->map(fn (int $id): string => (string) $id)->values()->all(),
+            'matchingListingIds' => $matchingListingIds,
             'dateRangeInvalid' => $dateRangeInvalid,
             'filters' => [
                 'q' => $q,

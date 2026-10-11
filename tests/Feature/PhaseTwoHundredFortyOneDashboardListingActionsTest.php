@@ -107,4 +107,29 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
         $this->assertTrue($outside->refresh()->price_on_request);
         $this->assertNull($outside->price);
     }
+
+    public function test_dashboard_can_select_all_filtered_listings_across_pages(): void
+    {
+        $user = User::factory()->create();
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+
+        foreach (range(1, 11) as $number) {
+            Listing::create([
+                'user_id' => $user->id,
+                'brand_id' => $brand->id,
+                'phone_model_id' => $model->id,
+                'title' => 'نتیجه گروهی '.$number,
+                'slug' => Str::uuid(),
+                'price' => 1000000,
+                'status' => ListingStatus::Approved,
+            ]);
+        }
+
+        $response = $this->actingAs($user)->get(route('dashboard', ['q' => 'نتیجه گروهی']));
+
+        $response->assertOk()
+            ->assertSee('انتخاب همه نتایج فیلترشده (۱۱ مورد)', false)
+            ->assertSee('dashboardBulkActions', false);
+    }
 }
