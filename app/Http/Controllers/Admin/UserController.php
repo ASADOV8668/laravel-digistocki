@@ -7,6 +7,8 @@ use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -88,28 +90,43 @@ class UserController extends Controller
         return view('admin.users.index', compact('users', 'userStats'));
     }
 
-    public function toggleActive(Request $request, User $user)
+    public function toggleActive(Request $request, User $user): RedirectResponse|JsonResponse
     {
         abort_if($request->user()->is($user), 422, 'حساب کاربری خودتان را نمی‌توانید غیرفعال کنید.');
         $user->forceFill(['is_active' => ! $user->is_active])->save();
+        $message = $user->is_active ? 'کاربر فعال شد.' : 'کاربر غیرفعال شد.';
 
-        return back()->with('status', $user->is_active ? 'کاربر فعال شد.' : 'کاربر غیرفعال شد.');
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message, 'is_active' => $user->is_active]);
+        }
+
+        return back()->with('status', $message);
     }
 
-    public function toggleRole(Request $request, User $user)
+    public function toggleRole(Request $request, User $user): RedirectResponse|JsonResponse
     {
         abort_if($request->user()->is($user), 422, 'نقش حساب خودتان را نمی‌توانید تغییر دهید.');
         abort_if($user->isAdmin() && User::query()->where('role', 'admin')->count() <= 1, 422, 'حداقل یک مدیر باید در سیستم باقی بماند.');
 
         $user->forceFill(['role' => $user->isAdmin() ? 'user' : 'admin'])->save();
+        $message = $user->isAdmin() ? 'کاربر به مدیر ارتقا یافت.' : 'نقش مدیر به کاربر عادی تغییر کرد.';
 
-        return back()->with('status', $user->isAdmin() ? 'کاربر به مدیر ارتقا یافت.' : 'نقش مدیر به کاربر عادی تغییر کرد.');
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message, 'role' => $user->role]);
+        }
+
+        return back()->with('status', $message);
     }
 
-    public function toggleListingPermission(Request $request, User $user)
+    public function toggleListingPermission(Request $request, User $user): RedirectResponse|JsonResponse
     {
         $user->forceFill(['can_post_listings' => ! $user->can_post_listings])->save();
+        $message = $user->can_post_listings ? 'اجازه ثبت آگهی برای کاربر فعال شد.' : 'اجازه ثبت آگهی برای کاربر غیرفعال شد.';
 
-        return back()->with('status', $user->can_post_listings ? 'اجازه ثبت آگهی برای کاربر فعال شد.' : 'اجازه ثبت آگهی برای کاربر غیرفعال شد.');
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message, 'can_post_listings' => $user->can_post_listings]);
+        }
+
+        return back()->with('status', $message);
     }
 }

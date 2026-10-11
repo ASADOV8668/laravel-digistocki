@@ -137,6 +137,56 @@ document.addEventListener('submit', async (event) => {
     }
 });
 
+document.addEventListener('submit', async (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || event.defaultPrevented || !form.action.match(/\/admin\/users\/\d+\/(toggle-active|toggle-role|toggle-listing-permission)$/)) return;
+
+    event.preventDefault();
+    const button = form.querySelector('button[type="submit"], button:not([type])');
+    if (button?.disabled) return;
+    if (button) button.disabled = true;
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
+            body: new FormData(form),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || 'تغییر اطلاعات کاربر انجام نشد؛ دوباره تلاش کنید.');
+
+        const item = form.closest('tr');
+        const badges = item ? [...item.querySelectorAll('td:nth-child(2) span')] : [];
+        const action = form.action.split('/').pop();
+        const updateBadge = (badge, text, className) => {
+            if (!badge) return;
+            badge.className = 'rounded-full px-2.5 py-1 text-[10px] font-black ' + className;
+            badge.textContent = text;
+        };
+
+        if (action === 'toggle-active') {
+            updateBadge(badges[1], data.is_active ? 'فعال' : 'غیرفعال', data.is_active ? 'bg-success/10 text-success' : 'bg-error/10 text-error');
+            if (button) button.textContent = data.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی';
+        } else if (action === 'toggle-role') {
+            updateBadge(badges[0], data.role === 'admin' ? 'مدیر' : 'کاربر', data.role === 'admin' ? 'bg-accent/10 text-accent' : 'bg-slate-100 text-slate-600');
+            if (button) button.textContent = data.role === 'admin' ? 'تبدیل به کاربر' : 'ارتقا به مدیر';
+        } else {
+            updateBadge(badges[2], data.can_post_listings ? 'ثبت آگهی مجاز' : 'ثبت آگهی مسدود', data.can_post_listings ? 'bg-info/10 text-info' : 'bg-warning/10 text-warning');
+            if (button) button.textContent = data.can_post_listings ? 'بستن ثبت آگهی' : 'اجازه ثبت آگهی';
+        }
+
+        window.dispatchEvent(new CustomEvent('admin-notification', { detail: { title: 'اطلاعات کاربر تغییر کرد', message: data.message, tone: 'success' } }));
+    } catch (error) {
+        window.dispatchEvent(new CustomEvent('admin-notification', { detail: { title: 'خطا در عملیات کاربر', message: error.message || 'دوباره تلاش کنید.', tone: 'error' } }));
+    } finally {
+        if (button) button.disabled = false;
+    }
+});
+
 window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     previews: [],
     invalid: false,
