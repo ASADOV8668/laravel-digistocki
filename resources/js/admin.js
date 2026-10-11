@@ -79,6 +79,64 @@ document.addEventListener('submit', async (event) => {
     }
 });
 
+document.addEventListener('submit', async (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || event.defaultPrevented || !form.action.match(/\/admin\/storefronts\/\d+\/(approve|reject|toggle)$/)) return;
+
+    event.preventDefault();
+    const button = form.querySelector('button[type="submit"], button:not([type])');
+    if (button?.disabled) return;
+    if (button) button.disabled = true;
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
+            body: new FormData(form),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || 'تغییر وضعیت فروشگاه انجام نشد؛ دوباره تلاش کنید.');
+
+        const item = form.closest('article');
+        const statusNode = item?.querySelector('span.rounded-full');
+        if (statusNode) {
+            const statusClass = data.status_label === 'فعال'
+                ? 'bg-success/10 text-success'
+                : data.status_label === 'مسدود توسط مدیریت' || data.status_label === 'ردشده'
+                    ? 'bg-error/10 text-error'
+                    : data.status_label === 'در انتظار بررسی'
+                        ? 'bg-warning/10 text-warning'
+                        : 'bg-slate-100 text-slate-500';
+            statusNode.className = 'rounded-full px-3 py-1.5 text-[10px] font-black ' + statusClass;
+            statusNode.textContent = data.status_label;
+        }
+
+        if (form.action.endsWith('/toggle')) {
+            const toggleButton = form.querySelector('button');
+            if (toggleButton) toggleButton.textContent = data.is_admin_disabled ? 'رفع مسدودی' : 'غیرفعال‌سازی مدیریتی';
+        } else {
+            form.remove();
+            const actionContainer = item?.querySelector(':scope > div:last-child');
+            if (actionContainer && !actionContainer.querySelector('form')) {
+                const notice = document.createElement('span');
+                notice.className = 'rounded-xl bg-success/10 px-3 py-2 text-xs font-bold text-success';
+                notice.textContent = 'ذخیره شد';
+                actionContainer.append(notice);
+            }
+        }
+
+        window.dispatchEvent(new CustomEvent('admin-notification', { detail: { title: 'وضعیت فروشگاه تغییر کرد', message: data.message, tone: 'success' } }));
+    } catch (error) {
+        window.dispatchEvent(new CustomEvent('admin-notification', { detail: { title: 'خطا در عملیات فروشگاه', message: error.message || 'دوباره تلاش کنید.', tone: 'error' } }));
+    } finally {
+        if (button) button.disabled = false;
+    }
+});
+
 window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     previews: [],
     invalid: false,

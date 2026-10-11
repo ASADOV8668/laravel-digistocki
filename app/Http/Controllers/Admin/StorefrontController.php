@@ -10,6 +10,7 @@ use App\Notifications\StorefrontStatusNotification;
 use App\Support\PersianDate;
 use App\Support\PersianSearch;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -64,14 +65,31 @@ class StorefrontController extends Controller
         ]);
     }
 
-    public function toggle(Request $request, SellerStore $sellerStore): RedirectResponse
+    public function toggle(Request $request, SellerStore $sellerStore): RedirectResponse|JsonResponse
     {
         $sellerStore->update(['is_admin_disabled' => ! $sellerStore->is_admin_disabled]);
+        $message = $sellerStore->is_admin_disabled ? 'فروشگاه توسط مدیریت غیرفعال شد.' : 'فروشگاه از حالت غیرفعال مدیریتی خارج شد.';
 
-        return back()->with('status', $sellerStore->is_admin_disabled ? 'فروشگاه توسط مدیریت غیرفعال شد.' : 'فروشگاه از حالت غیرفعال مدیریتی خارج شد.');
+        if ($request->expectsJson()) {
+            $statusLabel = $sellerStore->is_admin_disabled
+                ? 'مسدود توسط مدیریت'
+                : match ($sellerStore->approval_status) {
+                    'pending' => 'در انتظار بررسی',
+                    'rejected' => 'ردشده',
+                    default => $sellerStore->is_enabled ? 'فعال' : 'غیرفعال',
+                };
+
+            return response()->json([
+                'message' => $message,
+                'is_admin_disabled' => $sellerStore->is_admin_disabled,
+                'status_label' => $statusLabel,
+            ]);
+        }
+
+        return back()->with('status', $message);
     }
 
-    public function approve(SellerStore $sellerStore): RedirectResponse
+    public function approve(Request $request, SellerStore $sellerStore): RedirectResponse|JsonResponse
     {
         $sellerStore->update([
             'approval_status' => 'approved',
@@ -81,11 +99,21 @@ class StorefrontController extends Controller
         ]);
 
         $sellerStore->user?->notify(new StorefrontStatusNotification($sellerStore, 'approved'));
+        $message = 'فروشگاه با موفقیت تأیید و فعال شد.';
 
-        return back()->with('status', 'فروشگاه با موفقیت تأیید و فعال شد.');
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'status_label' => 'فعال',
+                'approval_status' => $sellerStore->approval_status,
+                'is_enabled' => $sellerStore->is_enabled,
+            ]);
+        }
+
+        return back()->with('status', $message);
     }
 
-    public function reject(Request $request, SellerStore $sellerStore): RedirectResponse
+    public function reject(Request $request, SellerStore $sellerStore): RedirectResponse|JsonResponse
     {
         $validated = $request->validate(['rejection_reason' => ['required', 'string', 'max:1000']]);
         $sellerStore->update([
@@ -95,8 +123,18 @@ class StorefrontController extends Controller
         ]);
 
         $sellerStore->user?->notify(new StorefrontStatusNotification($sellerStore, 'rejected', $validated['rejection_reason']));
+        $message = 'درخواست فروشگاه رد شد و علت برای کاربر ثبت گردید.';
 
-        return back()->with('status', 'درخواست فروشگاه رد شد و علت برای کاربر ثبت گردید.');
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'status_label' => 'ردشده',
+                'approval_status' => $sellerStore->approval_status,
+                'is_enabled' => $sellerStore->is_enabled,
+            ]);
+        }
+
+        return back()->with('status', $message);
     }
 
     public function update(UpdateStorefrontRequest $request, User $user): RedirectResponse
