@@ -53,9 +53,9 @@
                         <x-heroicon-o-users class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.users.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
                         <span x-show="!sidebarCollapsed">کاربران</span>
                     </a>
-                    <a href="{{ route('admin.storefronts.index') }}" title="غرفه‌ها" class="menu-item group {{ request()->routeIs('admin.storefronts.*') ? 'menu-item-active' : 'menu-item-inactive' }}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                    <a href="{{ route('admin.storefronts.index') }}" title="فروشگاه‌ها" class="menu-item group {{ request()->routeIs('admin.storefronts.*') ? 'menu-item-active' : 'menu-item-inactive' }}" :class="sidebarCollapsed ? 'justify-center' : ''">
                         <x-heroicon-o-building-storefront class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.storefronts.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                        <span x-show="!sidebarCollapsed">غرفه‌ها</span>
+                        <span x-show="!sidebarCollapsed">فروشگاه‌ها</span>
                     </a>
                     <a href="{{ route('admin.reports.index') }}" title="گزارش‌ها" class="menu-item group {{ request()->routeIs('admin.reports.*') ? 'menu-item-active' : 'menu-item-inactive' }}" :class="sidebarCollapsed ? 'justify-center' : ''">
                         <x-heroicon-o-flag class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.reports.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />

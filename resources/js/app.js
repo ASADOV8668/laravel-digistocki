@@ -151,6 +151,28 @@ window.searchSuggest = (endpoint) => ({
     },
 });
 
+const initOtpAutofill = () => {
+    document.querySelectorAll('[data-otp-autofill]').forEach((input) => {
+        if (input.dataset.otpAutofillReady === 'true') return;
+        input.dataset.otpAutofillReady = 'true';
+        input.setAttribute('autocomplete', 'one-time-code');
+
+        if (!('OTPCredential' in window) || !navigator.credentials?.get) return;
+        const controller = new AbortController();
+        input.closest('form')?.addEventListener('submit', () => controller.abort(), { once: true });
+        navigator.credentials.get({ otp: { transport: ['sms'] }, signal: controller.signal })
+            .then((credential) => {
+                if (credential?.code) {
+                    input.value = credential.code;
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            })
+            .catch(() => {});
+    });
+};
+
+window.addEventListener('DOMContentLoaded', initOtpAutofill);
+
 window.homeSearch = (citiesEndpoint, suggestionsEndpoint) => ({
     citiesEndpoint,
     suggestionsEndpoint,
@@ -277,6 +299,46 @@ window.storefrontLocation = (citiesEndpoint, initialProvinceId = '', initialCity
             this.citiesLoading = false;
             return;
         }
+
+        const controller = new AbortController();
+        this.citiesController = controller;
+        this.citiesLoading = true;
+        try {
+            const response = await fetch(`${this.citiesEndpoint}/${this.provinceId}/cities`, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: controller.signal,
+            });
+            if (!response.ok) throw new Error('City request failed');
+            this.cities = await response.json();
+        } catch (error) {
+            if (error.name !== 'AbortError') this.cities = [];
+        } finally {
+            if (this.citiesController === controller) {
+                this.citiesController = null;
+                this.citiesLoading = false;
+            }
+        }
+    },
+});
+
+window.storefrontDirectory = (citiesEndpoint, initialProvinceId = '', initialCityIds = []) => ({
+    citiesEndpoint,
+    provinceId: initialProvinceId || '',
+    cityIds: (initialCityIds || []).map(String),
+    cities: [],
+    citiesLoading: false,
+    citiesController: null,
+
+    init() {
+        if (this.provinceId) this.loadCities(false);
+    },
+
+    async loadCities(resetCities = true) {
+        this.citiesController?.abort();
+        this.citiesController = null;
+        if (resetCities) this.cityIds = [];
+        this.cities = [];
+        if (!this.provinceId) return;
 
         const controller = new AbortController();
         this.citiesController = controller;

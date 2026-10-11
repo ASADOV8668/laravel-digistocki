@@ -1,4 +1,4 @@
-<x-app-layout title="غرفه غیرفعال">
+<x-app-layout title="فروشگاه غیرفعال">
     @push('head')
         <meta name="robots" content="noindex,nofollow">
     @endpush
@@ -8,7 +8,7 @@
                 <x-heroicon-o-arrow-right class="h-5 w-5" />
             </a>
             <div>
-                <p class="text-[11px] font-bold text-primary">غرفه فروشنده</p>
+                <p class="text-[11px] font-bold text-primary">فروشگاه فروشنده</p>
                 <h1 class="mt-1 text-xl font-black text-neutral">{{ $store->name }}</h1>
             </div>
         </div>
@@ -19,8 +19,8 @@
             <span data-testid="disabled-storefront-icon" class="mx-auto flex h-20 w-20 items-center justify-center rounded-lg bg-warning/10 text-warning">
                 <x-heroicon-o-building-storefront class="h-10 w-10" />
             </span>
-            <h2 class="mt-6 text-xl font-black text-neutral">غرفه این فروشنده غیرفعال است</h2>
-            <p class="mt-3 text-sm leading-7 text-slate-500">این غرفه در حال حاضر برای بازدید عمومی فعال نیست.</p>
+            <h2 class="mt-6 text-xl font-black text-neutral">فروشگاه این فروشنده غیرفعال است</h2>
+            <p class="mt-3 text-sm leading-7 text-slate-500">این فروشگاه در حال حاضر برای بازدید عمومی فعال نیست.</p>
             <a href="{{ route('listings.index') }}" class="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-black text-white transition hover:bg-primary-600">
                 <x-heroicon-o-magnifying-glass class="h-5 w-5" />مشاهده آگهی‌ها
             </a>

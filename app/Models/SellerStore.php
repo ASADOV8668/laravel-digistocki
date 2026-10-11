@@ -16,18 +16,41 @@ class SellerStore extends Model
         'user_id',
         'slug',
         'name',
+        'first_name',
+        'last_name',
+        'national_id',
         'is_enabled',
         'is_admin_disabled',
+        'approval_status',
         'province_id',
         'city_id',
         'logo_path',
         'address',
         'contact_phone',
+        'business_license_number',
+        'business_license_expires_at',
+        'business_license_path',
+        'instagram_url',
+        'telegram_url',
+        'whatsapp_url',
+        'bale_url',
+        'rubika_url',
+        'sort_order',
+        'application_submitted_at',
+        'approved_at',
+        'rejection_reason',
     ];
 
     protected function casts(): array
     {
-        return ['is_enabled' => 'boolean', 'is_admin_disabled' => 'boolean'];
+        return [
+            'is_enabled' => 'boolean',
+            'is_admin_disabled' => 'boolean',
+            'business_license_expires_at' => 'date',
+            'application_submitted_at' => 'datetime',
+            'approved_at' => 'datetime',
+            'sort_order' => 'integer',
+        ];
     }
 
     public function user(): BelongsTo
@@ -52,6 +75,21 @@ class SellerStore extends Model
 
     public function isPubliclyEnabled(): bool
     {
-        return $this->is_enabled && ! $this->is_admin_disabled;
+        return $this->isApproved() && $this->is_enabled && ! $this->is_admin_disabled;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->approval_status === 'pending';
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->approval_status === 'approved';
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->approval_status === 'rejected';
     }
 }

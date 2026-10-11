@@ -34,7 +34,7 @@
                 <x-heroicon-o-arrow-right class="h-5 w-5" />
             </a>
             <div>
-                <p class="text-[11px] font-bold text-primary">غرفه فروشنده</p>
+                <p class="text-[11px] font-bold text-primary">فروشگاه فروشنده</p>
                 <h1 class="mt-1 text-xl font-black text-neutral">{{ $store->name }}</h1>
             </div>
         </div>
@@ -69,8 +69,14 @@
                     @endif
                 </div>
             @endif
+            @php($socialLinks = collect(['اینستاگرام' => $store->instagram_url, 'تلگرام' => $store->telegram_url, 'واتساپ' => $store->whatsapp_url, 'بله' => $store->bale_url, 'روبیکا' => $store->rubika_url])->filter())
+            @if ($socialLinks->isNotEmpty())
+                <div class="mt-4 flex flex-wrap gap-2 border-t border-white/10 pt-4">
+                    @foreach ($socialLinks as $label => $url)<a href="{{ $url }}" target="_blank" rel="noopener noreferrer" class="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/20">{{ $label }}</a>@endforeach
+                </div>
+            @endif
             <div x-data="shareLink(@js(route("storefront.show", $store)))" class="mt-5 flex flex-wrap gap-2 border-t border-white/10 pt-4">
-                <button type="button" @click="share()" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-black text-white transition hover:bg-primary-600"><x-heroicon-o-share class="h-4 w-4" />اشتراک‌گذاری غرفه</button>
+                <button type="button" @click="share()" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-black text-white transition hover:bg-primary-600"><x-heroicon-o-share class="h-4 w-4" />اشتراک‌گذاری فروشگاه</button>
                 <button type="button" @click="copy()" class="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/15"><x-heroicon-o-clipboard-document class="h-4 w-4" /><span x-text="copied ? 'لینک کپی شد' : 'کپی لینک'">کپی لینک</span></button>
             </div>
         </div>
@@ -78,14 +84,14 @@
         <div>
             <div class="mb-3 flex items-end justify-between gap-3">
                 <div>
-                    <p class="text-[11px] font-bold text-primary">ویترین فروشنده</p>
+                    <p class="text-[11px] font-bold text-primary">ویترین فروشگاه</p>
                     <h2 class="mt-1 text-lg font-black text-neutral">آخرین آگهی‌ها</h2>
                 </div>
                 <span class="rounded-full bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-primary">{{ number_format($listings->total()) }} آگهی</span>
             </div>
             <form method="GET" class="mb-4 flex gap-2">
-                <label for="storefront-search" class="sr-only">جستجو در آگهی‌های غرفه</label>
-                <input id="storefront-search" name="q" value="{{ request('q') }}" placeholder="جستجو در آگهی‌های این غرفه" class="public-input min-w-0 flex-1 bg-white">
+                <label for="storefront-search" class="sr-only">جستجو در آگهی‌های فروشگاه</label>
+                <input id="storefront-search" name="q" value="{{ request('q') }}" placeholder="جستجو در آگهی‌های این فروشگاه" class="public-input min-w-0 flex-1 bg-white">
                 <button class="rounded-lg bg-neutral px-4 py-3 text-xs font-black text-white"><x-heroicon-o-magnifying-glass class="h-4 w-4" /></button>
             </form>
             @if ($listings->isNotEmpty())
@@ -98,7 +104,7 @@
             @else
                 <div class="rounded-lg bg-white p-8 text-center shadow-sm border border-slate-200">
                     <x-heroicon-o-device-phone-mobile class="mx-auto h-12 w-12 text-slate-300" />
-                    <p class="mt-3 text-sm font-bold text-slate-500">این غرفه هنوز آگهی فعالی ندارد.</p>
+                    <p class="mt-3 text-sm font-bold text-slate-500">این فروشگاه هنوز آگهی فعالی ندارد.</p>
                 </div>
             @endif
         </div>

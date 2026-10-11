@@ -43,6 +43,11 @@ class User extends Authenticatable
         return ! $this->isAdmin();
     }
 
+    public function isSeller(): bool
+    {
+        return $this->storefront?->isApproved() === true;
+    }
+
     public function listings(): HasMany
     {
         return $this->hasMany(Listing::class);

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateStorefrontRequest;
 use App\Models\SellerStore;
 use App\Models\User;
+use App\Notifications\StorefrontStatusNotification;
+use App\Support\PersianDate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,6 +26,8 @@ class StorefrontController extends Controller
             'active' => SellerStore::query()->where('is_enabled', true)->where('is_admin_disabled', false)->count(),
             'disabled' => SellerStore::query()->where('is_enabled', false)->where('is_admin_disabled', false)->count(),
             'blocked' => SellerStore::query()->where('is_admin_disabled', true)->count(),
+            'pending' => SellerStore::query()->where('approval_status', 'pending')->count(),
+            'rejected' => SellerStore::query()->where('approval_status', 'rejected')->count(),
         ];
 
         $stores = SellerStore::query()
@@ -31,6 +35,8 @@ class StorefrontController extends Controller
             ->when($status === 'active', fn (Builder $query) => $query->where('is_enabled', true)->where('is_admin_disabled', false))
             ->when($status === 'disabled', fn (Builder $query) => $query->where('is_enabled', false)->where('is_admin_disabled', false))
             ->when($status === 'blocked', fn (Builder $query) => $query->where('is_admin_disabled', true))
+            ->when($request->input('approval_status') === 'pending', fn (Builder $query) => $query->where('approval_status', 'pending'))
+            ->when($request->input('approval_status') === 'rejected', fn (Builder $query) => $query->where('approval_status', 'rejected'))
             ->when($request->filled('q'), function (Builder $query) use ($request): void {
                 $term = '%'.$request->string('q').'%';
                 $query->where(function (Builder $search) use ($term): void {
@@ -62,11 +68,40 @@ class StorefrontController extends Controller
         return back()->with('status', $sellerStore->is_admin_disabled ? 'غرفه توسط مدیریت غیرفعال شد.' : 'غرفه از حالت غیرفعال مدیریتی خارج شد.');
     }
 
+    public function approve(SellerStore $sellerStore): RedirectResponse
+    {
+        $sellerStore->update([
+            'approval_status' => 'approved',
+            'is_enabled' => true,
+            'approved_at' => now(),
+            'rejection_reason' => null,
+        ]);
+
+        $sellerStore->user?->notify(new StorefrontStatusNotification($sellerStore, 'approved'));
+
+        return back()->with('status', 'فروشگاه با موفقیت تأیید و فعال شد.');
+    }
+
+    public function reject(Request $request, SellerStore $sellerStore): RedirectResponse
+    {
+        $validated = $request->validate(['rejection_reason' => ['required', 'string', 'max:1000']]);
+        $sellerStore->update([
+            'approval_status' => 'rejected',
+            'is_enabled' => false,
+            'rejection_reason' => $validated['rejection_reason'],
+        ]);
+
+        $sellerStore->user?->notify(new StorefrontStatusNotification($sellerStore, 'rejected', $validated['rejection_reason']));
+
+        return back()->with('status', 'درخواست فروشگاه رد شد و علت برای کاربر ثبت گردید.');
+    }
+
     public function update(UpdateStorefrontRequest $request, User $user): RedirectResponse
     {
         $store = $user->storefront;
         $validated = $request->validated();
         $logoPath = $store?->logo_path;
+        $businessLicensePath = $store?->business_license_path;
 
         if ($request->hasFile('logo')) {
             $logoPath = $request->file('logo')->store('stores', 'public');
@@ -75,17 +110,39 @@ class StorefrontController extends Controller
             }
         }
 
+        if ($request->hasFile('business_license')) {
+            $businessLicensePath = $request->file('business_license')->store('business-licenses', 'public');
+            if ($store?->business_license_path) {
+                Storage::disk('public')->delete($store->business_license_path);
+            }
+        }
+
         $payload = [
             'user_id' => $user->id,
             'name' => $validated['name'],
+            'first_name' => $validated['first_name'] ?? $store?->first_name ?? $user->name,
+            'last_name' => $validated['last_name'] ?? $store?->last_name,
+            'national_id' => $validated['national_id'] ?? $store?->national_id ?? $user->national_id,
             'slug' => $validated['slug'],
             'is_enabled' => (bool) ($validated['store_enabled'] ?? false),
             'is_admin_disabled' => (bool) ($validated['admin_disabled'] ?? false),
-            'province_id' => $validated['province_id'] ?? null,
-            'city_id' => $validated['city_id'] ?? null,
+            'approval_status' => $validated['approval_status'],
+            'province_id' => $validated['province_id'] ?? $store?->province_id,
+            'city_id' => $validated['city_id'] ?? $store?->city_id,
             'logo_path' => $logoPath,
-            'address' => $validated['address'] ?? null,
-            'contact_phone' => $validated['contact_phone'] ?? $user->mobile,
+            'address' => $validated['address'] ?? $store?->address,
+            'contact_phone' => $validated['contact_phone'] ?? $store?->contact_phone ?? $user->mobile,
+            'business_license_number' => $validated['business_license_number'] ?? $store?->business_license_number,
+            'business_license_expires_at' => filled($validated['business_license_expires_at'] ?? null) ? PersianDate::parseDate($validated['business_license_expires_at'])?->toDateString() : $store?->business_license_expires_at,
+            'business_license_path' => $businessLicensePath,
+            'instagram_url' => $validated['instagram_url'] ?? null,
+            'telegram_url' => $validated['telegram_url'] ?? null,
+            'whatsapp_url' => $validated['whatsapp_url'] ?? null,
+            'bale_url' => $validated['bale_url'] ?? null,
+            'rubika_url' => $validated['rubika_url'] ?? null,
+            'sort_order' => (int) ($validated['sort_order'] ?? 0),
+            'approved_at' => $validated['approval_status'] === 'approved' ? ($store?->approved_at ?? now()) : null,
+            'rejection_reason' => $validated['approval_status'] === 'rejected' ? ($store?->rejection_reason ?? null) : null,
         ];
 
         if ($store) {

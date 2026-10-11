@@ -12,7 +12,7 @@
         <form method="POST" action="{{ route('register.otp.verify') }}" class="space-y-5">@csrf
             <input type="hidden" name="mobile" value="{{ $mobile }}">
             <div class="rounded-lg bg-slate-50 px-4 py-3 text-center text-sm font-bold text-slate-700" dir="ltr">{{ $mobile }}</div>
-            <div><x-input-label for="otp" value="رمز یکبار مصرف" /><x-text-input id="otp" aria-describedby="otp-expiry otp-error" class="mt-2 block w-full text-center tracking-[0.5em]" type="text" name="otp" required autofocus inputmode="numeric" maxlength="5" dir="ltr" placeholder="00000" /><x-input-error id="otp-error" :messages="$errors->get('otp')" class="mt-2" /></div>
+            <div><x-input-label for="otp" value="رمز یکبار مصرف" /><x-text-input id="otp" data-otp-autofill aria-describedby="otp-expiry otp-error" class="mt-2 block w-full text-center tracking-[0.5em]" type="text" name="otp" required autofocus autocomplete="one-time-code" inputmode="numeric" maxlength="5" dir="ltr" placeholder="00000" /><x-input-error id="otp-error" :messages="$errors->get('otp')" class="mt-2" /></div>
             <p id="otp-expiry" class="text-center text-xs font-bold text-slate-500">اعتبار کد: <span id="otp-countdown" role="timer" aria-live="polite" aria-atomic="true" data-expires-at="{{ $otpExpiresAt }}" class="text-primary">در حال محاسبه...</span></p>
             <x-primary-button class="w-full"><x-heroicon-o-check-circle class="h-5 w-5" />تأیید شماره موبایل</x-primary-button>
         </form>

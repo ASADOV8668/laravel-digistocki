@@ -67,6 +67,7 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
         Auth::login($user);
+        $request->session()->put('password_setup_available', true);
         $request->session()->forget(['registration_mobile', 'registration_mobile_verified', 'registration_otp_expires_at']);
         $request->session()->regenerate();
 

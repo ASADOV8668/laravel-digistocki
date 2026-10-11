@@ -98,6 +98,7 @@ class AuthenticatedSessionController extends Controller
 
         $user = User::query()->where('mobile', $validated['mobile'])->where('is_active', true)->firstOrFail();
         Auth::login($user);
+        $request->session()->put('password_setup_available', true);
         $request->session()->forget(['login_otp_mobile', 'login_otp_expires_at']);
         $request->session()->regenerate();
 

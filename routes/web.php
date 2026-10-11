@@ -34,7 +34,8 @@ Route::get('/listings/models/{phoneModel}/attributes', [ListingController::class
 Route::get('/locations/provinces/{province}/cities', [ListingController::class, 'cities'])->middleware('throttle:60,1')->name('locations.provinces.cities');
 Route::get('/listings/create', [ListingController::class, 'create'])->middleware(['auth', 'active'])->name('listings.create');
 Route::post('/listings', [ListingController::class, 'store'])->middleware(['auth', 'active'])->name('listings.store');
-Route::get('/store/{sellerStore:slug}', [StorefrontController::class, 'show'])->name('storefront.show');
+  Route::get('/stores', [StorefrontController::class, 'index'])->name('storefront.index');
+  Route::get('/store/{sellerStore:slug}', [StorefrontController::class, 'show'])->name('storefront.show');
 Route::get('/listings/{listing}', [ListingController::class, 'show'])->name('listings.show');
 
 Route::get('/dashboard', [UserDashboardController::class, 'index'])->middleware(['auth', 'active', 'verified'])->name('dashboard');
@@ -76,6 +77,8 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users.index');
     Route::get('/storefronts', [AdminStorefrontController::class, 'index'])->name('admin.storefronts.index');
     Route::patch('/storefronts/{sellerStore}/toggle', [AdminStorefrontController::class, 'toggle'])->name('admin.storefronts.toggle');
+    Route::patch('/storefronts/{sellerStore}/approve', [AdminStorefrontController::class, 'approve'])->name('admin.storefronts.approve');
+    Route::patch('/storefronts/{sellerStore}/reject', [AdminStorefrontController::class, 'reject'])->name('admin.storefronts.reject');
     Route::get('/users/{user}/storefront', [AdminStorefrontController::class, 'edit'])->name('admin.storefronts.edit');
     Route::put('/users/{user}/storefront', [AdminStorefrontController::class, 'update'])->name('admin.storefronts.update');
     Route::get('/users/create', [AdminUserController::class, 'create'])->name('admin.users.create');
