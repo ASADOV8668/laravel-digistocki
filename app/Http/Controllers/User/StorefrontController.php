@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateStorefrontRequest;
 use App\Models\Listing;
 use App\Models\SellerStore;
 use App\Support\PersianDate;
+use App\Support\PersianSearch;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -54,15 +55,17 @@ class StorefrontController extends Controller
         }
 
         $search = trim((string) $request->input('q'));
+        $searchLikes = PersianSearch::likes($search);
         $listings = Listing::query()
             ->published()
             ->where('user_id', $sellerStore->user_id)
-            ->when($search !== '', function (Builder $query) use ($search): void {
-                $term = '%'.$search.'%';
-                $query->where(function (Builder $listingQuery) use ($term): void {
-                    $listingQuery->where('title', 'like', $term)
-                        ->orWhereHas('brand', fn (Builder $brand) => $brand->where('name', 'like', $term)->orWhere('name_en', 'like', $term))
-                        ->orWhereHas('phoneModel', fn (Builder $model) => $model->where('name', 'like', $term)->orWhere('name_fa', 'like', $term)->orWhere('name_en', 'like', $term));
+            ->when($searchLikes !== [], function (Builder $query) use ($searchLikes): void {
+                $query->where(function (Builder $listingQuery) use ($searchLikes): void {
+                    foreach ($searchLikes as $like) {
+                        $listingQuery->orWhere('title', 'like', $like)
+                            ->orWhereHas('brand', fn (Builder $brand) => $brand->where('name', 'like', $like)->orWhere('name_en', 'like', $like))
+                            ->orWhereHas('phoneModel', fn (Builder $model) => $model->where('name', 'like', $like)->orWhere('name_fa', 'like', $like)->orWhere('name_en', 'like', $like));
+                    }
                 });
             })
             ->with(['brand', 'phoneModel', 'province', 'city', 'primaryImage', 'attributeValues.attribute', 'user.storefront'])
