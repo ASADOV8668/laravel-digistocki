@@ -13,9 +13,12 @@
     ]);
     $parts = preg_split('/[\/-]/', $englishDigits((string) $value)) ?: [];
     $todayParts = explode('/', \App\Support\PersianDate::format(now()));
-    $year = old($name.'_year', $parts[0] ?? ($todayParts[0] ?? ''));
-    $month = old($name.'_month', isset($parts[1]) ? ltrim($parts[1], '0') : ltrim($todayParts[1] ?? '', '0'));
-    $day = old($name.'_day', isset($parts[2]) ? ltrim($parts[2], '0') : ltrim($todayParts[2] ?? '', '0'));
+    $initialYear = filled($parts[0] ?? null) ? $parts[0] : ($todayParts[0] ?? '');
+    $initialMonth = filled($parts[1] ?? null) ? ltrim($parts[1], '0') : ltrim($todayParts[1] ?? '', '0');
+    $initialDay = filled($parts[2] ?? null) ? ltrim($parts[2], '0') : ltrim($todayParts[2] ?? '', '0');
+    $year = old($name.'_year', $initialYear);
+    $month = old($name.'_month', $initialMonth);
+    $day = old($name.'_day', $initialDay);
     $currentYear = (int) ($todayParts[0] ?? 1405);
     $idPrefix = str_replace('_', '-', $name);
     $months = [

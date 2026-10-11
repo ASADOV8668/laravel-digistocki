@@ -81,6 +81,20 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
         $this->assertSeeDateSelectOn($this->actingAs($user)->get(route('storefront.edit')));
     }
 
+    public function test_empty_license_date_defaults_to_today_and_limits_years(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create(['mobile' => '09120004444']);
+        $currentYear = (int) PersianDate::format(now(), 'Y');
+
+        $this->actingAs($admin)->get(route('admin.storefronts.edit', $user))
+            ->assertOk()
+            ->assertSee('name="business_license_expires_at_year"', false)
+            ->assertSee('value="1350"', false)
+            ->assertSee('value="'.$currentYear.'" selected', false)
+            ->assertDontSee('value="'.($currentYear + 1).'"', false);
+    }
+
     private function assertSeeDateSelectOn($response): void
     {
         $response->assertOk()
