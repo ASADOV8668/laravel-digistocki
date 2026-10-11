@@ -1237,11 +1237,78 @@ document.addEventListener('submit', async (event) => {
     }
 });
 
+document.addEventListener('submit', async (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || event.defaultPrevented || !form.action.includes('/dashboard/listings/bulk')) return;
+
+    event.preventDefault();
+    const submitButton = form.querySelector('button[type="submit"], button:not([type])');
+    if (submitButton?.disabled) return;
+    if (submitButton) submitButton.disabled = true;
+
+    const formData = new FormData(form);
+    const requestedAction = String(formData.get('action') || '');
+    if (requestedAction === 'delete' && !window.confirm('آگهی‌های انتخاب‌شده حذف شوند؟ این عملیات قابل بازگشت نیست.')) {
+        if (submitButton) submitButton.disabled = false;
+        return;
+    }
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
+            body: formData,
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || 'عملیات گروهی انجام نشد؛ دوباره تلاش کنید.');
+
+        const listingIds = (data.listing_ids || []).map((id) => String(id));
+        listingIds.forEach((id) => {
+            const checkbox = document.querySelector('input[name="listing_ids[]"][value="' + CSS.escape(id) + '"]');
+            const card = checkbox?.closest('article');
+            if (!card) return;
+
+            if (data.action === 'delete') {
+                card.remove();
+                return;
+            }
+
+            if (data.action === 'price' || data.action === 'contact_price') {
+                const priceNode = card.querySelector('p.mt-2.text-xs.font-black.text-primary');
+                if (priceNode) priceNode.textContent = data.action === 'contact_price' ? 'تماس بگیرید' : formatDashboardPrice(data.price) + ' تومان';
+            }
+
+            if (data.action === 'disable' || data.action === 'enable') {
+                const statusNode = card.querySelector('h2')?.parentElement?.querySelector('span');
+                const toggleButton = card.querySelector('form[action*="/toggle-disabled"] button');
+                if (statusNode) statusNode.textContent = data.action === 'disable' ? 'غیرفعال' : 'فعال';
+                if (toggleButton) toggleButton.textContent = data.action === 'disable' ? 'فعال‌سازی' : 'غیرفعال‌کردن';
+            }
+        });
+
+        form.querySelector('[data-modal-hide]')?.click();
+        window.dispatchEvent(new CustomEvent('dashboard-bulk-complete'));
+        showDashboardNotification('عملیات گروهی انجام شد', data.message || '', 'success');
+    } catch (error) {
+        showDashboardNotification('خطا در عملیات گروهی', error.message || 'عملیات انجام نشد؛ دوباره تلاش کنید.', 'error');
+    } finally {
+        if (submitButton) submitButton.disabled = false;
+    }
+});
+
 window.dashboardBulkActions = (visibleIds = [], matchingIds = []) => ({
     visibleIds,
     matchingIds,
     selectedIds: [],
     allMatching: false,
+
+    init() {
+        window.addEventListener('dashboard-bulk-complete', () => this.clearSelection());
+    },
 
     toggleVisible(event) {
         this.allMatching = false;

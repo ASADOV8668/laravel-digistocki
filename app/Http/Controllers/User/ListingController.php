@@ -578,7 +578,7 @@ class ListingController extends Controller
         return back()->with('status', $message);
     }
 
-    public function bulkAction(Request $request, ImageService $imageService, SystemOptions $options): RedirectResponse
+    public function bulkAction(Request $request, ImageService $imageService, SystemOptions $options): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'action' => ['required', 'in:disable,enable,delete,contact_price,price'],
@@ -593,6 +593,10 @@ class ListingController extends Controller
             $imageService->deleteMany($files);
         } elseif ($validated['action'] === 'contact_price') {
             if (! $options->allowContactPrice()) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => 'امکان «تماس بگیرید» در تنظیمات سیستم فعال نیست.'], 422);
+                }
+
                 return back()->withErrors(['action' => 'امکان «تماس بگیرید» در تنظیمات سیستم فعال نیست.']);
             }
 
@@ -610,6 +614,14 @@ class ListingController extends Controller
             'disable' => 'آگهی‌های انتخاب‌شده غیرفعال شدند.',
             'enable' => 'آگهی‌های انتخاب‌شده فعال شدند.',
         ];
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $messages[$validated['action']],
+                'action' => $validated['action'],
+                'listing_ids' => array_values($validated['listing_ids']),
+                'price' => $validated['action'] === 'price' ? $validated['bulk_price'] : null,
+            ]);
+        }
 
         return back()->with('status', $messages[$validated['action']]);
     }

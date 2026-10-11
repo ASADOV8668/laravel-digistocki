@@ -55,6 +55,37 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
             ->assertJson(['is_user_disabled' => true]);
     }
 
+    public function test_bulk_dashboard_actions_return_json_and_update_selected_listings(): void
+    {
+        $user = User::factory()->create();
+        $brand = Brand::firstOrFail();
+        $attributes = ['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $brand->phoneModels()->first()->id, 'slug' => Str::uuid(), 'status' => ListingStatus::Approved];
+        $first = Listing::create(array_merge($attributes, ['title' => 'گروهی اول', 'price' => 1000000]));
+        $second = Listing::create(array_merge($attributes, ['title' => 'گروهی دوم', 'price' => 2000000, 'slug' => Str::uuid()]));
+
+        $this->actingAs($user)
+            ->postJson(route('dashboard.listings.bulk'), [
+                'action' => 'price',
+                'bulk_price' => 3200000,
+                'listing_ids' => [$first->id, $second->id],
+            ])
+            ->assertOk()
+            ->assertJson(['action' => 'price', 'price' => 3200000]);
+
+        $this->actingAs($user)
+            ->postJson(route('dashboard.listings.bulk'), [
+                'action' => 'disable',
+                'listing_ids' => [$first->id, $second->id],
+            ])
+            ->assertOk()
+            ->assertJson(['action' => 'disable']);
+
+        $this->assertSame(3200000, $first->refresh()->price);
+        $this->assertTrue($first->is_user_disabled);
+        $this->assertSame(3200000, $second->refresh()->price);
+        $this->assertTrue($second->is_user_disabled);
+    }
+
     public function test_quick_update_requires_a_price_when_contact_mode_is_not_selected(): void
     {
         $user = User::factory()->create();
