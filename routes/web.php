@@ -48,6 +48,9 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/listings/{listing}/contact-otp/verify', [ListingController::class, 'verifyContactOtp'])->middleware('throttle:5,1')->name('listings.contact-otp.verify');
     Route::get('/listings/{listing}/edit', [ListingController::class, 'edit'])->name('listings.edit');
     Route::put('/listings/{listing}', [ListingController::class, 'update'])->name('listings.update');
+      Route::patch('/listings/{listing}/quick-update', [ListingController::class, 'quickUpdate'])->name('listings.quick-update');
+      Route::patch('/listings/{listing}/toggle-disabled', [ListingController::class, 'toggleDisabled'])->name('listings.toggle-disabled');
+      Route::post('/dashboard/listings/bulk', [ListingController::class, 'bulkAction'])->name('dashboard.listings.bulk');
     Route::delete('/listings/{listing}', [ListingController::class, 'destroy'])->name('listings.destroy');
     Route::patch('/listings/{listing}/sold', [ListingController::class, 'markSold'])->name('listings.sold');
     Route::patch('/listings/{listing}/renew', [ListingController::class, 'renew'])->name('listings.renew');

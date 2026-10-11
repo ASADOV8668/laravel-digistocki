@@ -371,13 +371,18 @@ class ListingController extends Controller
         return back()->with('status', 'شماره تماس فروشنده برای شما نمایش داده شد.');
     }
 
-    public function create(ListingRules $rules, SystemOptions $options)
+    public function create(Request $request, ListingRules $rules, SystemOptions $options)
     {
         if (! $rules->canCreate(auth()->user())) {
             return redirect()->route('home')->with('status', 'در حال حاضر امکان ثبت آگهی برای حساب شما فعال نیست.');
         }
-        $selectedModel = old('phone_model_id')
-            ? PhoneModel::query()->where('is_active', true)->with(['attributes' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order')])->find(old('phone_model_id'))
+        $cloneListing = $request->filled('clone')
+            ? Listing::query()->where('user_id', $request->user()->id)->with(['attributeValues', 'images'])->findOrFail($request->integer('clone'))
+            : null;
+        $cloneValues = $cloneListing?->attributeValues->mapWithKeys(fn ($value) => [$value->attribute_id => $value->value_json ?? $value->value_string ?? $value->value_integer ?? $value->value_decimal ?? $value->value_boolean])->all() ?? [];
+        $selectedModelId = old('phone_model_id', $cloneListing?->phone_model_id);
+        $selectedModel = $selectedModelId
+            ? PhoneModel::query()->where('is_active', true)->with(['attributes' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order')])->find($selectedModelId)
             : null;
 
         return view('listings.create', [
@@ -385,6 +390,8 @@ class ListingController extends Controller
             'attributes' => Attribute::query()->where('is_active', true)->orderBy('sort_order')->get(),
             'provinces' => Province::query()->orderBy('name')->get(),
             'initialModelAttributes' => $this->attributePayload($selectedModel?->attributes ?? collect()),
+            'initialValues' => old('attributes', $cloneValues),
+            'cloneListing' => $cloneListing,
             'maxImageUploadMb' => $options->maxImageUploadMb(),
             'maxImageUploadCount' => $options->maxImageUploadCount(),
             'allowContactPrice' => $options->allowContactPrice(),
@@ -427,7 +434,7 @@ class ListingController extends Controller
 
         $storedFiles = [];
         try {
-            $listing = DB::transaction(function () use ($validated, $request, $model, $imageService, &$storedFiles) {
+            $listing = DB::transaction(function () use ($validated, $request, $model, $imageService, $options, &$storedFiles) {
                 $listingData = $validated;
                 unset($listingData['attributes'], $listingData['images']);
                 $listing = Listing::create([
@@ -439,7 +446,11 @@ class ListingController extends Controller
                 ]);
 
                 $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
-                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $storedFiles);
+                $uploads = (array) ($validated['images'] ?? []);
+                $this->storeImages($listing, $uploads, $imageService, $storedFiles);
+                if ($uploads === [] && $request->integer('clone')) {
+                    $this->cloneImages($listing, $request->integer('clone'), $options, $storedFiles);
+                }
 
                 return $listing;
             });
@@ -450,6 +461,41 @@ class ListingController extends Controller
         }
 
         return redirect()->route('listings.show', $listing)->with('status', 'آگهی شما برای بررسی ارسال شد.');
+    }
+
+    public function quickUpdate(Request $request, Listing $listing, SystemOptions $options): \Illuminate\Http\RedirectResponse
+    {
+        abort_unless($listing->isOwnedBy($request->user()) || $request->user()->isAdmin(), 403);
+        $validated = $request->validate(['price_on_request' => ['nullable', 'boolean'], 'price' => ['nullable', 'integer', 'min:0']]);
+        $onRequest = $request->boolean('price_on_request');
+        if ($onRequest && ! $options->allowContactPrice()) return back()->withErrors(['price' => 'امکان «تماس بگیرید» در تنظیمات سیستم فعال نیست.']);
+        if (! $onRequest && ! array_key_exists('price', $validated)) return back()->withErrors(['price' => 'قیمت را وارد کنید یا گزینه «تماس بگیرید» را انتخاب کنید.']);
+        $listing->update(['price_on_request' => $onRequest, 'price' => $onRequest ? null : $validated['price']]);
+
+        return back()->with('status', 'قیمت آگهی به‌سرعت به‌روزرسانی شد.');
+    }
+
+    public function toggleDisabled(Request $request, Listing $listing): \Illuminate\Http\RedirectResponse
+    {
+        abort_unless($listing->isOwnedBy($request->user()) || $request->user()->isAdmin(), 403);
+        $listing->update(['is_user_disabled' => ! $listing->is_user_disabled]);
+
+        return back()->with('status', $listing->is_user_disabled ? 'آگهی غیرفعال شد.' : 'آگهی دوباره فعال شد.');
+    }
+
+    public function bulkAction(Request $request, ImageService $imageService): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate(['action' => ['required', 'in:disable,enable,delete'], 'listing_ids' => ['required', 'array'], 'listing_ids.*' => ['integer']]);
+        $listings = Listing::query()->where('user_id', $request->user()->id)->whereKey($validated['listing_ids'])->with('images')->get();
+        if ($validated['action'] === 'delete') {
+            $files = $listings->flatMap(fn (Listing $listing) => $listing->images->map(fn (ListingImage $image) => [$image->path, $image->thumbnail_path]));
+            $listings->each->delete();
+            $imageService->deleteMany($files);
+        } else {
+            $listings->each->update(['is_user_disabled' => $validated['action'] === 'disable']);
+        }
+
+        return back()->with('status', 'عملیات گروهی روی آگهی‌های انتخاب‌شده انجام شد.');
     }
 
     public function update(UpdateListingRequest $request, Listing $listing, ListingRules $rules, ImageService $imageService, SystemOptions $options)
@@ -595,6 +641,23 @@ class ListingController extends Controller
                 'sort_order' => $nextSortOrder++,
             ]);
             $hasPrimary = true;
+        }
+    }
+
+    private function cloneImages(Listing $listing, int $sourceId, SystemOptions $options, array &$storedFiles): void
+    {
+        $source = Listing::query()->where('user_id', $listing->user_id)->with('images')->find($sourceId);
+        if (! $source) return;
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+        foreach ($source->images->take($options->maxImageUploadCount()) as $sourceImage) {
+            $name = (string) Str::uuid();
+            $extension = pathinfo($sourceImage->path, PATHINFO_EXTENSION) ?: 'webp';
+            $path = 'listings/'.$listing->id.'/'.$name.'.'.$extension;
+            $thumbnail = $sourceImage->thumbnail_path ? 'listings/'.$listing->id.'/thumbs/'.$name.'.'.(pathinfo($sourceImage->thumbnail_path, PATHINFO_EXTENSION) ?: 'webp') : null;
+            if (! $disk->exists($sourceImage->path) || ! $disk->copy($sourceImage->path, $path)) continue;
+            if ($thumbnail && $disk->exists($sourceImage->thumbnail_path)) $disk->copy($sourceImage->thumbnail_path, $thumbnail);
+            $listing->images()->create(['path' => $path, 'thumbnail_path' => $thumbnail, 'is_primary' => $sourceImage->is_primary, 'sort_order' => $sourceImage->sort_order]);
+            $storedFiles[] = [$path, $thumbnail];
         }
     }
 
