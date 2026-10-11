@@ -24,7 +24,9 @@ class PhaseNineListingWizardTest extends TestCase
 
     public function test_create_page_exposes_four_step_wizard_and_location_fields(): void
     {
-        $this->actingAs(User::factory()->create())
+        $user = User::factory()->create();
+        \App\Models\SellerStore::create(['user_id' => $user->id, 'slug' => 'wizard-store-'.$user->id, 'name' => 'فروشگاه ویزارد']);
+        $this->actingAs($user)
             ->get(route('listings.create'))
             ->assertOk()
             ->assertSee('۱. مدل')
@@ -64,10 +66,16 @@ class PhaseNineListingWizardTest extends TestCase
     {
         $brand = Brand::where('name_en', 'Apple')->firstOrFail();
 
-        $this->actingAs(User::factory()->create())
+        $user = User::factory()->create();
+        \App\Models\SellerStore::create(['user_id' => $user->id, 'slug' => 'wizard-model-store-'.$user->id, 'name' => 'فروشگاه مدل']);
+        $this->actingAs($user)
             ->get(route('listings.create'))
             ->assertSee($brand->name)
-            ->assertSee('آیفون 13 پرو')
-            ->assertSee('iPhone 13 Pro');
+            ->assertSee('data-models-endpoint', false)
+            ->assertSee('listingWizard', false);
+
+        $this->getJson(route('listings.models', ['brand_id' => $brand->id]))
+            ->assertOk()
+            ->assertJsonFragment(['secondary' => 'iPhone 13 Pro']);
     }
 }

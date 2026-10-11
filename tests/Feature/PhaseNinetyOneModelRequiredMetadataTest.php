@@ -32,11 +32,13 @@ class PhaseNinetyOneModelRequiredMetadataTest extends TestCase
     {
         [$model] = $this->modelWithGlobalRequiredButOptionalAttribute();
 
-        $this->actingAs(User::factory()->create())
+        $user = User::factory()->create();
+        \App\Models\SellerStore::create(['user_id' => $user->id, 'slug' => 'metadata-store-'.$user->id, 'name' => 'فروشگاه متادیتا']);
+        $this->actingAs($user)
             ->withSession(['_old_input' => ['phone_model_id' => $model->id]])
             ->get(route('listings.create'))
             ->assertOk()
-            ->assertSee('\\u0022is_required\\u0022:false', false);
+            ->assertSee('"is_required":false', false);
     }
 
     private function modelWithGlobalRequiredButOptionalAttribute(): array

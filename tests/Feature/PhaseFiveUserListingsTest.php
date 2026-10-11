@@ -40,6 +40,7 @@ class PhaseFiveUserListingsTest extends TestCase
     public function test_user_can_create_listing_with_primary_image(): void
     {
         $user = User::factory()->create();
+        $this->storeApplication($user);
         [$brand, $model] = $this->catalogContext();
         $image = UploadedFile::fake()->create('phone.jpg', 100, 'image/jpeg');
 

@@ -61,6 +61,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
     public function test_regular_user_cannot_access_settings_and_admin_can_disable_specific_user_listing_permission(): void
     {
         $user = User::factory()->create();
+        $this->storeApplication($user);
         $this->actingAs($user)->get(route('admin.settings.edit'))->assertForbidden();
 
         $this->actingAs($this->admin)->patch(route('admin.users.toggle-listing-permission', $user))->assertRedirect();
@@ -78,7 +79,9 @@ class PhaseElevenSystemSettingsTest extends TestCase
             'listings_enabled' => 0,
         ])->assertRedirect();
 
-        $this->actingAs(User::factory()->create())->get(route('listings.create'))->assertRedirect(route('home'));
+        $user = User::factory()->create();
+        $this->storeApplication($user);
+        $this->actingAs($user)->get(route('listings.create'))->assertRedirect(route('home'));
     }
 
     public function test_configured_image_limit_is_used_by_listing_validation(): void
@@ -92,6 +95,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
         ])->assertRedirect();
 
         $user = User::factory()->create();
+        $this->storeApplication($user);
         $brand = Brand::where('name_en', 'Apple')->firstOrFail();
         $model = $brand->phoneModels()->firstOrFail();
         $this->actingAs($user)->post(route('listings.store'), [

@@ -19,7 +19,9 @@ class PhaseNinetyThreeImagePickerTest extends TestCase
 
     public function test_create_page_exposes_image_preview_picker(): void
     {
-        $this->actingAs(User::factory()->create())
+        $user = User::factory()->create();
+        \App\Models\SellerStore::create(['user_id' => $user->id, 'slug' => 'picker-store-'.$user->id, 'name' => 'فروشگاه تصویر']);
+        $this->actingAs($user)
             ->get(route('listings.create'))
             ->assertOk()
             ->assertSee('imagePicker', false)

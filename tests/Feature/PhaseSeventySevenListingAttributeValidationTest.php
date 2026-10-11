@@ -28,6 +28,7 @@ class PhaseSeventySevenListingAttributeValidationTest extends TestCase
     public function test_store_rejects_values_that_are_not_valid_options_for_the_model(): void
     {
         $user = User::factory()->create();
+        $this->storeApplication($user);
         [$brand, $model] = $this->catalogContext();
         $color = Attribute::where('name', 'رنگ')->firstOrFail();
 
@@ -43,6 +44,7 @@ class PhaseSeventySevenListingAttributeValidationTest extends TestCase
     public function test_store_rejects_missing_required_model_attributes(): void
     {
         $user = User::factory()->create();
+        $this->storeApplication($user);
         [$brand, $model] = $this->catalogContext();
         $memory = Attribute::where('name', 'حافظه داخلی')->firstOrFail();
 
@@ -60,6 +62,7 @@ class PhaseSeventySevenListingAttributeValidationTest extends TestCase
     public function test_update_rejects_values_that_are_not_allowed_by_the_dynamic_attribute_definition(): void
     {
         $user = User::factory()->create();
+        $this->storeApplication($user);
         [$brand, $model] = $this->catalogContext();
         $listing = Listing::create([
             'user_id' => $user->id,
@@ -84,6 +87,7 @@ class PhaseSeventySevenListingAttributeValidationTest extends TestCase
     public function test_valid_multi_select_values_are_saved_as_json(): void
     {
         $user = User::factory()->create();
+        $this->storeApplication($user);
         [$brand, $model] = $this->catalogContext();
         $attribute = Attribute::create([
             'name' => 'ویژگی چندانتخابی تست',
@@ -107,6 +111,7 @@ class PhaseSeventySevenListingAttributeValidationTest extends TestCase
     public function test_new_ram_value_is_added_to_attribute_options(): void
     {
         $user = User::factory()->create();
+        $this->storeApplication($user);
         [$brand, $model] = $this->catalogContext();
         $ram = Attribute::where('slug', 'ram')->firstOrFail();
 

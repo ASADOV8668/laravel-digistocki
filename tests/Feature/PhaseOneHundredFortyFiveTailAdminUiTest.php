@@ -23,7 +23,7 @@ class PhaseOneHundredFortyFiveTailAdminUiTest extends TestCase
             ->assertSee('admin-sidebar-collapsed')
             ->assertSee('menu-item-active')
             ->assertSee('admin-dark-mode')
-            ->assertSee('جستجو در پنل مدیریت');
+            ->assertDontSee('جستجو در پنل مدیریت');
 
         $this->actingAs($admin)
             ->get(route('admin.settings.edit'))

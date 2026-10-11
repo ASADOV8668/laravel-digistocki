@@ -4,9 +4,22 @@ namespace Tests\Support;
 
 use App\Models\Attribute;
 use App\Models\PhoneModel;
+use App\Models\SellerStore;
+use App\Models\User;
 
 trait BuildsListingAttributePayload
 {
+    protected function storeApplication(User $user): SellerStore
+    {
+        return SellerStore::create([
+            'user_id' => $user->id,
+            'slug' => 'test-store-'.$user->id,
+            'name' => 'فروشگاه تست',
+            'approval_status' => 'pending',
+            'is_enabled' => true,
+        ]);
+    }
+
     /** @return array<int, mixed> */
     protected function requiredAttributeValues(PhoneModel $model): array
     {

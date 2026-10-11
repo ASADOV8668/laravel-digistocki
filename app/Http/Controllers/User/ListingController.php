@@ -227,13 +227,14 @@ class ListingController extends Controller
         $query->when($selectedBrandId, fn (Builder $query) => $query->where('brand_id', $selectedBrandId));
         $query->when($selectedModelId, fn (Builder $query) => $query->where('phone_model_id', $selectedModelId));
         $query->when($request->integer('province_id'), fn (Builder $query, int $provinceId) => $query->where('province_id', $provinceId));
+        $selectedCityId = $request->integer('city_id');
         $cityIds = collect((array) $request->input('city_ids', []))
             ->filter(fn ($id) => is_numeric($id))
             ->map(fn ($id) => (int) $id)
             ->unique()
             ->values();
         $query->when($cityIds->isNotEmpty(), fn (Builder $query) => $query->whereIn('city_id', $cityIds->all()))
-            ->when($cityIds->isEmpty() && $request->integer('city_id'), fn (Builder $query, int $cityId) => $query->where('city_id', $cityId));
+            ->when($cityIds->isEmpty() && $selectedCityId, fn (Builder $query) => $query->where('city_id', $selectedCityId));
         $query->when($request->integer('min_price'), fn (Builder $query, int $price) => $query->where('price', '>=', $price));
         $query->when($request->integer('max_price'), fn (Builder $query, int $price) => $query->where('price', '<=', $price));
         $query->when($searchLikes !== [], function (Builder $query) use ($searchLikes) {

@@ -19,6 +19,7 @@ class PhaseFiftyEightListingLocationValidationTest extends TestCase
     {
         $this->seed(CatalogSeeder::class);
         $user = User::factory()->create();
+        \App\Models\SellerStore::create(['user_id' => $user->id, 'slug' => 'location-store-'.$user->id, 'name' => 'فروشگاه موقعیت']);
         $brand = Brand::firstOrFail();
         $province = Province::create(['name' => 'استان اول', 'tel_prefix' => '11']);
         $provinceTwo = Province::create(['name' => 'استان دوم', 'tel_prefix' => '22']);

@@ -6,6 +6,7 @@ use App\Enums\ListingStatus;
 use App\Models\Brand;
 use App\Models\Listing;
 use App\Models\PhoneModel;
+use App\Models\SellerStore;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -61,7 +62,10 @@ class PhaseThirteenListingLifecycleTest extends TestCase
     {
         $brand = Brand::firstOrFail();
 
-        return [User::factory()->create(), $brand, $brand->phoneModels()->firstOrFail()];
+        $user = User::factory()->create();
+        SellerStore::create(['user_id' => $user->id, 'slug' => 'lifecycle-store-'.$user->id, 'name' => 'فروشگاه چرخه']);
+
+        return [$user, $brand, $brand->phoneModels()->firstOrFail()];
     }
 
     private function listing(User $user, Brand $brand, PhoneModel $model, string $title, ListingStatus $status, $expiresAt): Listing

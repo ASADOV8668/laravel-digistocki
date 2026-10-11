@@ -24,15 +24,15 @@ class PhaseOneHundredFiftyNineHomeLocationSearchTest extends TestCase
 
         $this->get(route('home'))
             ->assertOk()
-            ->assertSee('در کدام استان و شهر هستید؟')
+            ->assertSee('کجا جستجو کنیم؟')
+            ->assertSee('محدوده جستجو')
             ->assertSee('همه استان‌ها')
-            ->assertSee('همه شهرها')
             ->assertSee('homeSearch(', false);
 
         $view = file_get_contents(resource_path('views/welcome.blade.php'));
 
         $this->assertNotFalse($view);
-        $this->assertStringContainsString('route("listings.search.suggestions")', $view);
+        $this->assertStringContainsString("route('listings.search.suggestions')", $view);
     }
 
     public function test_listing_feed_filters_home_search_by_province_and_city(): void
@@ -49,10 +49,10 @@ class PhaseOneHundredFiftyNineHomeLocationSearchTest extends TestCase
         $matching = $this->listing($seller, $brand, $model, $province->id, $city->id, 'آگهی شهر فیلتر');
         $this->listing($seller, $brand, $model, $otherProvince->id, null, 'آگهی شهر دیگر');
 
-        $this->get(route('listings.index', ['province_id' => $province->id, 'city_id' => $city->id]))
-            ->assertOk()
-            ->assertSee($matching->title)
-            ->assertDontSee('آگهی شهر دیگر');
+        $response = $this->get(route('listings.index', ['province_id' => $province->id, 'city_id' => $city->id]));
+
+        $response->assertOk();
+        $this->assertSame([$matching->id], $response->viewData('listings')->getCollection()->pluck('id')->all());
     }
 
     private function listing(User $seller, Brand $brand, $model, int $provinceId, ?int $cityId, string $title): Listing

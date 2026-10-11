@@ -10,10 +10,12 @@ use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
 class PhaseSeventyEightEditAttributeInputTest extends TestCase
 {
+    use BuildsListingAttributePayload;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -25,6 +27,7 @@ class PhaseSeventyEightEditAttributeInputTest extends TestCase
     public function test_edit_form_uses_input_types_that_match_dynamic_attribute_types(): void
     {
         $owner = User::factory()->create();
+        $this->storeApplication($owner);
         $brand = Brand::where('name_en', 'Apple')->firstOrFail();
         $model = PhoneModel::where('name', 'iPhone 13 Pro')->firstOrFail();
         $text = Attribute::create(['name' => 'توضیحات ظاهری', 'type' => 'string', 'is_active' => true, 'sort_order' => 98]);
@@ -47,6 +50,7 @@ class PhaseSeventyEightEditAttributeInputTest extends TestCase
             ->get(route('listings.edit', $listing))
             ->assertOk()
             ->assertSee('type="text"', false)
-            ->assertSee('step="0.01"', false);
+            ->assertSee("attribute(row.attributeId)?.type === 'decimal'", false)
+            ->assertSee(':step=', false);
     }
 }

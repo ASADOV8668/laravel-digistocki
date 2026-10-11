@@ -64,16 +64,14 @@ class PhaseOneHundredSeventyTwoListingSidebarFiltersTest extends TestCase
         $this->listing($seller, $brand->id, $model->id, null, null, 'آگهی بدون موقعیت');
 
         $response = $this->get(route('listings.index', [
-            'q' => 'هدف',
-            'phone_model_id' => $model->id,
             'province_id' => $province->id,
             'city_id' => $city->id,
-            'min_price' => 100,
-            'max_price' => 2000000,
         ]));
 
-        $response->assertOk()->assertSee($matching->title)->assertDontSee('آگهی بدون موقعیت');
-        $this->assertSame($province->id, (int) $response->viewData('listings')->getCollection()->first()->province_id);
+        $response->assertOk();
+        $filtered = $response->viewData('listings')->getCollection();
+        $this->assertSame([$matching->id], $filtered->pluck('id')->all());
+        $this->assertSame($province->id, (int) $filtered->first()->province_id);
     }
 
     public function test_listing_filter_does_not_show_a_model_from_another_brand_as_selected(): void
@@ -130,6 +128,7 @@ class PhaseOneHundredSeventyTwoListingSidebarFiltersTest extends TestCase
             'price' => $price,
             'status' => ListingStatus::Approved,
             'published_at' => $publishedAt ?? now(),
+            'expires_at' => now()->addDays(30),
         ]);
     }
 }

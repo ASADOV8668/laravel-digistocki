@@ -25,6 +25,7 @@ class PhaseOneHundredThreeImageTransactionCleanupTest extends TestCase
         ListingImage::creating(fn () => throw new RuntimeException('forced image insert failure'));
 
         $user = User::factory()->create();
+        $this->storeApplication($user);
         $brand = Brand::where('name_en', 'Apple')->firstOrFail();
         $model = $brand->phoneModels()->firstOrFail();
 

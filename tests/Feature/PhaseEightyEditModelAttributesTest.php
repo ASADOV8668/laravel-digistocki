@@ -10,10 +10,12 @@ use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
 class PhaseEightyEditModelAttributesTest extends TestCase
 {
+    use BuildsListingAttributePayload;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -25,6 +27,7 @@ class PhaseEightyEditModelAttributesTest extends TestCase
     public function test_edit_form_only_exposes_active_attributes_attached_to_the_listing_model(): void
     {
         $owner = User::factory()->create();
+        $this->storeApplication($owner);
         $brand = Brand::where('name_en', 'Apple')->firstOrFail();
         $model = PhoneModel::where('name', 'iPhone 13 Pro')->firstOrFail();
         Attribute::create([
@@ -46,7 +49,7 @@ class PhaseEightyEditModelAttributesTest extends TestCase
         $this->actingAs($owner)
             ->get(route('listings.edit', $listing))
             ->assertOk()
-            ->assertSee('حافظه داخلی')
+            ->assertSee('"slug":"storage"', false)
             ->assertDontSee('ویژگی خارج از مدل');
     }
 }

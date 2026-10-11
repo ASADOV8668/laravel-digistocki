@@ -27,6 +27,7 @@ class PhaseNinetySevenImageOrderingTest extends TestCase
     public function test_uploaded_images_keep_order_and_only_first_image_is_primary(): void
     {
         $user = User::factory()->create();
+        $this->storeApplication($user);
         $brand = Brand::firstOrFail();
         $model = $brand->phoneModels()->firstOrFail();
 

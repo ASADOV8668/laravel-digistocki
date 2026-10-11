@@ -93,8 +93,10 @@ class ListingFlowTest extends TestCase
     private function context(): array
     {
         $brand = Brand::firstOrFail();
+        $user = User::factory()->create();
+        $this->storeApplication($user);
 
-        return [User::factory()->create(), $brand, $brand->phoneModels()->firstOrFail()];
+        return [$user, $brand, $brand->phoneModels()->firstOrFail()];
     }
 
     private function listing(User $user, Brand $brand, PhoneModel $model, string $title, ListingStatus $status): Listing

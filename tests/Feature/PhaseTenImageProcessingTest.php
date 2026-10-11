@@ -30,6 +30,7 @@ class PhaseTenImageProcessingTest extends TestCase
     public function test_listing_upload_is_stored_through_image_service_and_image_metadata(): void
     {
         $user = User::factory()->create();
+        $this->storeApplication($user);
         $brand = Brand::where('name_en', 'Apple')->firstOrFail();
         $model = $brand->phoneModels()->firstOrFail();
 

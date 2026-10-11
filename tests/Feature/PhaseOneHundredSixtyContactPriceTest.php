@@ -47,6 +47,7 @@ class PhaseOneHundredSixtyContactPriceTest extends TestCase
     {
         app(SystemOptions::class)->set('allow_contact_price', true, 'boolean');
         $user = User::factory()->create();
+        $this->storeApplication($user);
         $brand = Brand::firstOrFail();
         $model = $brand->phoneModels()->firstOrFail();
 
@@ -68,6 +69,7 @@ class PhaseOneHundredSixtyContactPriceTest extends TestCase
     {
         app(SystemOptions::class)->set('allow_contact_price', false, 'boolean');
         $user = User::factory()->create();
+        $this->storeApplication($user);
         $brand = Brand::firstOrFail();
         $model = $brand->phoneModels()->firstOrFail();
 

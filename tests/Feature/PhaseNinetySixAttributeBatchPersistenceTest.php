@@ -26,6 +26,7 @@ class PhaseNinetySixAttributeBatchPersistenceTest extends TestCase
     public function test_listing_attributes_are_inserted_in_one_batch(): void
     {
         $user = User::factory()->create();
+        $this->storeApplication($user);
         $brand = Brand::firstOrFail();
         $model = $brand->phoneModels()->firstOrFail();
         $memory = Attribute::where('name', 'حافظه داخلی')->firstOrFail();

@@ -10,10 +10,12 @@ use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
 class PhaseEightyEightEditRequirementDisplayTest extends TestCase
 {
+    use BuildsListingAttributePayload;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -25,6 +27,7 @@ class PhaseEightyEightEditRequirementDisplayTest extends TestCase
     public function test_edit_form_reads_required_marker_from_model_attribute_pivot(): void
     {
         $owner = User::factory()->create();
+        $this->storeApplication($owner);
         $brand = Brand::where('name_en', 'Apple')->firstOrFail();
         $model = PhoneModel::create([
             'brand_id' => $brand->id,
@@ -57,7 +60,7 @@ class PhaseEightyEightEditRequirementDisplayTest extends TestCase
         $this->actingAs($owner)
             ->get(route('listings.edit', $listing))
             ->assertOk()
-            ->assertSee('ویژگی اختیاری مدل')
-            ->assertDontSee('ویژگی اختیاری مدل <span class="text-error">*</span>', false);
+            ->assertSee('"id":'.$attribute->id, false)
+            ->assertSee('"is_required":false', false);
     }
 }

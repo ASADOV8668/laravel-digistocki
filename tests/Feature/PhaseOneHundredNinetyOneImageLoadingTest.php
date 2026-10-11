@@ -13,7 +13,7 @@ class PhaseOneHundredNinetyOneImageLoadingTest extends TestCase
     {
         foreach ([
             resource_path('views/dashboard.blade.php'),
-            resource_path('views/welcome.blade.php'),
+            resource_path('views/components/listing-card.blade.php'),
             resource_path('views/listings/show.blade.php'),
             resource_path('views/listings/edit.blade.php'),
             resource_path('views/admin/listings/index.blade.php'),
