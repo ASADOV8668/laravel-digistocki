@@ -19,6 +19,7 @@ class StorefrontController extends Controller
 {
     public function index(Request $request): View
     {
+        $randomSeed = $request->integer('random_seed') ?: random_int(1, PHP_INT_MAX);
         $cityIds = collect((array) $request->input('city_ids', []))
             ->filter(fn ($id) => is_numeric($id))
             ->map(fn ($id) => (int) $id)
@@ -34,9 +35,9 @@ class StorefrontController extends Controller
             ->when($cityIds->isNotEmpty(), fn (Builder $query) => $query->whereIn('city_id', $cityIds->all()))
             ->orderByRaw('CASE WHEN sort_order > 0 THEN 0 ELSE 1 END')
             ->orderByRaw('CASE WHEN sort_order > 0 THEN sort_order ELSE 0 END')
-            ->orderByRaw('RAND()')
+            ->orderByRaw('RAND(?)', [$randomSeed])
             ->paginate(18)
-            ->withQueryString();
+            ->appends([...$request->query(), 'random_seed' => $randomSeed]);
 
         return view('storefront.index', [
             'stores' => $stores,
