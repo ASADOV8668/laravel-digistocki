@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\PhoneModel;
+use App\Models\SellerStore;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -45,7 +46,16 @@ class PhaseEightySevenModelAttributeRequirementsTest extends TestCase
             'is_required' => 1,
         ]);
 
-        $this->actingAs(User::factory()->create())
+        $seller = User::factory()->create();
+        SellerStore::create([
+            'user_id' => $seller->id,
+            'slug' => 'required-attribute-store',
+            'name' => 'فروشگاه ویژگی اجباری',
+            'approval_status' => 'pending',
+            'is_enabled' => false,
+        ]);
+
+        $this->actingAs($seller)
             ->post(route('listings.store'), [
                 'brand_id' => $brand->id,
                 'phone_model_id' => $model->id,
