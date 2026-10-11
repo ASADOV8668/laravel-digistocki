@@ -95,6 +95,26 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
             ->assertDontSee('value="'.($currentYear + 1).'"', false);
     }
 
+    public function test_license_year_after_current_year_is_rejected(): void
+    {
+        $user = User::factory()->create(['mobile' => '09120005555']);
+
+        $this->actingAs($user)->put(route('storefront.update'), [
+            'first_name' => 'کاربر',
+            'last_name' => 'سال',
+            'national_id' => '0067123457',
+            'name' => 'فروشگاه سال',
+            'slug' => 'year-store',
+            'contact_phone' => '09120005555',
+            'business_license_number' => 'LIC-YEAR',
+            'business_license_expires_at_year' => (int) PersianDate::format(now(), 'Y') + 1,
+            'business_license_expires_at_month' => '1',
+            'business_license_expires_at_day' => '1',
+        ])->assertSessionHasErrors('business_license_expires_at_year');
+
+        $this->assertDatabaseMissing('seller_stores', ['user_id' => $user->id]);
+    }
+
     private function assertSeeDateSelectOn($response): void
     {
         $response->assertOk()

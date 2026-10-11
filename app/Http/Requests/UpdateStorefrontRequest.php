@@ -53,7 +53,7 @@ class UpdateStorefrontRequest extends FormRequest
             'slug' => $slugRules,
             'business_license_number' => ['required', 'string', 'max:80'],
             'business_license_expires_at' => ['required', 'string', 'max:10'],
-            'business_license_expires_at_year' => ['nullable', 'integer', 'between:1300,1500'],
+            'business_license_expires_at_year' => ['nullable', 'integer', 'between:1350,'.(int) PersianDate::format(now(), 'Y')],
             'business_license_expires_at_month' => ['nullable', 'integer', 'between:1,12'],
             'business_license_expires_at_day' => ['nullable', 'integer', 'between:1,31'],
             'province_id' => ['required', 'integer', 'exists:provinces,id'],
