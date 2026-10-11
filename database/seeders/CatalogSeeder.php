@@ -104,10 +104,8 @@ class CatalogSeeder extends Seeder
         ];
 
         return collect($definitions)->map(function (array $definition): Attribute {
-            $attribute = Attribute::query()
-                ->where('slug', $definition['slug'])
-                ->orWhere('name', $definition['name'])
-                ->first();
+            $attribute = Attribute::query()->where('slug', $definition['slug'])->first()
+                ?? Attribute::query()->where('name', $definition['name'])->first();
 
             if ($attribute) {
                 $attribute->update($definition + ['is_active' => true]);

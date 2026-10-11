@@ -5,6 +5,10 @@ namespace Tests\Feature;
 use App\Models\SellerStore;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Sadegh19b\LaravelIranCities\Models\City;
+use Sadegh19b\LaravelIranCities\Models\County;
+use Sadegh19b\LaravelIranCities\Models\Province;
 use Tests\TestCase;
 
 class PhaseOneHundredSixtyOneStorefrontManagementTest extends TestCase
@@ -14,20 +18,32 @@ class PhaseOneHundredSixtyOneStorefrontManagementTest extends TestCase
     public function test_user_can_create_a_storefront_with_an_english_slug(): void
     {
         $user = User::factory()->create(['mobile' => '09120001111']);
+        $province = Province::create(['name' => 'استان تست', 'tel_prefix' => '99']);
+        $county = County::create(['name' => 'شهرستان تست', 'province_id' => $province->id]);
+        $city = City::create(['name' => 'شهر تست', 'province_id' => $province->id, 'county_id' => $county->id]);
 
         $this->actingAs($user)->get(route('storefront.edit'))
             ->assertOk()
-            ->assertSee('غرفه شما');
+            ->assertSee('ثبت فروشگاه');
 
         $this->actingAs($user)->put(route('storefront.update'), [
             'store_enabled' => 1,
+            'first_name' => 'کاربر',
+            'last_name' => 'تست',
+            'national_id' => '0067123457',
             'name' => 'فروشگاه رضایی',
             'slug' => 'reza-mobile',
             'contact_phone' => '09120001111',
-        ])->assertRedirect()->assertSessionHas('status', 'اطلاعات غرفه شما ذخیره شد.');
+            'business_license_number' => 'LIC-001',
+            'business_license_expires_at' => '1405/12/29',
+            'province_id' => $province->id,
+            'city_id' => $city->id,
+            'address' => 'آدرس تست',
+            'business_license' => UploadedFile::fake()->create('license.jpg', 10, 'image/jpeg'),
+        ])->assertRedirect()->assertSessionHas('status', 'درخواست فروشگاه شما ثبت شد و پس از بررسی مدیریت اعلام نتیجه خواهد شد.');
 
         $store = SellerStore::where('user_id', $user->id)->firstOrFail();
-        $this->assertTrue($store->is_enabled);
+        $this->assertFalse($store->is_enabled);
         $this->assertSame('reza-mobile', $store->slug);
         $this->assertSame('09120001111', $store->contact_phone);
     }

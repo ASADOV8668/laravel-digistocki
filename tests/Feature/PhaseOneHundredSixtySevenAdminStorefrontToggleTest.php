@@ -20,6 +20,7 @@ class PhaseOneHundredSixtySevenAdminStorefrontToggleTest extends TestCase
             'slug' => 'quick-toggle-shop',
             'name' => 'غرفه تغییر سریع',
             'is_enabled' => true,
+            'approval_status' => 'approved',
         ]);
 
         $this->actingAs($admin)->get(route('admin.storefronts.index'))
@@ -28,7 +29,7 @@ class PhaseOneHundredSixtySevenAdminStorefrontToggleTest extends TestCase
 
         $this->actingAs($admin)->patch(route('admin.storefronts.toggle', $store))
             ->assertRedirect()
-            ->assertSessionHas('status', 'غرفه توسط مدیریت غیرفعال شد.');
+            ->assertSessionHas('status', 'فروشگاه توسط مدیریت غیرفعال شد.');
 
         $this->assertTrue($store->refresh()->is_enabled);
         $this->assertTrue($store->is_admin_disabled);
@@ -42,6 +43,7 @@ class PhaseOneHundredSixtySevenAdminStorefrontToggleTest extends TestCase
             'slug' => 'protected-toggle-shop',
             'name' => 'غرفه محافظت‌شده',
             'is_enabled' => true,
+            'approval_status' => 'approved',
         ]);
 
         $this->actingAs($user)->patch(route('admin.storefronts.toggle', $store))->assertForbidden();

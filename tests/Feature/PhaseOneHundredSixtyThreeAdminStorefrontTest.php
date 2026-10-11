@@ -17,7 +17,7 @@ class PhaseOneHundredSixtyThreeAdminStorefrontTest extends TestCase
         $admin->save();
         $user = User::factory()->create(['mobile' => '09120003333']);
 
-        $this->actingAs($admin)->get(route('admin.storefronts.index'))->assertOk()->assertSee('مدیریت غرفه‌ها');
+        $this->actingAs($admin)->get(route('admin.storefronts.index'))->assertOk()->assertSee('مدیریت فروشگاه‌ها');
         $this->actingAs($admin)->put(route('admin.storefronts.update', $user), [
             'store_enabled' => 1,
             'name' => 'غرفه مدیریتی',
@@ -54,6 +54,7 @@ class PhaseOneHundredSixtyThreeAdminStorefrontTest extends TestCase
             'slug' => 'disable-shop',
             'name' => 'غرفه فعال',
             'is_enabled' => true,
+            'approval_status' => 'approved',
         ]);
 
         $this->actingAs($admin)->put(route('admin.users.update', $user), [
@@ -73,7 +74,7 @@ class PhaseOneHundredSixtyThreeAdminStorefrontTest extends TestCase
         $this->assertSame('نام ویرایش‌شده', $user->refresh()->name);
         $this->assertSame('09120005555', $user->mobile);
         $this->assertFalse($store->refresh()->is_enabled);
-        $this->get(route('storefront.show', $store))->assertSee('غرفه این فروشنده غیرفعال است');
+        $this->get(route('storefront.show', $store))->assertSee('فروشگاه این فروشنده غیرفعال است');
     }
 
     public function test_storefront_slug_must_be_unique_for_admin(): void

@@ -20,11 +20,12 @@ class PhaseOneHundredSixtyEightAdminStorefrontLockTest extends TestCase
             'name' => 'غرفه قفل‌شده',
             'is_enabled' => true,
             'is_admin_disabled' => true,
+            'approval_status' => 'approved',
         ]);
 
         $this->actingAs($user)->get(route('storefront.edit'))
             ->assertOk()
-            ->assertSee('غرفه شما توسط مدیریت غیرفعال شده است');
+            ->assertSee('ویرایش اطلاعات فروشگاه');
 
         $this->actingAs($user)->put(route('storefront.update'), [
             'store_enabled' => 1,
@@ -35,7 +36,7 @@ class PhaseOneHundredSixtyEightAdminStorefrontLockTest extends TestCase
         $this->assertTrue($store->is_admin_disabled);
         $this->get(route('storefront.show', $store))
             ->assertOk()
-            ->assertSee('غرفه این فروشنده غیرفعال است');
+            ->assertSee('فروشگاه این فروشنده غیرفعال است');
     }
 
     public function test_admin_can_remove_the_lock_without_changing_owner_preference(): void
@@ -49,6 +50,7 @@ class PhaseOneHundredSixtyEightAdminStorefrontLockTest extends TestCase
             'name' => 'غرفه بازشدنی',
             'is_enabled' => true,
             'is_admin_disabled' => true,
+            'approval_status' => 'approved',
         ]);
 
         $this->actingAs($admin)->put(route('admin.storefronts.update', $user), [

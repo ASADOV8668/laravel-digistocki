@@ -19,13 +19,14 @@ class PhaseOneHundredSixtySixUserStorefrontDashboardTest extends TestCase
             'slug' => 'dashboard-shop',
             'name' => 'غرفه داشبورد',
             'is_enabled' => true,
+            'approval_status' => 'approved',
         ]);
 
         $this->actingAs($user)->get(route('dashboard'))
             ->assertOk()
             ->assertSee($store->name)
             ->assertSee('فعال و قابل مشاهده')
-            ->assertSee('مشاهده غرفه')
+            ->assertSee('مشاهده فروشگاه')
             ->assertSee(route('storefront.show', $store), false);
     }
 
@@ -37,6 +38,7 @@ class PhaseOneHundredSixtySixUserStorefrontDashboardTest extends TestCase
             'slug' => 'disabled-dashboard-shop',
             'name' => 'غرفه غیرفعال داشبورد',
             'is_enabled' => false,
+            'approval_status' => 'approved',
         ]);
 
         $this->actingAs($user)->get(route('dashboard'))
@@ -52,7 +54,7 @@ class PhaseOneHundredSixtySixUserStorefrontDashboardTest extends TestCase
 
         $this->actingAs($user)->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('غرفه خودت را بساز')
+            ->assertSee('فروشگاه خودت را ثبت کن')
             ->assertSee(route('storefront.edit'), false);
     }
 }

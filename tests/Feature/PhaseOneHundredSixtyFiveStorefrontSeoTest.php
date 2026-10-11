@@ -18,6 +18,7 @@ class PhaseOneHundredSixtyFiveStorefrontSeoTest extends TestCase
             'slug' => 'indexable-shop',
             'name' => 'غرفه قابل ایندکس',
             'is_enabled' => true,
+            'approval_status' => 'approved',
         ]);
         $disabled = SellerStore::create([
             'user_id' => User::factory()->create()->id,
@@ -39,6 +40,7 @@ class PhaseOneHundredSixtyFiveStorefrontSeoTest extends TestCase
             'slug' => 'seo-shop',
             'name' => 'غرفه سئو',
             'is_enabled' => true,
+            'approval_status' => 'approved',
             'contact_phone' => '09120006666',
         ]);
 

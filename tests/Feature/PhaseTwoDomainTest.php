@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\ListingRules;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -35,6 +36,25 @@ class PhaseTwoDomainTest extends TestCase
         $this->assertSame(1, Attribute::where('slug', 'sale_condition')->count());
         $this->assertTrue(Attribute::where('is_filterable', true)->exists());
         $this->assertTrue(PhoneModel::first()->modelAttributes()->exists());
+    }
+
+    public function test_catalog_seeder_is_idempotent_for_catalog_and_model_attributes(): void
+    {
+        $before = [
+            'brands' => Brand::count(),
+            'models' => PhoneModel::count(),
+            'attributes' => Attribute::count(),
+            'model_attributes' => DB::table('model_attributes')->count(),
+        ];
+
+        $this->seed(CatalogSeeder::class);
+
+        $this->assertSame($before, [
+            'brands' => Brand::count(),
+            'models' => PhoneModel::count(),
+            'attributes' => Attribute::count(),
+            'model_attributes' => DB::table('model_attributes')->count(),
+        ]);
     }
 
     public function test_listing_relations_support_eav_values(): void

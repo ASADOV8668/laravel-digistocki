@@ -25,12 +25,12 @@ class PhaseOneHundredSeventyOneListingStorefrontLinksTest extends TestCase
     public function test_listing_cards_link_to_an_enabled_seller_storefront(): void
     {
         $seller = User::factory()->create();
-        $store = SellerStore::create(['user_id' => $seller->id, 'slug' => 'card-store', 'name' => 'غرفه کارت', 'is_enabled' => true]);
+        $store = SellerStore::create(['user_id' => $seller->id, 'slug' => 'card-store', 'name' => 'فروشگاه کارت', 'is_enabled' => true, 'approval_status' => 'approved']);
         $listing = $this->listing($seller, 'آگهی با غرفه');
 
         $response = $this->get(route('listings.index'))
             ->assertOk()
-            ->assertSee('غرفه فروشنده')
+            ->assertSee('فروشگاه فروشنده')
             ->assertSee(route('storefront.show', $store), false);
 
         $feedListing = $response->viewData('listings')->getCollection()->firstWhere('id', $listing->id);
@@ -42,12 +42,12 @@ class PhaseOneHundredSeventyOneListingStorefrontLinksTest extends TestCase
     public function test_listing_cards_hide_storefront_link_when_store_is_disabled(): void
     {
         $seller = User::factory()->create();
-        SellerStore::create(['user_id' => $seller->id, 'slug' => 'hidden-card-store', 'name' => 'غرفه مخفی کارت', 'is_enabled' => false]);
+        SellerStore::create(['user_id' => $seller->id, 'slug' => 'hidden-card-store', 'name' => 'فروشگاه مخفی کارت', 'is_enabled' => false, 'approval_status' => 'approved']);
         $this->listing($seller, 'آگهی بدون غرفه عمومی');
 
         $this->get(route('listings.index'))
             ->assertOk()
-            ->assertDontSee('غرفه فروشنده');
+            ->assertDontSee('فروشگاه فروشنده');
     }
 
     private function listing(User $seller, string $title): Listing

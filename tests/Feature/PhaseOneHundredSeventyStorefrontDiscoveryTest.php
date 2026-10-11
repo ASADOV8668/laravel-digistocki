@@ -25,7 +25,7 @@ class PhaseOneHundredSeventyStorefrontDiscoveryTest extends TestCase
     public function test_storefront_supports_searching_the_sellers_published_listings(): void
     {
         $seller = User::factory()->create();
-        $store = SellerStore::create(['user_id' => $seller->id, 'slug' => 'discovery-shop', 'name' => 'غرفه جستجو', 'is_enabled' => true]);
+        $store = SellerStore::create(['user_id' => $seller->id, 'slug' => 'discovery-shop', 'name' => 'فروشگاه جستجو', 'is_enabled' => true, 'approval_status' => 'approved']);
         $brand = Brand::firstOrFail();
         $matching = $this->listing($seller, 'آیفون برای فروش', $brand->id, $brand->phoneModels()->firstOrFail()->id);
         $otherBrand = Brand::query()->whereKeyNot($brand->id)->firstOrFail();
@@ -40,11 +40,11 @@ class PhaseOneHundredSeventyStorefrontDiscoveryTest extends TestCase
 
     public function test_storefront_exposes_share_and_copy_link_controls(): void
     {
-        $store = SellerStore::create(['user_id' => User::factory()->create()->id, 'slug' => 'share-shop', 'name' => 'غرفه اشتراک', 'is_enabled' => true]);
+        $store = SellerStore::create(['user_id' => User::factory()->create()->id, 'slug' => 'share-shop', 'name' => 'فروشگاه اشتراک', 'is_enabled' => true, 'approval_status' => 'approved']);
 
         $this->get(route('storefront.show', $store))
             ->assertOk()
-            ->assertSee('اشتراک‌گذاری غرفه')
+            ->assertSee('اشتراک‌گذاری فروشگاه')
             ->assertSee('کپی لینک')
             ->assertSee('shareLink(', false);
     }

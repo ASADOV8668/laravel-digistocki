@@ -30,6 +30,7 @@ class PhaseOneHundredSixtyTwoPublicStorefrontTest extends TestCase
             'slug' => 'mobile-shop',
             'name' => 'فروشگاه موبایل',
             'is_enabled' => true,
+            'approval_status' => 'approved',
             'contact_phone' => '09123334444',
         ]);
         $listing = $this->listing($seller, 'آگهی داخل غرفه');
@@ -49,11 +50,12 @@ class PhaseOneHundredSixtyTwoPublicStorefrontTest extends TestCase
             'slug' => 'hidden-shop',
             'name' => 'غرفه خاموش',
             'is_enabled' => false,
+            'approval_status' => 'approved',
         ]);
 
         $this->get(route('storefront.show', $store))
             ->assertOk()
-            ->assertSee('غرفه این فروشنده غیرفعال است')
+            ->assertSee('فروشگاه این فروشنده غیرفعال است')
             ->assertSee('disabled-storefront-icon', false);
     }
 
@@ -65,12 +67,13 @@ class PhaseOneHundredSixtyTwoPublicStorefrontTest extends TestCase
             'slug' => 'seller-booth',
             'name' => 'غرفه فروشنده',
             'is_enabled' => true,
+            'approval_status' => 'approved',
         ]);
         $listing = $this->listing($seller, 'آگهی با غرفه');
 
         $this->get(route('listings.show', $listing))
             ->assertOk()
-            ->assertSee('مشاهده غرفه')
+            ->assertSee('مشاهده فروشگاه')
             ->assertSee(route('storefront.show', $store), false);
     }
 
