@@ -40,6 +40,17 @@ final class PersianDate
         }
     }
 
+    public static function fromParts(mixed $year, mixed $month, mixed $day): ?string
+    {
+        $parts = array_map(static fn (mixed $value): string => self::toEnglishDigits(trim((string) $value)), [$year, $month, $day]);
+
+        if (in_array('', $parts, true) || ! array_reduce($parts, static fn (bool $carry, string $part): bool => $carry && ctype_digit($part), true)) {
+            return null;
+        }
+
+        return sprintf('%04d/%02d/%02d', (int) $parts[0], (int) $parts[1], (int) $parts[2]);
+    }
+
     private static function toEnglishDigits(string $value): string
     {
         return strtr($value, [

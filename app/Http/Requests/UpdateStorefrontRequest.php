@@ -17,10 +17,16 @@ class UpdateStorefrontRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $expiry = PersianDate::fromParts(
+            $this->input('business_license_expires_at_year'),
+            $this->input('business_license_expires_at_month'),
+            $this->input('business_license_expires_at_day'),
+        ) ?? $this->englishDigits($this->input('business_license_expires_at'));
+
         $this->merge([
             'national_id' => $this->englishDigits($this->input('national_id')),
             'contact_phone' => $this->englishDigits($this->input('contact_phone')),
-            'business_license_expires_at' => $this->englishDigits($this->input('business_license_expires_at')),
+            'business_license_expires_at' => $expiry,
             'store_enabled' => $this->boolean('store_enabled'),
         ]);
     }
@@ -47,6 +53,9 @@ class UpdateStorefrontRequest extends FormRequest
             'slug' => $slugRules,
             'business_license_number' => ['required', 'string', 'max:80'],
             'business_license_expires_at' => ['required', 'string', 'max:10'],
+            'business_license_expires_at_year' => ['nullable', 'integer', 'between:1300,1500'],
+            'business_license_expires_at_month' => ['nullable', 'integer', 'between:1,12'],
+            'business_license_expires_at_day' => ['nullable', 'integer', 'between:1,31'],
             'province_id' => ['required', 'integer', 'exists:provinces,id'],
             'city_id' => ['required', 'integer', Rule::exists('cities', 'id')->where(fn ($query) => $query->where('province_id', $this->input('province_id')))],
             'address' => ['required', 'string', 'max:1000'],
@@ -74,7 +83,15 @@ class UpdateStorefrontRequest extends FormRequest
                 $validator->errors()->add('national_id', 'کد ملی واردشده معتبر نیست.');
             }
 
-            if (filled($this->input('business_license_expires_at')) && ! PersianDate::parseDate($this->input('business_license_expires_at'))) {
+            $dateParts = array_filter([
+                $this->input('business_license_expires_at_year'),
+                $this->input('business_license_expires_at_month'),
+                $this->input('business_license_expires_at_day'),
+            ], static fn (mixed $part): bool => filled($part));
+
+            if ($dateParts !== [] && count($dateParts) !== 3) {
+                $validator->errors()->add('business_license_expires_at', 'روز، ماه و سال تاریخ اعتبار جواز کسب را کامل انتخاب کنید.');
+            } elseif (filled($this->input('business_license_expires_at')) && ! PersianDate::parseDate($this->input('business_license_expires_at'))) {
                 $validator->errors()->add('business_license_expires_at', 'تاریخ اعتبار جواز کسب معتبر نیست.');
             }
         });

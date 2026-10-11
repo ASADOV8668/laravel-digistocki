@@ -22,7 +22,7 @@
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
                 <div><label for="admin-license-number" class="mb-2 block text-sm font-bold text-slate-700">شماره صنفی</label><input id="admin-license-number" name="business_license_number" value="{{ old('business_license_number', $store?->business_license_number) }}" class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary"></div>
-                <div><label for="admin-license-expiry" class="mb-2 block text-sm font-bold text-slate-700">تاریخ اعتبار جواز کسب</label><input id="admin-license-expiry" name="business_license_expires_at" data-persian-datepicker value="{{ old('business_license_expires_at', $storeExpiry) }}" autocomplete="off" class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary" placeholder="تاریخ را انتخاب کنید"></div>
+                <div><p class="mb-2 block text-sm font-bold text-slate-700">تاریخ اعتبار جواز کسب</p><x-persian-date-select name="business_license_expires_at" :value="old('business_license_expires_at', $storeExpiry)" class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary" /><p class="mt-1 text-[11px] text-slate-400">روز، ماه و سال شمسی را انتخاب کنید.</p></div>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
                 <div><label for="admin-store-name" class="mb-2 block text-sm font-bold text-slate-700">نام فروشگاه</label><input id="admin-store-name" name="name" value="{{ old('name', $store?->name ?? $user->name) }}" required class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary"></div>
