@@ -524,7 +524,7 @@ class ListingController extends Controller
         $validated = $request->validate(['price_on_request' => ['nullable', 'boolean'], 'price' => ['nullable', 'integer', 'min:0']]);
         $onRequest = $request->boolean('price_on_request');
         if ($onRequest && ! $options->allowContactPrice()) return back()->withErrors(['price' => 'امکان «تماس بگیرید» در تنظیمات سیستم فعال نیست.']);
-        if (! $onRequest && ! array_key_exists('price', $validated)) return back()->withErrors(['price' => 'قیمت را وارد کنید یا گزینه «تماس بگیرید» را انتخاب کنید.']);
+        if (! $onRequest && ($validated['price'] ?? null) === null) return back()->withErrors(['price' => 'قیمت را وارد کنید یا گزینه «تماس بگیرید» را انتخاب کنید.']);
         $listing->update(['price_on_request' => $onRequest, 'price' => $onRequest ? null : $validated['price']]);
 
         return back()->with('status', 'قیمت آگهی به‌سرعت به‌روزرسانی شد.');
