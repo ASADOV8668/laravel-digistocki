@@ -1,7 +1,7 @@
 <x-app-layout title="جستجوی آگهی‌ها">
     <x-slot name="header"><h1 class="text-xl font-black text-neutral">جستجوی آگهی‌ها</h1></x-slot>
 
-    <section x-data="listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js(url("/listings/models")), @js(url("/locations/provinces")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])), @js(request("province_id")), @js(request("city_id")), @js(request("q")), @js(request("brand_id")), @js(request("min_price")), @js(request("max_price")), @js($sort), @js($priceCeiling))" class="space-y-6 px-4 py-6">
+    <section x-data="listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js(url("/listings/models")), @js(url("/locations/provinces")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])), @js(request("province_id")), @js(request("city_id")), @js(request("q")), @js(request("brand_id")), @js(request("min_price")), @js(request("max_price")), @js($sort), @js($priceCeiling), @js(request()->input("city_ids", [])))" class="space-y-6 px-4 py-6">
         <div class="flex items-end justify-between gap-3"><div><p class="text-xs font-bold text-primary">بازار موبایل</p><h1 class="mt-1 text-2xl font-black text-neutral">جستجوی آگهی‌ها</h1><p class="mt-1 text-xs text-slate-400">مدل و ویژگی‌های مناسب خودت را مرحله‌به‌مرحله انتخاب کن.</p></div><span class="rounded-full bg-primary-50 px-3 py-1.5 text-[11px] font-black text-primary">{{ number_format($listings->total()) }} نتیجه</span></div>
         <button type="button" data-drawer-target="listing-filters" data-drawer-show="listing-filters" data-drawer-placement="left" @click="filtersOpen = true" :aria-expanded="filtersOpen.toString()" aria-controls="listing-filters" aria-label="باز کردن فیلترها" class="fixed bottom-24 left-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-xl shadow-primary/30 transition hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary/30 md:bottom-8 md:left-8">
             <x-heroicon-o-adjustments-horizontal class="h-6 w-6" /><span x-show="activeFilterCount()" x-cloak class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral px-1 text-[10px] font-black text-white" x-text="activeFilterCount()"></span>
@@ -72,7 +72,7 @@
                             <span x-show="modelsLoading" class="mt-1 block text-[10px] text-slate-400">در حال بارگذاری مدل‌ها...</span>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-2">
+                        <div class="grid grid-cols-1 gap-3">
                             <div>
                                 <label for="listing-province" class="mb-1 block text-xs font-bold text-slate-600">استان</label>
                                 <select id="listing-province" name="province_id" x-model="provinceId" @change="loadCities()" class="public-select">
@@ -83,14 +83,17 @@
                                 </select>
                             </div>
                             <div>
-                                <label for="listing-city" class="mb-1 block text-xs font-bold text-slate-600">شهر</label>
-                                <select id="listing-city" name="city_id" x-model="cityId" :disabled="!provinceId || citiesLoading" class="public-select">
-                                    <option value="">همه شهرها</option>
+                                <div class="mb-1 flex items-center justify-between gap-2"><label class="text-xs font-bold text-slate-600">شهرها</label><button x-show="cityIds.length" x-cloak type="button" @click="clearCities()" class="text-[10px] font-bold text-primary hover:underline">پاک کردن انتخاب‌ها</button></div>
+                                <div x-show="!provinceId" class="rounded-lg bg-slate-50 px-3 py-3 text-xs text-slate-400">ابتدا استان را انتخاب کنید.</div>
+                                <div x-show="provinceId" x-cloak class="max-h-44 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-2">
+                                    <label class="mb-1 flex cursor-pointer items-center gap-2 rounded-md bg-white px-2 py-2 text-xs font-bold text-slate-600"><input type="checkbox" :checked="!cityIds.length" @change="clearCities()" class="public-check"><span>همه شهرهای این استان</span></label>
                                     <template x-for="city in cities" :key="city.id">
-                                        <option :value="city.id" x-text="city.name"></option>
+                                        <label class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-xs font-bold text-slate-600 hover:bg-white"><input type="checkbox" :value="city.id" :checked="cityIds.includes(String(city.id))" @change="toggleCity(city.id)" class="public-check"><span x-text="city.name"></span></label>
                                     </template>
-                                </select>
-                                <span x-show="citiesLoading" class="mt-1 block text-[10px] text-slate-400">در حال بارگذاری شهرها...</span>
+                                    <p x-show="citiesLoading" class="px-2 py-2 text-[10px] text-slate-400">در حال بارگذاری شهرها...</p>
+                                    <p x-show="!citiesLoading && provinceId && !cities.length" class="px-2 py-2 text-[10px] text-slate-400">شهری برای این استان پیدا نشد.</p>
+                                </div>
+                                <template x-for="cityIdValue in cityIds" :key="`listing-hidden-city-${cityIdValue}`"><input type="hidden" name="city_ids[]" :value="cityIdValue"></template>
                             </div>
                         </div>
 

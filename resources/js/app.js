@@ -652,7 +652,7 @@ window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     },
 });
 
-window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '', initialMinPrice = '', initialMaxPrice = '', initialSort = 'newest', initialPriceCeiling = 1000000000) => ({
+window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '', initialMinPrice = '', initialMaxPrice = '', initialSort = 'newest', initialPriceCeiling = 1000000000, initialCityIds = []) => ({
     suggestionsEndpoint,
     modelsEndpoint,
     attributesEndpoint,
@@ -662,6 +662,9 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     selectedModelId: initialModelId || '',
     provinceId: initialProvinceId || '',
     cityId: initialCityId || '',
+    cityIds: (Array.isArray(initialCityIds) ? initialCityIds : (initialCityIds ? [initialCityIds] : [])).map(String).length
+        ? (Array.isArray(initialCityIds) ? initialCityIds : [initialCityIds]).map(String)
+        : (initialCityId ? [String(initialCityId)] : []),
     priceCeiling: Number(initialPriceCeiling) || 1000000000,
     priceStep: 100000,
     minPrice: Number(initialMinPrice) || 0,
@@ -726,7 +729,10 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     },
 
     async loadCities(resetCity = true) {
-        if (resetCity) this.cityId = '';
+        if (resetCity) {
+            this.cityId = '';
+            this.cityIds = [];
+        }
         this.citiesController?.abort();
         this.citiesController = null;
         this.cities = [];
@@ -783,8 +789,8 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
             ? value.some((item) => item !== null && item !== '')
             : value !== null && value !== '').length;
 
-        return [this.query, this.selectedBrandId, this.selectedModelId, this.provinceId, this.cityId]
-            .filter(Boolean).length + (this.minPrice > 0 ? 1 : 0) + (this.maxPrice < this.priceCeiling ? 1 : 0) + dynamic;
+        return [this.query, this.selectedBrandId, this.selectedModelId, this.provinceId]
+            .filter(Boolean).length + (this.cityIds.length ? 1 : 0) + (this.minPrice > 0 ? 1 : 0) + (this.maxPrice < this.priceCeiling ? 1 : 0) + dynamic;
     },
 
     async paginateResults(event) {
@@ -836,6 +842,8 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.selectedModelId = url.searchParams.get('phone_model_id') || '';
         this.provinceId = url.searchParams.get('province_id') || '';
         this.cityId = url.searchParams.get('city_id') || '';
+        this.cityIds = [...new Set(url.searchParams.getAll('city_ids[]').concat(url.searchParams.getAll('city_ids')).filter(Boolean).map(String))];
+        if (!this.cityIds.length && this.cityId) this.cityIds = [String(this.cityId)];
         this.minPrice = Number(url.searchParams.get('min_price')) || 0;
         this.maxPrice = Number(url.searchParams.get('max_price')) || this.priceCeiling;
         this.sort = url.searchParams.get('sort') || 'newest';
@@ -859,6 +867,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         if (this.provinceId) await this.loadCities(false);
         else {
             this.cityId = '';
+            this.cityIds = [];
             this.cities = [];
         }
     },
@@ -994,6 +1003,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.models = [];
         this.provinceId = '';
         this.cityId = '';
+        this.cityIds = [];
         this.minPrice = 0;
         this.maxPrice = this.priceCeiling;
         this.sort = 'newest';
@@ -1011,6 +1021,19 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.cancelSuggestionRequest();
         this.open = false;
         this.loadModels();
+    },
+
+    toggleCity(cityId) {
+        const id = String(cityId);
+        this.cityIds = this.cityIds.includes(id)
+            ? this.cityIds.filter((item) => item !== id)
+            : [...this.cityIds, id];
+        this.cityId = this.cityIds[0] || '';
+    },
+
+    clearCities() {
+        this.cityIds = [];
+        this.cityId = '';
     },
 });
 
