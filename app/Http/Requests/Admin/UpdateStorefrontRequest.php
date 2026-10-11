@@ -36,6 +36,7 @@ class UpdateStorefrontRequest extends FormRequest
             'store_enabled' => ['boolean'],
             'admin_disabled' => ['boolean'],
             'approval_status' => ['required', 'in:pending,approved,rejected'],
+            'rejection_reason' => ['nullable', 'string', 'max:1000'],
             'first_name' => ['nullable', 'string', 'max:80'],
             'last_name' => ['nullable', 'string', 'max:100'],
             'national_id' => ['nullable', 'string', 'regex:/^\d{10}$/'],
@@ -60,6 +61,10 @@ class UpdateStorefrontRequest extends FormRequest
 
     protected function withValidator(Validator $validator): void
     {
+        if ($this->input('approval_status') === 'rejected' && ! filled($this->input('rejection_reason'))) {
+            $validator->errors()->add('rejection_reason', 'برای وضعیت ردشده، علت رد را وارد کنید.');
+        }
+
         $validator->after(function (Validator $validator): void {
             $nationalId = (string) $this->input('national_id');
             if (preg_match('/^\d{10}$/', $nationalId) === 1 && ! $this->isValidNationalId($nationalId)) {

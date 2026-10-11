@@ -99,6 +99,7 @@ class StorefrontController extends Controller
     public function update(UpdateStorefrontRequest $request, User $user): RedirectResponse
     {
         $store = $user->storefront;
+        $previousApprovalStatus = $store?->approval_status;
         $validated = $request->validated();
         $logoPath = $store?->logo_path;
         $businessLicensePath = $store?->business_license_path;
@@ -142,13 +143,18 @@ class StorefrontController extends Controller
             'rubika_url' => $validated['rubika_url'] ?? null,
             'sort_order' => (int) ($validated['sort_order'] ?? 0),
             'approved_at' => $validated['approval_status'] === 'approved' ? ($store?->approved_at ?? now()) : null,
-            'rejection_reason' => $validated['approval_status'] === 'rejected' ? ($store?->rejection_reason ?? null) : null,
+            'rejection_reason' => $validated['approval_status'] === 'rejected' ? $validated['rejection_reason'] : null,
         ];
 
         if ($store) {
             $store->update($payload);
         } else {
             SellerStore::create($payload);
+        }
+
+        $store = $store ?: $user->fresh('storefront')->storefront;
+        if ($previousApprovalStatus !== $store->approval_status && in_array($store->approval_status, ['approved', 'rejected'], true)) {
+            $user->notify(new StorefrontStatusNotification($store, $store->approval_status, $store->rejection_reason));
         }
 
         return redirect()->route('admin.storefronts.index')->with('status', 'اطلاعات فروشگاه به‌روزرسانی شد.');
