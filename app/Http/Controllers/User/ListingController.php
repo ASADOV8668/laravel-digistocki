@@ -209,6 +209,8 @@ class ListingController extends Controller
             : null;
         $filterAttributes = $selectedModel?->attributes ?? collect();
         $filterAttributesById = $filterAttributes->keyBy('id');
+        $searchTerm = trim((string) $request->input('q'));
+        $searchLikes = $this->searchLikes($searchTerm);
         $query = Listing::query()->published()->with(['brand', 'phoneModel', 'province', 'city', 'primaryImage', 'images', 'attributeValues.attribute', 'user.storefront'])->withViewerFavorite(auth()->id());
 
         $query->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId));
@@ -223,20 +225,14 @@ class ListingController extends Controller
             ->when($cityIds->isEmpty() && $request->integer('city_id'), fn (Builder $query, int $cityId) => $query->where('city_id', $cityId));
         $query->when($request->integer('min_price'), fn (Builder $query, int $price) => $query->where('price', '>=', $price));
         $query->when($request->integer('max_price'), fn (Builder $query, int $price) => $query->where('price', '<=', $price));
-        $query->when($request->filled('q'), function (Builder $query) use ($request) {
-            $rawTerm = trim((string) $request->input('q'));
-            $likes = $this->searchLikes($rawTerm);
-            if ($likes === []) {
-                return;
-            }
-
-            $query->where(function (Builder $query) use ($likes) {
-                $query->where(function (Builder $title) use ($likes) {
-                    foreach ($likes as $like) {
+        $query->when($searchLikes !== [], function (Builder $query) use ($searchLikes) {
+            $query->where(function (Builder $query) use ($searchLikes) {
+                $query->where(function (Builder $title) use ($searchLikes) {
+                    foreach ($searchLikes as $like) {
                         $title->orWhere('title', 'like', $like);
                     }
-                })->orWhereHas('brand', fn (Builder $brand) => $this->whereAnyLike($brand, ['name', 'name_en'], $likes))
-                    ->orWhereHas('phoneModel', fn (Builder $model) => $this->whereAnyLike($model, ['name', 'name_fa', 'name_en'], $likes));
+                })->orWhereHas('brand', fn (Builder $brand) => $this->whereAnyLike($brand, ['name', 'name_en'], $searchLikes))
+                    ->orWhereHas('phoneModel', fn (Builder $model) => $this->whereAnyLike($model, ['name', 'name_fa', 'name_en'], $searchLikes));
             });
         });
 
