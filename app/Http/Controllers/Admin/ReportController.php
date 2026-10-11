@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Services\ReportRules;
 use App\Support\PersianDate;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rule;
 
 class ReportController extends Controller
@@ -38,7 +40,7 @@ class ReportController extends Controller
         return view('admin.reports.index', compact('reports', 'reportStats', 'reportStatusOptions'));
     }
 
-    public function updateStatus(Request $request, Report $report, ReportRules $reportRules)
+    public function updateStatus(Request $request, Report $report, ReportRules $reportRules): RedirectResponse|JsonResponse
     {
         $validated = $request->validate(['status' => ['required', Rule::in(['pending', 'reviewed', 'resolved', 'rejected'])]]);
 
@@ -46,6 +48,17 @@ class ReportController extends Controller
 
         $report->update($validated);
 
-        return back()->with('status', 'وضعیت گزارش به‌روزرسانی شد.');
+        $message = 'وضعیت گزارش به‌روزرسانی شد.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'status' => $report->status,
+                'status_label' => ReportRules::STATUSES[$report->status] ?? $report->status,
+                'terminal' => in_array($report->status, ['resolved', 'rejected'], true),
+            ]);
+        }
+
+        return back()->with('status', $message);
     }
 }

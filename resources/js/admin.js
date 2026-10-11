@@ -187,6 +187,64 @@ document.addEventListener('submit', async (event) => {
     }
 });
 
+document.addEventListener('submit', async (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || event.defaultPrevented || !form.action.match(/\/admin\/reports\/\d+\/status$/)) return;
+
+    event.preventDefault();
+    const button = form.querySelector('button[type="submit"], button:not([type])');
+    if (button?.disabled) return;
+    if (button) button.disabled = true;
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
+            body: new FormData(form),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || 'تغییر وضعیت گزارش انجام نشد؛ دوباره تلاش کنید.');
+
+        const item = form.closest('tr, article');
+        const statusNode = item?.querySelector('td:nth-child(5) span') || item?.querySelector('article > div:first-child > span');
+        const statusClasses = {
+            resolved: 'bg-success/10 text-success',
+            rejected: 'bg-error/10 text-error',
+            reviewed: 'bg-info/10 text-info',
+            pending: 'bg-warning/10 text-warning',
+        };
+        if (statusNode) {
+            const compact = item.tagName.toLowerCase() === 'article';
+            statusNode.className = (compact ? 'shrink-0 rounded-full px-2 py-1 text-[10px] font-black' : 'rounded-full px-3 py-1.5 text-[11px] font-black') + ' ' + (statusClasses[data.status] || statusClasses.pending);
+            statusNode.textContent = data.status_label || data.status;
+        }
+
+        if (data.terminal) {
+            const actionContainer = form.parentElement;
+            form.remove();
+            if (actionContainer && !actionContainer.querySelector('form')) {
+                const notice = document.createElement('span');
+                notice.className = 'text-xs font-bold text-slate-400';
+                notice.textContent = 'وضعیت نهایی';
+                actionContainer.append(notice);
+            }
+        } else {
+            const select = form.querySelector('select[name="status"]');
+            if (select) select.value = data.status;
+        }
+
+        window.dispatchEvent(new CustomEvent('admin-notification', { detail: { title: 'وضعیت گزارش تغییر کرد', message: data.message, tone: 'success' } }));
+    } catch (error) {
+        window.dispatchEvent(new CustomEvent('admin-notification', { detail: { title: 'خطا در عملیات گزارش', message: error.message || 'دوباره تلاش کنید.', tone: 'error' } }));
+    } finally {
+        if (button) button.disabled = false;
+    }
+});
+
 window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     previews: [],
     invalid: false,
