@@ -85,7 +85,7 @@
                             <div>
                                 <div class="mb-1 flex items-center justify-between gap-2"><label class="text-xs font-bold text-slate-600">شهرها</label><button x-show="cityIds.length" x-cloak type="button" @click="clearCities()" class="text-[10px] font-bold text-primary hover:underline">پاک کردن انتخاب‌ها</button></div>
                                 <div x-show="!provinceId" class="rounded-lg bg-slate-50 px-3 py-3 text-xs text-slate-400">ابتدا استان را انتخاب کنید.</div>
-                                <div x-show="provinceId" x-cloak class="max-h-44 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-2">
+                                <div id="listing-city" x-show="provinceId" x-cloak class="max-h-44 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-2">
                                     <label class="mb-1 flex cursor-pointer items-center gap-2 rounded-md bg-white px-2 py-2 text-xs font-bold text-slate-600"><input type="checkbox" :checked="!cityIds.length" @change="clearCities()" class="public-check"><span>همه شهرهای این استان</span></label>
                                     <template x-for="city in cities" :key="city.id">
                                         <label class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-xs font-bold text-slate-600 hover:bg-white"><input type="checkbox" :value="city.id" :checked="cityIds.includes(String(city.id))" @change="toggleCity(city.id)" class="public-check"><span x-text="city.name"></span></label>

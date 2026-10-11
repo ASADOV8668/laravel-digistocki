@@ -76,6 +76,23 @@ class PhaseOneHundredSeventyTwoListingSidebarFiltersTest extends TestCase
         $this->assertSame($province->id, (int) $response->viewData('listings')->getCollection()->first()->province_id);
     }
 
+    public function test_listing_filter_does_not_show_a_model_from_another_brand_as_selected(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $brand = Brand::firstOrFail();
+        $otherBrand = Brand::query()->whereKeyNot($brand->id)->firstOrFail();
+        $model = $otherBrand->phoneModels()->firstOrFail();
+
+        $response = $this->get(route('listings.index', [
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+        ]));
+
+        $response->assertOk();
+        $this->assertNull($response->viewData('selectedModel'));
+        $this->assertCount(0, $response->viewData('listings'));
+    }
+
     public function test_listing_sidebar_sort_orders_results_and_keeps_contact_prices_last(): void
     {
         $this->seed(CatalogSeeder::class);

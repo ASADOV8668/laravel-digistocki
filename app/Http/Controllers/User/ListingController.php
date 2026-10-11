@@ -204,8 +204,14 @@ class ListingController extends Controller
 
     public function index(Request $request)
     {
+        $selectedBrandId = $request->integer('brand_id');
+        $selectedModelId = $request->integer('phone_model_id');
         $selectedModel = $request->integer('phone_model_id')
-            ? PhoneModel::query()->where('is_active', true)->with(['attributes' => fn ($query) => $query->where('is_active', true)->where('is_filterable', true)->orderBy('sort_order')])->find($request->integer('phone_model_id'))
+            ? PhoneModel::query()
+                ->where('is_active', true)
+                ->when($selectedBrandId, fn (Builder $query) => $query->where('brand_id', $selectedBrandId))
+                ->with(['attributes' => fn ($query) => $query->where('is_active', true)->where('is_filterable', true)->orderBy('sort_order')])
+                ->find($selectedModelId)
             : null;
         $filterAttributes = $selectedModel?->attributes ?? collect();
         $filterAttributesById = $filterAttributes->keyBy('id');
@@ -213,8 +219,8 @@ class ListingController extends Controller
         $searchLikes = $this->searchLikes($searchTerm);
         $query = Listing::query()->published()->with(['brand', 'phoneModel', 'province', 'city', 'primaryImage', 'images', 'attributeValues.attribute', 'user.storefront'])->withViewerFavorite(auth()->id());
 
-        $query->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId));
-        $query->when($request->integer('phone_model_id'), fn (Builder $query, int $modelId) => $query->where('phone_model_id', $modelId));
+        $query->when($selectedBrandId, fn (Builder $query) => $query->where('brand_id', $selectedBrandId));
+        $query->when($selectedModelId, fn (Builder $query) => $query->where('phone_model_id', $selectedModelId));
         $query->when($request->integer('province_id'), fn (Builder $query, int $provinceId) => $query->where('province_id', $provinceId));
         $cityIds = collect((array) $request->input('city_ids', []))
             ->filter(fn ($id) => is_numeric($id))
@@ -278,7 +284,7 @@ class ListingController extends Controller
             default => $query->latest('published_at'),
         };
 
-        $selectedBrand = $request->integer('brand_id') ? Brand::query()->where('is_active', true)->find($request->integer('brand_id')) : null;
+        $selectedBrand = $selectedBrandId ? Brand::query()->where('is_active', true)->find($selectedBrandId) : null;
         $selectedProvince = $request->integer('province_id') ? Province::query()->find($request->integer('province_id')) : null;
         $selectedCity = $cityIds->isEmpty() && $request->integer('city_id') ? City::query()->find($request->integer('city_id')) : null;
         $selectedCities = $cityIds->isNotEmpty() ? City::query()->whereIn('id', $cityIds)->orderBy('name')->get() : collect();
