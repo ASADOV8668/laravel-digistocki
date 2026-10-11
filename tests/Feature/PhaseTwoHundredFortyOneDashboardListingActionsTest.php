@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\ListingStatus;
 use App\Models\Brand;
 use App\Models\Listing;
+use App\Models\ListingAttributeValue;
 use App\Models\SellerStore;
 use App\Models\User;
 use App\Support\PersianDate;
@@ -131,5 +132,23 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
         $response->assertOk()
             ->assertSee('انتخاب همه نتایج فیلترشده (۱۱ مورد)', false)
             ->assertSee('dashboardBulkActions', false);
+    }
+
+    public function test_dashboard_filters_by_a_selected_model_attribute(): void
+    {
+        $user = User::factory()->create();
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+        $memory = $model->attributes()->where('slug', 'storage')->first() ?? $model->attributes()->where('type', 'integer')->firstOrFail();
+        $matching = Listing::create(['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $model->id, 'title' => 'آگهی حافظه ۲۵۶', 'slug' => Str::uuid(), 'price' => 1000000, 'status' => ListingStatus::Approved]);
+        $other = Listing::create(['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $model->id, 'title' => 'آگهی حافظه ۱۲۸', 'slug' => Str::uuid(), 'price' => 1000000, 'status' => ListingStatus::Approved]);
+        ListingAttributeValue::create(['listing_id' => $matching->id, 'attribute_id' => $memory->id, 'value_integer' => 256]);
+        ListingAttributeValue::create(['listing_id' => $other->id, 'attribute_id' => $memory->id, 'value_integer' => 128]);
+
+        $this->actingAs($user)->get(route('dashboard', [
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'filters' => [$memory->id => '256'],
+        ]))->assertOk()->assertSee('آگهی حافظه ۲۵۶')->assertDontSee('آگهی حافظه ۱۲۸')->assertSee('فیلتر ویژگی‌های مدل');
     }
 }

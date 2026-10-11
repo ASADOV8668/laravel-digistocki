@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Enums\AttributeType;
 use App\Models\Brand;
 use App\Models\Listing;
+use App\Models\PhoneModel;
 use App\Services\SystemOptions;
 use App\Support\PersianDate;
 use App\Support\PersianSearch;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -26,13 +29,24 @@ class DashboardController extends Controller
         $fromDate = PersianDate::parseDate($fromDateValue);
         $toDate = PersianDate::parseDate($toDateValue);
         $dateRangeInvalid = $fromDate && $toDate && $fromDate->gt($toDate);
+        $selectedBrandId = $request->integer('brand_id');
+        $selectedModelId = $request->integer('phone_model_id');
+        $selectedModel = $selectedModelId
+            ? PhoneModel::query()
+                ->where('is_active', true)
+                ->when($selectedBrandId, fn (Builder $query) => $query->where('brand_id', $selectedBrandId))
+                ->with(['attributes' => fn ($query) => $query->where('attributes.is_active', true)->where('attributes.is_filterable', true)->orderBy('attributes.sort_order')])
+                ->find($selectedModelId)
+            : null;
+        $filterAttributes = $selectedModel?->attributes ?? collect();
+        $filterAttributesById = $filterAttributes->keyBy('id');
 
         $listingQuery = Listing::query()
             ->where('user_id', $user->id)
             ->with(['brand', 'phoneModel', 'primaryImage'])
             ->when(in_array($status, $statuses, true), fn ($query) => $query->where('status', $status))
-            ->when($request->integer('brand_id'), fn (Builder $query) => $query->where('brand_id', $request->integer('brand_id')))
-            ->when($request->integer('phone_model_id'), fn (Builder $query) => $query->where('phone_model_id', $request->integer('phone_model_id')))
+            ->when($selectedBrandId, fn (Builder $query) => $query->where('brand_id', $selectedBrandId))
+            ->when($selectedModelId, fn (Builder $query) => $query->where('phone_model_id', $selectedModelId)->where('brand_id', $selectedModel?->brand_id ?? $selectedBrandId))
             ->when($fromDate && ! $dateRangeInvalid, fn (Builder $query) => $query->where('created_at', '>=', $fromDate->copy()->startOfDay()))
             ->when($toDate && ! $dateRangeInvalid, fn (Builder $query) => $query->where('created_at', '<=', $toDate->copy()->endOfDay()))
             ->when($searchLikes !== [], function (Builder $query) use ($searchLikes): void {
@@ -48,6 +62,38 @@ class DashboardController extends Controller
                             }));
                     }
                 });
+            })
+            ->when($filterAttributesById->isNotEmpty(), function (Builder $query) use ($request, $filterAttributesById): void {
+                foreach ((array) $request->input('filters', []) as $attributeId => $value) {
+                    $attribute = $filterAttributesById->get((int) $attributeId);
+                    $values = array_values(array_filter((array) $value, fn ($item) => $item !== null && $item !== ''));
+                    if (! $attribute || $values === []) {
+                        continue;
+                    }
+
+                    $query->whereHas('attributeValues', function (Builder $attributeQuery) use ($attribute, $values): void {
+                        $attributeQuery->where('attribute_id', $attribute->id);
+                        if ($attribute->type === AttributeType::MultiSelect) {
+                            foreach ($values as $filterValue) {
+                                if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+                                    $attributeQuery->whereRaw("JSON_SEARCH(value_json, 'one', ?) IS NOT NULL", [$filterValue]);
+                                } else {
+                                    $attributeQuery->whereJsonContains('value_json', $filterValue);
+                                }
+                            }
+
+                            return;
+                        }
+
+                        $filterValue = $values[0];
+                        match ($attribute->type) {
+                            AttributeType::Integer => $attributeQuery->where('value_integer', (int) $filterValue),
+                            AttributeType::Decimal => $attributeQuery->where('value_decimal', (float) $filterValue),
+                            AttributeType::Boolean => $attributeQuery->where('value_boolean', filter_var($filterValue, FILTER_VALIDATE_BOOLEAN)),
+                            default => $attributeQuery->where('value_string', $filterValue),
+                        };
+                    });
+                }
             });
 
         $matchingListingIds = (clone $listingQuery)
@@ -80,6 +126,8 @@ class DashboardController extends Controller
             'store' => $user->storefront,
             'brands' => $brands,
             'modelBrands' => $modelBrands,
+            'selectedModel' => $selectedModel,
+            'filterAttributes' => $filterAttributes,
             'allowContactPrice' => app(SystemOptions::class)->allowContactPrice(),
             'visibleListingIds' => $listings->getCollection()->pluck('id')->map(fn (int $id): string => (string) $id)->values()->all(),
             'matchingListingIds' => $matchingListingIds,
