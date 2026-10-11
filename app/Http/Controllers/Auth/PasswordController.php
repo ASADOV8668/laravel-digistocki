@@ -15,7 +15,8 @@ class PasswordController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        $firstPasswordSetup = $request->session()->boolean('password_setup_available');
+        $firstPasswordSetup = $request->boolean('password_setup_available')
+            || $request->session()->get('password_setup_available', false) === true;
         $validated = $request->validateWithBag('updatePassword', [
             'current_password' => $firstPasswordSetup ? ['nullable'] : ['required', 'current_password'],
             'password' => ['required', Password::defaults(), 'confirmed'],
