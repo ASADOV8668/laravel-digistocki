@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PhaseTwoHundredFifteenFlowbitePublicPagesTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_listing_filter_uses_flowbite_drawer_hooks(): void
     {
         $this->get(route('listings.index'))

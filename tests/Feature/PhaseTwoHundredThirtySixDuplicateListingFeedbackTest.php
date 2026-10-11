@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\ListingStatus;
 use App\Models\Brand;
 use App\Models\Listing;
+use App\Models\SellerStore;
 use App\Models\User;
 use App\Services\SystemOptions;
 use Database\Seeders\CatalogSeeder;
@@ -27,6 +28,12 @@ class PhaseTwoHundredThirtySixDuplicateListingFeedbackTest extends TestCase
     public function test_duplicate_listing_returns_to_form_with_a_friendly_error(): void
     {
         $user = User::factory()->create();
+        SellerStore::create([
+            'user_id' => $user->id,
+            'slug' => 'duplicate-listing-store',
+            'name' => 'فروشگاه تست تکراری',
+            'approval_status' => 'pending',
+        ]);
         $brand = Brand::firstOrFail();
         $model = $brand->phoneModels()->firstOrFail();
         Listing::create([

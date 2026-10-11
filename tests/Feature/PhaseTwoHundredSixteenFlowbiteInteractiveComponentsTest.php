@@ -3,10 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PhaseTwoHundredSixteenFlowbiteInteractiveComponentsTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_profile_delete_confirmation_uses_flowbite_modal_hooks(): void
     {
         $this->actingAs(User::factory()->create())

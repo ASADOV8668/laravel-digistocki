@@ -3,10 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PhaseTwoHundredEighteenFlowbiteAlertsAccordionTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_public_alert_component_and_listing_report_use_flowbite_hooks(): void
     {
         $alert = file_get_contents(resource_path('views/components/flowbite-alert.blade.php'));

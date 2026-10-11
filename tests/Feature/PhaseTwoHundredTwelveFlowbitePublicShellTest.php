@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PhaseTwoHundredTwelveFlowbitePublicShellTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_public_shell_exposes_flowbite_drawer_bottom_navigation_and_toast_hooks(): void
     {
         $this->get(route('listings.index'))

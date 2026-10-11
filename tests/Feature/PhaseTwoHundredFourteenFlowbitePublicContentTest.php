@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PhaseTwoHundredFourteenFlowbitePublicContentTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_home_page_uses_flowbite_search_controls(): void
     {
         $this->get(route('home'))

@@ -21,7 +21,8 @@ class PhaseTwoHundredThirtyTwoFlowbitePublicAuditTest extends TestCase
         $this->assertStringContainsString('data-drawer-target', $source);
         $this->assertStringContainsString('data-modal-toggle', $source);
         $this->assertStringContainsString('data-tooltip-target', $source);
-        $this->assertStringContainsString('data-carousel="slide"', $source);
+        $this->assertStringContainsString('data-carousel="static"', $source);
+        $this->assertStringContainsString('data-carousel-interval="false"', $source);
         $this->assertStringContainsString('data-accordion="collapse"', $source);
         $this->assertStringContainsString('vendor.pagination.flowbite', $source);
     }
