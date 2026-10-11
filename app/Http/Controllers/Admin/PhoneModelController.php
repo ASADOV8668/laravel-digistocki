@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\PhoneModel;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 
 class PhoneModelController extends Controller
@@ -43,9 +45,17 @@ class PhoneModelController extends Controller
         return back()->with('status', 'مدل و ویژگی‌های آن به‌روزرسانی شد.');
     }
 
-    public function toggle(PhoneModel $phoneModel)
+    public function toggle(Request $request, PhoneModel $phoneModel): RedirectResponse|JsonResponse
     {
         $phoneModel->update(['is_active' => ! $phoneModel->is_active]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'وضعیت مدل تغییر کرد.',
+                'is_active' => $phoneModel->is_active,
+                'status_label' => $phoneModel->is_active ? 'فعال' : 'غیرفعال',
+            ]);
+        }
 
         return back()->with('status', 'وضعیت مدل تغییر کرد.');
     }

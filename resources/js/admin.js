@@ -245,6 +245,42 @@ document.addEventListener('submit', async (event) => {
     }
 });
 
+document.addEventListener('submit', async (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || event.defaultPrevented || !form.action.match(/\/admin\/(brands|phone-models|attributes)\/\d+\/toggle$/)) return;
+
+    event.preventDefault();
+    const button = form.querySelector('button[type="submit"], button:not([type])');
+    if (button?.disabled) return;
+    if (button) button.disabled = true;
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
+            body: new FormData(form),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || 'تغییر وضعیت کاتالوگ انجام نشد؛ دوباره تلاش کنید.');
+
+        if (button) {
+            const active = Boolean(data.is_active);
+            button.className = 'rounded-full px-3 py-1.5 text-[11px] font-black transition ' + (active ? 'bg-success/10 text-success hover:bg-success/20' : 'bg-slate-100 text-slate-500 hover:bg-slate-200');
+            button.textContent = data.status_label || (active ? 'فعال' : 'غیرفعال');
+        }
+
+        window.dispatchEvent(new CustomEvent('admin-notification', { detail: { title: 'کاتالوگ به‌روزرسانی شد', message: data.message, tone: 'success' } }));
+    } catch (error) {
+        window.dispatchEvent(new CustomEvent('admin-notification', { detail: { title: 'خطا در عملیات کاتالوگ', message: error.message || 'دوباره تلاش کنید.', tone: 'error' } }));
+    } finally {
+        if (button) button.disabled = false;
+    }
+});
+
 window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     previews: [],
     invalid: false,

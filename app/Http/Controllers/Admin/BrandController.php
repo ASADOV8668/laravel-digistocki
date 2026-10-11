@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 
 class BrandController extends Controller
@@ -34,9 +36,17 @@ class BrandController extends Controller
         return back()->with('status', 'برند به‌روزرسانی شد.');
     }
 
-    public function toggle(Brand $brand)
+    public function toggle(Request $request, Brand $brand): RedirectResponse|JsonResponse
     {
         $brand->update(['is_active' => ! $brand->is_active]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'وضعیت برند تغییر کرد.',
+                'is_active' => $brand->is_active,
+                'status_label' => $brand->is_active ? 'فعال' : 'غیرفعال',
+            ]);
+        }
 
         return back()->with('status', 'وضعیت برند تغییر کرد.');
     }

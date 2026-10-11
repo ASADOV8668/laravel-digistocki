@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\AttributeType;
 use App\Http\Controllers\Controller;
 use App\Models\Attribute as ListingAttribute;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -37,9 +39,17 @@ class AttributeController extends Controller
         return back()->with('status', 'ویژگی به‌روزرسانی شد.');
     }
 
-    public function toggle(ListingAttribute $attribute)
+    public function toggle(Request $request, ListingAttribute $attribute): RedirectResponse|JsonResponse
     {
         $attribute->update(['is_active' => ! $attribute->is_active]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'وضعیت ویژگی تغییر کرد.',
+                'is_active' => $attribute->is_active,
+                'status_label' => $attribute->is_active ? 'فعال' : 'غیرفعال',
+            ]);
+        }
 
         return back()->with('status', 'وضعیت ویژگی تغییر کرد.');
     }
