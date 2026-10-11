@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\SellerStore;
 use App\Models\User;
 use App\Support\PersianDate;
+use App\Support\SocialHandle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Sadegh19b\LaravelIranCities\Models\City;
@@ -113,6 +114,50 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
         ])->assertSessionHasErrors('business_license_expires_at_year');
 
         $this->assertDatabaseMissing('seller_stores', ['user_id' => $user->id]);
+    }
+
+    public function test_social_accounts_store_handles_and_render_as_platform_links(): void
+    {
+        $user = User::factory()->create(['mobile' => '09120006666']);
+        $province = Province::create(['name' => 'استان شبکه', 'tel_prefix' => '97']);
+        $county = County::create(['name' => 'شهرستان شبکه', 'province_id' => $province->id]);
+        $city = City::create(['name' => 'شهر شبکه', 'province_id' => $province->id, 'county_id' => $county->id]);
+
+        $this->actingAs($user)->put(route('storefront.update'), [
+            'first_name' => 'کاربر',
+            'last_name' => 'شبکه',
+            'national_id' => '0067123457',
+            'name' => 'فروشگاه شبکه',
+            'slug' => 'social-store',
+            'contact_phone' => '09120006666',
+            'business_license_number' => 'LIC-SOCIAL',
+            'business_license_expires_at_year' => '1405',
+            'business_license_expires_at_month' => '12',
+            'business_license_expires_at_day' => '29',
+            'province_id' => $province->id,
+            'city_id' => $city->id,
+            'address' => 'آدرس شبکه',
+            'business_license' => UploadedFile::fake()->create('license-social.jpg', 10, 'image/jpeg'),
+            'instagram_url' => '@digistocki',
+            'telegram_url' => 'https://t.me/digistocki',
+            'whatsapp_url' => '989120000000',
+            'bale_url' => 'digistocki',
+            'rubika_url' => 'rubika_shop',
+        ])->assertRedirect();
+
+        $store = SellerStore::firstOrFail();
+        $this->assertSame('digistocki', $store->instagram_url);
+        $this->assertSame('digistocki', $store->telegram_url);
+        $this->assertSame('989120000000', $store->whatsapp_url);
+        $this->assertSame('digistocki', $store->bale_url);
+        $this->assertSame('rubika_shop', $store->rubika_url);
+
+        $store->update(['approval_status' => 'approved', 'is_enabled' => true]);
+        $this->actingAs($user)->get(route('storefront.show', $store))
+            ->assertOk()
+            ->assertSee(SocialHandle::url($store->instagram_url, 'instagram'), false)
+            ->assertSee(SocialHandle::url($store->telegram_url, 'telegram'), false)
+            ->assertSee(SocialHandle::url($store->whatsapp_url, 'whatsapp'), false);
     }
 
     private function assertSeeDateSelectOn($response): void

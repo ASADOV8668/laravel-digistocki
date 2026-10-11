@@ -69,7 +69,7 @@
                     @endif
                 </div>
             @endif
-            @php($socialLinks = collect(['اینستاگرام' => $store->instagram_url, 'تلگرام' => $store->telegram_url, 'واتساپ' => $store->whatsapp_url, 'بله' => $store->bale_url, 'روبیکا' => $store->rubika_url])->filter())
+            @php($socialLinks = collect(['اینستاگرام' => \App\Support\SocialHandle::url($store->instagram_url, 'instagram'), 'تلگرام' => \App\Support\SocialHandle::url($store->telegram_url, 'telegram'), 'واتساپ' => \App\Support\SocialHandle::url($store->whatsapp_url, 'whatsapp'), 'بله' => \App\Support\SocialHandle::url($store->bale_url, 'bale'), 'روبیکا' => \App\Support\SocialHandle::url($store->rubika_url, 'rubika')])->filter())
             @if ($socialLinks->isNotEmpty())
                 <div class="mt-4 flex flex-wrap gap-2 border-t border-white/10 pt-4">
                     @foreach ($socialLinks as $label => $url)<a href="{{ $url }}" target="_blank" rel="noopener noreferrer" class="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/20">{{ $label }}</a>@endforeach

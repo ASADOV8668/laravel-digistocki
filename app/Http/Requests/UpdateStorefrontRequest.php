@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Services\SystemOptions;
 use App\Support\PersianDate;
+use App\Support\SocialHandle;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -28,6 +29,11 @@ class UpdateStorefrontRequest extends FormRequest
             'contact_phone' => $this->englishDigits($this->input('contact_phone')),
             'business_license_expires_at' => $expiry,
             'store_enabled' => $this->boolean('store_enabled'),
+            'instagram_url' => SocialHandle::normalize($this->input('instagram_url')),
+            'telegram_url' => SocialHandle::normalize($this->input('telegram_url')),
+            'whatsapp_url' => SocialHandle::normalize($this->input('whatsapp_url')),
+            'bale_url' => SocialHandle::normalize($this->input('bale_url')),
+            'rubika_url' => SocialHandle::normalize($this->input('rubika_url')),
         ]);
     }
 
@@ -62,11 +68,11 @@ class UpdateStorefrontRequest extends FormRequest
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
             'business_license' => [Rule::requiredIf(! $store?->business_license_path), 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
             'contact_phone' => ['required', 'string', 'regex:/^09\d{9}$/'],
-            'instagram_url' => ['nullable', 'url', 'max:255'],
-            'telegram_url' => ['nullable', 'url', 'max:255'],
-            'whatsapp_url' => ['nullable', 'url', 'max:255'],
-            'bale_url' => ['nullable', 'url', 'max:255'],
-            'rubika_url' => ['nullable', 'url', 'max:255'],
+            'instagram_url' => ['nullable', 'string', 'max:120', 'regex:/^[A-Za-z0-9._+\-]+$/'],
+            'telegram_url' => ['nullable', 'string', 'max:120', 'regex:/^[A-Za-z0-9._+\-]+$/'],
+            'whatsapp_url' => ['nullable', 'string', 'max:120', 'regex:/^[A-Za-z0-9._+\-]+$/'],
+            'bale_url' => ['nullable', 'string', 'max:120', 'regex:/^[A-Za-z0-9._+\-]+$/'],
+            'rubika_url' => ['nullable', 'string', 'max:120', 'regex:/^[A-Za-z0-9._+\-]+$/'],
         ];
     }
 
