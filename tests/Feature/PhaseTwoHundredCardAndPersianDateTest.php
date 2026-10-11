@@ -13,7 +13,7 @@ class PhaseTwoHundredCardAndPersianDateTest extends TestCase
         $date = Carbon::create(2026, 9, 23, 12);
 
         $this->assertSame('1405/07/01', PersianDate::format($date));
-        $this->assertSame('1 هفته قبل', PersianDate::human(Carbon::create(2026, 9, 23, 12)));
+        $this->assertSame('1 هفته قبل', PersianDate::human(now()->subWeek()));
         $this->assertSame('2026-09-23', PersianDate::parseDate('۱۴۰۵/۰۷/۰۱')->toDateString());
         $this->assertNull(PersianDate::parseDate('تاریخ نادرست'));
     }
