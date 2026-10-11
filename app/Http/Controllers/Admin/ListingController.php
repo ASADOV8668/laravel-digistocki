@@ -21,6 +21,7 @@ use App\Support\MobileNumber;
 use App\Support\PersianDate;
 use App\Support\PersianSearch;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -162,25 +163,43 @@ class ListingController extends Controller
         return view('admin.listings.index', compact('listings', 'statuses', 'status', 'statusCounts'));
     }
 
-    public function approve(Listing $listing, ListingRules $rules)
+    public function approve(Listing $listing, ListingRules $rules): \Illuminate\Http\RedirectResponse|JsonResponse
     {
         $this->authorize('approve', $listing);
         abort_unless($rules->canPublish($listing), 422, 'این آگهی در وضعیت فعلی قابل تأیید نیست.');
         $listing = $rules->publish($listing);
         $listing->user->notify(new ListingStatusNotification($listing, 'approved'));
+        $message = 'آگهی تأیید شد.';
 
-        return back()->with('status', 'آگهی تأیید شد.');
+        if (request()->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'status' => $listing->status->value,
+                'status_label' => $listing->status->label(),
+            ]);
+        }
+
+        return back()->with('status', $message);
     }
 
-    public function reject(Request $request, Listing $listing, ListingRules $rules)
+    public function reject(Request $request, Listing $listing, ListingRules $rules): \Illuminate\Http\RedirectResponse|JsonResponse
     {
         $this->authorize('reject', $listing);
         abort_unless($rules->canReject($listing), 422, 'این آگهی در وضعیت فعلی قابل رد نیست.');
         $validated = $request->validate(['rejection_reason' => ['required', 'string', 'min:5', 'max:1000']]);
         $listing = $rules->reject($listing, $validated['rejection_reason']);
         $listing->user->notify(new ListingStatusNotification($listing, 'rejected', $validated['rejection_reason']));
+        $message = 'آگهی رد شد.';
 
-        return back()->with('status', 'آگهی رد شد.');
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'status' => $listing->status->value,
+                'status_label' => $listing->status->label(),
+            ]);
+        }
+
+        return back()->with('status', $message);
     }
 
     private function formData(SystemOptions $options, ?Listing $listing = null, $attributes = null): array

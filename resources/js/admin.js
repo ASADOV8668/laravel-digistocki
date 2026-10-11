@@ -10,6 +10,75 @@ window.Alpine = Alpine;
 window.Chart = Chart;
 window.$ = window.jQuery = $;
 
+window.adminToast = () => ({
+    visible: false,
+    title: '',
+    message: '',
+    timer: null,
+
+    show(detail = {}) {
+        this.title = detail.title || 'عملیات انجام شد';
+        this.message = detail.message || '';
+        this.visible = true;
+        clearTimeout(this.timer);
+        this.timer = window.setTimeout(() => { this.visible = false; }, 4500);
+    },
+});
+
+const adminStatusClasses = {
+    approved: 'bg-success/10 text-success',
+    rejected: 'bg-error/10 text-error',
+    pending: 'bg-warning/10 text-warning',
+    sold: 'bg-info/10 text-info',
+    expired: 'bg-slate-100 text-slate-500',
+};
+
+document.addEventListener('submit', async (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || event.defaultPrevented || !form.action.match(/\/admin\/listings\/\d+\/(approve|reject)$/)) return;
+
+    event.preventDefault();
+    const button = form.querySelector('button[type="submit"], button:not([type])');
+    if (button?.disabled) return;
+    if (button) button.disabled = true;
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
+            body: new FormData(form),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || 'تغییر وضعیت آگهی انجام نشد؛ دوباره تلاش کنید.');
+
+        const item = form.closest('tr, article');
+        const statusNode = item?.querySelector('td:nth-child(3) span') || item?.querySelector('h2')?.parentElement?.querySelector('span');
+        if (statusNode) {
+            const compact = item.tagName.toLowerCase() === 'article';
+            statusNode.className = (compact ? 'shrink-0 rounded-full px-2 py-1 text-[10px] font-black' : 'rounded-full px-3 py-1.5 text-[11px] font-black') + ' ' + (adminStatusClasses[data.status] || adminStatusClasses.pending);
+            statusNode.textContent = data.status_label || data.status;
+        }
+
+        form.remove();
+        const actionContainer = item?.querySelector('td:last-child > div') || item?.querySelector(':scope > div.mt-4');
+        if (actionContainer && !actionContainer.querySelector('form')) {
+            const notice = document.createElement('span');
+            notice.className = 'rounded-lg bg-success/10 px-3 py-2 text-xs font-bold text-success';
+            notice.textContent = 'ذخیره شد';
+            actionContainer.append(notice);
+        }
+        window.dispatchEvent(new CustomEvent('admin-notification', { detail: { title: 'وضعیت آگهی تغییر کرد', message: data.message, tone: 'success' } }));
+    } catch (error) {
+        window.dispatchEvent(new CustomEvent('admin-notification', { detail: { title: 'خطا در عملیات', message: error.message || 'دوباره تلاش کنید.', tone: 'error' } }));
+    } finally {
+        if (button) button.disabled = false;
+    }
+});
+
 window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     previews: [],
     invalid: false,

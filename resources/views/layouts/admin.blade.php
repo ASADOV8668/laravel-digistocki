@@ -16,6 +16,10 @@
         @vite(['resources/css/admin.css', 'resources/js/admin.js'])
     </head>
     <body :class="darkMode ? 'bg-gray-900' : 'bg-gray-50'" class="font-sans antialiased">
+        <div x-data="adminToast()" x-cloak x-show="visible" x-transition.opacity x-on:admin-notification.window="show($event.detail)" role="status" aria-live="polite" class="fixed inset-x-4 top-5 z-[10000] mx-auto flex max-w-md items-start gap-3 rounded-2xl border border-success/20 bg-white p-4 text-sm font-bold text-slate-700 shadow-2xl dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-success/10 text-success"><x-heroicon-o-check-circle class="h-5 w-5" /></span>
+            <span class="min-w-0"><strong class="block text-slate-900 dark:text-white" x-text="title"></strong><span class="mt-1 block text-xs font-medium text-slate-500 dark:text-slate-300" x-text="message"></span></span>
+        </div>
         <div x-cloak x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-[9998] bg-gray-900/50 lg:hidden" @click="sidebarOpen = false" aria-hidden="true"></div>
 
         <div class="tailadmin-shell" data-admin-ui="tailadmin-v2">
