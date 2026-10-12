@@ -65,7 +65,8 @@ class StorefrontController extends Controller
             return view('storefront.disabled', ['store' => $sellerStore]);
         }
 
-        $storeScope = $this->storeListingQuery($sellerStore);
+        $activeOnly = $request->input('active_only', '1') !== '0';
+        $storeScope = $this->storeListingQuery($sellerStore, $activeOnly);
         $storeBrands = Brand::query()
             ->where('is_active', true)
             ->whereIn('id', (clone $storeScope)->select('brand_id'))
@@ -123,8 +124,6 @@ class StorefrontController extends Controller
             ->when($request->filled('max_price'), fn (Builder $query) => $query->where('price', '<=', $request->integer('max_price')));
 
         $this->applyAttributeFilters($query, $request, $filterAttributes->keyBy('id'));
-        $activeOnly = $request->input('active_only', '1') !== '0';
-        $query->when($activeOnly, fn (Builder $query) => $query->where('is_user_disabled', false));
         $sort = in_array($request->input('sort'), ['newest', 'price_asc', 'price_desc', 'views'], true) ? $request->input('sort') : 'newest';
         $query->orderByRaw('CASE WHEN is_user_disabled = 0 THEN 0 ELSE 1 END');
         match ($sort) {
@@ -181,7 +180,8 @@ class StorefrontController extends Controller
             return response()->json(['brands' => [], 'models' => []]);
         }
 
-        $scope = $this->storeListingQuery($sellerStore);
+        $activeOnly = $request->input('active_only', '1') !== '0';
+        $scope = $this->storeListingQuery($sellerStore, $activeOnly);
         $brands = Brand::query()
             ->where('is_active', true)
             ->whereIn('id', (clone $scope)->select('brand_id'))
@@ -211,9 +211,10 @@ class StorefrontController extends Controller
     {
         abort_unless($sellerStore->isPubliclyEnabled(), 404);
         $likes = PersianSearch::likes((string) $request->input('q'));
+        $activeOnly = $request->input('active_only', '1') !== '0';
         $models = PhoneModel::query()
             ->where('is_active', true)->with('brand')
-            ->whereIn('id', $this->storeListingQuery($sellerStore)->select('phone_model_id'))
+            ->whereIn('id', $this->storeListingQuery($sellerStore, $activeOnly)->select('phone_model_id'))
             ->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId))
             ->when($likes !== [], function (Builder $query) use ($likes): void {
                 $query->where(function (Builder $query) use ($likes): void {
@@ -234,8 +235,9 @@ class StorefrontController extends Controller
     public function modelAttributes(Request $request, SellerStore $sellerStore, PhoneModel $phoneModel): JsonResponse
     {
         abort_unless($sellerStore->isPubliclyEnabled(), 404);
+        $activeOnly = $request->input('active_only', '1') !== '0';
         $attributeIds = ListingAttributeValue::query()
-            ->whereIn('listing_id', $this->storeListingQuery($sellerStore)->where('phone_model_id', $phoneModel->id)->select('id'))
+            ->whereIn('listing_id', $this->storeListingQuery($sellerStore, $activeOnly)->where('phone_model_id', $phoneModel->id)->select('id'))
             ->distinct()->pluck('attribute_id');
         $attributes = Attribute::query()->whereIn('id', $attributeIds)->where('is_active', true)
             ->when(! $request->boolean('all'), fn (Builder $query) => $query->where('is_filterable', true))
@@ -244,9 +246,15 @@ class StorefrontController extends Controller
         return response()->json($this->attributePayload($attributes));
     }
 
-    private function storeListingQuery(SellerStore $store): Builder
+    private function storeListingQuery(SellerStore $store, bool $activeOnly = true): Builder
     {
-        return Listing::query()->published()->where('user_id', $store->user_id);
+        return Listing::query()
+            ->approved()
+            ->where('user_id', $store->user_id)
+            ->where(function (Builder $query): void {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->when($activeOnly, fn (Builder $query) => $query->where('is_user_disabled', false));
     }
 
     private function attributePayload($attributes): array

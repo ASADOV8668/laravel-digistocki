@@ -113,6 +113,42 @@ class PhaseTwoHundredFiftyStorefrontFiltersTest extends TestCase
         $response->assertOk()->assertViewHas('hasPriceRange', false)->assertDontSee('storefront-min-price');
     }
 
+    public function test_storefront_active_filter_hides_disabled_listings_by_default_and_orders_them_last_when_disabled(): void
+    {
+        [$store, $brand, $model] = $this->storeContext('active-filter-store');
+        $active = $this->listing($store->user, $brand, $model, 'آگهی فعال', 18000000);
+        $disabled = $this->listing($store->user, $brand, $model, 'آگهی غیرفعال', 16000000);
+        $active->update(['published_at' => now()->subMinute()]);
+        $disabled->update(['published_at' => now()->subHours(2), 'is_user_disabled' => true]);
+
+        $defaultResponse = $this->get(route('storefront.show', $store));
+        $defaultTitles = $defaultResponse->viewData('listings')->getCollection()->pluck('title')->all();
+        $this->assertSame([$active->title], $defaultTitles);
+
+        $allResponse = $this->get(route('storefront.show', [$store, 'active_only' => '0']));
+        $allTitles = $allResponse->viewData('listings')->getCollection()->pluck('title')->all();
+        $this->assertSame([$active->title, $disabled->title], $allTitles);
+        $allResponse->assertViewHas('activeOnly', false);
+    }
+
+    public function test_general_listing_active_filter_hides_disabled_listings_by_default_and_keeps_active_first(): void
+    {
+        [$store, $brand, $model] = $this->storeContext('general-active-filter-store');
+        $active = $this->listing($store->user, $brand, $model, 'آگهی عمومی فعال', 19000000);
+        $disabled = $this->listing($store->user, $brand, $model, 'آگهی عمومی غیرفعال', 17000000);
+        $active->update(['published_at' => now()->subMinute()]);
+        $disabled->update(['published_at' => now()->subHours(2), 'is_user_disabled' => true]);
+
+        $defaultResponse = $this->get(route('listings.index'));
+        $defaultTitles = $defaultResponse->viewData('listings')->getCollection()->pluck('title')->all();
+        $this->assertSame([$active->title], $defaultTitles);
+
+        $allResponse = $this->get(route('listings.index', ['active_only' => '0']));
+        $allTitles = $allResponse->viewData('listings')->getCollection()->pluck('title')->all();
+        $this->assertSame([$active->title, $disabled->title], $allTitles);
+        $allResponse->assertViewHas('activeOnly', false);
+    }
+
     public function test_authenticated_visitors_can_reveal_store_contact_details(): void
     {
         [$store, $brand, $model] = $this->storeContext('contact-details-store');

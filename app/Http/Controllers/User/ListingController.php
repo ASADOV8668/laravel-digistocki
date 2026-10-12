@@ -220,10 +220,17 @@ class ListingController extends Controller
             : null;
         $filterAttributes = $selectedModel?->attributes ?? collect();
         $filterAttributesById = $filterAttributes->keyBy('id');
+        $activeOnly = $request->input('active_only', '1') !== '0';
         $searchTerm = trim((string) $request->input('q'));
         $searchLikes = $this->searchLikes($searchTerm);
-        $query = Listing::query()->published()->with(['brand', 'phoneModel', 'province', 'city', 'primaryImage', 'images', 'attributeValues.attribute', 'user.storefront'])->withViewerFavorite(auth()->id());
-        $activeOnly = $request->input('active_only', '1') !== '0';
+        $query = Listing::query()
+            ->approved()
+            ->where(function (Builder $query): void {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->when($activeOnly, fn (Builder $query) => $query->where('is_user_disabled', false))
+            ->with(['brand', 'phoneModel', 'province', 'city', 'primaryImage', 'images', 'attributeValues.attribute', 'user.storefront'])
+            ->withViewerFavorite(auth()->id());
 
         $query->when($selectedBrandId, fn (Builder $query) => $query->where('brand_id', $selectedBrandId));
         $query->when($selectedModelId, fn (Builder $query) => $query->where('phone_model_id', $selectedModelId));
@@ -238,7 +245,6 @@ class ListingController extends Controller
             ->when($cityIds->isEmpty() && $selectedCityId, fn (Builder $query) => $query->where('city_id', $selectedCityId));
         $query->when($request->integer('min_price'), fn (Builder $query, int $price) => $query->where('price', '>=', $price));
         $query->when($request->integer('max_price'), fn (Builder $query, int $price) => $query->where('price', '<=', $price));
-        $query->when($activeOnly, fn (Builder $query) => $query->where('is_user_disabled', false));
         $query->when($searchLikes !== [], function (Builder $query) use ($searchLikes) {
             $query->where(function (Builder $query) use ($searchLikes) {
                 $query->where(function (Builder $title) use ($searchLikes) {
@@ -347,7 +353,14 @@ class ListingController extends Controller
         ])->values()->all();
 
         $listings = $query->paginate(12)->withQueryString();
-        $pricedListings = Listing::query()->published()->whereNotNull('price')->where('price_on_request', false);
+        $pricedListings = Listing::query()
+            ->approved()
+            ->where(function (Builder $query): void {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->when($activeOnly, fn (Builder $query) => $query->where('is_user_disabled', false))
+            ->whereNotNull('price')
+            ->where('price_on_request', false);
         $priceFloor = (int) (clone $pricedListings)->min('price');
         $rawPriceCeiling = (int) (clone $pricedListings)->max('price');
         $hasPriceRange = $rawPriceCeiling > $priceFloor;
