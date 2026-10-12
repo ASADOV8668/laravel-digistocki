@@ -36,6 +36,9 @@ Route::get('/locations/reverse', [ListingController::class, 'reverseLocation'])-
 Route::get('/listings/create', [ListingController::class, 'create'])->middleware(['auth', 'active'])->name('listings.create');
 Route::post('/listings', [ListingController::class, 'store'])->middleware(['auth', 'active'])->name('listings.store');
   Route::get('/stores', [StorefrontController::class, 'index'])->name('storefront.index');
+  Route::get('/store/{sellerStore:slug}/search/suggestions', [StorefrontController::class, 'searchSuggestions'])->middleware('throttle:60,1')->name('storefront.search.suggestions');
+  Route::get('/store/{sellerStore:slug}/models', [StorefrontController::class, 'models'])->middleware('throttle:60,1')->name('storefront.models');
+  Route::get('/store/{sellerStore:slug}/models/{phoneModel}/attributes', [StorefrontController::class, 'modelAttributes'])->middleware('throttle:60,1')->name('storefront.models.attributes');
   Route::get('/store/{sellerStore:slug}', [StorefrontController::class, 'show'])->name('storefront.show');
 Route::get('/listings/{listing}', [ListingController::class, 'show'])->name('listings.show');
 

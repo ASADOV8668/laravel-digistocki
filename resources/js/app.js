@@ -609,7 +609,7 @@ window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     },
 });
 
-window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '', initialMinPrice = '', initialMaxPrice = '', initialSort = 'newest', initialPriceCeiling = 1000000000, initialCityIds = []) => ({
+window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '', initialMinPrice = '', initialMaxPrice = '', initialSort = 'newest', initialPriceCeiling = 1000000000, initialCityIds = [], initialPriceFloor = 0) => ({
     suggestionsEndpoint,
     modelsEndpoint,
     attributesEndpoint,
@@ -622,9 +622,10 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     cityIds: (Array.isArray(initialCityIds) ? initialCityIds : (initialCityIds ? [initialCityIds] : [])).map(String).length
         ? (Array.isArray(initialCityIds) ? initialCityIds : [initialCityIds]).map(String)
         : (initialCityId ? [String(initialCityId)] : []),
+    priceFloor: Number(initialPriceFloor) || 0,
     priceCeiling: Number(initialPriceCeiling) || 1000000000,
     priceStep: 100000,
-    minPrice: Number(initialMinPrice) || 0,
+    minPrice: Number(initialMinPrice) || Number(initialPriceFloor) || 0,
     maxPrice: Number(initialMaxPrice) || Number(initialPriceCeiling) || 1000000000,
     sort: initialSort || 'newest',
     cities: [],
@@ -647,7 +648,8 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     attributesController: null,
 
     init() {
-        this.maxPrice = Math.min(this.maxPrice || this.priceCeiling, this.priceCeiling);
+        this.minPrice = Math.max(this.priceFloor, Math.min(this.minPrice || this.priceFloor, this.priceCeiling));
+        this.maxPrice = Math.max(this.minPrice, Math.min(this.maxPrice || this.priceCeiling, this.priceCeiling));
         this.popstateHandler = () => this.fetchResults(window.location.href, 'none', true);
         window.addEventListener('popstate', this.popstateHandler);
         this.loadModels(this.selectedBrandId);
@@ -725,7 +727,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     },
 
     syncPriceRange(changed) {
-        this.minPrice = Math.max(0, Math.min(Number(this.minPrice) || 0, this.priceCeiling));
+        this.minPrice = Math.max(this.priceFloor, Math.min(Number(this.minPrice) || this.priceFloor, this.priceCeiling));
         this.maxPrice = Math.max(0, Math.min(Number(this.maxPrice) || this.priceCeiling, this.priceCeiling));
         if (this.minPrice > this.maxPrice) {
             if (changed === 'min') this.maxPrice = this.minPrice;
@@ -747,7 +749,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
             : value !== null && value !== '').length;
 
         return [this.query, this.selectedBrandId, this.selectedModelId, this.provinceId]
-            .filter(Boolean).length + (this.cityIds.length ? 1 : 0) + (this.minPrice > 0 ? 1 : 0) + (this.maxPrice < this.priceCeiling ? 1 : 0) + dynamic;
+            .filter(Boolean).length + (this.cityIds.length ? 1 : 0) + (this.minPrice > this.priceFloor ? 1 : 0) + (this.maxPrice < this.priceCeiling ? 1 : 0) + dynamic;
     },
 
     async paginateResults(event) {
@@ -801,7 +803,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.cityId = url.searchParams.get('city_id') || '';
         this.cityIds = [...new Set(url.searchParams.getAll('city_ids[]').concat(url.searchParams.getAll('city_ids')).filter(Boolean).map(String))];
         if (!this.cityIds.length && this.cityId) this.cityIds = [String(this.cityId)];
-        this.minPrice = Number(url.searchParams.get('min_price')) || 0;
+        this.minPrice = Number(url.searchParams.get('min_price')) || this.priceFloor;
         this.maxPrice = Number(url.searchParams.get('max_price')) || this.priceCeiling;
         this.sort = url.searchParams.get('sort') || 'newest';
         this.filters = {};
@@ -961,7 +963,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.provinceId = '';
         this.cityId = '';
         this.cityIds = [];
-        this.minPrice = 0;
+        this.minPrice = this.priceFloor;
         this.maxPrice = this.priceCeiling;
         this.sort = 'newest';
         this.citiesController?.abort();
