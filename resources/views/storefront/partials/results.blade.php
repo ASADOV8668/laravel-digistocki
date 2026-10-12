@@ -3,13 +3,15 @@
         <span class="text-[11px] font-black text-slate-500">فیلترهای فعال:</span>
 
         @foreach ($activeFilters as $filter)
-            <a href="{{ $filter['url'] }}" class="listing-filter-chip inline-flex items-center gap-1 rounded-full bg-primary-50 px-3 py-1.5 text-[11px] font-bold text-primary transition hover:bg-primary-100">
+            <a href="{{ $filter['url'] }}"
+                class="listing-filter-chip inline-flex items-center gap-1 rounded-full bg-primary-50 px-3 py-1.5 text-[11px] font-bold text-primary transition hover:bg-primary-100">
                 <span>{{ $filter['label'] }}</span>
                 <x-heroicon-o-x-mark class="h-3.5 w-3.5" />
             </a>
         @endforeach
 
-        <a href="{{ route('storefront.show', $store) }}" class="listing-filter-chip mr-auto text-[11px] font-bold text-slate-500 hover:text-error">
+        <a href="{{ route('storefront.show', $store) }}"
+            class="listing-filter-chip mr-auto text-[11px] font-bold text-slate-500 hover:text-error">
             پاک کردن همه
         </a>
     </div>
@@ -19,7 +21,8 @@
     <div>
         <h2 class="text-sm font-black text-neutral">آگهی‌های این فروشگاه</h2>
         <p class="mt-1 text-[11px] text-slate-400">
-            مرتب‌سازی بر اساس {{ ['newest' => 'جدیدترین', 'price_asc' => 'ارزان‌ترین', 'price_desc' => 'گران‌ترین', 'views' => 'پربازدیدترین'][$sort] }}
+            مرتب‌سازی بر اساس
+            {{ ['newest' => 'جدیدترین', 'price_asc' => 'ارزان‌ترین', 'price_desc' => 'گران‌ترین', 'views' => 'پربازدیدترین'][$sort] }}
         </p>
     </div>
     <span class="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600">
@@ -44,7 +47,8 @@
         </span>
         <h3 class="mt-4 font-black text-neutral">نتیجه‌ای پیدا نشد</h3>
         <p class="mt-2 text-xs leading-6 text-slate-500">فیلترها را تغییر دهید یا عبارت جستجو را ساده‌تر کنید.</p>
-        <a href="{{ route('storefront.show', $store) }}" class="mt-4 inline-flex rounded-lg bg-primary px-5 py-2.5 text-xs font-bold text-white transition hover:bg-primary-600">
+        <a href="{{ route('storefront.show', $store) }}"
+            class="mt-4 inline-flex rounded-lg bg-primary px-5 py-2.5 text-xs font-bold text-white transition hover:bg-primary-600">
             پاک کردن فیلترها
         </a>
     </div>
