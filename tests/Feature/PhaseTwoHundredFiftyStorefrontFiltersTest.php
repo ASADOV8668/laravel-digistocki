@@ -37,6 +37,7 @@ class PhaseTwoHundredFiftyStorefrontFiltersTest extends TestCase
         $response->assertOk()
             ->assertSee('storefront-filters')
             ->assertSee('storefront-min-price')
+            ->assertSee('فقط نمایش آگهی‌های فعال')
             ->assertDontSee('name="province_id"', false)
             ->assertDontSee('name="city_id"', false)
             ->assertViewHas('priceFloor', 12000000)
@@ -99,6 +100,36 @@ class PhaseTwoHundredFiftyStorefrontFiltersTest extends TestCase
         $response = $this->get(route('storefront.show', $store));
 
         $response->assertOk()->assertViewHas('hasPricedListings', false)->assertDontSee('storefront-min-price');
+    }
+
+    public function test_storefront_hides_price_filter_when_all_prices_are_identical(): void
+    {
+        [$store, $brand, $model] = $this->storeContext('same-price-store');
+        $this->listing($store->user, $brand, $model, 'قیمت یکسان اول', 22000000);
+        $this->listing($store->user, $brand, $model, 'قیمت یکسان دوم', 22000000);
+
+        $response = $this->get(route('storefront.show', $store));
+
+        $response->assertOk()->assertViewHas('hasPriceRange', false)->assertDontSee('storefront-min-price');
+    }
+
+    public function test_authenticated_visitors_can_reveal_store_contact_details(): void
+    {
+        [$store, $brand, $model] = $this->storeContext('contact-details-store');
+        $store->update([
+            'contact_phone' => '09120000000',
+            'address' => 'تهران، خیابان تست',
+            'instagram_url' => 'store_test',
+        ]);
+        $this->listing($store->user, $brand, $model, 'آگهی اطلاعات تماس', 22000000);
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('storefront.show', $store))
+            ->assertOk()
+            ->assertSee('اطلاعات تماس فروشگاه')
+            ->assertSee('09120000000')
+            ->assertSee('تهران، خیابان تست')
+            ->assertSee('instagram.com/store_test');
     }
 
     private function storeContext(string $slug): array

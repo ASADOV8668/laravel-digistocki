@@ -1,7 +1,7 @@
 <x-app-layout title="جستجوی آگهی‌ها">
     <x-slot name="header"><h1 class="text-xl font-black text-neutral">جستجوی آگهی‌ها</h1></x-slot>
 
-    <section x-data="listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js(url("/listings/models")), @js(url("/locations/provinces")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])), @js(request("province_id")), @js(request("city_id")), @js(request("q")), @js(request("brand_id")), @js(request("min_price")), @js(request("max_price")), @js($sort), @js($priceCeiling), @js(request()->input("city_ids", [])))" class="space-y-6 px-4 py-6">
+    <section x-data="listingSearch(@js(route("listings.search.suggestions")), @js(url("/listings/models")), @js(url("/listings/models")), @js(url("/locations/provinces")), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input("filters", [])), @js(request("province_id")), @js(request("city_id")), @js(request("q")), @js(request("brand_id")), @js(request("min_price")), @js(request("max_price")), @js($sort), @js($priceCeiling), @js(request()->input("city_ids", [])), @js(0), @js($activeOnly))" class="space-y-6 px-4 py-6">
         <div class="flex items-end justify-between gap-3"><div><p class="text-xs font-bold text-primary">بازار موبایل</p><h1 class="mt-1 text-2xl font-black text-neutral">جستجوی آگهی‌ها</h1><p class="mt-1 text-xs text-slate-400">مدل و ویژگی‌های مناسب خودت را مرحله‌به‌مرحله انتخاب کن.</p></div><span class="rounded-full bg-primary-50 px-3 py-1.5 text-[11px] font-black text-primary">{{ number_format($listings->total()) }} نتیجه</span></div>
         <button type="button" data-drawer-target="listing-filters" data-drawer-show="listing-filters" data-drawer-placement="left" @click="filtersOpen = true" :aria-expanded="filtersOpen.toString()" aria-controls="listing-filters" aria-label="باز کردن فیلترها" class="fixed bottom-24 left-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-xl shadow-primary/30 transition hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary/30 md:bottom-8 md:left-8">
             <x-heroicon-o-adjustments-horizontal class="h-6 w-6" /><span x-show="activeFilterCount()" x-cloak class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral px-1 text-[10px] font-black text-white" x-text="activeFilterCount()"></span>
@@ -97,7 +97,14 @@
                             </div>
                         </div>
 
-                        <div class="rounded-lg bg-slate-50 p-3 border border-slate-200">
+                        <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-xs font-bold text-slate-600">
+                            <input type="hidden" name="active_only" x-bind:value="activeOnly ? '1' : '0'">
+                            <input type="checkbox" x-model="activeOnly" @checked($activeOnly) class="public-check">
+                            فقط نمایش آگهی‌های فعال
+                        </label>
+
+                        @if ($hasPriceRange)
+                            <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
                             <div class="mb-3 flex items-center justify-between gap-3"><span class="text-xs font-bold text-slate-600">بازه قیمت</span><span class="text-[10px] font-bold text-slate-400">تومان</span></div>
                             <div data-price-range="listing" dir="ltr" class="mb-3 flex items-center justify-between gap-3 text-[11px] font-black text-primary"><span x-text="`${formatPrice(minPrice)} تومان`">۰ تومان</span><span x-text="`${formatPrice(maxPrice)} تومان`">۰ تومان</span></div>
                             <div class="relative h-6" dir="ltr">
@@ -111,7 +118,8 @@
                             <input type="hidden" name="min_price" x-bind:value="minPrice > 0 ? minPrice : ''" />
                             <input type="hidden" name="max_price" x-bind:value="maxPrice < priceCeiling ? maxPrice : ''" />
                             <p class="mt-2 text-[10px] text-slate-400">دسته‌ها را با کشیدن دو دستگیره انتخاب کنید.</p>
-                        </div>
+                            </div>
+                        @endif
 
                         <div>
                             <label for="listing-sort" class="mb-1 block text-xs font-bold text-slate-600">مرتب‌سازی</label>

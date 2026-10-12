@@ -223,6 +223,7 @@ class ListingController extends Controller
         $searchTerm = trim((string) $request->input('q'));
         $searchLikes = $this->searchLikes($searchTerm);
         $query = Listing::query()->published()->with(['brand', 'phoneModel', 'province', 'city', 'primaryImage', 'images', 'attributeValues.attribute', 'user.storefront'])->withViewerFavorite(auth()->id());
+        $activeOnly = $request->input('active_only', '1') !== '0';
 
         $query->when($selectedBrandId, fn (Builder $query) => $query->where('brand_id', $selectedBrandId));
         $query->when($selectedModelId, fn (Builder $query) => $query->where('phone_model_id', $selectedModelId));
@@ -237,6 +238,7 @@ class ListingController extends Controller
             ->when($cityIds->isEmpty() && $selectedCityId, fn (Builder $query) => $query->where('city_id', $selectedCityId));
         $query->when($request->integer('min_price'), fn (Builder $query, int $price) => $query->where('price', '>=', $price));
         $query->when($request->integer('max_price'), fn (Builder $query, int $price) => $query->where('price', '<=', $price));
+        $query->when($activeOnly, fn (Builder $query) => $query->where('is_user_disabled', false));
         $query->when($searchLikes !== [], function (Builder $query) use ($searchLikes) {
             $query->where(function (Builder $query) use ($searchLikes) {
                 $query->where(function (Builder $title) use ($searchLikes) {
@@ -283,6 +285,7 @@ class ListingController extends Controller
             ? $request->input('sort')
             : 'newest';
 
+        $query->orderByRaw('CASE WHEN is_user_disabled = 0 THEN 0 ELSE 1 END');
         match ($sort) {
             'price_asc' => $query->orderByRaw('price IS NULL')->orderBy('price')->latest('published_at'),
             'price_desc' => $query->orderByRaw('price IS NULL')->orderByDesc('price')->latest('published_at'),
@@ -344,8 +347,13 @@ class ListingController extends Controller
         ])->values()->all();
 
         $listings = $query->paginate(12)->withQueryString();
-        $priceCeiling = (int) Listing::query()->published()->whereNotNull('price')->max('price');
-        $priceCeiling = max(1000000, (int) (ceil($priceCeiling / 1000000) * 1000000));
+        $pricedListings = Listing::query()->published()->whereNotNull('price')->where('price_on_request', false);
+        $priceFloor = (int) (clone $pricedListings)->min('price');
+        $rawPriceCeiling = (int) (clone $pricedListings)->max('price');
+        $hasPriceRange = $rawPriceCeiling > $priceFloor;
+        $priceCeiling = $rawPriceCeiling > 0
+            ? max(1000000, (int) (ceil($rawPriceCeiling / 1000000) * 1000000))
+            : 1000000;
         $priceCeiling = max($priceCeiling, (int) $request->integer('max_price'));
 
         if ($request->expectsJson()) {
@@ -363,6 +371,8 @@ class ListingController extends Controller
             'provinces' => Province::query()->orderBy('name')->get(['id', 'name']),
             'sort' => $sort,
             'activeFilters' => $activeFilters,
+            'hasPriceRange' => $hasPriceRange,
+            'activeOnly' => $activeOnly,
             'priceCeiling' => $priceCeiling,
             'selectedCityIds' => $cityIds->all(),
         ]);

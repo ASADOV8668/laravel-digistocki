@@ -609,7 +609,7 @@ window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
     },
 });
 
-window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '', initialMinPrice = '', initialMaxPrice = '', initialSort = 'newest', initialPriceCeiling = 1000000000, initialCityIds = [], initialPriceFloor = 0) => ({
+window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint, citiesEndpoint, initialModelId = null, initialAttributes = [], initialFilters = {}, initialProvinceId = '', initialCityId = '', initialQuery = '', initialBrandId = '', initialMinPrice = '', initialMaxPrice = '', initialSort = 'newest', initialPriceCeiling = 1000000000, initialCityIds = [], initialPriceFloor = 0, initialActiveOnly = true) => ({
     suggestionsEndpoint,
     modelsEndpoint,
     attributesEndpoint,
@@ -628,6 +628,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     minPrice: Number(initialMinPrice) || Number(initialPriceFloor) || 0,
     maxPrice: Number(initialMaxPrice) || Number(initialPriceCeiling) || 1000000000,
     sort: initialSort || 'newest',
+    activeOnly: initialActiveOnly !== false,
     cities: [],
     citiesLoading: false,
     suggestions: { brands: [], models: [] },
@@ -749,7 +750,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
             : value !== null && value !== '').length;
 
         return [this.query, this.selectedBrandId, this.selectedModelId, this.provinceId]
-            .filter(Boolean).length + (this.cityIds.length ? 1 : 0) + (this.minPrice > this.priceFloor ? 1 : 0) + (this.maxPrice < this.priceCeiling ? 1 : 0) + dynamic;
+            .filter(Boolean).length + (this.cityIds.length ? 1 : 0) + (this.minPrice > this.priceFloor ? 1 : 0) + (this.maxPrice < this.priceCeiling ? 1 : 0) + (!this.activeOnly ? 1 : 0) + dynamic;
     },
 
     async paginateResults(event) {
@@ -806,6 +807,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.minPrice = Number(url.searchParams.get('min_price')) || this.priceFloor;
         this.maxPrice = Number(url.searchParams.get('max_price')) || this.priceCeiling;
         this.sort = url.searchParams.get('sort') || 'newest';
+        this.activeOnly = url.searchParams.get('active_only') !== '0';
         this.filters = {};
         url.searchParams.forEach((value, key) => {
             const match = key.match(/^filters\[(\d+)\](\[\])?$/);
@@ -966,6 +968,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.minPrice = this.priceFloor;
         this.maxPrice = this.priceCeiling;
         this.sort = 'newest';
+        this.activeOnly = true;
         this.citiesController?.abort();
         this.citiesController = null;
         this.resultsController?.abort();

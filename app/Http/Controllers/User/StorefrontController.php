@@ -123,7 +123,10 @@ class StorefrontController extends Controller
             ->when($request->filled('max_price'), fn (Builder $query) => $query->where('price', '<=', $request->integer('max_price')));
 
         $this->applyAttributeFilters($query, $request, $filterAttributes->keyBy('id'));
+        $activeOnly = $request->input('active_only', '1') !== '0';
+        $query->when($activeOnly, fn (Builder $query) => $query->where('is_user_disabled', false));
         $sort = in_array($request->input('sort'), ['newest', 'price_asc', 'price_desc', 'views'], true) ? $request->input('sort') : 'newest';
+        $query->orderByRaw('CASE WHEN is_user_disabled = 0 THEN 0 ELSE 1 END');
         match ($sort) {
             'price_asc' => $query->orderByRaw('price IS NULL')->orderBy('price')->latest('published_at'),
             'price_desc' => $query->orderByRaw('price IS NULL')->orderByDesc('price')->latest('published_at'),
@@ -134,7 +137,9 @@ class StorefrontController extends Controller
         $pricedScope = (clone $storeScope)->whereNotNull('price')->where('price_on_request', false);
         $hasPricedListings = (clone $pricedScope)->exists();
         $priceFloor = $hasPricedListings ? (int) (clone $pricedScope)->min('price') : 0;
-        $priceCeiling = $hasPricedListings ? (int) (clone $pricedScope)->max('price') : 0;
+        $rawPriceCeiling = $hasPricedListings ? (int) (clone $pricedScope)->max('price') : 0;
+        $hasPriceRange = $rawPriceCeiling > $priceFloor;
+        $priceCeiling = $rawPriceCeiling;
         if ($hasPricedListings) {
             $priceCeiling = max(1000000, (int) (ceil($priceCeiling / 1000000) * 1000000));
             $priceCeiling = max($priceCeiling, $request->integer('max_price'));
@@ -163,6 +168,8 @@ class StorefrontController extends Controller
             'priceFloor' => $priceFloor,
             'priceCeiling' => $priceCeiling,
             'hasPricedListings' => $hasPricedListings,
+            'hasPriceRange' => $hasPriceRange,
+            'activeOnly' => $activeOnly,
         ]);
     }
 
