@@ -1,45 +1,197 @@
 @php($clone = $cloneListing ?? null)
 <x-app-layout title="ثبت آگهی">
-    <x-slot name="header"><div class="flex items-center gap-3"><span class="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-50 text-primary"><x-heroicon-o-plus class="h-6 w-6" /></span><div><p class="text-xs font-bold text-primary">فروش سریع‌تر</p><h1 class="mt-1 text-xl font-black text-neutral">ثبت آگهی</h1></div></div></x-slot>
-    <section x-data="listingWizard()" data-models-endpoint="{{ url('/listings/models') }}" data-cities-endpoint="{{ url('/locations/provinces') }}" data-initial-brand-id="{{ old('brand_id', $clone?->brand_id) }}" data-initial-model-id="{{ old('phone_model_id', $clone?->phone_model_id) }}" data-initial-province-id="{{ old('province_id', $clone?->province_id) }}" data-initial-city-id="{{ old('city_id', $clone?->city_id) }}" class="space-y-6 px-4 py-6">
+    <x-slot name="header">
+        <div class="flex items-center gap-3"><span
+                class="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-50 text-primary"><x-heroicon-o-plus
+                    class="h-6 w-6" /></span>
+            <div>
+                <p class="text-xs font-bold text-primary">فروش سریع‌تر</p>
+                <h1 class="mt-1 text-xl font-black text-neutral">ثبت آگهی</h1>
+            </div>
+        </div>
+    </x-slot>
+    <section x-data="listingWizard()" data-models-endpoint="{{ url('/listings/models') }}"
+        data-cities-endpoint="{{ url('/locations/provinces') }}"
+        data-initial-brand-id="{{ old('brand_id', $clone?->brand_id) }}"
+        data-initial-model-id="{{ old('phone_model_id', $clone?->phone_model_id) }}"
+        data-initial-province-id="{{ old('province_id', $clone?->province_id) }}"
+        data-initial-city-id="{{ old('city_id', $clone?->city_id) }}" class="space-y-6 px-4 py-6">
         <script type="application/json" data-listing-initial-attributes>@json($initialModelAttributes)</script>
         <script type="application/json" data-listing-initial-values>@json($initialValues ?? old('attributes', []))</script>
-        @if ($errors->any())<x-flowbite-alert type="danger"><ul class="space-y-1">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-flowbite-alert>@endif
+        @if ($errors->any())<x-flowbite-alert type="danger">
+                <ul class="space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </x-flowbite-alert>@endif
 
-        <div class="rounded-lg bg-white p-4 shadow-sm border border-slate-200"><div class="flex items-center justify-between text-[11px] font-bold"><span class="flex items-center gap-1.5" :class="step >= 1 ? 'text-primary' : 'text-slate-400'"><span class="sr-only">۱. مدل</span><span class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">۱</span>مدل</span><span class="flex items-center gap-1.5" :class="step >= 2 ? 'text-primary' : 'text-slate-400'"><span class="sr-only">۲. مشخصات</span><span class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">۲</span>مشخصات</span><span class="flex items-center gap-1.5" :class="step >= 3 ? 'text-primary' : 'text-slate-400'"><span class="sr-only">۳. اطلاعات</span><span class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">۳</span>اطلاعات</span><span class="flex items-center gap-1.5" :class="step >= 4 ? 'text-primary' : 'text-slate-400'"><span class="sr-only">۴. ارسال</span><span class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">۴</span>ارسال</span></div><div class="mt-4 h-2 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full bg-primary transition-all duration-300" :style="`width: ${step * 25}%`"></div></div>
+        <div class="rounded-lg bg-white p-4 shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between text-[11px] font-bold"><span class="flex items-center gap-1.5"
+                    :class="step >= 1 ? 'text-primary' : 'text-slate-400'"><span class="sr-only">۱. مدل</span><span
+                        class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">۱</span>مدل</span><span
+                    class="flex items-center gap-1.5" :class="step >= 2 ? 'text-primary' : 'text-slate-400'"><span
+                        class="sr-only">۲. مشخصات</span><span
+                        class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">۲</span>مشخصات</span><span
+                    class="flex items-center gap-1.5" :class="step >= 3 ? 'text-primary' : 'text-slate-400'"><span
+                        class="sr-only">۳. اطلاعات</span><span
+                        class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">۳</span>اطلاعات</span><span
+                    class="flex items-center gap-1.5" :class="step >= 4 ? 'text-primary' : 'text-slate-400'"><span
+                        class="sr-only">۴. ارسال</span><span
+                        class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">۴</span>ارسال</span>
+            </div>
+            <div class="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div class="h-full rounded-full bg-primary transition-all duration-300" :style="`width: ${step * 25}%`">
+                </div>
+            </div>
         </div>
 
-        <form method="POST" action="{{ route('listings.store') }}" enctype="multipart/form-data" class="rounded-lg bg-white p-5 shadow-sm border border-slate-200">
+        <form method="POST" action="{{ route('listings.store') }}" enctype="multipart/form-data"
+            class="rounded-lg bg-white p-5 shadow-sm border border-slate-200">
             @csrf
             <div x-show="step === 1" x-cloak class="space-y-4">
-                <div><h2 class="text-lg font-black text-neutral">مدل گوشی را انتخاب کنید</h2><p class="mt-1 text-xs leading-6 text-slate-500">با انتخاب مدل، ویژگی‌های مخصوص همان دستگاه در مرحله بعد بارگذاری می‌شود.</p></div>
-                <div><label class="mb-2 block text-sm font-bold text-neutral">برند</label><select name="brand_id" data-listing-brand-picker data-model-target="#public-listing-model" data-models-endpoint="{{ url('/listings/models') }}" x-model="brandId" @change="loadModels()" required class="public-select"><option value="">انتخاب برند</option>@foreach ($brands as $brand)<option value="{{ $brand->id }}" @selected((string) old('brand_id') === (string) $brand->id)>{{ $brand->name }} ({{ $brand->name_en }})</option>@endforeach</select></div>
-                <div><label class="mb-2 block text-sm font-bold text-neutral">مدل گوشی</label><select id="public-listing-model" name="phone_model_id" x-model="modelId" @change="loadAttributes" required :disabled="!brandId || modelsLoading" class="public-select"><option value="" x-text="modelsLoading ? 'در حال بارگذاری مدل‌ها...' : 'انتخاب مدل'"></option><template x-for="model in models" :key="model.id"><option :value="model.id" x-text="`${model.label || model.name_fa || model.name} — ${model.secondary || model.name_en || model.name}`"></option></template></select><p class="mt-1 text-xs text-slate-400">فقط مدل‌های برند انتخاب‌شده نمایش داده می‌شوند.</p></div>
-                <div class="rounded-lg bg-primary-50 p-3 text-xs leading-6 text-primary">انتخاب مدل، فرم مشخصات را دقیقاً مطابق کاتالوگ همان گوشی تنظیم می‌کند.</div>
+                <div>
+                    <h2 class="text-lg font-black text-neutral">مدل گوشی را انتخاب کنید</h2>
+                    <p class="mt-1 text-xs leading-6 text-slate-500">با انتخاب مدل، ویژگی‌های مخصوص همان دستگاه در مرحله
+                        بعد بارگذاری می‌شود.</p>
+                </div>
+                <div><label class="mb-2 block text-sm font-bold text-neutral">برند</label><select name="brand_id"
+                        data-listing-brand-picker data-model-target="#public-listing-model"
+                        data-models-endpoint="{{ url('/listings/models') }}" x-model="brandId" @change="loadModels()"
+                        required class="public-select">
+                        <option value="">انتخاب برند</option>
+                        @foreach ($brands as $brand)
+                            <option value="{{ $brand->id }}" @selected((string) old('brand_id') === (string) $brand->id)>{{ $brand->name }}
+                                ({{ $brand->name_en }})</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div><label class="mb-2 block text-sm font-bold text-neutral">مدل گوشی</label><select
+                        id="public-listing-model" name="phone_model_id" x-model="modelId" @change="loadAttributes"
+                        required :disabled="!brandId || modelsLoading" class="public-select">
+                        <option value="" x-text="modelsLoading ? 'در حال بارگذاری مدل‌ها...' : 'انتخاب مدل'">
+                        </option><template x-for="model in models" :key="model.id">
+                            <option :value="model.id"
+                                x-text="`${model.label || model.name_fa || model.name} — ${model.secondary || model.name_en || model.name}`">
+                            </option>
+                        </template>
+                    </select>
+                    <p class="mt-1 text-xs text-slate-400">فقط مدل‌های برند انتخاب‌شده نمایش داده می‌شوند.</p>
+                </div>
+                <div class="rounded-lg bg-primary-50 p-3 text-xs leading-6 text-primary">انتخاب مدل، فرم مشخصات را
+                    دقیقاً مطابق کاتالوگ همان گوشی تنظیم می‌کند.</div>
             </div>
 
             <div x-show="step === 2" x-cloak class="space-y-4">
-                <div class="flex items-center justify-between"><div><h2 class="text-lg font-black text-neutral">مشخصات گوشی</h2><p class="mt-1 text-xs text-slate-500">مقادیر مربوط به مدل انتخاب‌شده را وارد کنید.</p></div><span x-show="attributesLoading" class="text-xs text-slate-400">در حال بارگذاری...</span></div>
-                <div x-show="!attributesLoading && !attributes.length" class="rounded-lg bg-warning/10 p-3 text-xs leading-6 text-neutral">برای این مدل هنوز ویژگی‌ای تعریف نشده است.</div>
-                <div x-show="!attributesLoading"><x-listing-attribute-repeater :attribute-definitions="$initialModelAttributes" :values="old('attributes', [])" /></div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-black text-neutral">مشخصات گوشی</h2>
+                        <p class="mt-1 text-xs text-slate-500">مقادیر مربوط به مدل انتخاب‌شده را وارد کنید.</p>
+                    </div><span x-show="attributesLoading" class="text-xs text-slate-400">در حال بارگذاری...</span>
+                </div>
+                <div x-show="!attributesLoading && !attributes.length"
+                    class="rounded-lg bg-warning/10 p-3 text-xs leading-6 text-neutral">برای این مدل هنوز ویژگی‌ای تعریف
+                    نشده است.</div>
+                <div x-show="!attributesLoading"><x-listing-attribute-repeater :attribute-definitions="$initialModelAttributes" :values="old('attributes', [])" />
+                </div>
             </div>
 
             <div x-show="step === 3" x-cloak class="space-y-4">
-                <div><h2 class="text-lg font-black text-neutral">اطلاعات آگهی</h2><p class="mt-1 text-xs text-slate-500">عنوان روشن، قیمت دقیق و موقعیت آگهی باعث اعتماد بیشتر خریدار می‌شود.</p></div>
-                <div><label class="mb-2 block text-sm font-bold text-neutral">عنوان آگهی</label><input name="title" value="{{ old('title', $clone ? $clone->title.' (کپی)' : '') }}" required class="block w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30" placeholder="مثلاً آیفون ۱۳ پرو تمیز">@if($clone)<input type="hidden" name="clone" value="{{ $clone->id }}"><p class="mt-1 text-[11px] text-primary">ویژگی‌ها و تصاویر آگهی اصلی در صورت تغییر نکردن تصاویر، کپی می‌شوند.</p>@endif</div>
-                <div x-data="{ priceOnRequest: @js((bool) old('price_on_request', $clone?->price_on_request ?? false)) }"><label class="mb-2 block text-sm font-bold text-neutral">قیمت (تومان)</label><input x-show="!priceOnRequest" name="price" value="{{ old('price', $clone?->price) }}" :required="!priceOnRequest" type="number" min="0" class="w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30">@if ($allowContactPrice)<label class="mt-3 flex cursor-pointer items-center gap-2 text-sm font-bold text-neutral"><input type="checkbox" name="price_on_request" value="1" x-model="priceOnRequest" @checked(old('price_on_request', $clone?->price_on_request)) class="public-check"> قیمت را اعلام نمی‌کنم؛ تماس بگیرید</label>@endif</div>
-                <label class="flex items-center gap-2 text-sm font-bold text-neutral"><input name="is_negotiable" value="1" type="checkbox" @checked(old('is_negotiable', $clone?->is_negotiable)) class="public-check"> قیمت قابل مذاکره است</label>
-                <div class="grid grid-cols-2 gap-2"><div><label class="mb-2 block text-sm font-bold text-neutral">استان</label><select name="province_id" x-model="provinceId" @change="loadCities" class="public-select"><option value="">انتخاب استان</option>@foreach ($provinces as $province)<option value="{{ $province->id }}">{{ $province->name }}</option>@endforeach</select></div><div><label class="mb-2 block text-sm font-bold text-neutral">شهر</label><select name="city_id" x-model="cityId" :disabled="!provinceId || citiesLoading" class="public-select"><option value="">انتخاب شهر</option><template x-for="city in cities" :key="city.id"><option :value="city.id" x-text="city.name"></option></template></select></div></div>
-                <div><label class="mb-2 block text-sm font-bold text-neutral">توضیحات</label><textarea name="description" rows="5" class="block w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30" placeholder="وضعیت گوشی، لوازم همراه و شرایط فروش را بنویسید">{{ old('description', $clone?->description) }}</textarea></div>
+                <div>
+                    <h2 class="text-lg font-black text-neutral">اطلاعات آگهی</h2>
+                    <p class="mt-1 text-xs text-slate-500">عنوان روشن، قیمت دقیق و موقعیت آگهی باعث اعتماد بیشتر خریدار
+                        می‌شود.</p>
+                </div>
+                <div><label class="mb-2 block text-sm font-bold text-neutral">عنوان آگهی</label><input name="title"
+                        value="{{ old('title', $clone ? $clone->title . ' (کپی)' : '') }}" required
+                        class="block w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+                        placeholder="مثلاً آیفون ۱۳ پرو تمیز">
+                    @if ($clone)
+                        <input type="hidden" name="clone" value="{{ $clone->id }}">
+                        <p class="mt-1 text-[11px] text-primary">ویژگی‌ها و تصاویر آگهی اصلی در صورت تغییر نکردن تصاویر،
+                            کپی می‌شوند.</p>
+                    @endif
+                </div>
+                <div x-data="{ priceOnRequest: @js((bool) old('price_on_request', $clone?->price_on_request ?? false)) }"><label class="mb-2 block text-sm font-bold text-neutral">قیمت
+                        (تومان)</label><input x-show="!priceOnRequest" name="price"
+                        value="{{ old('price', $clone?->price) }}" :required="!priceOnRequest" type="number"
+                        min="0"
+                        class="w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30">
+                    @if ($allowContactPrice)
+                        <label class="mt-3 flex cursor-pointer items-center gap-2 text-sm font-bold text-neutral"><input
+                                type="checkbox" name="price_on_request" value="1" x-model="priceOnRequest"
+                                @checked(old('price_on_request', $clone?->price_on_request)) class="public-check"> قیمت را اعلام نمی‌کنم؛ تماس
+                            بگیرید</label>
+                    @endif
+                </div>
+                <label class="flex items-center gap-2 text-sm font-bold text-neutral"><input name="is_negotiable"
+                        value="1" type="checkbox" @checked(old('is_negotiable', $clone?->is_negotiable)) class="public-check"> قیمت قابل
+                    مذاکره است</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="mb-2 block text-sm font-bold text-neutral">استان</label><select
+                            name="province_id" x-model="provinceId" @change="loadCities" class="public-select">
+                            <option value="">انتخاب استان</option>
+                            @foreach ($provinces as $province)
+                                <option value="{{ $province->id }}">{{ $province->name }}</option>
+                            @endforeach
+                        </select></div>
+                    <div><label class="mb-2 block text-sm font-bold text-neutral">شهر</label><select name="city_id"
+                            x-model="cityId" :disabled="!provinceId || citiesLoading" class="public-select">
+                            <option value="">انتخاب شهر</option><template x-for="city in cities"
+                                :key="city.id">
+                                <option :value="city.id" x-text="city.name"></option>
+                            </template>
+                        </select></div>
+                </div>
+                <div><label class="mb-2 block text-sm font-bold text-neutral">توضیحات</label>
+                    <textarea name="description" rows="5"
+                        class="block w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+                        placeholder="وضعیت گوشی، لوازم همراه و شرایط فروش را بنویسید">{{ old('description', $clone?->description) }}</textarea>
+                </div>
             </div>
 
             <div x-show="step === 4" x-cloak class="space-y-4">
-                <div><h2 class="text-lg font-black text-neutral">تصاویر و ارسال</h2><p class="mt-1 text-xs leading-6 text-slate-500">حداکثر {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر، هر تصویر حداکثر {{ $maxImageUploadMb }} مگابایت. تصویر اول به‌عنوان تصویر اصلی نمایش داده می‌شود.</p></div>
-                <div x-data='imagePicker(@js($maxImageUploadMb), @js($maxImageUploadCount))' class="space-y-3"><label class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/20 bg-primary-50/40 p-8 text-center transition hover:border-primary/50"><span class="flex h-12 w-12 items-center justify-center rounded-lg bg-white text-primary shadow-sm"><x-heroicon-o-photo class="h-6 w-6" /></span><span class="mt-3 text-sm font-black text-neutral">تصاویر گوشی را انتخاب کنید</span><span class="mt-1 text-xs text-slate-400">JPG، PNG یا WEBP · حداکثر {{ $maxImageUploadMb }}MB</span><input @change="select($event)" type="file" name="images[]" multiple accept=".jpg,.jpeg,.png,.webp" class="sr-only"></label><div x-show="previews.length" x-cloak class="grid grid-cols-4 gap-2"><template x-for="preview in previews" :key="preview.url"><div class="overflow-hidden rounded-lg bg-slate-50 border border-slate-200"><img :src="preview.url" :alt="preview.name" class="h-20 w-full object-cover"><p x-text="preview.name" class="truncate px-1.5 py-1 text-[9px] text-slate-500"></p></div></template></div><div class="flex items-center justify-between text-[10px] text-slate-400"><span x-show="previews.length" x-text="`${previews.length} تصویر انتخاب شده`"></span><span x-show="!previews.length">هنوز تصویری انتخاب نشده است</span><span>حداکثر {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر</span></div><p x-show="invalid" x-text="message" class="rounded-lg bg-error/10 px-3 py-2 text-xs font-bold text-error"></p></div>
-                <div class="rounded-lg bg-warning/10 p-4 text-xs leading-7 text-neutral">آگهی پس از ارسال در وضعیت «در انتظار بررسی» قرار می‌گیرد و پس از تأیید ادمین در سایت نمایش داده می‌شود.</div>
+                <div>
+                    <h2 class="text-lg font-black text-neutral">تصاویر و ارسال</h2>
+                    <p class="mt-1 text-xs leading-6 text-slate-500">حداکثر
+                        {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر، هر تصویر حداکثر
+                        {{ $maxImageUploadMb }} مگابایت. تصویر اول به‌عنوان تصویر اصلی نمایش داده می‌شود.</p>
+                </div>
+                <div x-data='imagePicker(@js($maxImageUploadMb), @js($maxImageUploadCount))'
+                    class="space-y-3"><label
+                        class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/20 bg-primary-50/40 p-8 text-center transition hover:border-primary/50"><span
+                            class="flex h-12 w-12 items-center justify-center rounded-lg bg-white text-primary shadow-sm"><x-heroicon-o-photo
+                                class="h-6 w-6" /></span><span class="mt-3 text-sm font-black text-neutral">تصاویر
+                            گوشی را انتخاب کنید</span><span class="mt-1 text-xs text-slate-400">JPG، PNG یا WEBP ·
+                            حداکثر {{ $maxImageUploadMb }}MB</span><input @change="select($event)" type="file"
+                            name="images[]" multiple accept=".jpg,.jpeg,.png,.webp" class="sr-only"></label>
+                    <div x-show="previews.length" x-cloak class="grid grid-cols-4 gap-2"><template
+                            x-for="preview in previews" :key="preview.url">
+                            <div class="overflow-hidden rounded-lg bg-slate-50 border border-slate-200"><img
+                                    :src="preview.url" :alt="preview.name" class="h-20 w-full object-cover">
+                                <p x-text="preview.name" class="truncate px-1.5 py-1 text-[9px] text-slate-500"></p>
+                            </div>
+                        </template></div>
+                    <div class="flex items-center justify-between text-[10px] text-slate-400"><span
+                            x-show="previews.length" x-text="`${previews.length} تصویر انتخاب شده`"></span><span
+                            x-show="!previews.length">هنوز تصویری انتخاب نشده است</span><span>حداکثر
+                            {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر</span></div>
+                    <p x-show="invalid" x-text="message"
+                        class="rounded-lg bg-error/10 px-3 py-2 text-xs font-bold text-error"></p>
+                </div>
+                <div class="rounded-lg bg-warning/10 p-4 text-xs leading-7 text-neutral">آگهی پس از ارسال در وضعیت «در
+                    انتظار بررسی» قرار می‌گیرد و پس از تأیید ادمین در سایت نمایش داده می‌شود.</div>
             </div>
 
-            <div class="mt-6 flex gap-2 border-t border-slate-100 pt-4"><button type="button" x-show="step > 1" @click="previous" class="rounded-lg px-4 py-3 text-sm font-bold text-slate-500 hover:bg-slate-50">مرحله قبل</button><button type="button" x-show="step < 4" @click="next" :disabled="step === 1 && !modelId" class="mobile-button flex-1 bg-neutral text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40">مرحله بعد</button><button type="submit" x-show="step === 4" class="mobile-button flex-1 bg-primary text-white hover:bg-primary-600">ارسال برای بررسی</button></div>
+            <div class="mt-6 flex gap-2 border-t border-slate-100 pt-4"><button type="button" x-show="step > 1"
+                    @click="previous"
+                    class="rounded-lg px-4 py-3 text-sm font-bold text-slate-500 hover:bg-slate-50">مرحله
+                    قبل</button><button type="button" x-show="step < 4" @click="next"
+                    :disabled="step === 1 && !modelId"
+                    class="mobile-button flex-1 bg-neutral text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40">مرحله
+                    بعد</button><button type="submit" x-show="step === 4"
+                    class="mobile-button flex-1 bg-primary text-white hover:bg-primary-600">ارسال برای بررسی</button>
+            </div>
         </form>
     </section>
 </x-app-layout>

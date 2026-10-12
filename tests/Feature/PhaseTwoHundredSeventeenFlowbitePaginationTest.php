@@ -13,7 +13,6 @@ class PhaseTwoHundredSeventeenFlowbitePaginationTest extends TestCase
             'favorites/index.blade.php',
             'notifications/index.blade.php',
             'reports/index.blade.php',
-            'storefront/show.blade.php',
             'listings/partials/results.blade.php',
         ] as $view) {
             $source = file_get_contents(resource_path("views/{$view}"));

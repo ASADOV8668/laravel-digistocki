@@ -11,10 +11,8 @@
         </div>
     </header>
 
-    <x-danger-button
-        data-modal-target="confirm-user-deletion"
-        data-modal-toggle="confirm-user-deletion"
-    >حذف حساب کاربری</x-danger-button>
+    <x-danger-button data-modal-target="confirm-user-deletion" data-modal-toggle="confirm-user-deletion">حذف حساب
+        کاربری</x-danger-button>
 
     <x-modal name="confirm-user-deletion" :show="$errors->userDeletion->isNotEmpty()" focusable>
         <form method="post" action="{{ route('profile.destroy') }}" class="space-y-6 p-6 text-right" dir="rtl">
@@ -30,13 +28,8 @@
 
             <div>
                 <x-input-label for="password" value="رمز عبور" />
-                <x-text-input
-                    id="password"
-                    name="password"
-                    type="password"
-                    class="mt-2 block w-full"
-                    placeholder="رمز عبور حساب"
-                />
+                <x-text-input id="password" name="password" type="password" class="mt-2 block w-full"
+                    placeholder="رمز عبور حساب" />
                 <x-input-error :messages="$errors->userDeletion->get('password')" class="mt-2" />
             </div>
 

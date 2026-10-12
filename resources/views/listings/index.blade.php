@@ -194,7 +194,8 @@
                                 <div data-price-range="listing" dir="ltr"
                                     class="mb-3 flex items-center justify-between gap-3 text-[11px] font-black text-primary">
                                     <span x-text="`${formatPrice(minPrice)} تومان`">۰ تومان</span><span
-                                        x-text="`${formatPrice(maxPrice)} تومان`">۰ تومان</span></div>
+                                        x-text="`${formatPrice(maxPrice)} تومان`">۰ تومان</span>
+                                </div>
                                 <div class="relative h-6" dir="ltr">
                                     <div class="absolute left-0 right-0 top-2 h-2 rounded-full bg-slate-200"></div>
                                     <div class="absolute top-2 h-2 rounded-full bg-primary"
@@ -326,7 +327,8 @@
                 </div>
                 <div x-show="resultsLoading" x-cloak
                     class="pointer-events-none fixed inset-x-4 top-20 z-40 mx-auto max-w-md rounded-lg bg-neutral px-4 py-3 text-xs font-bold text-white shadow-xl">
-                    <x-flowbite-loading label="در حال به‌روزرسانی نتایج..." /></div>
+                    <x-flowbite-loading label="در حال به‌روزرسانی نتایج..." />
+                </div>
             </div>
         </div>
     </section>

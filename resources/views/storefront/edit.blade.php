@@ -1,38 +1,177 @@
 @php
-    $storeExpiry = $store?->business_license_expires_at ? \App\Support\PersianDate::format($store->business_license_expires_at) : '';
+    $storeExpiry = $store?->business_license_expires_at
+        ? \App\Support\PersianDate::format($store->business_license_expires_at)
+        : '';
     $nameParts = preg_split('/\s+/', trim((string) auth()->user()->name), 2);
 @endphp
 <x-app-layout title="ثبت فروشگاه">
-    <x-slot name="header"><div class="flex items-center gap-3"><span class="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-50 text-primary"><x-heroicon-o-building-storefront class="h-6 w-6" /></span><div><p class="text-xs font-bold text-primary">فروشنده دیجی استوکی</p><h1 class="mt-1 text-xl font-black text-neutral">{{ $store ? 'ویرایش اطلاعات فروشگاه' : 'ثبت فروشگاه' }}</h1></div></div></x-slot>
+    <x-slot name="header">
+        <div class="flex items-center gap-3"><span
+                class="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-50 text-primary"><x-heroicon-o-building-storefront
+                    class="h-6 w-6" /></span>
+            <div>
+                <p class="text-xs font-bold text-primary">فروشنده دیجی استوکی</p>
+                <h1 class="mt-1 text-xl font-black text-neutral">{{ $store ? 'ویرایش اطلاعات فروشگاه' : 'ثبت فروشگاه' }}
+                </h1>
+            </div>
+        </div>
+    </x-slot>
     <section class="space-y-5 px-4 py-6">
-        @if (session('status'))<x-flowbite-alert type="success">{{ session('status') }}</x-flowbite-alert>@endif
-        @if ($errors->any())<x-flowbite-alert type="danger"><ul class="space-y-1">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-flowbite-alert>@endif
-        @if ($store?->isPending())<div class="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/10 p-4 text-sm font-bold text-amber-900"><x-heroicon-o-clock class="mt-0.5 h-5 w-5 shrink-0" /><span>اطلاعات فروشگاه شما ثبت شده و پس از بررسی مدیریت نتیجه اعلام می‌شود. تا آن زمان می‌توانید آگهی ثبت کنید.</span></div>@endif
-        @if ($store?->isRejected())<div class="rounded-lg border border-error/20 bg-error/10 p-4 text-sm text-error"><p class="font-black">درخواست فروشگاه نیاز به اصلاح دارد.</p><p class="mt-1 leading-6">{{ $store->rejection_reason ?: 'لطفاً اطلاعات را بررسی و دوباره ارسال کنید.' }}</p></div>@endif
-        @if ($store?->isApproved())<div class="rounded-lg border border-success/20 bg-success/10 p-4 text-sm font-bold text-success">فروشگاه شما تأیید شده است. اطلاعات قابل ویرایش هستند، اما آدرس فروشگاه قابل تغییر نیست.</div>@endif
+        @if (session('status'))
+            <x-flowbite-alert type="success">{{ session('status') }}</x-flowbite-alert>
+        @endif
+        @if ($errors->any())<x-flowbite-alert type="danger">
+                <ul class="space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </x-flowbite-alert>@endif
+        @if ($store?->isPending())
+            <div
+                class="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/10 p-4 text-sm font-bold text-amber-900">
+                <x-heroicon-o-clock class="mt-0.5 h-5 w-5 shrink-0" /><span>اطلاعات فروشگاه شما ثبت شده و پس از بررسی
+                    مدیریت نتیجه اعلام می‌شود. تا آن زمان می‌توانید آگهی ثبت کنید.</span></div>
+        @endif
+        @if ($store?->isRejected())
+            <div class="rounded-lg border border-error/20 bg-error/10 p-4 text-sm text-error">
+                <p class="font-black">درخواست فروشگاه نیاز به اصلاح دارد.</p>
+                <p class="mt-1 leading-6">
+                    {{ $store->rejection_reason ?: 'لطفاً اطلاعات را بررسی و دوباره ارسال کنید.' }}</p>
+            </div>
+        @endif
+        @if ($store?->isApproved())
+            <div class="rounded-lg border border-success/20 bg-success/10 p-4 text-sm font-bold text-success">فروشگاه
+                شما تأیید شده است. اطلاعات قابل ویرایش هستند، اما آدرس فروشگاه قابل تغییر نیست.</div>
+        @endif
 
-        <form method="POST" action="{{ route('storefront.update') }}" enctype="multipart/form-data" class="space-y-5 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <form method="POST" action="{{ route('storefront.update') }}" enctype="multipart/form-data"
+            class="space-y-5 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             @csrf @method('PUT')
             <div class="grid gap-4 sm:grid-cols-2">
-                <div><label for="store-first-name" class="mb-2 block text-sm font-bold text-neutral">نام <span class="text-error">*</span></label><input id="store-first-name" name="first_name" value="{{ old('first_name', $store?->first_name ?? ($nameParts[0] ?? '')) }}" required class="public-input focus:ring-2 focus:ring-primary/30"></div>
-                <div><label for="store-last-name" class="mb-2 block text-sm font-bold text-neutral">نام خانوادگی <span class="text-error">*</span></label><input id="store-last-name" name="last_name" value="{{ old('last_name', $store?->last_name ?? ($nameParts[1] ?? '')) }}" required class="public-input"></div>
+                <div><label for="store-first-name" class="mb-2 block text-sm font-bold text-neutral">نام <span
+                            class="text-error">*</span></label><input id="store-first-name" name="first_name"
+                        value="{{ old('first_name', $store?->first_name ?? ($nameParts[0] ?? '')) }}" required
+                        class="public-input focus:ring-2 focus:ring-primary/30"></div>
+                <div><label for="store-last-name" class="mb-2 block text-sm font-bold text-neutral">نام خانوادگی <span
+                            class="text-error">*</span></label><input id="store-last-name" name="last_name"
+                        value="{{ old('last_name', $store?->last_name ?? ($nameParts[1] ?? '')) }}" required
+                        class="public-input"></div>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
-                <div><label for="store-national-id" class="mb-2 block text-sm font-bold text-neutral">کد ملی <span class="text-error">*</span></label><input id="store-national-id" name="national_id" value="{{ old('national_id', $store?->national_id ?? auth()->user()->national_id) }}" inputmode="numeric" maxlength="10" dir="ltr" required class="public-input" placeholder="۰۰۱۲۳۴۵۶۷۸"><p class="mt-1 text-[11px] text-slate-400">کد ملی ۱۰ رقمی ایرانی وارد کنید.</p></div>
-                <div><label for="store-phone" class="mb-2 block text-sm font-bold text-neutral">شماره تماس <span class="text-error">*</span></label><input id="store-phone" name="contact_phone" value="{{ old('contact_phone', $store?->contact_phone ?? auth()->user()->mobile) }}" inputmode="numeric" dir="ltr" required class="public-input" placeholder="09120000000"></div>
+                <div><label for="store-national-id" class="mb-2 block text-sm font-bold text-neutral">کد ملی <span
+                            class="text-error">*</span></label><input id="store-national-id" name="national_id"
+                        value="{{ old('national_id', $store?->national_id ?? auth()->user()->national_id) }}"
+                        inputmode="numeric" maxlength="10" dir="ltr" required class="public-input"
+                        placeholder="۰۰۱۲۳۴۵۶۷۸">
+                    <p class="mt-1 text-[11px] text-slate-400">کد ملی ۱۰ رقمی ایرانی وارد کنید.</p>
+                </div>
+                <div><label for="store-phone" class="mb-2 block text-sm font-bold text-neutral">شماره تماس <span
+                            class="text-error">*</span></label><input id="store-phone" name="contact_phone"
+                        value="{{ old('contact_phone', $store?->contact_phone ?? auth()->user()->mobile) }}"
+                        inputmode="numeric" dir="ltr" required class="public-input" placeholder="09120000000">
+                </div>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
-                <div><label for="store-license-number" class="mb-2 block text-sm font-bold text-neutral">شماره صنفی <span class="text-error">*</span></label><input id="store-license-number" name="business_license_number" value="{{ old('business_license_number', $store?->business_license_number) }}" required class="public-input"></div>
-                <div><p class="mb-2 block text-sm font-bold text-neutral">تاریخ اعتبار جواز کسب <span class="text-error">*</span></p><x-persian-date-select name="business_license_expires_at" :value="old('business_license_expires_at', $storeExpiry)" :required="true" class="public-select" /><p class="mt-1 text-[11px] text-slate-400">روز، ماه و سال شمسی را انتخاب کنید.</p></div>
+                <div><label for="store-license-number" class="mb-2 block text-sm font-bold text-neutral">شماره صنفی
+                        <span class="text-error">*</span></label><input id="store-license-number"
+                        name="business_license_number"
+                        value="{{ old('business_license_number', $store?->business_license_number) }}" required
+                        class="public-input"></div>
+                <div>
+                    <p class="mb-2 block text-sm font-bold text-neutral">تاریخ اعتبار جواز کسب <span
+                            class="text-error">*</span></p><x-persian-date-select name="business_license_expires_at"
+                        :value="old('business_license_expires_at', $storeExpiry)" :required="true" class="public-select" />
+                    <p class="mt-1 text-[11px] text-slate-400">روز، ماه و سال شمسی را انتخاب کنید.</p>
+                </div>
             </div>
-            <div><label for="store-name" class="mb-2 block text-sm font-bold text-neutral">نام فروشگاه <span class="text-error">*</span></label><input id="store-name" name="name" value="{{ old('name', $store?->name ?? auth()->user()->name) }}" required class="public-input" placeholder="مثلاً فروشگاه موبایل رضایی"></div>
-            <div><label for="store-slug" class="mb-2 block text-sm font-bold text-neutral">آدرس انگلیسی فروشگاه <span class="text-error">*</span></label><div class="flex items-center gap-2" dir="ltr"><span class="shrink-0 rounded-lg bg-slate-100 px-3 py-3 text-xs text-slate-500">/store/</span><input id="store-slug" name="slug" value="{{ old('slug', $store?->slug) }}" @disabled($store) dir="ltr" required class="public-input min-w-0 flex-1 disabled:bg-slate-100 disabled:text-slate-500" placeholder="mobile-rezaei"></div><p class="mt-1 text-[11px] text-slate-400">فقط حروف انگلیسی کوچک، عدد و خط تیره؛ پس از ایجاد قابل تغییر نیست.</p></div>
-            <div x-data="storefrontLocation($el.dataset.citiesEndpoint, $el.dataset.provinceId, $el.dataset.cityId)" data-cities-endpoint="{{ url('/locations/provinces') }}" data-province-id="{{ old('province_id', $store?->province_id) }}" data-city-id="{{ old('city_id', $store?->city_id) }}" class="grid grid-cols-2 gap-2"><div><label for="store-province" class="mb-2 block text-sm font-bold text-neutral">استان <span class="text-error">*</span></label><select id="store-province" name="province_id" x-model="provinceId" @change="loadCities()" class="public-select" required><option value="">انتخاب استان</option>@foreach ($provinces as $province)<option value="{{ $province->id }}">{{ $province->name }}</option>@endforeach</select></div><div><label for="store-city" class="mb-2 block text-sm font-bold text-neutral">شهر <span class="text-error">*</span></label><select id="store-city" name="city_id" x-model="cityId" :disabled="!provinceId || citiesLoading" class="public-select" required><option value="">انتخاب شهر</option><template x-for="city in cities" :key="city.id"><option :value="city.id" x-text="city.name"></option></template></select><p x-show="citiesLoading" class="mt-1 text-[11px] text-slate-400">در حال دریافت شهرها...</p></div></div>
-            <div><label for="store-address" class="mb-2 block text-sm font-bold text-neutral">آدرس دقیق <span class="text-error">*</span></label><textarea id="store-address" name="address" rows="3" required class="public-input">{{ old('address', $store?->address) }}</textarea></div>
-            <div class="grid gap-4 sm:grid-cols-2"><div><label for="store-license" class="mb-2 block text-sm font-bold text-neutral">تصویر جواز کسب <span class="text-error">*</span></label><input id="store-license" name="business_license" type="file" accept=".jpg,.jpeg,.png,.webp" @required(!$store?->business_license_path) class="public-file"><p class="mt-1 text-[11px] text-slate-400">حداکثر حجم طبق تنظیمات سیستم است.</p></div><div><label for="store-logo" class="mb-2 block text-sm font-bold text-neutral">لوگوی فروشگاه</label><input id="store-logo" name="logo" type="file" accept=".jpg,.jpeg,.png,.webp" class="public-file"></div></div>
-            @if ($store?->approval_status === 'approved')<label class="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-slate-100 bg-slate-50 p-4"><span><strong class="block text-sm font-black text-neutral">نمایش عمومی فروشگاه</strong><small class="mt-1 block text-xs text-slate-400">فروشگاه تأییدشده برای کاربران قابل مشاهده باشد.</small></span><input type="checkbox" name="store_enabled" value="1" @checked(old('store_enabled', $store->is_enabled)) class="public-check h-5 w-5"></label>@endif
-            <div class="border-t border-slate-100 pt-5"><h2 class="text-base font-black text-neutral">کانال‌های ارتباطی (اختیاری)</h2><p class="mt-1 text-xs text-slate-400">نام کاربری کافی است و نیازی به واردکردن آدرس کامل سایت نیست.</p><div class="mt-4 grid gap-4 sm:grid-cols-2"><div><label for="store-instagram" class="mb-2 block text-sm font-bold text-neutral">نام کاربری اینستاگرام</label><input id="store-instagram" name="instagram_url" value="{{ old('instagram_url', $store?->instagram_url) }}" dir="ltr" class="public-input" placeholder="مثلاً digistocki"></div><div><label for="store-telegram" class="mb-2 block text-sm font-bold text-neutral">نام کاربری تلگرام</label><input id="store-telegram" name="telegram_url" value="{{ old('telegram_url', $store?->telegram_url) }}" dir="ltr" class="public-input" placeholder="مثلاً digistocki"></div><div><label for="store-whatsapp" class="mb-2 block text-sm font-bold text-neutral">نام کاربری واتساپ</label><input id="store-whatsapp" name="whatsapp_url" value="{{ old('whatsapp_url', $store?->whatsapp_url) }}" dir="ltr" class="public-input" placeholder="مثلاً 989120000000"></div><div><label for="store-bale" class="mb-2 block text-sm font-bold text-neutral">نام کاربری بله</label><input id="store-bale" name="bale_url" value="{{ old('bale_url', $store?->bale_url) }}" dir="ltr" class="public-input" placeholder="مثلاً digistocki"></div><div><label for="store-rubika" class="mb-2 block text-sm font-bold text-neutral">نام کاربری روبیکا</label><input id="store-rubika" name="rubika_url" value="{{ old('rubika_url', $store?->rubika_url) }}" dir="ltr" class="public-input" placeholder="مثلاً digistocki"></div></div></div>
-            <button class="mobile-button w-full bg-primary text-white hover:bg-primary-600"><x-heroicon-o-check class="h-5 w-5" />{{ $store ? 'ذخیره اطلاعات فروشگاه' : 'ثبت درخواست فروشگاه' }}</button>
+            <div><label for="store-name" class="mb-2 block text-sm font-bold text-neutral">نام فروشگاه <span
+                        class="text-error">*</span></label><input id="store-name" name="name"
+                    value="{{ old('name', $store?->name ?? auth()->user()->name) }}" required class="public-input"
+                    placeholder="مثلاً فروشگاه موبایل رضایی"></div>
+            <div><label for="store-slug" class="mb-2 block text-sm font-bold text-neutral">آدرس انگلیسی فروشگاه <span
+                        class="text-error">*</span></label>
+                <div class="flex items-center gap-2" dir="ltr"><span
+                        class="shrink-0 rounded-lg bg-slate-100 px-3 py-3 text-xs text-slate-500">/store/</span><input
+                        id="store-slug" name="slug" value="{{ old('slug', $store?->slug) }}"
+                        @disabled($store) dir="ltr" required
+                        class="public-input min-w-0 flex-1 disabled:bg-slate-100 disabled:text-slate-500"
+                        placeholder="mobile-rezaei"></div>
+                <p class="mt-1 text-[11px] text-slate-400">فقط حروف انگلیسی کوچک، عدد و خط تیره؛ پس از ایجاد قابل تغییر
+                    نیست.</p>
+            </div>
+            <div x-data="storefrontLocation($el.dataset.citiesEndpoint, $el.dataset.provinceId, $el.dataset.cityId)" data-cities-endpoint="{{ url('/locations/provinces') }}"
+                data-province-id="{{ old('province_id', $store?->province_id) }}"
+                data-city-id="{{ old('city_id', $store?->city_id) }}" class="grid grid-cols-2 gap-2">
+                <div><label for="store-province" class="mb-2 block text-sm font-bold text-neutral">استان <span
+                            class="text-error">*</span></label><select id="store-province" name="province_id"
+                        x-model="provinceId" @change="loadCities()" class="public-select" required>
+                        <option value="">انتخاب استان</option>
+                        @foreach ($provinces as $province)
+                            <option value="{{ $province->id }}">{{ $province->name }}</option>
+                        @endforeach
+                    </select></div>
+                <div><label for="store-city" class="mb-2 block text-sm font-bold text-neutral">شهر <span
+                            class="text-error">*</span></label><select id="store-city" name="city_id"
+                        x-model="cityId" :disabled="!provinceId || citiesLoading" class="public-select" required>
+                        <option value="">انتخاب شهر</option><template x-for="city in cities"
+                            :key="city.id">
+                            <option :value="city.id" x-text="city.name"></option>
+                        </template>
+                    </select>
+                    <p x-show="citiesLoading" class="mt-1 text-[11px] text-slate-400">در حال دریافت شهرها...</p>
+                </div>
+            </div>
+            <div><label for="store-address" class="mb-2 block text-sm font-bold text-neutral">آدرس دقیق <span
+                        class="text-error">*</span></label>
+                <textarea id="store-address" name="address" rows="3" required class="public-input">{{ old('address', $store?->address) }}</textarea>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div><label for="store-license" class="mb-2 block text-sm font-bold text-neutral">تصویر جواز کسب <span
+                            class="text-error">*</span></label><input id="store-license" name="business_license"
+                        type="file" accept=".jpg,.jpeg,.png,.webp" @required(!$store?->business_license_path) class="public-file">
+                    <p class="mt-1 text-[11px] text-slate-400">حداکثر حجم طبق تنظیمات سیستم است.</p>
+                </div>
+                <div><label for="store-logo" class="mb-2 block text-sm font-bold text-neutral">لوگوی
+                        فروشگاه</label><input id="store-logo" name="logo" type="file"
+                        accept=".jpg,.jpeg,.png,.webp" class="public-file"></div>
+            </div>
+            @if ($store?->approval_status === 'approved')
+                <label
+                    class="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-slate-100 bg-slate-50 p-4"><span><strong
+                            class="block text-sm font-black text-neutral">نمایش عمومی فروشگاه</strong><small
+                            class="mt-1 block text-xs text-slate-400">فروشگاه تأییدشده برای کاربران قابل مشاهده
+                            باشد.</small></span><input type="checkbox" name="store_enabled" value="1"
+                        @checked(old('store_enabled', $store->is_enabled)) class="public-check h-5 w-5"></label>
+            @endif
+            <div class="border-t border-slate-100 pt-5">
+                <h2 class="text-base font-black text-neutral">کانال‌های ارتباطی (اختیاری)</h2>
+                <p class="mt-1 text-xs text-slate-400">نام کاربری کافی است و نیازی به واردکردن آدرس کامل سایت نیست.</p>
+                <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                    <div><label for="store-instagram" class="mb-2 block text-sm font-bold text-neutral">نام کاربری
+                            اینستاگرام</label><input id="store-instagram" name="instagram_url"
+                            value="{{ old('instagram_url', $store?->instagram_url) }}" dir="ltr"
+                            class="public-input" placeholder="مثلاً digistocki"></div>
+                    <div><label for="store-telegram" class="mb-2 block text-sm font-bold text-neutral">نام کاربری
+                            تلگرام</label><input id="store-telegram" name="telegram_url"
+                            value="{{ old('telegram_url', $store?->telegram_url) }}" dir="ltr"
+                            class="public-input" placeholder="مثلاً digistocki"></div>
+                    <div><label for="store-whatsapp" class="mb-2 block text-sm font-bold text-neutral">نام کاربری
+                            واتساپ</label><input id="store-whatsapp" name="whatsapp_url"
+                            value="{{ old('whatsapp_url', $store?->whatsapp_url) }}" dir="ltr"
+                            class="public-input" placeholder="مثلاً 989120000000"></div>
+                    <div><label for="store-bale" class="mb-2 block text-sm font-bold text-neutral">نام کاربری
+                            بله</label><input id="store-bale" name="bale_url"
+                            value="{{ old('bale_url', $store?->bale_url) }}" dir="ltr" class="public-input"
+                            placeholder="مثلاً digistocki"></div>
+                    <div><label for="store-rubika" class="mb-2 block text-sm font-bold text-neutral">نام کاربری
+                            روبیکا</label><input id="store-rubika" name="rubika_url"
+                            value="{{ old('rubika_url', $store?->rubika_url) }}" dir="ltr" class="public-input"
+                            placeholder="مثلاً digistocki"></div>
+                </div>
+            </div>
+            <button class="mobile-button w-full bg-primary text-white hover:bg-primary-600"><x-heroicon-o-check
+                    class="h-5 w-5" />{{ $store ? 'ذخیره اطلاعات فروشگاه' : 'ثبت درخواست فروشگاه' }}</button>
         </form>
     </section>
 </x-app-layout>

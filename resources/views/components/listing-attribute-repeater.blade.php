@@ -3,11 +3,9 @@
     'values' => [],
 ])
 
-<div
-    x-data="listingAttributeRepeater()"
+<div x-data="listingAttributeRepeater()"
     @listing-attributes-loaded.window="replaceAttributes($event.detail.attributes, $event.detail.values || {})"
-    class="space-y-3"
->
+    class="space-y-3">
     <script type="application/json" data-repeater-definitions>@json($attributeDefinitions)</script>
     <script type="application/json" data-repeater-values>@json($values)</script>
     <div x-show="!definitions.length" x-cloak class="rounded-lg bg-warning/10 p-3 text-xs leading-6 text-neutral">
@@ -20,18 +18,13 @@
                 <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end">
                     <div>
                         <label class="mb-2 block text-xs font-bold text-neutral">ویژگی</label>
-                        <select
-                            x-model="row.attributeId"
-                            @change="setAttribute(row, $event.target.value)"
-                            class="public-select"
-                        >
+                        <select x-model="row.attributeId" @change="setAttribute(row, $event.target.value)"
+                            class="public-select">
                             <option value="">انتخاب ویژگی</option>
                             <template x-for="attribute in definitions" :key="attribute.id">
-                                <option
-                                    :value="attribute.id"
-                                    :disabled="isSelected(attribute.id, row)"
-                                    x-text="attribute.unit ? `${attribute.name} (${attribute.unit})` : attribute.name"
-                                ></option>
+                                <option :value="attribute.id" :disabled="isSelected(attribute.id, row)"
+                                    x-text="attribute.unit ? `${attribute.name} (${attribute.unit})` : attribute.name">
+                                </option>
                             </template>
                         </select>
                     </div>
@@ -42,8 +35,14 @@
                             <div class="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2">
                                 <input type="hidden" :name="inputName(row)" x-model="row.value">
                                 <template x-for="option in options(row.attributeId)" :key="option">
-                                    <button type="button" @click="row.value = option" :title="option" :aria-label="`انتخاب رنگ ${option}`" :aria-pressed="(row.value === option).toString()" class="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 text-xs font-bold text-neutral transition hover:border-primary/30 hover:bg-primary-50" :class="row.value === option ? 'border-primary bg-primary-50 ring-2 ring-primary/20' : ''">
-                                        <span class="h-4 w-4 rounded-full border border-slate-300 shadow-inner" :style="`background-color: ${colorHex(option)}`"></span>
+                                    <button type="button" @click="row.value = option" :title="option"
+                                        :aria-label="`انتخاب رنگ ${option}`"
+                                        :aria-pressed="(row.value === option).toString()"
+                                        class="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 text-xs font-bold text-neutral transition hover:border-primary/30 hover:bg-primary-50"
+                                        :class="row.value === option ? 'border-primary bg-primary-50 ring-2 ring-primary/20' :
+                                            ''">
+                                        <span class="h-4 w-4 rounded-full border border-slate-300 shadow-inner"
+                                            :style="`background-color: ${colorHex(option)}`"></span>
                                         <span x-text="option"></span>
                                     </button>
                                 </template>
@@ -66,34 +65,38 @@
                         </template>
                         <template x-if="attribute(row.attributeId)?.type === 'boolean'">
                             <label class="flex min-h-11 items-center gap-2 text-sm font-bold text-neutral">
-                                <input type="checkbox" :name="inputName(row)" value="1" x-model="row.value" class="public-check">
+                                <input type="checkbox" :name="inputName(row)" value="1" x-model="row.value"
+                                    class="public-check">
                                 دارد
                             </label>
                         </template>
                         <template x-if="isRam(row.attributeId)">
                             <div>
-                                <input :name="inputName(row)" x-model="row.value" type="number" min="1" :list="optionsId(row)" class="public-input">
+                                <input :name="inputName(row)" x-model="row.value" type="number" min="1"
+                                    :list="optionsId(row)" class="public-input">
                                 <datalist :id="optionsId(row)">
-                                    <template x-for="option in options(row.attributeId)" :key="option"><option :value="option"></option></template>
+                                    <template x-for="option in options(row.attributeId)" :key="option">
+                                        <option :value="option"></option>
+                                    </template>
                                 </datalist>
-                                <p class="mt-1 text-[10px] text-slate-400">مقدارهای پیشنهادی از دیتابیس؛ مقدار جدید هم قابل ثبت است.</p>
+                                <p class="mt-1 text-[10px] text-slate-400">مقدارهای پیشنهادی از دیتابیس؛ مقدار جدید هم
+                                    قابل ثبت است.</p>
                             </div>
                         </template>
-                        <template x-if="['integer', 'decimal'].includes(attribute(row.attributeId)?.type) && !isRam(row.attributeId)">
-                            <input
-                                :name="inputName(row)"
-                                x-model="row.value"
-                                type="number"
+                        <template
+                            x-if="['integer', 'decimal'].includes(attribute(row.attributeId)?.type) && !isRam(row.attributeId)">
+                            <input :name="inputName(row)" x-model="row.value" type="number"
                                 :step="attribute(row.attributeId)?.type === 'decimal' ? '0.01' : '1'"
-                                class="public-input"
-                            >
+                                class="public-input">
                         </template>
                         <template x-if="attribute(row.attributeId)?.type === 'string'">
                             <input :name="inputName(row)" x-model="row.value" type="text" class="public-input">
                         </template>
                     </div>
 
-                    <button type="button" @click="removeRow(index)" class="inline-flex h-11 items-center justify-center gap-1 rounded-lg px-3 text-xs font-bold text-error transition hover:bg-error/10" aria-label="حذف ویژگی">
+                    <button type="button" @click="removeRow(index)"
+                        class="inline-flex h-11 items-center justify-center gap-1 rounded-lg px-3 text-xs font-bold text-error transition hover:bg-error/10"
+                        aria-label="حذف ویژگی">
                         <x-heroicon-o-trash class="h-4 w-4" />
                         حذف
                     </button>
@@ -101,11 +104,13 @@
             </div>
         </template>
 
-        <button type="button" @click="addRow" :disabled="rows.length >= definitions.length" class="inline-flex items-center gap-2 rounded-lg bg-primary-50 px-4 py-2.5 text-xs font-bold text-primary transition hover:bg-primary-100 disabled:cursor-not-allowed disabled:opacity-50">
+        <button type="button" @click="addRow" :disabled="rows.length >= definitions.length"
+            class="inline-flex items-center gap-2 rounded-lg bg-primary-50 px-4 py-2.5 text-xs font-bold text-primary transition hover:bg-primary-100 disabled:cursor-not-allowed disabled:opacity-50">
             <x-heroicon-o-plus class="h-4 w-4" />
             افزودن ویژگی دیگر
         </button>
-        <p class="text-xs leading-6 text-slate-400">برای هر مورد، ابتدا ویژگی و سپس مقدار آن را انتخاب کنید. امکان افزودن چند ویژگی وجود دارد.</p>
+        <p class="text-xs leading-6 text-slate-400">برای هر مورد، ابتدا ویژگی و سپس مقدار آن را انتخاب کنید. امکان
+            افزودن چند ویژگی وجود دارد.</p>
     </div>
 
     {{-- Server-rendered snapshot keeps existing multi-select values available before Alpine mounts. --}}

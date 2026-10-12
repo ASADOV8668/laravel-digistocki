@@ -4,7 +4,8 @@
     </div>
 
     @if (session('status') == 'verification-link-sent')
-        <x-flowbite-alert type="success" class="mb-4">{{ __('A new verification link has been sent to the email address you provided during registration.') }}</x-flowbite-alert>
+        <x-flowbite-alert type="success"
+            class="mb-4">{{ __('A new verification link has been sent to the email address you provided during registration.') }}</x-flowbite-alert>
     @endif
 
     <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

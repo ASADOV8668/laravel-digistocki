@@ -1,19 +1,123 @@
 <x-admin-layout title="داشبورد مدیریت">
     <section class="space-y-6">
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            @foreach ([['کاربران', $usersCount, 'text-info', 'bg-info/10', 'users'], ['کل آگهی‌ها', $listingsCount, 'text-slate-900', 'bg-slate-100', 'listings'], ['تأییدشده', $approvedListingsCount, 'text-success', 'bg-success/10', 'check'], ['ردشده', $rejectedListingsCount, 'text-error', 'bg-error/10', 'x'], ['منقضی‌شده', $expiredListingsCount, 'text-slate-500', 'bg-slate-100', 'clock'] ] as [$label, $value, $color, $background, $icon])
-                <div class="admin-card flex items-center justify-between p-5 transition hover:-translate-y-0.5 hover:shadow-md"><div><p class="text-xs font-bold text-slate-400">{{ $label }}</p><p class="mt-2 text-3xl font-black {{ $color }}">{{ number_format($value) }}</p><p class="mt-2 text-[11px] font-medium text-slate-400">به‌روزرسانی لحظه‌ای</p></div><span class="flex h-12 w-12 items-center justify-center rounded-2xl {{ $background }} {{ $color }}">@if ($icon === 'users')<x-heroicon-o-users class="h-6 w-6" />@elseif ($icon === 'listings')<x-heroicon-o-rectangle-stack class="h-6 w-6" />@elseif ($icon === 'check')<x-heroicon-o-check-circle class="h-6 w-6" />@elseif ($icon === 'x')<x-heroicon-o-x-circle class="h-6 w-6" />@else<x-heroicon-o-clock class="h-6 w-6" />@endif</span></div>
+            @foreach ([['کاربران', $usersCount, 'text-info', 'bg-info/10', 'users'], ['کل آگهی‌ها', $listingsCount, 'text-slate-900', 'bg-slate-100', 'listings'], ['تأییدشده', $approvedListingsCount, 'text-success', 'bg-success/10', 'check'], ['ردشده', $rejectedListingsCount, 'text-error', 'bg-error/10', 'x'], ['منقضی‌شده', $expiredListingsCount, 'text-slate-500', 'bg-slate-100', 'clock']] as [$label, $value, $color, $background, $icon])
+                <div
+                    class="admin-card flex items-center justify-between p-5 transition hover:-translate-y-0.5 hover:shadow-md">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400">{{ $label }}</p>
+                        <p class="mt-2 text-3xl font-black {{ $color }}">{{ number_format($value) }}</p>
+                        <p class="mt-2 text-[11px] font-medium text-slate-400">به‌روزرسانی لحظه‌ای</p>
+                    </div><span
+                        class="flex h-12 w-12 items-center justify-center rounded-2xl {{ $background }} {{ $color }}">
+                        @if ($icon === 'users')
+                            <x-heroicon-o-users class="h-6 w-6" />
+                        @elseif ($icon === 'listings')
+                            <x-heroicon-o-rectangle-stack class="h-6 w-6" />
+                        @elseif ($icon === 'check')
+                            <x-heroicon-o-check-circle class="h-6 w-6" />
+                        @elseif ($icon === 'x')
+                        <x-heroicon-o-x-circle class="h-6 w-6" />@else<x-heroicon-o-clock class="h-6 w-6" />
+                        @endif
+                    </span>
+                </div>
             @endforeach
         </div>
 
         <div class="grid gap-6 xl:grid-cols-3">
-            <div class="admin-card p-5 xl:col-span-2"><div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-base font-black text-slate-900">روند ثبت آگهی</h2><p class="mt-1 text-xs font-medium text-slate-400">گزارش ثبت آگهی در ۷ روز گذشته</p></div><span class="rounded-full bg-primary-50 px-3 py-1.5 text-xs font-bold text-primary">{{ number_format($listingTrend->sum('count')) }} آگهی جدید</span></div><div class="mt-6 h-72"><canvas data-admin-chart="listing-trend" aria-label="نمودار روند ثبت آگهی"></canvas></div><script id="listing-trend-data" type="application/json">@json(['labels' => $listingTrend->pluck('label')->values(), 'values' => $listingTrend->pluck('count')->values()])</script></div>
-            <div class="admin-card p-5"><div class="flex items-center justify-between"><div><h2 class="text-base font-black text-slate-900">نیازمند رسیدگی</h2><p class="mt-1 text-xs text-slate-400">مواردی که در انتظار اقدام هستند</p></div><x-heroicon-o-sparkles class="h-6 w-6 text-accent" /></div><div class="mt-6 space-y-3"><a href="{{ route('admin.listings.index', ['status' => 'pending']) }}" class="flex items-center justify-between rounded-2xl bg-warning/10 p-4 transition hover:bg-warning/20"><span class="flex items-center gap-3 text-sm font-bold text-slate-700"><span class="h-2.5 w-2.5 rounded-full bg-warning"></span>آگهی‌های در انتظار</span><strong class="text-2xl font-black text-warning">{{ number_format($pendingListingsCount) }}</strong></a><a href="{{ route('admin.reports.index', ['status' => 'pending']) }}" class="flex items-center justify-between rounded-2xl bg-primary/10 p-4 transition hover:bg-primary/20"><span class="flex items-center gap-3 text-sm font-bold text-slate-700"><span class="h-2.5 w-2.5 rounded-full bg-primary"></span>گزارش‌های باز</span><strong class="text-2xl font-black text-primary">{{ number_format($pendingReportsCount) }}</strong></a><div class="flex items-center justify-between rounded-2xl bg-secondary/10 p-4"><span class="flex items-center gap-3 text-sm font-bold text-slate-700"><span class="h-2.5 w-2.5 rounded-full bg-secondary"></span>گزارش‌های حل‌شده</span><strong class="text-2xl font-black text-success">{{ number_format($resolvedReportsCount) }}</strong></div></div></div>
-            <div class="admin-card p-5"><div class="flex items-center justify-between"><div><h2 class="text-base font-black text-slate-900">توزیع وضعیت آگهی‌ها</h2><p class="mt-1 text-xs text-slate-400">نمای کلی وضعیت محتوای سامانه</p></div><x-heroicon-o-chart-bar class="h-6 w-6 text-primary" /></div><div class="mt-4 h-64"><canvas data-admin-chart="listing-status" aria-label="نمودار وضعیت آگهی‌ها"></canvas></div><script id="listing-status-data" type="application/json">@json($listingStatusChart)</script></div>
+            <div class="admin-card p-5 xl:col-span-2">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-base font-black text-slate-900">روند ثبت آگهی</h2>
+                        <p class="mt-1 text-xs font-medium text-slate-400">گزارش ثبت آگهی در ۷ روز گذشته</p>
+                    </div><span
+                        class="rounded-full bg-primary-50 px-3 py-1.5 text-xs font-bold text-primary">{{ number_format($listingTrend->sum('count')) }}
+                        آگهی جدید</span>
+                </div>
+                <div class="mt-6 h-72"><canvas data-admin-chart="listing-trend"
+                        aria-label="نمودار روند ثبت آگهی"></canvas></div>
+                <script id="listing-trend-data" type="application/json">@json(['labels' => $listingTrend->pluck('label')->values(), 'values' => $listingTrend->pluck('count')->values()])</script>
+            </div>
+            <div class="admin-card p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-black text-slate-900">نیازمند رسیدگی</h2>
+                        <p class="mt-1 text-xs text-slate-400">مواردی که در انتظار اقدام هستند</p>
+                    </div><x-heroicon-o-sparkles class="h-6 w-6 text-accent" />
+                </div>
+                <div class="mt-6 space-y-3"><a href="{{ route('admin.listings.index', ['status' => 'pending']) }}"
+                        class="flex items-center justify-between rounded-2xl bg-warning/10 p-4 transition hover:bg-warning/20"><span
+                            class="flex items-center gap-3 text-sm font-bold text-slate-700"><span
+                                class="h-2.5 w-2.5 rounded-full bg-warning"></span>آگهی‌های در انتظار</span><strong
+                            class="text-2xl font-black text-warning">{{ number_format($pendingListingsCount) }}</strong></a><a
+                        href="{{ route('admin.reports.index', ['status' => 'pending']) }}"
+                        class="flex items-center justify-between rounded-2xl bg-primary/10 p-4 transition hover:bg-primary/20"><span
+                            class="flex items-center gap-3 text-sm font-bold text-slate-700"><span
+                                class="h-2.5 w-2.5 rounded-full bg-primary"></span>گزارش‌های باز</span><strong
+                            class="text-2xl font-black text-primary">{{ number_format($pendingReportsCount) }}</strong></a>
+                    <div class="flex items-center justify-between rounded-2xl bg-secondary/10 p-4"><span
+                            class="flex items-center gap-3 text-sm font-bold text-slate-700"><span
+                                class="h-2.5 w-2.5 rounded-full bg-secondary"></span>گزارش‌های حل‌شده</span><strong
+                            class="text-2xl font-black text-success">{{ number_format($resolvedReportsCount) }}</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-card p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-black text-slate-900">توزیع وضعیت آگهی‌ها</h2>
+                        <p class="mt-1 text-xs text-slate-400">نمای کلی وضعیت محتوای سامانه</p>
+                    </div><x-heroicon-o-chart-bar class="h-6 w-6 text-primary" />
+                </div>
+                <div class="mt-4 h-64"><canvas data-admin-chart="listing-status"
+                        aria-label="نمودار وضعیت آگهی‌ها"></canvas></div>
+                <script id="listing-status-data" type="application/json">@json($listingStatusChart)</script>
+            </div>
         </div>
 
-        <div class="admin-card p-5"><div class="mb-5 flex items-center justify-between"><div><h2 class="text-base font-black text-slate-900">خلاصه وضعیت آگهی‌ها</h2><p class="mt-1 text-xs text-slate-400">دسترسی سریع به فهرست‌های مدیریتی</p></div><a href="{{ route('admin.listings.index') }}" class="text-xs font-bold text-primary hover:text-primary-600">مشاهده همه</a></div><div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">@foreach ([['pending', 'در انتظار', 'bg-warning/10 text-warning'], ['approved', 'تأییدشده', 'bg-success/10 text-success'], ['rejected', 'ردشده', 'bg-error/10 text-error'], ['sold', 'فروخته‌شده', 'bg-info/10 text-info'], ['expired', 'منقضی‌شده', 'bg-slate-100 text-slate-500']] as [$key, $label, $classes])<a href="{{ route('admin.listings.index', ['status' => $key]) }}" class="rounded-2xl {{ $classes }} p-4 transition hover:-translate-y-0.5"><span class="block text-xs font-bold">{{ $label }}</span><strong class="mt-2 block text-2xl font-black">{{ number_format($statusCounts->get($key, 0)) }}</strong></a>@endforeach</div></div>
+        <div class="admin-card p-5">
+            <div class="mb-5 flex items-center justify-between">
+                <div>
+                    <h2 class="text-base font-black text-slate-900">خلاصه وضعیت آگهی‌ها</h2>
+                    <p class="mt-1 text-xs text-slate-400">دسترسی سریع به فهرست‌های مدیریتی</p>
+                </div><a href="{{ route('admin.listings.index') }}"
+                    class="text-xs font-bold text-primary hover:text-primary-600">مشاهده همه</a>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                @foreach ([['pending', 'در انتظار', 'bg-warning/10 text-warning'], ['approved', 'تأییدشده', 'bg-success/10 text-success'], ['rejected', 'ردشده', 'bg-error/10 text-error'], ['sold', 'فروخته‌شده', 'bg-info/10 text-info'], ['expired', 'منقضی‌شده', 'bg-slate-100 text-slate-500']] as [$key, $label, $classes])
+                    <a href="{{ route('admin.listings.index', ['status' => $key]) }}"
+                        class="rounded-2xl {{ $classes }} p-4 transition hover:-translate-y-0.5"><span
+                            class="block text-xs font-bold">{{ $label }}</span><strong
+                            class="mt-2 block text-2xl font-black">{{ number_format($statusCounts->get($key, 0)) }}</strong></a>
+                @endforeach
+            </div>
+        </div>
 
-        <div class="admin-card overflow-hidden"><div class="flex items-center justify-between border-b border-slate-100 p-5"><div><h2 class="text-base font-black text-slate-900">آخرین فعالیت‌ها</h2><p class="mt-1 text-xs text-slate-400">آخرین آگهی‌های ثبت‌شده در سامانه</p></div><a href="{{ route('admin.listings.index') }}" class="rounded-xl bg-primary-50 px-3 py-2 text-xs font-bold text-primary hover:bg-primary-100">همه آگهی‌ها</a></div><div class="divide-y divide-slate-100">@forelse ($recentListings as $listing)<div class="flex items-center justify-between gap-4 p-5 transition hover:bg-slate-50"><div class="flex min-w-0 items-center gap-3"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400"><x-heroicon-o-device-phone-mobile class="h-5 w-5" /></span><div class="min-w-0"><p class="truncate text-sm font-bold text-slate-800">{{ $listing->title }}</p><p class="mt-1 truncate text-xs text-slate-400">{{ $listing->user->name }} · {{ $listing->brand->name }} {{ $listing->phoneModel->name }}</p></div></div><span class="shrink-0 rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-bold text-slate-600">{{ $listing->status->label() }}</span></div>@empty<div class="p-8 text-center text-sm text-slate-400">فعالیتی ثبت نشده است.</div>@endforelse</div></div>
+        <div class="admin-card overflow-hidden">
+            <div class="flex items-center justify-between border-b border-slate-100 p-5">
+                <div>
+                    <h2 class="text-base font-black text-slate-900">آخرین فعالیت‌ها</h2>
+                    <p class="mt-1 text-xs text-slate-400">آخرین آگهی‌های ثبت‌شده در سامانه</p>
+                </div><a href="{{ route('admin.listings.index') }}"
+                    class="rounded-xl bg-primary-50 px-3 py-2 text-xs font-bold text-primary hover:bg-primary-100">همه
+                    آگهی‌ها</a>
+            </div>
+            <div class="divide-y divide-slate-100">
+                @forelse ($recentListings as $listing)
+                    <div class="flex items-center justify-between gap-4 p-5 transition hover:bg-slate-50">
+                        <div class="flex min-w-0 items-center gap-3"><span
+                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400"><x-heroicon-o-device-phone-mobile
+                                    class="h-5 w-5" /></span>
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-bold text-slate-800">{{ $listing->title }}</p>
+                                <p class="mt-1 truncate text-xs text-slate-400">{{ $listing->user->name }} ·
+                                    {{ $listing->brand->name }} {{ $listing->phoneModel->name }}</p>
+                            </div>
+                        </div><span
+                            class="shrink-0 rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-bold text-slate-600">{{ $listing->status->label() }}</span>
+                </div>@empty<div class="p-8 text-center text-sm text-slate-400">فعالیتی ثبت نشده است.</div>
+                @endforelse
+            </div>
+        </div>
     </section>
 </x-admin-layout>

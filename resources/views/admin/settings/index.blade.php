@@ -1,39 +1,259 @@
 @php
     $listingsEnabled = filter_var(old('listings_enabled', $settings['listings_enabled']), FILTER_VALIDATE_BOOLEAN);
-    $allowContactPrice = filter_var(old('allow_contact_price', $settings['allow_contact_price'] ?? true), FILTER_VALIDATE_BOOLEAN);
+    $allowContactPrice = filter_var(
+        old('allow_contact_price', $settings['allow_contact_price'] ?? true),
+        FILTER_VALIDATE_BOOLEAN,
+    );
     $smsMode = old('sms_mode', $settings['sms_mode']);
     $registrationMode = old('registration_mode', $settings['registration_mode'] ?? 'mobile');
     $otpExpiryMinutes = old('otp_expiry_minutes', $settings['otp_expiry_minutes'] ?? 5);
-    $listingDuplicateCooldownHours = old('listing_duplicate_cooldown_hours', $settings['listing_duplicate_cooldown_hours'] ?? 24);
+    $listingDuplicateCooldownHours = old(
+        'listing_duplicate_cooldown_hours',
+        $settings['listing_duplicate_cooldown_hours'] ?? 24,
+    );
 @endphp
 <x-admin-layout title="تنظیمات سیستم">
     <x-slot name="header">
-        <div class="flex items-center gap-3"><span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary"><x-heroicon-o-cog-6-tooth class="h-6 w-6" /></span><div><h2 class="text-xl font-black text-slate-900">تنظیمات سیستم</h2><p class="mt-1 text-xs text-slate-400">هویت سایت، قوانین ثبت آگهی، پشتیبانی، احراز موبایل و پیامک را کنترل کنید.</p></div></div>
+        <div class="flex items-center gap-3"><span
+                class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary"><x-heroicon-o-cog-6-tooth
+                    class="h-6 w-6" /></span>
+            <div>
+                <h2 class="text-xl font-black text-slate-900">تنظیمات سیستم</h2>
+                <p class="mt-1 text-xs text-slate-400">هویت سایت، قوانین ثبت آگهی، پشتیبانی، احراز موبایل و پیامک را
+                    کنترل کنید.</p>
+            </div>
+        </div>
     </x-slot>
 
     <section class="space-y-6">
         <x-admin.feedback />
-        @if ($errors->any())<div class="flex items-start gap-3 rounded-2xl border border-error/20 bg-error/10 p-4 text-sm font-bold text-error"><x-heroicon-o-exclamation-triangle class="h-5 w-5 shrink-0" /><div><p>ذخیره تنظیمات انجام نشد.</p><p class="mt-1 text-xs font-medium">{{ $errors->first() }}</p></div></div>@endif
-        <form method="POST" action="{{ route('admin.settings.update') }}" data-admin-settings-form class="space-y-6">@csrf @method('PUT')
-            <div data-admin-settings-feedback class="hidden rounded-2xl border px-4 py-3 text-sm font-bold" role="alert" aria-live="polite"></div>
+        @if ($errors->any())
+            <div
+                class="flex items-start gap-3 rounded-2xl border border-error/20 bg-error/10 p-4 text-sm font-bold text-error">
+                <x-heroicon-o-exclamation-triangle class="h-5 w-5 shrink-0" />
+                <div>
+                    <p>ذخیره تنظیمات انجام نشد.</p>
+                    <p class="mt-1 text-xs font-medium">{{ $errors->first() }}</p>
+                </div>
+            </div>
+        @endif
+        <form method="POST" action="{{ route('admin.settings.update') }}" data-admin-settings-form class="space-y-6">
+            @csrf @method('PUT')
+            <div data-admin-settings-feedback class="hidden rounded-2xl border px-4 py-3 text-sm font-bold"
+                role="alert" aria-live="polite"></div>
             <div class="grid gap-6 xl:grid-cols-2">
-                <div class="admin-card overflow-hidden"><div class="flex items-center gap-3 border-b border-slate-100 p-5"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-primary"><x-heroicon-o-window class="h-5 w-5" /></span><div><h3 class="text-sm font-black text-slate-900">نام برند و هویت سایت</h3><p class="mt-1 text-[11px] text-slate-400">نام برند و عنوان صفحات عمومی و مدیریت را از همین بخش کنترل کنید.</p></div></div><div class="space-y-4 p-5"><div><label class="mb-2 block text-xs font-bold text-slate-700">نام برند سایت</label><input name="site_title" value="{{ old('site_title', $settings['site_title']) }}" required class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary"><p class="mt-2 text-[11px] text-slate-400">مثال: دیجی استوکی</p></div><div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_100px]"><div><label class="mb-2 block text-xs font-bold text-slate-700">پیشوند عنوان صفحات</label><input name="page_title_prefix" value="{{ old('page_title_prefix', $settings['page_title_prefix']) }}" placeholder="مثلاً دیجی استوکی" class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary"></div><div><label class="mb-2 block text-xs font-bold text-slate-700">جداکننده</label><input name="title_separator" value="{{ old('title_separator', $settings['title_separator']) }}" required class="w-full rounded-xl border-slate-200 py-3 text-center text-sm focus:border-primary focus:ring-primary"></div></div><div class="rounded-xl bg-slate-50 p-3 text-xs text-slate-500">نمونه عنوان: <strong class="text-slate-800">{{ $settings['page_title_prefix'] ?: $settings['site_title'] }} {{ $settings['title_separator'] }} خانه</strong></div></div></div>
+                <div class="admin-card overflow-hidden">
+                    <div class="flex items-center gap-3 border-b border-slate-100 p-5"><span
+                            class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-primary"><x-heroicon-o-window
+                                class="h-5 w-5" /></span>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900">نام برند و هویت سایت</h3>
+                            <p class="mt-1 text-[11px] text-slate-400">نام برند و عنوان صفحات عمومی و مدیریت را از همین
+                                بخش کنترل کنید.</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4 p-5">
+                        <div><label class="mb-2 block text-xs font-bold text-slate-700">نام برند سایت</label><input
+                                name="site_title" value="{{ old('site_title', $settings['site_title']) }}" required
+                                class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary">
+                            <p class="mt-2 text-[11px] text-slate-400">مثال: دیجی استوکی</p>
+                        </div>
+                        <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_100px]">
+                            <div><label class="mb-2 block text-xs font-bold text-slate-700">پیشوند عنوان
+                                    صفحات</label><input name="page_title_prefix"
+                                    value="{{ old('page_title_prefix', $settings['page_title_prefix']) }}"
+                                    placeholder="مثلاً دیجی استوکی"
+                                    class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary">
+                            </div>
+                            <div><label class="mb-2 block text-xs font-bold text-slate-700">جداکننده</label><input
+                                    name="title_separator"
+                                    value="{{ old('title_separator', $settings['title_separator']) }}" required
+                                    class="w-full rounded-xl border-slate-200 py-3 text-center text-sm focus:border-primary focus:ring-primary">
+                            </div>
+                        </div>
+                        <div class="rounded-xl bg-slate-50 p-3 text-xs text-slate-500">نمونه عنوان: <strong
+                                class="text-slate-800">{{ $settings['page_title_prefix'] ?: $settings['site_title'] }}
+                                {{ $settings['title_separator'] }} خانه</strong></div>
+                    </div>
+                </div>
 
-                <div class="admin-card overflow-hidden"><div class="flex items-center gap-3 border-b border-slate-100 p-5"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-warning/10 text-warning"><x-heroicon-o-cloud-arrow-up class="h-5 w-5" /></span><div><h3 class="text-sm font-black text-slate-900">آپلود و ثبت آگهی</h3><p class="mt-1 text-[11px] text-slate-400">قوانین اصلی انتشار محتوای کاربران را مشخص کنید.</p></div></div><div class="space-y-4 p-5"><div><label class="mb-2 block text-xs font-bold text-slate-700">حداکثر حجم هر تصویر (MB)</label><div class="relative"><input name="max_image_upload_mb" value="{{ old('max_image_upload_mb', $settings['max_image_upload_mb']) }}" required type="number" min="1" max="50" class="w-full rounded-xl border-slate-200 py-3 pl-14 text-sm focus:border-warning focus:ring-warning"><span class="absolute left-3 top-3 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-500">MB</span></div><p class="mt-2 text-[11px] text-slate-400">مقدار پیش‌فرض ۵ مگابایت است و برای هر تصویر اعمال می‌شود.</p></div><div><label class="mb-2 block text-xs font-bold text-slate-700">حداکثر تعداد تصاویر هر آگهی</label><div class="relative"><input name="max_image_upload_count" value="{{ old('max_image_upload_count', $settings['max_image_upload_count'] ?? 5) }}" type="number" min="1" max="20" class="w-full rounded-xl border-slate-200 py-3 pl-20 text-sm focus:border-warning focus:ring-warning"><span class="absolute left-3 top-3 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-500">تصویر</span></div><p class="mt-2 text-[11px] text-slate-400">مقدار پیش‌فرض ۵ تصویر است و در فرم ایجاد و ویرایش آگهی اعمال می‌شود.</p></div><div><label class="mb-2 block text-xs font-bold text-slate-700">محدودیت ثبت آگهی تکراری (ساعت)</label><div class="relative"><input name="listing_duplicate_cooldown_hours" value="{{ $listingDuplicateCooldownHours }}" required type="number" min="1" max="720" class="w-full rounded-xl border-slate-200 py-3 pl-16 text-sm focus:border-warning focus:ring-warning"><span class="absolute left-3 top-3 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-500">ساعت</span></div><p class="mt-2 text-[11px] text-slate-400">کاربر در این بازه نمی‌تواند برای یک مدل مشابه آگهی دیگری ثبت کند. مقدار پیش‌فرض ۲۴ ساعت است.</p></div><label class="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4"><span class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-xl {{ $listingsEnabled ? 'bg-success/10 text-success' : 'bg-error/10 text-error' }}"><x-heroicon-o-megaphone class="h-5 w-5" /></span><span><strong class="block text-sm font-black text-slate-800">ثبت آگهی جدید</strong><small class="mt-1 block text-[11px] text-slate-400">{{ $listingsEnabled ? 'کاربران مجاز می‌توانند آگهی ثبت کنند.' : 'ثبت آگهی برای همه کاربران غیرفعال است.' }}</small></span></span><input name="listings_enabled" value="1" type="checkbox" @checked($listingsEnabled) class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary"></label></div></div>
+                <div class="admin-card overflow-hidden">
+                    <div class="flex items-center gap-3 border-b border-slate-100 p-5"><span
+                            class="flex h-10 w-10 items-center justify-center rounded-xl bg-warning/10 text-warning"><x-heroicon-o-cloud-arrow-up
+                                class="h-5 w-5" /></span>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900">آپلود و ثبت آگهی</h3>
+                            <p class="mt-1 text-[11px] text-slate-400">قوانین اصلی انتشار محتوای کاربران را مشخص کنید.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="space-y-4 p-5">
+                        <div><label class="mb-2 block text-xs font-bold text-slate-700">حداکثر حجم هر تصویر (MB)</label>
+                            <div class="relative"><input name="max_image_upload_mb"
+                                    value="{{ old('max_image_upload_mb', $settings['max_image_upload_mb']) }}" required
+                                    type="number" min="1" max="50"
+                                    class="w-full rounded-xl border-slate-200 py-3 pl-14 text-sm focus:border-warning focus:ring-warning"><span
+                                    class="absolute left-3 top-3 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-500">MB</span>
+                            </div>
+                            <p class="mt-2 text-[11px] text-slate-400">مقدار پیش‌فرض ۵ مگابایت است و برای هر تصویر اعمال
+                                می‌شود.</p>
+                        </div>
+                        <div><label class="mb-2 block text-xs font-bold text-slate-700">حداکثر تعداد تصاویر هر
+                                آگهی</label>
+                            <div class="relative"><input name="max_image_upload_count"
+                                    value="{{ old('max_image_upload_count', $settings['max_image_upload_count'] ?? 5) }}"
+                                    type="number" min="1" max="20"
+                                    class="w-full rounded-xl border-slate-200 py-3 pl-20 text-sm focus:border-warning focus:ring-warning"><span
+                                    class="absolute left-3 top-3 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-500">تصویر</span>
+                            </div>
+                            <p class="mt-2 text-[11px] text-slate-400">مقدار پیش‌فرض ۵ تصویر است و در فرم ایجاد و ویرایش
+                                آگهی اعمال می‌شود.</p>
+                        </div>
+                        <div><label class="mb-2 block text-xs font-bold text-slate-700">محدودیت ثبت آگهی تکراری
+                                (ساعت)</label>
+                            <div class="relative"><input name="listing_duplicate_cooldown_hours"
+                                    value="{{ $listingDuplicateCooldownHours }}" required type="number" min="1"
+                                    max="720"
+                                    class="w-full rounded-xl border-slate-200 py-3 pl-16 text-sm focus:border-warning focus:ring-warning"><span
+                                    class="absolute left-3 top-3 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-500">ساعت</span>
+                            </div>
+                            <p class="mt-2 text-[11px] text-slate-400">کاربر در این بازه نمی‌تواند برای یک مدل مشابه
+                                آگهی دیگری ثبت کند. مقدار پیش‌فرض ۲۴ ساعت است.</p>
+                        </div><label
+                            class="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4"><span
+                                class="flex items-center gap-3"><span
+                                    class="flex h-9 w-9 items-center justify-center rounded-xl {{ $listingsEnabled ? 'bg-success/10 text-success' : 'bg-error/10 text-error' }}"><x-heroicon-o-megaphone
+                                        class="h-5 w-5" /></span><span><strong
+                                        class="block text-sm font-black text-slate-800">ثبت آگهی جدید</strong><small
+                                        class="mt-1 block text-[11px] text-slate-400">{{ $listingsEnabled ? 'کاربران مجاز می‌توانند آگهی ثبت کنند.' : 'ثبت آگهی برای همه کاربران غیرفعال است.' }}</small></span></span><input
+                                name="listings_enabled" value="1" type="checkbox" @checked($listingsEnabled)
+                                class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary"></label>
+                    </div>
+                </div>
             </div>
 
-            <div class="admin-card overflow-hidden"><div class="flex items-center gap-3 border-b border-slate-100 p-5"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary"><x-heroicon-o-phone class="h-5 w-5" /></span><div><h3 class="text-sm font-black text-slate-900">قیمت آگهی</h3><p class="mt-1 text-[11px] text-slate-400">تعیین کنید کاربران بتوانند قیمت را به‌صورت «تماس بگیرید» ثبت کنند یا نه.</p></div></div><div class="p-5"><label class="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4"><span class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-xl {{ $allowContactPrice ? 'bg-success/10 text-success' : 'bg-slate-200 text-slate-500' }}"><x-heroicon-o-tag class="h-5 w-5" /></span><span><strong class="block text-sm font-black text-slate-800">اجازه ثبت «تماس بگیرید»</strong><small class="mt-1 block text-[11px] text-slate-400">در صورت فعال بودن، ورود قیمت برای آگهی اختیاری می‌شود.</small></span></span><input name="allow_contact_price" value="1" type="checkbox" @checked($allowContactPrice) class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary"></label></div></div>
-
-            <div class="grid gap-6 xl:grid-cols-2">
-                <div class="admin-card overflow-hidden"><div class="flex items-center gap-3 border-b border-slate-100 p-5"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><x-heroicon-o-device-phone-mobile class="h-5 w-5" /></span><div><h3 class="text-sm font-black text-slate-900">نحوه ثبت‌نام</h3><p class="mt-1 text-[11px] text-slate-400">روش ورود و ساخت حساب کاربران را مشخص کنید.</p></div></div><div class="space-y-4 p-5"><label class="block text-xs font-bold text-slate-700" for="registration_mode">روش فعلی ثبت‌نام</label><select id="registration_mode" name="registration_mode" class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary"><option value="mobile" @selected($registrationMode === 'mobile')>فقط با شماره موبایل</option></select><div class="rounded-xl border border-info/20 bg-info/10 p-3 text-xs leading-6 text-info">شماره موبایل، شناسه ورود کاربران است و ایمیل برای ثبت‌نام فعلاً دریافت نمی‌شود.</div></div></div>
-
-                <div class="admin-card overflow-hidden"><div class="flex items-center gap-3 border-b border-slate-100 p-5"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-info/10 text-info"><x-heroicon-o-lifebuoy class="h-5 w-5" /></span><div><h3 class="text-sm font-black text-slate-900">اطلاعات پشتیبانی</h3><p class="mt-1 text-[11px] text-slate-400">این اطلاعات در صفحه ارتباط با پشتیبانی نمایش داده می‌شوند.</p></div></div><div class="space-y-4 p-5"><div><label class="mb-2 block text-xs font-bold text-slate-700">آدرس دفتر</label><textarea name="support_office_address" rows="3" class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info">{{ old('support_office_address', $settings['support_office_address']) }}</textarea></div><div><label class="mb-2 block text-xs font-bold text-slate-700">ایمیل پشتیبانی</label><input name="support_email" value="{{ old('support_email', $settings['support_email']) }}" type="email" dir="ltr" placeholder="support@example.com" class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-info focus:ring-info"></div><div><label class="mb-2 block text-xs font-bold text-slate-700">شماره تماس پشتیبانی</label><input name="support_phone" value="{{ old('support_phone', $settings['support_phone']) }}" dir="ltr" placeholder="02112345678" class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-info focus:ring-info"></div></div></div>
+            <div class="admin-card overflow-hidden">
+                <div class="flex items-center gap-3 border-b border-slate-100 p-5"><span
+                        class="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary"><x-heroicon-o-phone
+                            class="h-5 w-5" /></span>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-900">قیمت آگهی</h3>
+                        <p class="mt-1 text-[11px] text-slate-400">تعیین کنید کاربران بتوانند قیمت را به‌صورت «تماس
+                            بگیرید» ثبت کنند یا نه.</p>
+                    </div>
+                </div>
+                <div class="p-5"><label
+                        class="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4"><span
+                            class="flex items-center gap-3"><span
+                                class="flex h-9 w-9 items-center justify-center rounded-xl {{ $allowContactPrice ? 'bg-success/10 text-success' : 'bg-slate-200 text-slate-500' }}"><x-heroicon-o-tag
+                                    class="h-5 w-5" /></span><span><strong
+                                    class="block text-sm font-black text-slate-800">اجازه ثبت «تماس
+                                    بگیرید»</strong><small class="mt-1 block text-[11px] text-slate-400">در صورت فعال
+                                    بودن، ورود قیمت برای آگهی اختیاری می‌شود.</small></span></span><input
+                            name="allow_contact_price" value="1" type="checkbox" @checked($allowContactPrice)
+                            class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary"></label></div>
             </div>
 
-            <div class="admin-card overflow-hidden"><div class="flex items-center gap-3 border-b border-slate-100 p-5"><span class="flex h-10 w-10 items-center justify-center rounded-xl {{ $smsMode === 'live' ? 'bg-error/10 text-error' : 'bg-success/10 text-success' }}"><x-heroicon-o-device-phone-mobile class="h-5 w-5" /></span><div><h3 class="text-sm font-black text-slate-900">ارسال پیامک و OTP</h3><p class="mt-1 text-[11px] text-slate-400">حالت تست پیامک واقعی ارسال نمی‌کند و برای توسعه امن‌تر است.</p></div></div><div class="space-y-4 p-5"><div class="grid gap-3 sm:grid-cols-2"><label class="relative cursor-pointer"><input type="radio" name="sms_mode" value="test" @checked($smsMode === 'test') class="peer sr-only"><span class="block rounded-2xl border-2 border-slate-100 p-4 transition peer-checked:border-success peer-checked:bg-success/10"><strong class="flex items-center gap-2 text-sm font-black text-slate-800"><x-heroicon-o-beaker class="h-5 w-5 text-success" /> حالت تست</strong><small class="mt-2 block text-[11px] leading-5 text-slate-500">بدون ارسال واقعی؛ فقط در لاگ ثبت می‌شود.</small></span></label><label class="relative cursor-pointer"><input type="radio" name="sms_mode" value="live" @checked($smsMode === 'live') class="peer sr-only"><span class="block rounded-2xl border-2 border-slate-100 p-4 transition peer-checked:border-error peer-checked:bg-error/10"><strong class="flex items-center gap-2 text-sm font-black text-slate-800"><x-heroicon-o-paper-airplane class="h-5 w-5 text-error" /> حالت واقعی</strong><small class="mt-2 block text-[11px] leading-5 text-slate-500">ارسال از طریق وب‌سرویس Pattern آی‌پی‌پنل انجام می‌شود.</small></span></label></div><div class="rounded-xl border border-warning/20 bg-warning/10 p-3 text-xs leading-6 text-warning">حالت واقعی با وب‌سرویس Pattern آی‌پی‌پنل کار می‌کند؛ پیش از فعال‌سازی، مقادیر دسترسی و کد الگو را در تنظیمات محیطی سرور بررسی کنید.</div></div></div>
+            <div class="grid gap-6 xl:grid-cols-2">
+                <div class="admin-card overflow-hidden">
+                    <div class="flex items-center gap-3 border-b border-slate-100 p-5"><span
+                            class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><x-heroicon-o-device-phone-mobile
+                                class="h-5 w-5" /></span>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900">نحوه ثبت‌نام</h3>
+                            <p class="mt-1 text-[11px] text-slate-400">روش ورود و ساخت حساب کاربران را مشخص کنید.</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4 p-5"><label class="block text-xs font-bold text-slate-700"
+                            for="registration_mode">روش فعلی ثبت‌نام</label><select id="registration_mode"
+                            name="registration_mode"
+                            class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary">
+                            <option value="mobile" @selected($registrationMode === 'mobile')>فقط با شماره موبایل</option>
+                        </select>
+                        <div class="rounded-xl border border-info/20 bg-info/10 p-3 text-xs leading-6 text-info">شماره
+                            موبایل، شناسه ورود کاربران است و ایمیل برای ثبت‌نام فعلاً دریافت نمی‌شود.</div>
+                    </div>
+                </div>
 
-            <div class="admin-card flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between"><div><label for="otp_expiry_minutes" class="block text-sm font-black text-slate-800">مدت اعتبار رمز یکبار مصرف</label><p class="mt-1 text-[11px] text-slate-400">این مقدار برای ورود، ثبت‌نام و نمایش شمارش معکوس OTP استفاده می‌شود.</p></div><div class="relative w-full sm:w-40"><input id="otp_expiry_minutes" name="otp_expiry_minutes" type="number" min="1" max="30" required value="{{ $otpExpiryMinutes }}" class="w-full rounded-xl border-slate-200 py-3 pl-12 text-sm focus:border-primary focus:ring-primary"><span class="absolute left-3 top-3 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-500">دقیقه</span></div></div>
-            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between"><p class="text-xs text-slate-400">تغییرات پس از ذخیره، روی کل سامانه اعمال می‌شوند.</p><button class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-black text-white shadow-sm transition hover:bg-primary-600"><x-heroicon-o-check class="h-5 w-5" />ذخیره تنظیمات</button></div>
+                <div class="admin-card overflow-hidden">
+                    <div class="flex items-center gap-3 border-b border-slate-100 p-5"><span
+                            class="flex h-10 w-10 items-center justify-center rounded-xl bg-info/10 text-info"><x-heroicon-o-lifebuoy
+                                class="h-5 w-5" /></span>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900">اطلاعات پشتیبانی</h3>
+                            <p class="mt-1 text-[11px] text-slate-400">این اطلاعات در صفحه ارتباط با پشتیبانی نمایش
+                                داده می‌شوند.</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4 p-5">
+                        <div><label class="mb-2 block text-xs font-bold text-slate-700">آدرس دفتر</label>
+                            <textarea name="support_office_address" rows="3"
+                                class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info">{{ old('support_office_address', $settings['support_office_address']) }}</textarea>
+                        </div>
+                        <div><label class="mb-2 block text-xs font-bold text-slate-700">ایمیل پشتیبانی</label><input
+                                name="support_email" value="{{ old('support_email', $settings['support_email']) }}"
+                                type="email" dir="ltr" placeholder="support@example.com"
+                                class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-info focus:ring-info">
+                        </div>
+                        <div><label class="mb-2 block text-xs font-bold text-slate-700">شماره تماس
+                                پشتیبانی</label><input name="support_phone"
+                                value="{{ old('support_phone', $settings['support_phone']) }}" dir="ltr"
+                                placeholder="02112345678"
+                                class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-info focus:ring-info">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-card overflow-hidden">
+                <div class="flex items-center gap-3 border-b border-slate-100 p-5"><span
+                        class="flex h-10 w-10 items-center justify-center rounded-xl {{ $smsMode === 'live' ? 'bg-error/10 text-error' : 'bg-success/10 text-success' }}"><x-heroicon-o-device-phone-mobile
+                            class="h-5 w-5" /></span>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-900">ارسال پیامک و OTP</h3>
+                        <p class="mt-1 text-[11px] text-slate-400">حالت تست پیامک واقعی ارسال نمی‌کند و برای توسعه
+                            امن‌تر است.</p>
+                    </div>
+                </div>
+                <div class="space-y-4 p-5">
+                    <div class="grid gap-3 sm:grid-cols-2"><label class="relative cursor-pointer"><input
+                                type="radio" name="sms_mode" value="test" @checked($smsMode === 'test')
+                                class="peer sr-only"><span
+                                class="block rounded-2xl border-2 border-slate-100 p-4 transition peer-checked:border-success peer-checked:bg-success/10"><strong
+                                    class="flex items-center gap-2 text-sm font-black text-slate-800"><x-heroicon-o-beaker
+                                        class="h-5 w-5 text-success" /> حالت تست</strong><small
+                                    class="mt-2 block text-[11px] leading-5 text-slate-500">بدون ارسال واقعی؛ فقط در
+                                    لاگ ثبت می‌شود.</small></span></label><label class="relative cursor-pointer"><input
+                                type="radio" name="sms_mode" value="live" @checked($smsMode === 'live')
+                                class="peer sr-only"><span
+                                class="block rounded-2xl border-2 border-slate-100 p-4 transition peer-checked:border-error peer-checked:bg-error/10"><strong
+                                    class="flex items-center gap-2 text-sm font-black text-slate-800"><x-heroicon-o-paper-airplane
+                                        class="h-5 w-5 text-error" /> حالت واقعی</strong><small
+                                    class="mt-2 block text-[11px] leading-5 text-slate-500">ارسال از طریق وب‌سرویس
+                                    Pattern آی‌پی‌پنل انجام می‌شود.</small></span></label></div>
+                    <div class="rounded-xl border border-warning/20 bg-warning/10 p-3 text-xs leading-6 text-warning">
+                        حالت واقعی با وب‌سرویس Pattern آی‌پی‌پنل کار می‌کند؛ پیش از فعال‌سازی، مقادیر دسترسی و کد الگو
+                        را در تنظیمات محیطی سرور بررسی کنید.</div>
+                </div>
+            </div>
+
+            <div class="admin-card flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div><label for="otp_expiry_minutes" class="block text-sm font-black text-slate-800">مدت اعتبار رمز
+                        یکبار مصرف</label>
+                    <p class="mt-1 text-[11px] text-slate-400">این مقدار برای ورود، ثبت‌نام و نمایش شمارش معکوس OTP
+                        استفاده می‌شود.</p>
+                </div>
+                <div class="relative w-full sm:w-40"><input id="otp_expiry_minutes" name="otp_expiry_minutes"
+                        type="number" min="1" max="30" required value="{{ $otpExpiryMinutes }}"
+                        class="w-full rounded-xl border-slate-200 py-3 pl-12 text-sm focus:border-primary focus:ring-primary"><span
+                        class="absolute left-3 top-3 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-500">دقیقه</span>
+                </div>
+            </div>
+            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p class="text-xs text-slate-400">تغییرات پس از ذخیره، روی کل سامانه اعمال می‌شوند.</p><button
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-black text-white shadow-sm transition hover:bg-primary-600"><x-heroicon-o-check
+                        class="h-5 w-5" />ذخیره تنظیمات</button>
+            </div>
         </form>
     </section>
 </x-admin-layout>

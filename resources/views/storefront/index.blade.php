@@ -1,29 +1,110 @@
 <x-app-layout title="فروشگاه‌ها">
-    <x-slot name="header"><div class="flex items-center gap-3"><span class="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-50 text-primary"><x-heroicon-o-building-storefront class="h-6 w-6" /></span><div><p class="text-xs font-bold text-primary">فروشندگان دیجی استوکی</p><h1 class="mt-1 text-xl font-black text-neutral">فروشگاه‌ها</h1></div></div></x-slot>
-    <section x-data="storefrontDirectory($el.dataset.citiesEndpoint, $el.dataset.provinceId, $el.dataset.cityIds ? $el.dataset.cityIds.split(',') : [])" data-cities-endpoint="{{ url('/locations/provinces') }}" data-province-id="{{ $selectedProvince }}" data-city-ids="{{ implode(',', $selectedCityIds) }}" class="space-y-5 px-4 py-6">
-        <form method="GET" action="{{ route('storefront.index') }}" class="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <x-slot name="header">
+        <div class="flex items-center gap-3"><span
+                class="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-50 text-primary"><x-heroicon-o-building-storefront
+                    class="h-6 w-6" /></span>
+            <div>
+                <p class="text-xs font-bold text-primary">فروشندگان دیجی استوکی</p>
+                <h1 class="mt-1 text-xl font-black text-neutral">فروشگاه‌ها</h1>
+            </div>
+        </div>
+    </x-slot>
+    <section x-data="storefrontDirectory($el.dataset.citiesEndpoint, $el.dataset.provinceId, $el.dataset.cityIds ? $el.dataset.cityIds.split(',') : [])" data-cities-endpoint="{{ url('/locations/provinces') }}"
+        data-province-id="{{ $selectedProvince }}" data-city-ids="{{ implode(',', $selectedCityIds) }}"
+        class="space-y-5 px-4 py-6">
+        <form method="GET" action="{{ route('storefront.index') }}"
+            class="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <input type="hidden" name="province_id" x-model="provinceId">
-            <template x-for="cityIdValue in cityIds" :key="'store-hidden-city-' + cityIdValue"><input type="hidden" name="city_ids[]" :value="cityIdValue"></template>
-            <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg bg-slate-100 p-2"><div class="flex items-center gap-2 px-3 py-2 text-sm font-black text-neutral"><x-heroicon-o-building-storefront class="h-5 w-5 text-primary" /><span>فروشگاه‌ها را در کدام محدوده می‌خواهید؟</span></div><button type="button" @click="openLocationPicker" :disabled="locationLoading" class="flex min-w-28 items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-3 text-xs font-black text-neutral shadow-sm transition hover:bg-primary-50 hover:text-primary disabled:opacity-60"><x-heroicon-o-map-pin class="h-5 w-5 text-primary" /><span class="max-w-28 truncate" x-text="locationLoading ? 'در حال یافتن...' : locationLabel">همه ایران</span></button></div>
-            <button class="mobile-button w-full bg-primary text-white hover:bg-primary-600 sm:w-auto"><x-heroicon-o-funnel class="h-5 w-5" />نمایش فروشگاه‌ها</button>
+            <template x-for="cityIdValue in cityIds" :key="'store-hidden-city-' + cityIdValue"><input type="hidden"
+                    name="city_ids[]" :value="cityIdValue"></template>
+            <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg bg-slate-100 p-2">
+                <div class="flex items-center gap-2 px-3 py-2 text-sm font-black text-neutral">
+                    <x-heroicon-o-building-storefront class="h-5 w-5 text-primary" /><span>فروشگاه‌ها را در کدام محدوده
+                        می‌خواهید؟</span></div><button type="button" @click="openLocationPicker"
+                    :disabled="locationLoading"
+                    class="flex min-w-28 items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-3 text-xs font-black text-neutral shadow-sm transition hover:bg-primary-50 hover:text-primary disabled:opacity-60"><x-heroicon-o-map-pin
+                        class="h-5 w-5 text-primary" /><span class="max-w-28 truncate"
+                        x-text="locationLoading ? 'در حال یافتن...' : locationLabel">همه ایران</span></button>
+            </div>
+            <button
+                class="mobile-button w-full bg-primary text-white hover:bg-primary-600 sm:w-auto"><x-heroicon-o-funnel
+                    class="h-5 w-5" />نمایش فروشگاه‌ها</button>
         </form>
 
-        <div x-show="locationModalOpen" x-cloak x-transition.opacity class="fixed inset-0 z-[80] flex items-end justify-center bg-slate-950/45 p-3 sm:items-center">
-            <div x-show="locationModalOpen" x-transition @click.outside="confirmLocation" role="dialog" aria-modal="true" aria-labelledby="store-location-title" class="max-h-[88vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-5 shadow-2xl">
-                <div class="flex items-start justify-between gap-3"><div><p class="text-xs font-bold text-primary">محدوده فروشگاه‌ها</p><h2 id="store-location-title" class="mt-1 text-lg font-black text-neutral">فروشگاه‌ها کجا باشند؟</h2></div><button type="button" @click="confirmLocation" aria-label="بستن" class="rounded-xl p-2 text-slate-500 hover:bg-slate-100"><x-heroicon-o-x-mark class="h-5 w-5" /></button></div>
-                <button type="button" @click="useLocation" :disabled="locationLoading" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary-50 px-4 py-3 text-sm font-black text-primary disabled:opacity-60"><x-heroicon-o-map-pin class="h-5 w-5" /><span x-text="locationLoading ? 'در حال دریافت موقعیت شما...' : 'استفاده از موقعیت فعلی'">استفاده از موقعیت فعلی</span></button>
-                <p x-show="locationLoading" class="mt-3 text-center text-xs text-slate-400">اگر GPS موقعیت را پیدا نکند، انتخاب دستی در همین پنجره فعال است.</p><div x-show="locationError" x-cloak class="mt-3 rounded-xl bg-error/10 px-3 py-2 text-xs font-bold leading-6 text-error" x-text="locationError"></div>
-                <div class="mt-5 border-t border-slate-100 pt-5"><p class="mb-3 text-sm font-black text-neutral">یا محدوده را دستی انتخاب کنید</p><label for="store-province-picker" class="mb-1.5 block text-xs font-bold text-slate-600">استان</label><select id="store-province-picker" x-model="provinceId" @change="loadCities()" class="public-select"><option value="">همه استان‌ها</option>@foreach ($provinces as $province)<option value="{{ $province->id }}">{{ $province->name }}</option>@endforeach</select></div>
-                <div x-show="provinceId" x-cloak class="mt-4"><p class="mb-2 text-xs font-bold text-slate-600">شهرها</p><div class="grid max-h-44 grid-cols-2 gap-2 overflow-y-auto rounded-xl bg-slate-50 p-2 sm:grid-cols-3"><template x-for="city in cities" :key="'store-modal-city-' + city.id"><label class="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-2 py-2 text-xs font-bold text-slate-600"><input type="checkbox" :value="city.id" :checked="cityIds.includes(String(city.id))" @change="toggleCity(city.id)" class="public-check"><span x-text="city.name"></span></label></template></div><p x-show="citiesLoading" class="mt-2 text-[11px] text-slate-400">در حال دریافت شهرها...</p><p x-show="!citiesLoading && !cities.length" class="mt-2 text-[11px] text-slate-400">شهری برای این استان پیدا نشد.</p></div>
-                <div class="mt-5 flex gap-2"><button type="button" @click="clearLocation" class="flex-1 rounded-xl bg-slate-100 px-4 py-3 text-xs font-black text-slate-600">همه ایران</button><button type="button" @click="confirmLocation" class="flex-1 rounded-xl bg-primary px-4 py-3 text-xs font-black text-white">اعمال محدوده</button></div>
+        <div x-show="locationModalOpen" x-cloak x-transition.opacity
+            class="fixed inset-0 z-[80] flex items-end justify-center bg-slate-950/45 p-3 sm:items-center">
+            <div x-show="locationModalOpen" x-transition @click.outside="confirmLocation" role="dialog"
+                aria-modal="true" aria-labelledby="store-location-title"
+                class="max-h-[88vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-5 shadow-2xl">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-bold text-primary">محدوده فروشگاه‌ها</p>
+                        <h2 id="store-location-title" class="mt-1 text-lg font-black text-neutral">فروشگاه‌ها کجا باشند؟
+                        </h2>
+                    </div><button type="button" @click="confirmLocation" aria-label="بستن"
+                        class="rounded-xl p-2 text-slate-500 hover:bg-slate-100"><x-heroicon-o-x-mark
+                            class="h-5 w-5" /></button>
+                </div>
+                <button type="button" @click="useLocation" :disabled="locationLoading"
+                    class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary-50 px-4 py-3 text-sm font-black text-primary disabled:opacity-60"><x-heroicon-o-map-pin
+                        class="h-5 w-5" /><span
+                        x-text="locationLoading ? 'در حال دریافت موقعیت شما...' : 'استفاده از موقعیت فعلی'">استفاده از
+                        موقعیت فعلی</span></button>
+                <p x-show="locationLoading" class="mt-3 text-center text-xs text-slate-400">اگر GPS موقعیت را پیدا نکند،
+                    انتخاب دستی در همین پنجره فعال است.</p>
+                <div x-show="locationError" x-cloak
+                    class="mt-3 rounded-xl bg-error/10 px-3 py-2 text-xs font-bold leading-6 text-error"
+                    x-text="locationError"></div>
+                <div class="mt-5 border-t border-slate-100 pt-5">
+                    <p class="mb-3 text-sm font-black text-neutral">یا محدوده را دستی انتخاب کنید</p><label
+                        for="store-province-picker"
+                        class="mb-1.5 block text-xs font-bold text-slate-600">استان</label><select
+                        id="store-province-picker" x-model="provinceId" @change="loadCities()" class="public-select">
+                        <option value="">همه استان‌ها</option>
+                        @foreach ($provinces as $province)
+                            <option value="{{ $province->id }}">{{ $province->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div x-show="provinceId" x-cloak class="mt-4">
+                    <p class="mb-2 text-xs font-bold text-slate-600">شهرها</p>
+                    <div
+                        class="grid max-h-44 grid-cols-2 gap-2 overflow-y-auto rounded-xl bg-slate-50 p-2 sm:grid-cols-3">
+                        <template x-for="city in cities" :key="'store-modal-city-' + city.id"><label
+                                class="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-2 py-2 text-xs font-bold text-slate-600"><input
+                                    type="checkbox" :value="city.id" :checked="cityIds.includes(String(city.id))"
+                                    @change="toggleCity(city.id)" class="public-check"><span
+                                    x-text="city.name"></span></label></template></div>
+                    <p x-show="citiesLoading" class="mt-2 text-[11px] text-slate-400">در حال دریافت شهرها...</p>
+                    <p x-show="!citiesLoading && !cities.length" class="mt-2 text-[11px] text-slate-400">شهری برای این
+                        استان پیدا نشد.</p>
+                </div>
+                <div class="mt-5 flex gap-2"><button type="button" @click="clearLocation"
+                        class="flex-1 rounded-xl bg-slate-100 px-4 py-3 text-xs font-black text-slate-600">همه
+                        ایران</button><button type="button" @click="confirmLocation"
+                        class="flex-1 rounded-xl bg-primary px-4 py-3 text-xs font-black text-white">اعمال
+                        محدوده</button></div>
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             @forelse ($stores as $store)
-                <a href="{{ route('storefront.show', $store) }}" class="group rounded-lg border border-slate-200 bg-white p-4 text-center shadow-sm transition hover:-translate-y-1 hover:border-primary/30 hover:shadow-md">@if ($store->logo_path)<img src="{{ asset('storage/'.$store->logo_path) }}" alt="{{ $store->name }}" class="mx-auto h-20 w-20 rounded-full object-cover ring-4 ring-primary-50">@else<span class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary-50 text-2xl font-black text-primary ring-4 ring-primary-50">{{ mb_substr($store->name, 0, 1) }}</span>@endif<h2 class="mt-4 truncate font-black text-neutral group-hover:text-primary">{{ $store->name }}</h2><p class="mt-1 truncate text-xs text-slate-400">{{ collect([$store->province?->name, $store->city?->name])->filter()->implode('، ') ?: 'موقعیت ثبت نشده' }}</p></a>
+                <a href="{{ route('storefront.show', $store) }}"
+                    class="group rounded-lg border border-slate-200 bg-white p-4 text-center shadow-sm transition hover:-translate-y-1 hover:border-primary/30 hover:shadow-md">
+                    @if ($store->logo_path)
+                        <img src="{{ asset('storage/' . $store->logo_path) }}" alt="{{ $store->name }}"
+                        class="mx-auto h-20 w-20 rounded-full object-cover ring-4 ring-primary-50">@else<span
+                            class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary-50 text-2xl font-black text-primary ring-4 ring-primary-50">{{ mb_substr($store->name, 0, 1) }}</span>
+                    @endif
+                    <h2 class="mt-4 truncate font-black text-neutral group-hover:text-primary">{{ $store->name }}</h2>
+                    <p class="mt-1 truncate text-xs text-slate-400">
+                        {{ collect([$store->province?->name, $store->city?->name])->filter()->implode('، ') ?:'موقعیت ثبت نشده' }}
+                    </p>
+                </a>
             @empty
-                <div class="col-span-full rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">فروشگاه فعالی در این محدوده پیدا نشد.</div>
+                <div
+                    class="col-span-full rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">
+                    فروشگاه فعالی در این محدوده پیدا نشد.</div>
             @endforelse
         </div>
         {{ $stores->links() }}
