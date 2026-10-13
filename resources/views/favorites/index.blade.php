@@ -4,9 +4,23 @@
             <div>
                 <p class="text-xs font-bold text-primary">ذخیره‌شده‌ها</p>
                 <h1 class="mt-1 text-xl font-black text-neutral">علاقه‌مندی‌های من</h1>
-            </div><span
-                class="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-black text-primary">{{ number_format($favorites->total()) }}
-                آگهی</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-black text-primary">{{ number_format($favorites->total()) }}
+                    آگهی</span>
+                @if ($favorites->total())
+                    <form method="POST" action="{{ route('favorites.destroy-all') }}"
+                        onsubmit="return confirm('همه آگهی‌های ذخیره‌شده حذف شوند؟')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-error/20 bg-error/5 px-3 py-2 text-xs font-bold text-error transition hover:bg-error/10 focus:outline-none focus:ring-4 focus:ring-error/20">
+                            <x-heroicon-o-trash class="h-4 w-4" />
+                            حذف همه علاقه‌مندی‌ها
+                        </button>
+                    </form>
+                @endif
+            </div>
         </div>
     </x-slot>
     <section class="space-y-5 px-4 py-6">

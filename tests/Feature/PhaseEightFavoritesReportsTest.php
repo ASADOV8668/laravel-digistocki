@@ -59,6 +59,40 @@ class PhaseEightFavoritesReportsTest extends TestCase
             ->assertDontSee($pendingListing->title);
     }
 
+    public function test_user_can_delete_all_of_their_favorites_without_affecting_other_users(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $first = $this->listing('اولین علاقه‌مندی');
+        $second = $this->listing('دومین علاقه‌مندی');
+        $other = $this->listing('علاقه‌مندی کاربر دیگر');
+
+        Favorite::create(['user_id' => $user->id, 'listing_id' => $first->id]);
+        Favorite::create(['user_id' => $user->id, 'listing_id' => $second->id]);
+        Favorite::create(['user_id' => $otherUser->id, 'listing_id' => $other->id]);
+
+        $this->actingAs($user)->delete(route('favorites.destroy-all'))
+            ->assertRedirect(route('favorites.index'))
+            ->assertSessionHas('status', 'همه علاقه‌مندی‌های شما حذف شدند.');
+
+        $this->assertDatabaseMissing('favorites', ['user_id' => $user->id, 'listing_id' => $first->id]);
+        $this->assertDatabaseMissing('favorites', ['user_id' => $user->id, 'listing_id' => $second->id]);
+        $this->assertDatabaseHas('favorites', ['user_id' => $otherUser->id, 'listing_id' => $other->id]);
+    }
+
+    public function test_delete_all_favorites_returns_json_for_ajax_requests(): void
+    {
+        $user = User::factory()->create();
+        $listing = $this->listing('علاقه‌مندی آجاکس');
+        Favorite::create(['user_id' => $user->id, 'listing_id' => $listing->id]);
+
+        $this->actingAs($user)->deleteJson(route('favorites.destroy-all'))
+            ->assertOk()
+            ->assertJson(['message' => 'همه علاقه‌مندی‌های شما حذف شدند.']);
+
+        $this->assertDatabaseMissing('favorites', ['user_id' => $user->id, 'listing_id' => $listing->id]);
+    }
+
     public function test_user_can_report_another_users_listing_once_while_it_is_pending(): void
     {
         $listing = $this->listing('آگهی قابل گزارش');

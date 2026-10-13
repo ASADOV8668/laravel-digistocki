@@ -5,6 +5,8 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Favorite;
 use App\Models\Listing;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -53,5 +55,17 @@ class FavoriteController extends Controller
         }
 
         return back()->with('status', $message);
+    }
+
+    public function destroyAll(Request $request): RedirectResponse|JsonResponse
+    {
+        Favorite::query()->where('user_id', $request->user()->id)->delete();
+        $message = 'همه علاقه‌مندی‌های شما حذف شدند.';
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message]);
+        }
+
+        return redirect()->route('favorites.index')->with('status', $message);
     }
 }
