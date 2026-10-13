@@ -1019,6 +1019,8 @@ window.listingWizard = () => ({
     modelsController: null,
     attributesController: null,
     citiesController: null,
+    titleInput: null,
+    titleAttributes: [],
 
     init() {
         const root = this.$root;
@@ -1029,9 +1031,20 @@ window.listingWizard = () => ({
         this.modelId = root.dataset.initialModelId || '';
         this.provinceId = root.dataset.initialProvinceId || '';
         this.cityId = root.dataset.initialCityId || '';
+        this.titleInput = root.querySelector('[data-auto-listing-title]');
+        if (this.titleInput) {
+            this.titleInput.addEventListener('input', () => {
+                this.titleInput.dataset.autoListingTitle = 'false';
+            });
+        }
+        window.addEventListener('listing-attributes-changed', (event) => {
+            this.titleAttributes = event.detail?.definitions || this.titleAttributes;
+            this.updateGeneratedTitle(event.detail?.rows || []);
+        });
         const attributesNode = root.querySelector('[data-listing-initial-attributes]');
         const valuesNode = root.querySelector('[data-listing-initial-values]');
         try { this.attributes = attributesNode ? JSON.parse(attributesNode.textContent || '[]') : []; } catch { this.attributes = []; }
+        this.titleAttributes = this.attributes;
         try { this.values = valuesNode ? JSON.parse(valuesNode.textContent || '{}') : {}; } catch { this.values = {}; }
         this.$watch('brandId', (value, previous) => { if (value && value !== previous) this.loadModels(); });
         if (this.brandId) this.loadModels(false);
@@ -1064,6 +1077,7 @@ window.listingWizard = () => ({
             });
             if (!response.ok) throw new Error('Model request failed');
             this.models = await response.json();
+            this.updateGeneratedTitle();
         } catch (error) {
             if (error.name !== 'AbortError') this.models = [];
         } finally {
@@ -1097,6 +1111,7 @@ window.listingWizard = () => ({
             });
             if (!response.ok) throw new Error('Attribute request failed');
             this.attributes = await response.json();
+            this.titleAttributes = this.attributes;
             window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: this.attributes, values: this.values } }));
         } catch (error) {
             if (error.name !== 'AbortError') {
@@ -1149,6 +1164,67 @@ window.listingWizard = () => ({
 
     previous() {
         if (this.step > 1) this.step -= 1;
+    },
+
+    updateGeneratedTitle(rows = []) {
+        if (!this.titleInput || this.titleInput.dataset.autoListingTitle !== 'true') return;
+
+        const brandOption = this.$root.querySelector('[name="brand_id"] option:checked');
+        const brand = brandOption?.textContent?.split('(')[0]?.trim() || '';
+        const model = this.models.find((item) => String(item.id) === String(this.modelId));
+        const modelName = model?.label || model?.name_fa || model?.name || '';
+        if (!brand || !modelName) return;
+
+        const definitions = this.titleAttributes.length
+            ? this.titleAttributes
+            : (() => {
+                const node = this.$root.querySelector('[data-repeater-definitions]');
+                try { return node ? JSON.parse(node.textContent || '[]') : []; } catch { return []; }
+            })();
+        const selectedRows = rows.length ? rows : [...this.$root.querySelectorAll('[data-repeater-values]')].flatMap(() => []);
+        const values = Object.fromEntries(selectedRows.map((row) => [String(row.attributeId), row.value]));
+        const valueFor = (slug) => {
+            const definition = definitions.find((item) => item.slug === slug);
+            if (!definition) return '';
+            const value = values[String(definition.id)];
+            return Array.isArray(value) ? value.filter(Boolean).join('، ') : (value ?? '');
+        };
+
+        const parts = [brand, modelName];
+        const color = valueFor('color');
+        const storage = valueFor('storage');
+        if (color) parts.push(color);
+        if (storage) parts.push(`${Number(storage).toLocaleString('fa-IR')} گیگابایت`);
+        this.titleInput.value = parts.join(' ');
+    },
+});
+
+window.moneyInput = (initial = '') => ({
+    raw: '',
+    display: '',
+
+    init() {
+        this.setRaw(initial);
+    },
+
+    normalize(value) {
+        return String(value ?? '')
+            .replace(/[۰-۹٠-٩]/g, (digit) => {
+                const persianIndex = '۰۱۲۳۴۵۶۷۸۹'.indexOf(digit);
+                return persianIndex >= 0 ? String(persianIndex) : String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit));
+            })
+            .replace(/\D/g, '');
+    },
+
+    setRaw(value) {
+        this.raw = this.normalize(value);
+        this.display = this.raw ? Number(this.raw).toLocaleString('fa-IR') : '';
+    },
+
+    formatInput(event) {
+        const cursorValue = this.normalize(event.target.value);
+        this.raw = cursorValue;
+        this.display = cursorValue ? Number(cursorValue).toLocaleString('fa-IR') : '';
     },
 });
 

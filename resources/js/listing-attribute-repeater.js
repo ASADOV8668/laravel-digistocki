@@ -16,7 +16,9 @@ window.listingAttributeRepeater = () => ({
         let values = {};
         try { definitions = definitionsNode ? JSON.parse(definitionsNode.textContent || '[]') : []; } catch { definitions = []; }
         try { values = valuesNode ? JSON.parse(valuesNode.textContent || '{}') : {}; } catch { values = {}; }
+        this.$watch('rows', () => this.emitChange(), { deep: true });
         this.replaceAttributes(definitions, values, false);
+        this.emitChange();
     },
 
     replaceAttributes(attributes = [], values = {}, resetRows = true) {
@@ -32,6 +34,7 @@ window.listingAttributeRepeater = () => ({
             .filter((row) => this.attribute(row.attributeId));
 
         if (!this.rows.length && this.definitions.length) this.addRow();
+        this.emitChange();
     },
 
     normalizeValue(value) {
@@ -65,17 +68,20 @@ window.listingAttributeRepeater = () => ({
     addRow() {
         if (this.rows.length >= this.definitions.length) return;
         this.rows.push({ attributeId: '', value: '' });
+        this.emitChange();
     },
 
     removeRow(index) {
         this.rows.splice(index, 1);
         if (!this.rows.length && this.definitions.length) this.addRow();
+        this.emitChange();
     },
 
     setAttribute(row, attributeId) {
         row.attributeId = String(attributeId || '');
         const attribute = this.attribute(row.attributeId);
         row.value = attribute?.type === 'multi_select' ? [] : attribute?.type === 'boolean' ? false : '';
+        this.emitChange();
     },
 
     isSelected(attributeId, currentRow) {
@@ -90,6 +96,12 @@ window.listingAttributeRepeater = () => ({
 
     hasValue(row) {
         return row.attributeId && this.attribute(row.attributeId);
+    },
+
+    emitChange() {
+        window.dispatchEvent(new CustomEvent('listing-attributes-changed', {
+            detail: { rows: this.rows, definitions: this.definitions, root: this.$root.closest('[x-data*="listingWizard"]') },
+        }));
     },
 });
 

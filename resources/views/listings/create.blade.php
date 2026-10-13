@@ -14,8 +14,8 @@
         data-cities-endpoint="{{ url('/locations/provinces') }}"
         data-initial-brand-id="{{ old('brand_id', $clone?->brand_id) }}"
         data-initial-model-id="{{ old('phone_model_id', $clone?->phone_model_id) }}"
-        data-initial-province-id="{{ old('province_id', $clone?->province_id) }}"
-        data-initial-city-id="{{ old('city_id', $clone?->city_id) }}" class="space-y-6 px-4 py-6">
+        data-initial-province-id="{{ old('province_id', $store?->province_id) }}"
+        data-initial-city-id="{{ old('city_id', $store?->city_id) }}" class="space-y-6 px-4 py-6">
         <script type="application/json" data-listing-initial-attributes>@json($initialModelAttributes)</script>
         <script type="application/json" data-listing-initial-values>@json($initialValues ?? old('attributes', []))</script>
         @if ($errors->any())<x-flowbite-alert type="danger">
@@ -102,10 +102,10 @@
                     <p class="mt-1 text-xs text-slate-500">عنوان روشن، قیمت دقیق و موقعیت آگهی باعث اعتماد بیشتر خریدار
                         می‌شود.</p>
                 </div>
-                <div><label class="mb-2 block text-sm font-bold text-neutral">عنوان آگهی</label><input name="title"
+                <div><label class="mb-2 block text-sm font-bold text-neutral">عنوان آگهی</label><input id="public-listing-title" data-auto-listing-title="{{ old('title', $clone ? $clone->title . ' (کپی)' : '') === '' ? 'true' : 'false' }}" name="title"
                         value="{{ old('title', $clone ? $clone->title . ' (کپی)' : '') }}" required
                         class="block w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30"
-                        placeholder="مثلاً آیفون ۱۳ پرو تمیز">
+                        placeholder="پس از انتخاب مدل و ویژگی‌ها خودکار تکمیل می‌شود">
                     @if ($clone)
                         <input type="hidden" name="clone" value="{{ $clone->id }}">
                         <p class="mt-1 text-[11px] text-primary">ویژگی‌ها و تصاویر آگهی اصلی در صورت تغییر نکردن تصاویر،
@@ -113,10 +113,11 @@
                     @endif
                 </div>
                 <div x-data="{ priceOnRequest: @js((bool) old('price_on_request', $clone?->price_on_request ?? false)) }"><label class="mb-2 block text-sm font-bold text-neutral">قیمت
-                        (تومان)</label><input x-show="!priceOnRequest" name="price"
-                        value="{{ old('price', $clone?->price) }}" :required="!priceOnRequest" type="number"
-                        min="0"
-                        class="w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30">
+                        (تومان)</label><div x-data="moneyInput(@js(old('price', $clone?->price)))" x-show="!priceOnRequest"><input
+                            x-model="display" @input="formatInput($event)" :required="!priceOnRequest" type="text"
+                            inputmode="numeric" autocomplete="off" dir="ltr"
+                            class="w-full rounded-lg border border-slate-200 bg-slate-50 text-left text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+                            placeholder="مثلاً ۳۲٬۰۰۰٬۰۰۰"><input type="hidden" name="price" :value="raw"></div>
                     @if ($allowContactPrice)
                         <label class="mt-3 flex cursor-pointer items-center gap-2 text-sm font-bold text-neutral"><input
                                 type="checkbox" name="price_on_request" value="1" x-model="priceOnRequest"
@@ -128,15 +129,15 @@
                         value="1" type="checkbox" @checked(old('is_negotiable', $clone?->is_negotiable)) class="public-check"> قیمت قابل
                     مذاکره است</label>
                 <div class="grid grid-cols-2 gap-2">
-                    <div><label class="mb-2 block text-sm font-bold text-neutral">استان</label><select
-                            name="province_id" x-model="provinceId" @change="loadCities" class="public-select">
+                        <div><label class="mb-2 block text-sm font-bold text-neutral">استان</label><select
+                            name="province_id" x-model="provinceId" @change="loadCities" required class="public-select">
                             <option value="">انتخاب استان</option>
                             @foreach ($provinces as $province)
-                                <option value="{{ $province->id }}">{{ $province->name }}</option>
+                                <option value="{{ $province->id }}" @selected((string) old('province_id', $store?->province_id) === (string) $province->id)>{{ $province->name }}</option>
                             @endforeach
                         </select></div>
                     <div><label class="mb-2 block text-sm font-bold text-neutral">شهر</label><select name="city_id"
-                            x-model="cityId" :disabled="!provinceId || citiesLoading" class="public-select">
+                            x-model="cityId" :disabled="!provinceId || citiesLoading" required class="public-select">
                             <option value="">انتخاب شهر</option><template x-for="city in cities"
                                 :key="city.id">
                                 <option :value="city.id" x-text="city.name"></option>

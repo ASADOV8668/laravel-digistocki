@@ -471,6 +471,7 @@ class ListingController extends Controller
             ? Listing::query()->where('user_id', $request->user()->id)->with(['attributeValues', 'images'])->findOrFail($request->integer('clone'))
             : null;
         $cloneValues = $cloneListing?->attributeValues->mapWithKeys(fn ($value) => [$value->attribute_id => $value->value_json ?? $value->value_string ?? $value->value_integer ?? $value->value_decimal ?? $value->value_boolean])->all() ?? [];
+        $store = $request->user()->storefront;
         $selectedModelId = old('phone_model_id', $cloneListing?->phone_model_id);
         $selectedModel = $selectedModelId
             ? PhoneModel::query()->where('is_active', true)->with(['attributes' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order')])->find($selectedModelId)
@@ -483,6 +484,7 @@ class ListingController extends Controller
             'initialModelAttributes' => $this->attributePayload($selectedModel?->attributes ?? collect()),
             'initialValues' => old('attributes', $cloneValues),
             'cloneListing' => $cloneListing,
+            'store' => $store,
             'maxImageUploadMb' => $options->maxImageUploadMb(),
             'maxImageUploadCount' => $options->maxImageUploadCount(),
             'allowContactPrice' => $options->allowContactPrice(),
@@ -492,7 +494,7 @@ class ListingController extends Controller
     public function edit(Listing $listing, SystemOptions $options)
     {
         $this->authorize('update', $listing);
-        $listing->load(['images', 'attributeValues', 'phoneModel']);
+        $listing->load(['images', 'attributeValues', 'phoneModel', 'user.storefront']);
         $attributes = $listing->phoneModel->attributes()
             ->where('attributes.is_active', true)
             ->orderBy('attributes.sort_order')
@@ -500,6 +502,7 @@ class ListingController extends Controller
 
         return view('listings.edit', [
             'listing' => $listing,
+            'store' => $listing->user?->storefront,
             'brands' => Brand::query()->where('is_active', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
             'attributes' => $attributes,
             'provinces' => Province::query()->orderBy('name')->get(),
