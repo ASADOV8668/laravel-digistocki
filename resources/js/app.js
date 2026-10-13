@@ -5,6 +5,7 @@ import { initTooltips } from 'flowbite';
 import Alpine from 'alpinejs';
 import './listing-attribute-repeater';
 import './location-components';
+import './persian-digits';
 
 window.Alpine = Alpine;
 window.refreshFlowbiteTooltips = () => initTooltips();

@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\ApplySystemSessionLifetime;
+use App\Http\Middleware\NormalizePersianDigits;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -20,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
         ]);
         $middleware->web(
-            prepend: [ApplySystemSessionLifetime::class],
+            prepend: [NormalizePersianDigits::class, ApplySystemSessionLifetime::class],
             append: [SecurityHeaders::class],
         );
     })

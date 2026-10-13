@@ -21,4 +21,10 @@ class PersianSearchTest extends TestCase
 
         $this->assertContains('%iPhone 13%', $likes);
     }
+
+    public function test_persian_digits_are_normalized_before_search_variants_are_built(): void
+    {
+        $this->assertSame('ایفون 13', PersianSearch::normalize('آیفون ۱۳'));
+        $this->assertContains('%آیفون 13%', PersianSearch::likes('آیفون ۱۳'));
+    }
 }

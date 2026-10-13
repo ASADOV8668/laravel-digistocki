@@ -4,6 +4,7 @@ import $ from 'jquery';
 import './listing-attribute-repeater';
 import './admin-listing-form';
 import './location-components';
+import './persian-digits';
 import '../vendor/persian-datepicker/persianDatepicker-default.css';
 
 window.Alpine = Alpine;

@@ -30,12 +30,12 @@ class PhaseOneHundredSixtyOneStorefrontManagementTest extends TestCase
             'store_enabled' => 1,
             'first_name' => 'کاربر',
             'last_name' => 'تست',
-            'national_id' => '0067123457',
+            'national_id' => '۰۰۶۷۱۲۳۴۵۷',
             'name' => 'فروشگاه رضایی',
             'slug' => 'reza-mobile',
-            'contact_phone' => '09120001111',
-            'business_license_number' => 'LIC-001',
-            'business_license_expires_at' => '1405/12/29',
+            'contact_phone' => '۰۹۱۲۰۰۰۱۱۱۱',
+            'business_license_number' => 'LIC-۰۰۱',
+            'business_license_expires_at' => '۱۴۰۵/۱۲/۲۹',
             'province_id' => $province->id,
             'city_id' => $city->id,
             'address' => 'آدرس تست',
@@ -46,6 +46,8 @@ class PhaseOneHundredSixtyOneStorefrontManagementTest extends TestCase
         $this->assertFalse($store->is_enabled);
         $this->assertSame('reza-mobile', $store->slug);
         $this->assertSame('09120001111', $store->contact_phone);
+        $this->assertSame('LIC-001', $store->business_license_number);
+        $this->assertSame('0067123457', $store->national_id);
         $this->assertSame('آدرس تست', $store->address);
     }
 
