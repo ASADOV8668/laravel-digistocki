@@ -80,6 +80,60 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
         $this->assertTrue($listing->expires_at->isFuture());
     }
 
+    public function test_free_listing_store_can_edit_approved_listing_without_review(): void
+    {
+        $user = User::factory()->create();
+        $store = $this->storeApplication($user);
+        $store->update(['listing_approval_mode' => SellerStore::LISTING_APPROVAL_FREE]);
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+        $listing = Listing::create([
+            'user_id' => $user->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی آزاد اولیه',
+            'slug' => 'free-edit-'.$user->id,
+            'price' => 30000000,
+            'status' => ListingStatus::Approved,
+            'published_at' => now()->subDay(),
+            'expires_at' => now()->addDays(10),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('listings.create'))
+            ->assertOk()
+            ->assertSee('ثبت آگهی')
+            ->assertDontSee('ارسال برای بررسی');
+
+        $this->actingAs($user)
+            ->get(route('listings.edit', $listing))
+            ->assertOk()
+            ->assertSee('ویرایش آگهی')
+            ->assertDontSee('ذخیره و ارسال برای بررسی');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('ویرایش آگهی');
+
+        $this->actingAs($user)
+            ->put(route('listings.update', $listing), [
+                'brand_id' => $brand->id,
+                'phone_model_id' => $model->id,
+                'title' => 'آگهی آزاد ویرایش‌شده',
+                'price' => 35000000,
+                'attributes' => $this->requiredAttributeValues($model),
+            ])
+            ->assertRedirect(route('listings.show', $listing))
+            ->assertSessionHas('status', 'تغییرات آگهی ذخیره و آگهی منتشر شد.');
+
+        $listing->refresh();
+        $this->assertSame('آگهی آزاد ویرایش‌شده', $listing->title);
+        $this->assertSame(ListingStatus::Approved, $listing->status);
+        $this->assertNotNull($listing->published_at);
+        $this->assertTrue($listing->expires_at->isFuture());
+    }
+
     public function test_manual_listing_mode_remains_the_default_and_keeps_new_listings_pending(): void
     {
         $user = User::factory()->create();

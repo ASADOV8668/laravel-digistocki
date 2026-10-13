@@ -26,8 +26,7 @@
             </x-flowbite-alert>@endif
         <div
             class="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/10 p-4 text-xs leading-6 text-neutral">
-            <x-heroicon-o-information-circle class="mt-0.5 h-5 w-5 shrink-0 text-warning" /><span>با ذخیره تغییرات، آگهی
-                دوباره برای بررسی ادمین ارسال می‌شود.</span></div>
+            <x-heroicon-o-information-circle class="mt-0.5 h-5 w-5 shrink-0 text-warning" /><span>{{ $store?->allowsFreeListing() ? 'با ذخیره تغییرات، آگهی بلافاصله به‌روزرسانی و منتشر می‌شود.' : 'با ذخیره تغییرات، آگهی دوباره برای بررسی ادمین ارسال می‌شود.' }}</span></div>
         @if ($listing->status->value === 'rejected' && $listing->rejection_reason)
             <x-flowbite-alert type="danger">
                 <p class="font-black">علت رد آگهی</p>
@@ -147,8 +146,7 @@
                     x-if="false"><select class="public-select min-h-28"></select><input
                         class="public-input"></template>
             </div>
-            <button type="submit" class="mobile-button w-full bg-primary text-white hover:bg-primary-600">ذخیره و
-                ارسال برای بررسی</button>
+            <button type="submit" class="mobile-button w-full bg-primary text-white hover:bg-primary-600">{{ $store?->allowsFreeListing() ? 'ویرایش آگهی' : 'ذخیره و ارسال برای بررسی' }}</button>
         </form>
         @if ($listing->images->isNotEmpty())
             <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">

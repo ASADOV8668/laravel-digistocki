@@ -1,4 +1,7 @@
-@php($clone = $cloneListing ?? null)
+@php
+    $clone = $cloneListing ?? null;
+    $freeListing = $store?->allowsFreeListing() ?? false;
+@endphp
 <x-app-layout title="ثبت آگهی">
     <x-slot name="header">
         <div class="flex items-center gap-3"><span
@@ -192,8 +195,9 @@
                     <p x-show="invalid" x-text="message"
                         class="rounded-lg bg-error/10 px-3 py-2 text-xs font-bold text-error"></p>
                 </div>
-                <div class="rounded-lg bg-warning/10 p-4 text-xs leading-7 text-neutral">آگهی پس از ارسال در وضعیت «در
-                    انتظار بررسی» قرار می‌گیرد و پس از تأیید ادمین در سایت نمایش داده می‌شود.</div>
+                <div class="rounded-lg bg-warning/10 p-4 text-xs leading-7 text-neutral">
+                    {{ $freeListing ? 'آگهی پس از ثبت بلافاصله در سایت منتشر می‌شود.' : 'آگهی پس از ارسال در وضعیت «در انتظار بررسی» قرار می‌گیرد و پس از تأیید ادمین در سایت نمایش داده می‌شود.' }}
+                </div>
             </div>
 
             <div class="mt-6 flex gap-2 border-t border-slate-100 pt-4"><button type="button" x-show="step > 1"
@@ -203,7 +207,7 @@
                     :disabled="step === 1 && !modelId"
                     class="mobile-button flex-1 bg-neutral text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40">مرحله
                     بعد</button><button type="submit" x-show="step === 4"
-                    class="mobile-button flex-1 bg-primary text-white hover:bg-primary-600">ارسال برای بررسی</button>
+                    class="mobile-button flex-1 bg-primary text-white hover:bg-primary-600">{{ $freeListing ? 'ثبت آگهی' : 'ارسال برای بررسی' }}</button>
             </div>
         </form>
     </section>

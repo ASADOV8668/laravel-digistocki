@@ -27,7 +27,16 @@ class ListingPolicy
 
     public function update(User $user, Listing $listing): bool
     {
-        return $user->isAdmin() || ($listing->isOwnedBy($user) && in_array($listing->status->value, ['pending', 'rejected'], true));
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if (! $listing->isOwnedBy($user)) {
+            return false;
+        }
+
+        return in_array($listing->status->value, ['pending', 'rejected'], true)
+            || ($listing->status->value === 'approved' && $listing->user?->storefront?->allowsFreeListing());
     }
 
     public function delete(User $user, Listing $listing): bool

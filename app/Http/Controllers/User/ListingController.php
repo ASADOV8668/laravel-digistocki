@@ -653,11 +653,18 @@ class ListingController extends Controller
         }
 
         $storedFiles = [];
+        $autoPublish = $listing->user?->storefront?->allowsFreeListing() ?? false;
         try {
-            DB::transaction(function () use ($validated, $listing, $model, $imageService, &$storedFiles) {
+            DB::transaction(function () use ($validated, $listing, $model, $imageService, $rules, $autoPublish, &$storedFiles) {
                 $listingData = $validated;
                 unset($listingData['attributes'], $listingData['images'], $listingData['primary_image_index'], $listingData['primary_image_id']);
-                $listing->update([...$listingData, 'status' => 'pending', 'rejection_reason' => null, 'published_at' => null]);
+                $listing->update([
+                    ...$listingData,
+                    'status' => $autoPublish ? 'approved' : 'pending',
+                    'rejection_reason' => null,
+                    'published_at' => $autoPublish ? now() : null,
+                    'expires_at' => $autoPublish ? $rules->expiryDate() : null,
+                ]);
                 $listing->attributeValues()->delete();
                 $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
                 $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $storedFiles, $validated['primary_image_index'] ?? null, $validated['primary_image_id'] ?? null);
@@ -668,7 +675,10 @@ class ListingController extends Controller
             throw $exception;
         }
 
-        return redirect()->route('listings.show', $listing)->with('status', 'تغییرات ذخیره و آگهی دوباره برای بررسی ارسال شد.');
+        return redirect()->route('listings.show', $listing)->with(
+            'status',
+            $autoPublish ? 'تغییرات آگهی ذخیره و آگهی منتشر شد.' : 'تغییرات ذخیره و آگهی دوباره برای بررسی ارسال شد.',
+        );
     }
 
     public function destroy(Request $request, Listing $listing, ImageService $imageService)
@@ -697,14 +707,15 @@ class ListingController extends Controller
             return back()->withErrors(['listing' => 'در حال حاضر امکان ارسال مجدد این آگهی وجود ندارد.']);
         }
 
+        $autoPublish = $listing->user?->storefront?->allowsFreeListing() ?? false;
         $listing->forceFill([
-            'status' => 'pending',
-            'published_at' => null,
-            'expires_at' => null,
+            'status' => $autoPublish ? 'approved' : 'pending',
+            'published_at' => $autoPublish ? now() : null,
+            'expires_at' => $autoPublish ? $rules->expiryDate() : null,
             'rejection_reason' => null,
         ])->save();
 
-        return back()->with('status', 'آگهی برای بررسی مجدد ارسال شد.');
+        return back()->with('status', $autoPublish ? 'آگهی دوباره منتشر شد.' : 'آگهی برای بررسی مجدد ارسال شد.');
     }
 
     public function destroyImage(Request $request, Listing $listing, ListingImage $image, ImageService $imageService)
