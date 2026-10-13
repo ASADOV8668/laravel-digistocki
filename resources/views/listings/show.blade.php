@@ -233,6 +233,15 @@
                             </button>
                         </form>
                     @endif
+                    @if (auth()->user()->can('restoreSold', $listing))
+                        <form method="POST" action="{{ route('listings.restore-sold', $listing) }}">
+                            @csrf @method('PATCH')
+                            <button
+                                class="inline-flex items-center gap-2 rounded-lg bg-success/10 px-4 py-2.5 text-sm font-bold text-success transition hover:bg-success/15">
+                                <x-heroicon-o-arrow-path class="h-4 w-4" /> بازگردانی به منتشرشده
+                            </button>
+                        </form>
+                    @endif
                 </div>
             @endauth
         </div>

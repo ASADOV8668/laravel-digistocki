@@ -222,6 +222,11 @@
                                     @method('PATCH')<button
                                         class="rounded-lg bg-success/10 px-3 py-2 text-xs font-bold text-success">فروخته
                                         شد</button></form>
+                            @elseif ($listing->status->value === 'sold' && auth()->user()->can('restoreSold', $listing))
+                                <form method="POST" action="{{ route('listings.restore-sold', $listing) }}">@csrf
+                                    @method('PATCH')<button
+                                        class="rounded-lg bg-success/10 px-3 py-2 text-xs font-bold text-success">بازگردانی به منتشرشده</button>
+                                </form>
                             @endif
                             <form method="POST" action="{{ route('listings.destroy', $listing) }}"
                                 onsubmit="return confirm('آگهی حذف شود؟')">

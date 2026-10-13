@@ -59,6 +59,11 @@ class ListingPolicy
         return ($user->isAdmin() || $listing->isOwnedBy($user)) && $listing->status->value === 'approved';
     }
 
+    public function restoreSold(User $user, Listing $listing): bool
+    {
+        return ($user->isAdmin() || $listing->isOwnedBy($user)) && $listing->status->value === 'sold';
+    }
+
     public function renew(User $user, Listing $listing): bool
     {
         return $listing->isOwnedBy($user) && $listing->status->value === 'expired';

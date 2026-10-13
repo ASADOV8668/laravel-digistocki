@@ -76,7 +76,21 @@ class PhaseFiveUserListingsTest extends TestCase
         $this->actingAs($other)->get(route('listings.edit', $listing))->assertForbidden();
         $this->actingAs($owner)->patch(route('listings.sold', $listing))->assertRedirect()->assertSessionHas('status', 'آگهی به‌عنوان فروخته‌شده علامت خورد.');
         $this->assertSame(ListingStatus::Sold, $listing->refresh()->status);
-        $this->actingAs($owner)->get(route('dashboard'))->assertOk()->assertSee('آگهی به‌عنوان فروخته‌شده علامت خورد.');
+        $this->actingAs($owner)->get(route('listings.edit', $listing))->assertForbidden();
+        $this->actingAs($owner)->get(route('dashboard'))->assertOk()->assertSee('بازگردانی به منتشرشده');
+
+        $this->actingAs($owner)->patch(route('listings.restore-sold', $listing))
+            ->assertRedirect()
+            ->assertSessionHas('status', 'آگهی دوباره منتشر شد.');
+
+        $this->assertSame(ListingStatus::Approved, $listing->refresh()->status);
+        $this->assertFalse($listing->is_user_disabled);
+        $this->assertNotNull($listing->published_at);
+        $this->assertNotNull($listing->expires_at);
+        $this->actingAs($owner)->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('تأییدشده')
+            ->assertDontSee('بازگردانی به منتشرشده');
     }
 
     private function catalogContext(): array

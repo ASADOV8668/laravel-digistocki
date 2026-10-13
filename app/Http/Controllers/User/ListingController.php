@@ -699,6 +699,20 @@ class ListingController extends Controller
         return back()->with('status', 'آگهی به‌عنوان فروخته‌شده علامت خورد.');
     }
 
+    public function restoreSold(Request $request, Listing $listing, ListingRules $rules)
+    {
+        $this->authorize('restoreSold', $listing);
+        $listing->forceFill([
+            'status' => 'approved',
+            'is_user_disabled' => false,
+            'published_at' => now(),
+            'expires_at' => $rules->expiryDate(),
+            'rejection_reason' => null,
+        ])->save();
+
+        return back()->with('status', 'آگهی دوباره منتشر شد.');
+    }
+
     public function renew(Request $request, Listing $listing, ListingRules $rules)
     {
         $this->authorize('renew', $listing);

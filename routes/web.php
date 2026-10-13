@@ -58,6 +58,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/dashboard/listings/bulk', [ListingController::class, 'bulkAction'])->name('dashboard.listings.bulk');
     Route::delete('/listings/{listing}', [ListingController::class, 'destroy'])->name('listings.destroy');
     Route::patch('/listings/{listing}/sold', [ListingController::class, 'markSold'])->name('listings.sold');
+    Route::patch('/listings/{listing}/restore-sold', [ListingController::class, 'restoreSold'])->name('listings.restore-sold');
     Route::patch('/listings/{listing}/renew', [ListingController::class, 'renew'])->name('listings.renew');
     Route::delete('/listings/{listing}/images/{image}', [ListingController::class, 'destroyImage'])->name('listings.images.destroy');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
