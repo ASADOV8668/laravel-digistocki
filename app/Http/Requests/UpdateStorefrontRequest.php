@@ -26,6 +26,7 @@ class UpdateStorefrontRequest extends FormRequest
         ) ?? $this->englishDigits($this->input('business_license_expires_at'));
 
         $this->merge([
+            'slug' => $this->normalizeSlug($this->input('slug')),
             'national_id' => $this->englishDigits($this->input('national_id')),
             'contact_phone' => $this->englishDigits($this->input('contact_phone')),
             'business_license_expires_at' => $expiry,
@@ -123,6 +124,11 @@ class UpdateStorefrontRequest extends FormRequest
     private function englishDigits(mixed $value): ?string
     {
         return $value === null ? null : PersianDigits::toEnglish((string) $value);
+    }
+
+    private function normalizeSlug(mixed $value): ?string
+    {
+        return $value === null ? null : strtolower(trim((string) $value));
     }
 
     private function isValidNationalId(string $value): bool

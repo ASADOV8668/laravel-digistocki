@@ -21,12 +21,12 @@ class PhaseOneHundredSixtyThreeAdminStorefrontTest extends TestCase
         $this->actingAs($admin)->put(route('admin.storefronts.update', $user), [
             'store_enabled' => 1,
             'name' => 'غرفه مدیریتی',
-            'slug' => 'admin-shop',
+            'slug' => 'Apple',
             'contact_phone' => '09120003333',
         ])->assertRedirect(route('admin.storefronts.index'));
 
         $store = SellerStore::where('user_id', $user->id)->firstOrFail();
-        $this->assertSame('admin-shop', $store->slug);
+        $this->assertSame('apple', $store->slug);
 
         $this->actingAs($admin)->put(route('admin.storefronts.update', $user), [
             'store_enabled' => 1,

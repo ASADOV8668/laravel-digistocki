@@ -32,7 +32,7 @@ class PhaseOneHundredSixtyOneStorefrontManagementTest extends TestCase
             'last_name' => 'تست',
             'national_id' => '۰۰۶۷۱۲۳۴۵۷',
             'name' => 'فروشگاه رضایی',
-            'slug' => 'reza-mobile',
+            'slug' => 'Reza-Mobile',
             'contact_phone' => '۰۹۱۲۰۰۰۱۱۱۱',
             'business_license_number' => 'LIC-۰۰۱',
             'business_license_expires_at' => '۱۴۰۵/۱۲/۲۹',
