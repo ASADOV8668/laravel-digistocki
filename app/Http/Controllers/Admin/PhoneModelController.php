@@ -13,17 +13,21 @@ use Illuminate\Support\Str;
 
 class PhoneModelController extends Controller
 {
+    use Concerns\InteractsWithAdminPagination;
+
     public function index(Request $request)
     {
+        $perPage = $this->adminPerPage($request);
+        $perPageOptions = $this->adminPerPageOptions();
         $models = PhoneModel::with(['brand', 'attributes' => fn ($query) => $query->where('attributes.is_active', true)->orderBy('model_attributes.sort_order')])->withCount('listings')
             ->when($request->filled('brand_id'), fn ($query) => $query->where('brand_id', $request->integer('brand_id')))
             ->when($request->filled('q'), fn ($query) => $query->where(function ($query) use ($request) {
                 $like = '%'.$request->string('q').'%';
                 $query->where('name', 'like', $like)->orWhere('name_fa', 'like', $like)->orWhere('name_en', 'like', $like);
             }))
-            ->orderBy('name')->paginate(20)->withQueryString();
+            ->orderBy('name')->paginate($perPage)->withQueryString();
 
-        return view('admin.phone-models.index', ['models' => $models, 'brands' => Brand::orderBy('name')->get(), 'attributes' => Attribute::where('is_active', true)->orderBy('sort_order')->get()]);
+        return view('admin.phone-models.index', ['models' => $models, 'brands' => Brand::orderBy('name')->get(), 'attributes' => Attribute::where('is_active', true)->orderBy('sort_order')->get(), 'perPageOptions' => $perPageOptions]);
     }
 
     public function store(Request $request)

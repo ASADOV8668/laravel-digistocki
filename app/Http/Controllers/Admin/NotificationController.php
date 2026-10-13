@@ -9,10 +9,16 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+    use Concerns\InteractsWithAdminPagination;
+
     public function index(Request $request)
     {
+        $perPage = $this->adminPerPage($request);
+        $perPageOptions = $this->adminPerPageOptions();
+
         return view('admin.notifications.index', [
-            'notifications' => $request->user()->notifications()->latest()->paginate(20),
+            'notifications' => $request->user()->notifications()->latest()->paginate($perPage)->withQueryString(),
+            'perPageOptions' => $perPageOptions,
         ]);
     }
 

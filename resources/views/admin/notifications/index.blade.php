@@ -80,6 +80,6 @@
             @endforelse
         </div>
 
-        {{ $notifications->links('vendor.pagination.flowbite') }}
+        <x-admin.pagination :paginator="$notifications" route="admin.notifications.index" :per-page-options="$perPageOptions" />
     </section>
 </x-admin-layout>

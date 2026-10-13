@@ -100,6 +100,6 @@
                 </div>
             </div>
         </div>
-        {{ $brands->links() }}
+        <x-admin.pagination :paginator="$brands" route="admin.brands.index" :per-page-options="$perPageOptions" />
     </section>
 </x-admin-layout>

@@ -33,6 +33,8 @@ use Throwable;
 
 class ListingController extends Controller
 {
+    use Concerns\InteractsWithAdminPagination;
+
     public function create(SystemOptions $options)
     {
         return view('admin.listings.form', $this->formData($options));
@@ -142,6 +144,8 @@ class ListingController extends Controller
 
     public function index(Request $request)
     {
+        $perPage = $this->adminPerPage($request);
+        $perPageOptions = $this->adminPerPageOptions();
         $status = $request->input('status');
         $statuses = ['pending', 'approved', 'rejected', 'sold', 'expired'];
         $dateFrom = PersianDate::parseDate($request->input('date_from'));
@@ -167,10 +171,10 @@ class ListingController extends Controller
             ->when($dateFrom, fn (Builder $query) => $query->where('created_at', '>=', $dateFrom->startOfDay()))
             ->when($dateTo, fn (Builder $query) => $query->where('created_at', '<=', $dateTo->endOfDay()))
             ->latest()
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.listings.index', compact('listings', 'statuses', 'status', 'statusCounts'));
+        return view('admin.listings.index', compact('listings', 'statuses', 'status', 'statusCounts', 'perPageOptions'));
     }
 
     public function approve(Listing $listing, ListingRules $rules): RedirectResponse|JsonResponse

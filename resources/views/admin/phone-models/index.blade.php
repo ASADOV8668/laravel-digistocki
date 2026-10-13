@@ -175,6 +175,6 @@
                 </div>
             </div>
         </div>
-        {{ $models->links() }}
+        <x-admin.pagination :paginator="$models" route="admin.phone-models.index" :per-page-options="$perPageOptions" />
     </section>
 </x-admin-layout>

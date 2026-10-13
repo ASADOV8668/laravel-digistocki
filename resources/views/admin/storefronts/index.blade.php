@@ -122,6 +122,6 @@
                 @endforelse
             </div>
         </div>
-        {{ $stores->links() }}
+        <x-admin.pagination :paginator="$stores" route="admin.storefronts.index" :per-page-options="$perPageOptions" />
     </section>
 </x-admin-layout>

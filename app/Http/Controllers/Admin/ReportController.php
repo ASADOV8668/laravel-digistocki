@@ -13,8 +13,12 @@ use Illuminate\Validation\Rule;
 
 class ReportController extends Controller
 {
+    use Concerns\InteractsWithAdminPagination;
+
     public function index(Request $request, ReportRules $reportRules)
     {
+        $perPage = $this->adminPerPage($request);
+        $perPageOptions = $this->adminPerPageOptions();
         $status = $request->input('status');
         $status = is_string($status) && array_key_exists($status, ReportRules::STATUSES) ? $status : null;
         $dateFrom = PersianDate::parseDate($request->input('date_from'));
@@ -30,14 +34,14 @@ class ReportController extends Controller
             ->when($dateFrom, fn ($query) => $query->where('created_at', '>=', $dateFrom->startOfDay()))
             ->when($dateTo, fn ($query) => $query->where('created_at', '<=', $dateTo->endOfDay()))
             ->latest()
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
         $reportStatusOptions = $reports->getCollection()
             ->mapWithKeys(fn (Report $report) => [$report->id => $reportRules->availableStatuses($report)])
             ->all();
 
-        return view('admin.reports.index', compact('reports', 'reportStats', 'reportStatusOptions'));
+        return view('admin.reports.index', compact('reports', 'reportStats', 'reportStatusOptions', 'perPageOptions'));
     }
 
     public function updateStatus(Request $request, Report $report, ReportRules $reportRules): RedirectResponse|JsonResponse

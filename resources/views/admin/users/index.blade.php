@@ -145,6 +145,6 @@
                 </table>
             </div>
         </div>
-        {{ $users->links() }}
+        <x-admin.pagination :paginator="$users" route="admin.users.index" :per-page-options="$perPageOptions" />
     </section>
 </x-admin-layout>

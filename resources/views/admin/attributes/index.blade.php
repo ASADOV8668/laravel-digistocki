@@ -157,5 +157,6 @@
                 </div>
             </div>
         </div>
+        <x-admin.pagination :paginator="$attributes" route="admin.attributes.index" :per-page-options="$perPageOptions" />
     </section>
 </x-admin-layout>

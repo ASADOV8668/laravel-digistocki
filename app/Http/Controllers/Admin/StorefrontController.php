@@ -19,8 +19,12 @@ use Sadegh19b\LaravelIranCities\Models\Province;
 
 class StorefrontController extends Controller
 {
+    use Concerns\InteractsWithAdminPagination;
+
     public function index(Request $request): View
     {
+        $perPage = $this->adminPerPage($request);
+        $perPageOptions = $this->adminPerPageOptions();
         $status = $request->input('status');
         $status = is_string($status) && in_array($status, ['active', 'disabled', 'blocked'], true) ? $status : null;
         $searchLikes = PersianSearch::likes((string) $request->input('q'));
@@ -50,10 +54,10 @@ class StorefrontController extends Controller
                 });
             })
             ->latest()
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.storefronts.index', compact('stores', 'storeStats'));
+        return view('admin.storefronts.index', compact('stores', 'storeStats', 'perPageOptions'));
     }
 
     public function show(SellerStore $sellerStore): View

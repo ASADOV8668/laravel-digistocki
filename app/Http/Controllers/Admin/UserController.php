@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    use Concerns\InteractsWithAdminPagination;
+
     public function edit(User $user)
     {
         return view('admin.users.edit', compact('user'));
@@ -62,6 +64,8 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
+        $perPage = $this->adminPerPage($request);
+        $perPageOptions = $this->adminPerPageOptions();
         $role = $request->input('role');
         $role = is_string($role) && in_array($role, ['user', 'admin'], true) ? $role : null;
 
@@ -84,10 +88,10 @@ class UserController extends Controller
             })
             ->when($role !== null, fn (Builder $query) => $query->where('role', $role))
             ->latest()
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.users.index', compact('users', 'userStats'));
+        return view('admin.users.index', compact('users', 'userStats', 'perPageOptions'));
     }
 
     public function toggleActive(Request $request, User $user): RedirectResponse|JsonResponse

@@ -207,6 +207,6 @@
                 @endforelse
             </div>
         </div>
-        {{ $reports->links() }}
+        <x-admin.pagination :paginator="$reports" route="admin.reports.index" :per-page-options="$perPageOptions" />
     </section>
 </x-admin-layout>

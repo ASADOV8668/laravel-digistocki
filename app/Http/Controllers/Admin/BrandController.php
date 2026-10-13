@@ -11,13 +11,17 @@ use Illuminate\Support\Str;
 
 class BrandController extends Controller
 {
+    use Concerns\InteractsWithAdminPagination;
+
     public function index(Request $request)
     {
+        $perPage = $this->adminPerPage($request);
+        $perPageOptions = $this->adminPerPageOptions();
         $brands = Brand::withCount('phoneModels')
             ->when($request->filled('q'), fn ($query) => $query->where('name', 'like', '%'.$request->string('q').'%')->orWhere('name_en', 'like', '%'.$request->string('q').'%'))
-            ->orderBy('name')->paginate(20)->withQueryString();
+            ->orderBy('name')->paginate($perPage)->withQueryString();
 
-        return view('admin.brands.index', compact('brands'));
+        return view('admin.brands.index', compact('brands', 'perPageOptions'));
     }
 
     public function store(Request $request)

@@ -13,15 +13,20 @@ use Illuminate\Validation\ValidationException;
 
 class AttributeController extends Controller
 {
+    use Concerns\InteractsWithAdminPagination;
+
     public function index(Request $request)
     {
+        $perPage = $this->adminPerPage($request);
+        $perPageOptions = $this->adminPerPageOptions();
         $attributes = ListingAttribute::withCount('phoneModels')
             ->when($request->filled('q'), fn ($query) => $query->where('name', 'like', '%'.$request->string('q').'%'))
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->get();
+            ->paginate($perPage)
+            ->withQueryString();
 
-        return view('admin.attributes.index', ['attributes' => $attributes, 'types' => AttributeType::cases()]);
+        return view('admin.attributes.index', ['attributes' => $attributes, 'types' => AttributeType::cases(), 'perPageOptions' => $perPageOptions]);
     }
 
     public function store(Request $request)
