@@ -75,6 +75,8 @@ class UpdateListingRequest extends FormRequest
             'attributes.*' => ['nullable'],
             'images' => ['nullable', 'array', 'max:'.$remainingImageSlots],
             'images.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
+            'primary_image_index' => ['nullable', 'integer', 'min:0'],
+            'primary_image_id' => ['nullable', 'integer', 'min:1'],
         ];
     }
 

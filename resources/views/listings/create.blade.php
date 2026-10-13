@@ -166,11 +166,20 @@
                             name="images[]" multiple @if (!$clone || $clone->images->isEmpty()) required @endif accept=".jpg,.jpeg,.png,.webp" class="sr-only"></label>
                     <div x-show="previews.length" x-cloak class="grid grid-cols-4 gap-2"><template
                             x-for="preview in previews" :key="preview.url">
-                            <div class="overflow-hidden rounded-lg bg-slate-50 border border-slate-200"><img
-                                    :src="preview.url" :alt="preview.name" class="h-20 w-full object-cover">
+                            <button type="button" @click="setPrimary(previews.indexOf(preview))"
+                                class="relative overflow-hidden rounded-lg border-2 bg-slate-50 text-right transition"
+                                :class="primaryImageId === '' && String(primaryIndex) === String(previews.indexOf(preview)) ? 'border-success ring-2 ring-success/20' : 'border-slate-200 hover:border-primary/50'"
+                                :aria-label="`انتخاب ${preview.name} به‌عنوان تصویر اصلی`">
+                                <img :src="preview.url" :alt="preview.name" class="h-20 w-full object-cover">
+                                <span x-show="primaryImageId === '' && String(primaryIndex) === String(previews.indexOf(preview))"
+                                    class="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-success text-white shadow-lg"
+                                    aria-label="تصویر اصلی">✓</span>
                                 <p x-text="preview.name" class="truncate px-1.5 py-1 text-[9px] text-slate-500"></p>
-                            </div>
+                            </button>
                         </template></div>
+                    <input type="hidden" name="primary_image_index" x-model="primaryIndex">
+                    <input type="hidden" name="primary_image_id" x-model="primaryImageId">
+                    <p x-show="previews.length" class="text-[10px] text-slate-400">برای تعیین تصویر اصلی روی همان تصویر کلیک کنید.</p>
                     <div class="flex items-center justify-between text-[10px] text-slate-400"><span
                             x-show="previews.length" x-text="`${previews.length} تصویر انتخاب شده`"></span><span
                             x-show="!previews.length">هنوز تصویری انتخاب نشده است</span><span>حداکثر {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر</span></div>

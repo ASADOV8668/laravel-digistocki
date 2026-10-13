@@ -42,4 +42,18 @@ class PhaseNinetyThreeImagePickerTest extends TestCase
         $this->assertStringContainsString('event.target.files = transfer.files', $source);
         $this->assertStringContainsString('URL.revokeObjectURL(preview.url)', $source);
     }
+
+    public function test_public_and_admin_forms_offer_click_to_choose_primary_image(): void
+    {
+        $publicCreate = file_get_contents(resource_path('views/listings/create.blade.php'));
+        $publicEdit = file_get_contents(resource_path('views/listings/edit.blade.php'));
+        $adminForm = file_get_contents(resource_path('views/admin/listings/form.blade.php'));
+
+        $this->assertStringContainsString('setPrimary(previews.indexOf(preview))', $publicCreate);
+        $this->assertStringContainsString('setPrimary(\'\', \'{{ $image->id }}\')', $publicEdit);
+        $this->assertStringContainsString('setPrimary(\'\', \'{{ $image->id }}\')', $adminForm);
+        $this->assertStringContainsString('name="primary_image_index"', $publicCreate);
+        $this->assertStringContainsString('name="primary_image_id"', $publicEdit);
+        $this->assertStringContainsString('bg-success', $adminForm);
+    }
 }

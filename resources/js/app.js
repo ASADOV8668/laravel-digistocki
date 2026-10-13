@@ -583,10 +583,17 @@ window.networkStatus = () => ({
     },
 });
 
-window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
+window.imagePicker = (maxMb = 5, maxFiles = 8, initialPrimaryImageId = '') => ({
     previews: [],
     invalid: false,
     message: '',
+    primaryIndex: '0',
+    primaryImageId: initialPrimaryImageId ? String(initialPrimaryImageId) : '',
+
+    setPrimary(index = '', imageId = '') {
+        this.primaryIndex = imageId ? '' : String(index);
+        this.primaryImageId = imageId ? String(imageId) : '';
+    },
 
     select(event) {
         this.revokePreviews();
@@ -605,6 +612,9 @@ window.imagePicker = (maxMb = 5, maxFiles = 8) => ({
             event.target.files = transfer.files;
         } else if (this.invalid) {
             event.target.value = '';
+        }
+        if (this.primaryImageId === '' && validFiles.length > 0 && Number(this.primaryIndex) >= validFiles.length) {
+            this.primaryIndex = '0';
         }
         this.previews = validFiles.map((file) => ({
             name: file.name,

@@ -154,18 +154,30 @@
                     </div>
                 </div>
             </div>
-            <div class="border-t border-slate-100 pt-6">
+            <div x-data='imagePicker(@js($maxImageUploadMb), {{ $editing ? max(0, $maxImageUploadCount - $listing->images->count()) : $maxImageUploadCount }}, @js($listing?->images?->firstWhere("is_primary", true)?->id))'
+                class="border-t border-slate-100 pt-6">
                 <h2 class="text-base font-black text-slate-900">تصاویر</h2>
                 <p class="mt-1 text-xs text-slate-400">حداکثر {{ $maxImageUploadCount }} تصویر، هر تصویر
                     {{ $maxImageUploadMb }} مگابایت.</p>
-                <div x-data='imagePicker(@js($maxImageUploadMb), {{ $editing ? max(0, $maxImageUploadCount - $listing->images->count()) : $maxImageUploadCount }})'
-                    class="mt-4"><label
+                <div class="mt-4"><label
                         class="flex cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed border-primary/20 bg-primary-50/40 p-6 text-sm font-bold text-primary"><x-heroicon-o-photo
                             class="ml-2 h-6 w-6" />انتخاب تصاویر جدید<input @change="select($event)" type="file"
                             name="images[]" multiple accept=".jpg,.jpeg,.png,.webp" class="sr-only"></label>
                     <div x-show="previews.length" x-cloak class="mt-3 grid grid-cols-4 gap-2"><template
-                            x-for="preview in previews" :key="preview.url"><img :src="preview.url"
-                                :alt="preview.name" class="h-20 w-full rounded-xl object-cover"></template></div>
+                            x-for="preview in previews" :key="preview.url">
+                            <button type="button" @click="setPrimary(previews.indexOf(preview))"
+                                class="relative overflow-hidden rounded-xl border-2 bg-slate-50 text-right transition"
+                                :class="primaryImageId === '' && String(primaryIndex) === String(previews.indexOf(preview)) ? 'border-success ring-2 ring-success/20' : 'border-slate-200 hover:border-primary/50'"
+                                :aria-label="`انتخاب ${preview.name} به‌عنوان تصویر اصلی`">
+                                <img :src="preview.url" :alt="preview.name" class="h-20 w-full object-cover">
+                                <span x-show="primaryImageId === '' && String(primaryIndex) === String(previews.indexOf(preview))"
+                                    class="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-success text-white shadow-lg">✓</span>
+                                <p x-text="preview.name" class="truncate px-1.5 py-1 text-[9px] text-slate-500"></p>
+                            </button>
+                        </template></div>
+                    <input type="hidden" name="primary_image_index" x-model="primaryIndex">
+                    <input type="hidden" name="primary_image_id" x-model="primaryImageId">
+                    <p x-show="previews.length || primaryImageId" class="mt-2 text-[10px] text-slate-400">برای تعیین تصویر اصلی روی همان تصویر کلیک کنید.</p>
                 </div>
             </div>
             <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end"><a
@@ -179,9 +191,16 @@
                 <h2 class="text-base font-black text-slate-900">تصاویر فعلی</h2>
                 <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                     @foreach ($listing->images as $image)
-                        <div class="relative overflow-hidden rounded-2xl bg-slate-100"><img
-                                src="{{ asset('storage/' . $image->path) }}" alt="{{ $listing->title }}"
-                                class="h-32 w-full object-cover" loading="lazy" decoding="async">
+                        <div class="relative overflow-hidden rounded-2xl bg-slate-100">
+                            <button type="button" @click="setPrimary('', '{{ $image->id }}')"
+                                class="relative block w-full overflow-hidden border-2 transition"
+                                :class="String(primaryImageId) === '{{ $image->id }}' ? 'border-success ring-2 ring-success/20' : 'border-transparent hover:border-primary/50'"
+                                aria-label="انتخاب تصویر اصلی">
+                                <img src="{{ asset('storage/' . $image->path) }}" alt="{{ $listing->title }}"
+                                    class="h-32 w-full object-cover" loading="lazy" decoding="async">
+                                <span x-show="String(primaryImageId) === '{{ $image->id }}'"
+                                    class="absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-success text-white shadow-lg">✓</span>
+                            </button>
                             <div class="absolute inset-x-2 bottom-2 flex items-center justify-between gap-2"><span
                                     class="rounded-full bg-black/60 px-2 py-1 text-[10px] font-bold text-white">{{ $image->is_primary ? 'تصویر اصلی' : 'تصویر' }}</span>
                                 <form method="POST"
@@ -195,6 +214,7 @@
                 </div>
             </div>
         @endif
+        </div>
     </section>
     <script>
         window.adminListingForm = (modelsEndpoint, citiesEndpoint, usersEndpoint, initialBrandId = '', initialModelId = '',

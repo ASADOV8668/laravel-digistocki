@@ -51,4 +51,30 @@ class PhaseNinetySevenImageOrderingTest extends TestCase
         $this->assertFalse((bool) $images[1]->is_primary);
         $this->assertSame([1, 2], $images->pluck('sort_order')->all());
     }
+
+    public function test_selected_primary_image_index_is_persisted(): void
+    {
+        $user = User::factory()->create();
+        $this->storeApplication($user);
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+
+        $this->actingAs($user)->post(route('listings.store'), [
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی تصویر اصلی انتخابی',
+            'price' => 22000000,
+            'primary_image_index' => 1,
+            'attributes' => $this->requiredAttributeValues($model),
+            'images' => [
+                UploadedFile::fake()->create('first.jpg', 20, 'image/jpeg'),
+                UploadedFile::fake()->create('selected.jpg', 20, 'image/jpeg'),
+            ],
+        ])->assertRedirect();
+
+        $images = Listing::where('title', 'آگهی تصویر اصلی انتخابی')->firstOrFail()->images()->get();
+
+        $this->assertFalse((bool) $images[0]->is_primary);
+        $this->assertTrue((bool) $images[1]->is_primary);
+    }
 }

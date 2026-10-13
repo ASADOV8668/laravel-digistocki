@@ -15,6 +15,7 @@ use App\Models\PhoneModel;
 use App\Models\User;
 use App\Notifications\ListingStatusNotification;
 use App\Services\ImageService;
+use App\Services\ListingAttributeOptionRegistrar;
 use App\Services\ListingRules;
 use App\Services\SystemOptions;
 use App\Support\MobileNumber;
@@ -22,6 +23,7 @@ use App\Support\PersianDate;
 use App\Support\PersianSearch;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -54,10 +56,10 @@ class ListingController extends Controller
         try {
             $listing = DB::transaction(function () use ($validated, $model, $imageService, &$storedFiles) {
                 $data = $validated;
-                unset($data['attributes'], $data['images'], $data['user_id']);
+                unset($data['attributes'], $data['images'], $data['user_id'], $data['primary_image_index'], $data['primary_image_id']);
                 $listing = Listing::create([...$data, 'user_id' => $validated['user_id'], 'slug' => Str::slug($validated['title']).'-'.Str::lower(Str::random(8)), 'status' => 'pending', 'expires_at' => null]);
                 $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
-                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $storedFiles);
+                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $storedFiles, $validated['primary_image_index'] ?? null, $validated['primary_image_id'] ?? null);
 
                 return $listing;
             });
@@ -80,12 +82,12 @@ class ListingController extends Controller
         try {
             DB::transaction(function () use ($validated, $listing, $model, $imageService, &$storedFiles) {
                 $data = $validated;
-                unset($data['attributes'], $data['images'], $data['user_id'], $data['status']);
+                unset($data['attributes'], $data['images'], $data['user_id'], $data['status'], $data['primary_image_index'], $data['primary_image_id']);
                 $status = $validated['status'];
                 $listing->update([...$data, 'user_id' => $validated['user_id'], 'status' => $status, 'published_at' => $status === 'approved' ? now() : $listing->published_at, 'expires_at' => $status === 'approved' ? app(ListingRules::class)->expiryDate() : ($status === 'expired' ? now()->subSecond() : $listing->expires_at), 'rejection_reason' => $status === 'rejected' ? ($listing->rejection_reason ?: 'رد توسط مدیریت') : null]);
                 $listing->attributeValues()->delete();
                 $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
-                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $storedFiles);
+                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $storedFiles, $validated['primary_image_index'] ?? null, $validated['primary_image_id'] ?? null);
             });
         } catch (Throwable $exception) {
             $imageService->deleteMany($storedFiles);
@@ -163,7 +165,7 @@ class ListingController extends Controller
         return view('admin.listings.index', compact('listings', 'statuses', 'status', 'statusCounts'));
     }
 
-    public function approve(Listing $listing, ListingRules $rules): \Illuminate\Http\RedirectResponse|JsonResponse
+    public function approve(Listing $listing, ListingRules $rules): RedirectResponse|JsonResponse
     {
         $this->authorize('approve', $listing);
         abort_unless($rules->canPublish($listing), 422, 'این آگهی در وضعیت فعلی قابل تأیید نیست.');
@@ -182,7 +184,7 @@ class ListingController extends Controller
         return back()->with('status', $message);
     }
 
-    public function reject(Request $request, Listing $listing, ListingRules $rules): \Illuminate\Http\RedirectResponse|JsonResponse
+    public function reject(Request $request, Listing $listing, ListingRules $rules): RedirectResponse|JsonResponse
     {
         $this->authorize('reject', $listing);
         abort_unless($rules->canReject($listing), 422, 'این آگهی در وضعیت فعلی قابل رد نیست.');
@@ -232,7 +234,7 @@ class ListingController extends Controller
                 continue;
             }
 
-            app(\App\Services\ListingAttributeOptionRegistrar::class)->remember($attribute, $value);
+            app(ListingAttributeOptionRegistrar::class)->remember($attribute, $value);
 
             $payload = ['listing_id' => $listing->id, 'attribute_id' => $attribute->id, 'value_string' => null, 'value_integer' => null, 'value_decimal' => null, 'value_boolean' => null, 'value_json' => null, 'created_at' => $now, 'updated_at' => $now];
             match ($attribute->type) {
@@ -249,16 +251,30 @@ class ListingController extends Controller
         }
     }
 
-    private function storeImages(Listing $listing, array $images, ImageService $imageService, array &$storedFiles): void
+    private function storeImages(Listing $listing, array $images, ImageService $imageService, array &$storedFiles, ?int $primaryImageIndex = null, ?int $primaryImageId = null): void
     {
         $uploads = array_values(array_filter($images, fn ($image) => $image instanceof UploadedFile));
-        $hasPrimary = $listing->images()->where('is_primary', true)->exists();
+        $selectedPrimary = $primaryImageId !== null
+            ? $listing->images()->whereKey($primaryImageId)->first()
+            : null;
+
+        if ($selectedPrimary) {
+            $listing->images()->update(['is_primary' => false]);
+            $selectedPrimary->update(['is_primary' => true]);
+        } elseif ($primaryImageIndex !== null) {
+            $listing->images()->update(['is_primary' => false]);
+        }
+
+        $hasPrimary = $selectedPrimary !== null || $listing->images()->where('is_primary', true)->exists();
         $sortOrder = (int) $listing->images()->max('sort_order') + 1;
-        foreach ($uploads as $image) {
+        foreach ($uploads as $index => $image) {
             $stored = $imageService->store($image, 'listings/'.$listing->id);
             $storedFiles[] = [$stored['path'] ?? null, $stored['thumbnail_path'] ?? null];
-            $listing->images()->create([...$stored, 'is_primary' => ! $hasPrimary, 'sort_order' => $sortOrder++]);
-            $hasPrimary = true;
+            $isPrimary = $selectedPrimary === null
+                ? ($primaryImageIndex !== null ? $index === $primaryImageIndex : ! $hasPrimary)
+                : false;
+            $listing->images()->create([...$stored, 'is_primary' => $isPrimary, 'sort_order' => $sortOrder++]);
+            $hasPrimary = $hasPrimary || $isPrimary;
         }
     }
 }

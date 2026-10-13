@@ -530,7 +530,7 @@ class ListingController extends Controller
         try {
             $listing = DB::transaction(function () use ($validated, $request, $model, $imageService, $options, &$storedFiles) {
                 $listingData = $validated;
-                unset($listingData['attributes'], $listingData['images']);
+                unset($listingData['attributes'], $listingData['images'], $listingData['primary_image_index'], $listingData['primary_image_id']);
                 $listing = Listing::create([
                     ...$listingData,
                     'user_id' => $request->user()->id,
@@ -541,7 +541,7 @@ class ListingController extends Controller
 
                 $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
                 $uploads = (array) ($validated['images'] ?? []);
-                $this->storeImages($listing, $uploads, $imageService, $storedFiles);
+                $this->storeImages($listing, $uploads, $imageService, $storedFiles, $validated['primary_image_index'] ?? null, $validated['primary_image_id'] ?? null);
                 if ($uploads === [] && $request->integer('clone')) {
                     $this->cloneImages($listing, $request->integer('clone'), $options, $storedFiles);
                 }
@@ -670,11 +670,11 @@ class ListingController extends Controller
         try {
             DB::transaction(function () use ($validated, $listing, $model, $imageService, &$storedFiles) {
                 $listingData = $validated;
-                unset($listingData['attributes'], $listingData['images']);
+                unset($listingData['attributes'], $listingData['images'], $listingData['primary_image_index'], $listingData['primary_image_id']);
                 $listing->update([...$listingData, 'status' => 'pending', 'rejection_reason' => null, 'published_at' => null]);
                 $listing->attributeValues()->delete();
                 $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
-                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $storedFiles);
+                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $storedFiles, $validated['primary_image_index'] ?? null, $validated['primary_image_id'] ?? null);
             });
         } catch (Throwable $exception) {
             $imageService->deleteMany($storedFiles);
@@ -778,25 +778,39 @@ class ListingController extends Controller
         }
     }
 
-    private function storeImages(Listing $listing, array $images, ImageService $imageService, array &$storedFiles = []): void
+    private function storeImages(Listing $listing, array $images, ImageService $imageService, array &$storedFiles = [], ?int $primaryImageIndex = null, ?int $primaryImageId = null): void
     {
         $uploads = array_values(array_filter($images, fn ($image) => $image instanceof UploadedFile));
+        $selectedPrimary = $primaryImageId !== null
+            ? $listing->images()->whereKey($primaryImageId)->first()
+            : null;
+
+        if ($selectedPrimary) {
+            $listing->images()->update(['is_primary' => false]);
+            $selectedPrimary->update(['is_primary' => true]);
+        } elseif ($primaryImageIndex !== null) {
+            $listing->images()->update(['is_primary' => false]);
+        }
+
         if ($uploads === []) {
             return;
         }
 
-        $hasPrimary = $listing->images()->where('is_primary', true)->exists();
+        $hasPrimary = $selectedPrimary !== null || $listing->images()->where('is_primary', true)->exists();
         $nextSortOrder = (int) $listing->images()->max('sort_order') + 1;
 
-        foreach ($uploads as $image) {
+        foreach ($uploads as $index => $image) {
             $stored = $imageService->store($image, 'listings/'.$listing->id);
             $storedFiles[] = [$stored['path'] ?? null, $stored['thumbnail_path'] ?? null];
+            $isPrimary = $selectedPrimary === null
+                ? ($primaryImageIndex !== null ? $index === $primaryImageIndex : ! $hasPrimary)
+                : false;
             $listing->images()->create([
                 ...$stored,
-                'is_primary' => ! $hasPrimary,
+                'is_primary' => $isPrimary,
                 'sort_order' => $nextSortOrder++,
             ]);
-            $hasPrimary = true;
+            $hasPrimary = $hasPrimary || $isPrimary;
         }
     }
 
