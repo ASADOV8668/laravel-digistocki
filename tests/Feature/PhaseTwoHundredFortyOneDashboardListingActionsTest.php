@@ -187,6 +187,34 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
             ->assertSee('name="clone"', false);
     }
 
+    public function test_dashboard_clone_page_prefills_the_source_listing_attributes(): void
+    {
+        $user = User::factory()->create();
+        SellerStore::create(['user_id' => $user->id, 'slug' => 'clone-attributes-'.$user->id, 'name' => 'فروشگاه ویژگی کپی']);
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+        $memory = $model->attributes()->where('slug', 'storage')->first() ?? $model->attributes()->where('type', 'integer')->firstOrFail();
+        $listing = Listing::create([
+            'user_id' => $user->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی با ویژگی قابل کپی',
+            'slug' => Str::uuid(),
+            'price' => 1000000,
+            'status' => ListingStatus::Approved,
+        ]);
+        ListingAttributeValue::create([
+            'listing_id' => $listing->id,
+            'attribute_id' => $memory->id,
+            'value_integer' => 256,
+        ]);
+
+        $this->actingAs($user)->get(route('listings.create', ['clone' => $listing->id]))
+            ->assertOk()
+            ->assertSee('data-listing-initial-values', false)
+            ->assertSee('"'.$memory->id.'":256', false);
+    }
+
     public function test_dashboard_filters_by_persian_date_and_supports_bulk_price_actions(): void
     {
         $user = User::factory()->create();

@@ -95,7 +95,7 @@
                 <div x-show="!attributesLoading && !attributes.length"
                     class="rounded-lg bg-warning/10 p-3 text-xs leading-6 text-neutral">برای این مدل هنوز ویژگی‌ای تعریف
                     نشده است.</div>
-                <div x-show="!attributesLoading"><x-listing-attribute-repeater :attribute-definitions="$initialModelAttributes" :values="old('attributes', [])" />
+                <div x-show="!attributesLoading"><x-listing-attribute-repeater :attribute-definitions="$initialModelAttributes" :values="$initialValues ?? old('attributes', [])" />
                 </div>
             </div>
 
