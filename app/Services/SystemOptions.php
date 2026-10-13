@@ -25,6 +25,7 @@ class SystemOptions
         'registration_mode' => 'mobile',
         'otp_expiry_minutes' => '5',
         'listing_duplicate_cooldown_hours' => '24',
+        'session_lifetime_days' => '365',
     ];
 
     private ?Collection $values = null;
@@ -129,6 +130,16 @@ class SystemOptions
     public function listingDuplicateCooldownHours(): int
     {
         return min(720, max(1, (int) $this->get('listing_duplicate_cooldown_hours')));
+    }
+
+    public function sessionLifetimeDays(): int
+    {
+        return min(3650, max(1, (int) $this->get('session_lifetime_days')));
+    }
+
+    public function sessionLifetimeMinutes(): int
+    {
+        return $this->sessionLifetimeDays() * 1440;
     }
 
     public function pageTitle(?string $page = null): string

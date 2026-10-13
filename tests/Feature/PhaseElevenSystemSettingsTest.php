@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Brand;
 use App\Models\User;
+use App\Services\SystemOptions;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -32,7 +33,8 @@ class PhaseElevenSystemSettingsTest extends TestCase
             ->assertSee('تنظیمات سیستم')
             ->assertSee('ارسال پیامک و OTP')
             ->assertSee('max_image_upload_count', false)
-            ->assertSee('listing_duplicate_cooldown_hours', false);
+            ->assertSee('listing_duplicate_cooldown_hours', false)
+            ->assertSee('session_lifetime_days', false);
 
         $this->actingAs($this->admin)->put(route('admin.settings.update'), [
             'site_title' => 'بازار موبایل',
@@ -46,6 +48,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
             'support_phone' => '02112345678',
             'listings_enabled' => 1,
             'otp_expiry_minutes' => 7,
+            'session_lifetime_days' => 30,
         ])->assertRedirect()->assertSessionHas('status', 'تنظیمات سیستم ذخیره شد.');
 
         $this->assertDatabaseHas('options', ['key' => 'site_title', 'value' => 'بازار موبایل']);
@@ -53,9 +56,21 @@ class PhaseElevenSystemSettingsTest extends TestCase
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_count', 'value' => '6']);
         $this->assertDatabaseHas('options', ['key' => 'listing_duplicate_cooldown_hours', 'value' => '48']);
         $this->assertDatabaseHas('options', ['key' => 'otp_expiry_minutes', 'value' => '7']);
+        $this->assertDatabaseHas('options', ['key' => 'session_lifetime_days', 'value' => '30']);
         $this->assertDatabaseHas('options', ['key' => 'registration_mode', 'value' => 'mobile']);
         $this->get(route('home'))->assertOk()->assertSee('<title>بازار — خانه</title>', false);
         $this->get(route('support.index'))->assertOk()->assertSee('<title>بازار — ارتباط با پشتیبانی</title>', false)->assertSee('help@example.test')->assertSee('تهران، خیابان تست');
+    }
+
+    public function test_web_session_lifetime_uses_system_option_and_defaults_to_one_year(): void
+    {
+        $this->get(route('home'))->assertOk();
+        $this->assertSame(365 * 1440, config('session.lifetime'));
+
+        app(SystemOptions::class)->set('session_lifetime_days', 30, 'integer');
+
+        $this->get(route('home'))->assertOk();
+        $this->assertSame(30 * 1440, config('session.lifetime'));
     }
 
     public function test_regular_user_cannot_access_settings_and_admin_can_disable_specific_user_listing_permission(): void

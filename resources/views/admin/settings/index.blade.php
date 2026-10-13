@@ -11,6 +11,7 @@
         'listing_duplicate_cooldown_hours',
         $settings['listing_duplicate_cooldown_hours'] ?? 24,
     );
+    $sessionLifetimeDays = old('session_lifetime_days', $settings['session_lifetime_days'] ?? 365);
 @endphp
 <x-admin-layout title="تنظیمات سیستم">
     <x-slot name="header">
@@ -247,6 +248,21 @@
                         type="number" min="1" max="30" required value="{{ $otpExpiryMinutes }}"
                         class="w-full rounded-xl border-slate-200 py-3 pl-12 text-sm focus:border-primary focus:ring-primary"><span
                         class="absolute left-3 top-3 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-500">دقیقه</span>
+                </div>
+            </div>
+            <div class="admin-card flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <label for="session_lifetime_days" class="block text-sm font-black text-slate-800">مدت اعتبار سشن
+                        ورود کاربران</label>
+                    <p class="mt-1 text-[11px] text-slate-400">کاربر پس از این تعداد روز عدم خروج، همچنان وارد باقی
+                        می‌ماند. مقدار پیش‌فرض یک سال است.</p>
+                </div>
+                <div class="relative w-full sm:w-40">
+                    <input id="session_lifetime_days" name="session_lifetime_days" type="number" min="1"
+                        max="3650" required value="{{ $sessionLifetimeDays }}"
+                        class="w-full rounded-xl border-slate-200 py-3 pl-12 text-sm focus:border-primary focus:ring-primary">
+                    <span
+                        class="absolute left-3 top-3 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-500">روز</span>
                 </div>
             </div>
             <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">

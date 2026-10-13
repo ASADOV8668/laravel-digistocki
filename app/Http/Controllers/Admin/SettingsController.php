@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Services\SystemOptions;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class SettingsController extends Controller
 {
@@ -32,6 +32,7 @@ class SettingsController extends Controller
             'registration_mode' => ['nullable', 'in:mobile'],
             'otp_expiry_minutes' => ['nullable', 'integer', 'min:1', 'max:30'],
             'listing_duplicate_cooldown_hours' => ['nullable', 'integer', 'min:1', 'max:720'],
+            'session_lifetime_days' => ['nullable', 'integer', 'min:1', 'max:3650'],
         ]);
 
         $options->setMany([
@@ -49,6 +50,7 @@ class SettingsController extends Controller
             'registration_mode' => [$validated['registration_mode'] ?? $options->registrationMode(), 'string'],
             'otp_expiry_minutes' => [(int) ($validated['otp_expiry_minutes'] ?? $options->otpExpiryMinutes()), 'integer'],
             'listing_duplicate_cooldown_hours' => [(int) ($validated['listing_duplicate_cooldown_hours'] ?? $options->listingDuplicateCooldownHours()), 'integer'],
+            'session_lifetime_days' => [(int) ($validated['session_lifetime_days'] ?? $options->sessionLifetimeDays()), 'integer'],
         ]);
 
         $message = 'تنظیمات سیستم ذخیره شد.';
