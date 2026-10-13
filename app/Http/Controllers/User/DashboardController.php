@@ -9,6 +9,7 @@ use App\Models\Listing;
 use App\Models\PhoneModel;
 use App\Services\SystemOptions;
 use App\Support\PersianDate;
+use App\Support\PersianDigits;
 use App\Support\PersianSearch;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -22,6 +23,8 @@ class DashboardController extends Controller
         $user->load('storefront');
         $status = $request->input('status');
         $statuses = ['pending', 'approved', 'rejected', 'sold', 'expired'];
+        $requestedPerPage = PersianDigits::toEnglish((string) $request->input('per_page', '10'));
+        $perPage = is_numeric($requestedPerPage) ? max(10, min(500, (int) $requestedPerPage)) : 10;
         $q = trim((string) $request->input('q'));
         $searchLikes = PersianSearch::likes($q);
         $fromDateValue = PersianDate::fromParts($request->input('from_date_year'), $request->input('from_date_month'), $request->input('from_date_day')) ?: $request->input('from_date');
@@ -105,7 +108,7 @@ class DashboardController extends Controller
 
         $listings = $listingQuery
             ->latest()
-            ->paginate(10)
+            ->paginate($perPage)
             ->withQueryString();
 
         $countsByStatus = Listing::query()
@@ -122,6 +125,7 @@ class DashboardController extends Controller
 
         return view('dashboard', [
             'listings' => $listings,
+            'perPage' => $perPage,
             'status' => $status,
             'counts' => collect($statuses)->mapWithKeys(fn (string $item) => [$item => (int) $countsByStatus->get($item, 0)]),
             'hasListings' => $hasListings,

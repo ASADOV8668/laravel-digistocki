@@ -1443,6 +1443,18 @@ document.addEventListener('submit', async (event) => {
                 if (statusNode) statusNode.textContent = data.action === 'disable' ? 'غیرفعال' : 'فعال';
                 if (toggleButton) toggleButton.textContent = data.action === 'disable' ? 'فعال‌سازی' : 'غیرفعال‌کردن';
             }
+
+            if (data.action === 'sold') {
+                const statusNode = card.querySelector('h2')?.parentElement?.querySelector('span');
+                const statusForm = card.querySelector('[data-listing-status-form]');
+                const restoreAction = statusForm?.dataset.restoreAction;
+                if (statusNode) statusNode.textContent = 'فروخته‌شده';
+                if (statusForm && restoreAction) {
+                    statusForm.action = restoreAction;
+                    const statusButton = statusForm.querySelector('button');
+                    if (statusButton) statusButton.textContent = 'بازگردانی به منتشرشده';
+                }
+            }
         });
 
         form.querySelector('[data-modal-hide]')?.click();

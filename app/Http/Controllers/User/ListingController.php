@@ -595,12 +595,13 @@ class ListingController extends Controller
     public function bulkAction(Request $request, ImageService $imageService, SystemOptions $options): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
-            'action' => ['required', 'in:disable,enable,delete,contact_price,price'],
+            'action' => ['required', 'in:disable,enable,delete,contact_price,price,sold'],
             'listing_ids' => ['required', 'array', 'min:1'],
             'listing_ids.*' => ['integer'],
             'bulk_price' => ['nullable', 'integer', 'min:0', 'required_if:action,price'],
         ]);
         $listings = Listing::query()->where('user_id', $request->user()->id)->whereKey($validated['listing_ids'])->with('images')->get();
+        $affectedListingIds = $listings->modelKeys();
         if ($validated['action'] === 'delete') {
             $files = $listings->flatMap(fn (Listing $listing) => $listing->images->map(fn (ListingImage $image) => [$image->path, $image->thumbnail_path]));
             $listings->each->delete();
@@ -617,6 +618,10 @@ class ListingController extends Controller
             $listings->each->update(['price' => null, 'price_on_request' => true]);
         } elseif ($validated['action'] === 'price') {
             $listings->each->update(['price' => $validated['bulk_price'], 'price_on_request' => false]);
+        } elseif ($validated['action'] === 'sold') {
+            $approvedListings = $listings->filter(fn (Listing $listing): bool => $listing->status->value === 'approved');
+            $approvedListings->each->update(['status' => 'sold']);
+            $affectedListingIds = $approvedListings->modelKeys();
         } else {
             $listings->each->update(['is_user_disabled' => $validated['action'] === 'disable']);
         }
@@ -627,12 +632,13 @@ class ListingController extends Controller
             'price' => 'قیمت آگهی‌های انتخاب‌شده به‌روزرسانی شد.',
             'disable' => 'آگهی‌های انتخاب‌شده غیرفعال شدند.',
             'enable' => 'آگهی‌های انتخاب‌شده فعال شدند.',
+            'sold' => 'آگهی‌های منتشرشده انتخاب‌شده به‌عنوان فروخته‌شده علامت خوردند.',
         ];
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $messages[$validated['action']],
                 'action' => $validated['action'],
-                'listing_ids' => array_values($validated['listing_ids']),
+                'listing_ids' => array_values($affectedListingIds),
                 'price' => $validated['action'] === 'price' ? $validated['bulk_price'] : null,
             ]);
         }

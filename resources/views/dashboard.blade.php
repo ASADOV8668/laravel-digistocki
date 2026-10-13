@@ -123,6 +123,15 @@
             <div class="rounded-lg border border-slate-100 bg-slate-50 p-2 sm:col-span-2 lg:col-span-2">
                 <p class="mb-2 text-[11px] font-bold text-slate-500">تا تاریخ</p><x-persian-date-select name="to_date"
                     :value="$filters['to_date']" :default-today="false" class="public-select" />
+            </div>
+            <div class="rounded-lg border border-slate-100 bg-slate-50 p-2">
+                <label for="dashboard-per-page" class="mb-2 block text-[11px] font-bold text-slate-500">تعداد نمایش در صفحه</label>
+                <select id="dashboard-per-page" name="per_page" onchange="this.form.submit()"
+                    class="w-full rounded-lg border-slate-200 bg-white text-sm focus:border-primary focus:ring-primary/30">
+                    @foreach ([10, 25, 50, 100, 250, 500] as $pageSize)
+                        <option value="{{ $pageSize }}" @selected($perPage === $pageSize)>{{ \App\Support\PersianNumber::digits($pageSize) }} آگهی</option>
+                    @endforeach
+                </select>
             </div><button
                 class="rounded-lg bg-neutral px-4 py-3 text-sm font-bold text-white sm:col-span-2 lg:col-span-4">اعمال
                 فیلتر</button>
@@ -145,6 +154,7 @@
                 name="action" class="rounded-lg border-primary/20 bg-white py-2 text-xs">
                 <option value="disable">غیرفعال‌کردن</option>
                 <option value="enable">فعال‌کردن</option>
+                <option value="sold">فروخته‌شده</option>
                 <option value="contact_price">حذف قیمت و تماس بگیرید</option>
                 <option value="delete">حذف آگهی</option>
             </select><template x-for="id in selectedOutsidePage()" :key="`bulk-hidden-${id}`"><input type="hidden"
@@ -218,12 +228,13 @@
                                     class="rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary">ارسال
                                     مجدد</button></form>
                             @endif @if ($listing->status->value === 'approved')
-                                <form method="POST" action="{{ route('listings.sold', $listing) }}">@csrf
+                                <form method="POST" data-listing-status-form action="{{ route('listings.sold', $listing) }}"
+                                    data-restore-action="{{ route('listings.restore-sold', $listing) }}">@csrf
                                     @method('PATCH')<button
                                         class="rounded-lg bg-success/10 px-3 py-2 text-xs font-bold text-success">فروخته
                                         شد</button></form>
                             @elseif ($listing->status->value === 'sold' && auth()->user()->can('restoreSold', $listing))
-                                <form method="POST" action="{{ route('listings.restore-sold', $listing) }}">@csrf
+                                <form method="POST" data-listing-status-form action="{{ route('listings.restore-sold', $listing) }}">@csrf
                                     @method('PATCH')<button
                                         class="rounded-lg bg-success/10 px-3 py-2 text-xs font-bold text-success">بازگردانی به منتشرشده</button>
                                 </form>

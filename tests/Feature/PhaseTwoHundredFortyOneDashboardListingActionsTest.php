@@ -63,6 +63,34 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
             ->assertSee('type="hidden" name="bulk_price"', false);
     }
 
+    public function test_dashboard_allows_changing_page_size_up_to_five_hundred(): void
+    {
+        $user = User::factory()->create();
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+
+        foreach (range(1, 12) as $number) {
+            Listing::create([
+                'user_id' => $user->id,
+                'brand_id' => $brand->id,
+                'phone_model_id' => $model->id,
+                'title' => 'آگهی تعداد '.$number,
+                'slug' => Str::uuid(),
+                'price' => 1000000,
+                'status' => ListingStatus::Approved,
+            ]);
+        }
+
+        $response = $this->actingAs($user)->get(route('dashboard', ['per_page' => '۵۰۰']));
+
+        $response->assertOk()
+            ->assertSee('id="dashboard-per-page"', false)
+            ->assertSee('value="500"', false)
+            ->assertSee('۵۰۰ آگهی');
+        $this->assertSame(500, $response->viewData('listings')->perPage());
+        $this->assertCount(12, $response->viewData('listings')->getCollection());
+    }
+
     public function test_quick_dashboard_actions_return_json_for_ajax_requests(): void
     {
         $user = User::factory()->create();
@@ -109,6 +137,27 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
         $this->assertTrue($first->is_user_disabled);
         $this->assertSame(3200000, $second->refresh()->price);
         $this->assertTrue($second->is_user_disabled);
+    }
+
+    public function test_bulk_sold_marks_only_published_listings_as_sold(): void
+    {
+        $user = User::factory()->create();
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+        $approved = Listing::create(['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $model->id, 'title' => 'آگهی فروش گروهی', 'slug' => Str::uuid(), 'price' => 1000000, 'status' => ListingStatus::Approved]);
+        $pending = Listing::create(['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $model->id, 'title' => 'آگهی در انتظار گروهی', 'slug' => Str::uuid(), 'price' => 1000000, 'status' => ListingStatus::Pending]);
+
+        $this->actingAs($user)
+            ->postJson(route('dashboard.listings.bulk'), [
+                'action' => 'sold',
+                'listing_ids' => [$approved->id, $pending->id],
+            ])
+            ->assertOk()
+            ->assertJson(['action' => 'sold', 'listing_ids' => [$approved->id]])
+            ->assertJsonPath('message', 'آگهی‌های منتشرشده انتخاب‌شده به‌عنوان فروخته‌شده علامت خوردند.');
+
+        $this->assertSame(ListingStatus::Sold, $approved->refresh()->status);
+        $this->assertSame(ListingStatus::Pending, $pending->refresh()->status);
     }
 
     public function test_quick_update_requires_a_price_when_contact_mode_is_not_selected(): void
