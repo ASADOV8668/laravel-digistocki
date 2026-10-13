@@ -64,11 +64,17 @@
                             <x-heroicon-o-magnifying-glass
                                 class="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                             <label for="listing-search" class="sr-only">جستجوی برند یا مدل</label>
-                            <input id="listing-search" name="q" x-model="query" @input="search"
-                                @focus="query.length >= 2 && (open = true)" @keydown.escape="open = false"
-                                type="search" autocomplete="off" placeholder="مثلاً آیفون یا iPhone 13"
-                                class="block w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pr-10 pl-3 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30" />
-                            <div x-show="open" x-cloak @click.outside="open = false"
+                            <input id="listing-search" x-model="query" @input="search"
+                                @focus="selectedModelId ? (open = true) : (query.length >= 2 && (open = true))"
+                                @keydown.escape="open = false" :readonly="Boolean(selectedModelId)" type="search"
+                                autocomplete="off" placeholder="مثلاً آیفون یا iPhone 13"
+                                class="block w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pr-10 pl-10 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                            <input type="hidden" name="q" x-model="searchQuery" />
+                            <button x-show="selectedModelId" x-cloak type="button" @click="reset"
+                                aria-label="پاک کردن مدل انتخاب‌شده"
+                                class="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-primary"><x-heroicon-o-x-mark
+                                    class="h-4 w-4" /></button>
+                            <div x-show="open && !selectedModelId" x-cloak @click.outside="open = false"
                                 class="absolute inset-x-0 top-full z-20 mt-2 max-h-80 overflow-y-auto rounded-lg bg-white p-2 shadow-xl border border-slate-200">
                                 <div x-show="loading" class="px-3 py-3 text-xs text-slate-500">در حال جستجو...</div>
                                 <template x-if="!loading && suggestions.brands.length">
@@ -101,7 +107,47 @@
                                 <div x-show="!loading && !suggestions.brands.length && !suggestions.models.length"
                                     class="px-3 py-3 text-xs text-slate-500">موردی پیدا نشد.</div>
                             </div>
+                            <div x-show="open && selectedModelId" x-cloak
+                                class="absolute inset-x-0 top-full z-20 mt-2 rounded-lg border border-slate-200 bg-white p-3 shadow-xl">
+                                <div x-show="attributesLoading" class="px-2 py-2 text-xs text-slate-500">در حال بارگذاری ویژگی‌های موجود...</div>
+                                <template x-if="!attributesLoading && quickStep === 'storage' && quickAttribute('storage')">
+                                    <div>
+                                        <p class="px-2 pb-2 text-[11px] font-black text-slate-400">حافظه داخلی را انتخاب کنید</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <button type="button" @click="selectQuickAttribute(quickAttribute('storage'), '')"
+                                                class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-neutral hover:border-primary hover:bg-primary-50">همه موارد</button>
+                                            <template x-for="option in quickOptions('storage')" :key="`listing-storage-${option}`">
+                                                <button type="button" @click="selectQuickAttribute(quickAttribute('storage'), option)"
+                                                    class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-neutral hover:border-primary hover:bg-primary-50">
+                                                    <span x-text="option"></span> <span class="text-[10px] text-slate-400">GB</span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template x-if="!attributesLoading && quickStep === 'color' && quickAttribute('color')">
+                                    <div>
+                                        <p class="px-2 pb-2 text-[11px] font-black text-slate-400">حالا رنگ را انتخاب کنید</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <button type="button" @click="selectQuickAttribute(quickAttribute('color'), '')"
+                                                class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-neutral hover:border-primary hover:bg-primary-50">همه موارد</button>
+                                            <template x-for="option in quickOptions('color')" :key="`listing-color-${option}`">
+                                                <button type="button" @click="selectQuickAttribute(quickAttribute('color'), option)"
+                                                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-neutral hover:border-primary hover:bg-primary-50">
+                                                    <span class="h-3.5 w-3.5 rounded-full border border-slate-300" :style="`background-color: ${colorHex(option)}`"></span>
+                                                    <span x-text="option"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                                <button x-show="quickStep === 'done'" type="button" @click="quickStep = 'storage'; open = true"
+                                    class="w-full rounded-lg bg-primary-50 px-3 py-2 text-xs font-bold text-primary">تغییر حافظه یا رنگ</button>
+                            </div>
                         </div>
+                        <template x-for="attribute in quickAttributes()" :key="`listing-hidden-${attribute.id}`">
+                            <input type="hidden" :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]">
+                        </template>
 
                         <div>
                             <label for="listing-brand"
@@ -241,7 +287,7 @@
                                 از پیشنهادها انتخاب کنید تا ویژگی‌های همان مدل نمایش داده شود.</p>
                             <div x-show="selectedModelId && !attributesLoading" class="space-y-3">
                                 <template x-for="attribute in attributes" :key="attribute.id">
-                                    <label x-show="isQuickAttributeVisible(attribute)" class="block text-xs font-bold text-slate-600">
+                                    <label x-show="(!selectedModelId || !['storage', 'color'].includes(attribute.slug)) && isQuickAttributeVisible(attribute)" class="block text-xs font-bold text-slate-600">
                                         <span class="mb-1 block"><span x-text="attribute.name"></span><span
                                                 x-show="attribute.unit" x-text="` (${attribute.unit})`"
                                                 class="mr-1 text-[10px] font-normal text-slate-400"></span></span>

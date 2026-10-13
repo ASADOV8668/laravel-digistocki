@@ -189,13 +189,16 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint, attributesEndpoint = '
     locationModalOpen: false,
     locationError: '',
     query: '',
+    searchQuery: '',
     selectedBrandId: '',
     selectedModelId: '',
+    selectedModelLabel: '',
     suggestions: { brands: [], models: [] },
     attributes: [],
     filters: {},
     attributesLoading: false,
     attributesController: null,
+    quickStep: 'storage',
     loading: false,
     open: false,
     searchTimer: null,
@@ -314,10 +317,13 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint, attributesEndpoint = '
     search() {
         clearTimeout(this.searchTimer);
         const query = this.query.trim();
+        this.searchQuery = query;
         this.selectedBrandId = '';
         this.selectedModelId = '';
+        this.selectedModelLabel = '';
         this.attributes = [];
         this.filters = {};
+        this.quickStep = 'storage';
 
         if (query.length < 2) {
             this.requestController?.abort();
@@ -358,9 +364,12 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint, attributesEndpoint = '
     async selectBrand(brand) {
         this.selectedBrandId = brand.id;
         this.selectedModelId = '';
+        this.selectedModelLabel = '';
         this.attributes = [];
         this.filters = {};
+        this.quickStep = 'storage';
         this.query = brand.label;
+        this.searchQuery = brand.label;
         this.loading = true;
         this.open = true;
         try {
@@ -379,9 +388,12 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint, attributesEndpoint = '
     async selectModel(model) {
         this.selectedBrandId = model.brand_id;
         this.selectedModelId = model.id;
+        this.selectedModelLabel = model.label;
         this.query = model.label;
+        this.searchQuery = model.label;
         this.open = false;
         this.filters = {};
+        this.quickStep = 'storage';
         await this.loadAttributes();
     },
 
@@ -427,6 +439,42 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint, attributesEndpoint = '
 
     quickAttributes() {
         return this.attributes.filter((attribute) => ['storage', 'color'].includes(attribute.slug));
+    },
+
+    quickAttribute(slug) {
+        return this.attributes.find((attribute) => attribute.slug === slug);
+    },
+
+    quickOptions(slug) {
+        const attribute = this.quickAttribute(slug);
+        return attribute ? this.attributeOptions(attribute) : [];
+    },
+
+    selectQuickAttribute(attribute, value) {
+        this.filters[attribute.id] = value;
+        if (attribute.slug === 'storage') {
+            this.quickStep = 'color';
+            this.query = `${this.selectedModelLabel} · ${value}${attribute.unit ? ` ${attribute.unit}` : ''}`;
+            this.loadAttributes();
+            this.open = true;
+            return;
+        }
+
+        this.quickStep = 'done';
+        this.query = `${this.selectedModelLabel}${this.filters[this.quickAttribute('storage')?.id] ? ` · ${this.filters[this.quickAttribute('storage').id]} GB` : ''} · ${value}`;
+        this.open = false;
+    },
+
+    resetModelSelection() {
+        this.selectedBrandId = '';
+        this.selectedModelId = '';
+        this.selectedModelLabel = '';
+        this.query = '';
+        this.searchQuery = '';
+        this.attributes = [];
+        this.filters = {};
+        this.quickStep = 'storage';
+        this.open = false;
     },
 
     isQuickAttributeVisible(attribute) {
@@ -763,8 +811,10 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     attributesEndpoint,
     citiesEndpoint,
     query: initialQuery || '',
+    searchQuery: initialQuery || '',
     selectedBrandId: initialBrandId || '',
     selectedModelId: initialModelId || '',
+    selectedModelLabel: '',
     provinceId: initialProvinceId || '',
     cityId: initialCityId || '',
     cityIds: (Array.isArray(initialCityIds) ? initialCityIds : (initialCityIds ? [initialCityIds] : [])).map(String).length
@@ -786,6 +836,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     filters: initialFilters || {},
     loading: false,
     attributesLoading: false,
+    quickStep: 'storage',
     resultsLoading: false,
     open: false,
     filtersOpen: false,
@@ -799,6 +850,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     init() {
         this.minPrice = Math.max(this.priceFloor, Math.min(this.minPrice || this.priceFloor, this.priceCeiling));
         this.maxPrice = Math.max(this.minPrice, Math.min(this.maxPrice || this.priceCeiling, this.priceCeiling));
+        this.syncQuickStep();
         this.popstateHandler = () => this.fetchResults(window.location.href, 'none', true);
         window.addEventListener('popstate', this.popstateHandler);
         this.loadModels(this.selectedBrandId);
@@ -901,6 +953,10 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
             : (Array.isArray(attribute.options) ? attribute.options : []);
     },
 
+    quickAttributes() {
+        return this.attributes.filter((attribute) => ['storage', 'color'].includes(attribute.slug));
+    },
+
     isQuickAttributeVisible(attribute) {
         if (attribute.slug !== 'color') return true;
         const storage = this.attributes.find((item) => item.slug === 'storage');
@@ -961,6 +1017,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
 
     async syncFormFromUrl(url) {
         this.query = url.searchParams.get('q') || '';
+        this.searchQuery = this.query;
         this.selectedBrandId = url.searchParams.get('brand_id') || '';
         this.selectedModelId = url.searchParams.get('phone_model_id') || '';
         this.provinceId = url.searchParams.get('province_id') || '';
@@ -983,6 +1040,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.open = false;
         this.suggestions = { brands: [], models: [] };
         await this.loadModels(this.selectedBrandId);
+        this.selectedModelLabel = this.models.find((model) => String(model.id) === String(this.selectedModelId))?.label || this.query;
         if (this.selectedModelId) await this.loadAttributes();
         else {
             this.cancelAttributeRequest();
@@ -1004,6 +1062,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     search() {
         clearTimeout(this.searchTimer);
         const query = this.query.trim();
+        this.searchQuery = query;
 
         if (query.length < 2) {
             this.cancelSuggestionRequest();
@@ -1048,10 +1107,13 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     async selectBrand(brand) {
         this.selectedBrandId = brand.id;
         this.selectedModelId = '';
+        this.selectedModelLabel = '';
         this.query = brand.label;
+        this.searchQuery = brand.label;
         this.cancelAttributeRequest();
         this.attributes = [];
         this.filters = {};
+        this.quickStep = 'storage';
         this.cancelSuggestionRequest();
         this.open = false;
         await this.loadModels(brand.id);
@@ -1060,10 +1122,13 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     async selectBrandId(brandId) {
         this.selectedBrandId = brandId || '';
         this.selectedModelId = '';
+        this.selectedModelLabel = '';
         this.query = '';
+        this.searchQuery = '';
         this.cancelAttributeRequest();
         this.attributes = [];
         this.filters = {};
+        this.quickStep = 'storage';
         await this.loadModels(this.selectedBrandId);
     },
 
@@ -1071,8 +1136,11 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         const previousModelId = this.selectedModelId;
         this.selectedBrandId = model.brand_id;
         this.selectedModelId = model.id;
+        this.selectedModelLabel = model.label;
         this.query = model.label;
+        this.searchQuery = model.label;
         if (previousModelId !== model.id) this.filters = {};
+        this.quickStep = 'storage';
         this.open = false;
         await this.loadAttributes();
     },
@@ -1081,7 +1149,11 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         const model = this.models.find((item) => String(item.id) === String(modelId));
         this.selectedModelId = modelId;
         this.selectedBrandId = model?.brand_id || '';
+        this.selectedModelLabel = model?.label || this.query;
+        this.query = this.selectedModelLabel;
+        this.searchQuery = this.query;
         this.filters = {};
+        this.quickStep = 'storage';
         await this.loadAttributes();
     },
 
@@ -1110,6 +1182,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
 
             if (!response.ok) throw new Error('Attribute request failed');
             this.attributes = await response.json();
+            this.syncQuickStep();
         } catch (error) {
             if (error.name !== 'AbortError') this.attributes = [];
         } finally {
@@ -1130,10 +1203,53 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         await this.loadAttributes();
     },
 
+    syncQuickStep() {
+        const storage = this.attributes.find((attribute) => attribute.slug === 'storage');
+        const color = this.attributes.find((attribute) => attribute.slug === 'color');
+        if (color && this.filters[color.id] !== undefined && this.filters[color.id] !== '') {
+            this.quickStep = 'done';
+        } else if (this.quickStep === 'color' && storage && this.filters[storage.id] === '') {
+            // “همه حافظه‌ها” is a valid choice; keep the flow on the color step.
+            this.quickStep = 'color';
+        } else if (storage && this.filters[storage.id] !== undefined && this.filters[storage.id] !== '') {
+            this.quickStep = 'color';
+        } else {
+            this.quickStep = 'storage';
+        }
+    },
+
+    quickAttribute(slug) {
+        return this.attributes.find((attribute) => attribute.slug === slug);
+    },
+
+    quickOptions(slug) {
+        const attribute = this.quickAttribute(slug);
+        return attribute ? this.attributeOptions(attribute) : [];
+    },
+
+    selectQuickAttribute(attribute, value) {
+        this.filters[attribute.id] = value;
+        if (attribute.slug === 'storage') {
+            this.quickStep = 'color';
+            this.query = `${this.selectedModelLabel} · ${value}${attribute.unit ? ` ${attribute.unit}` : ''}`;
+            this.loadAttributes();
+            this.open = true;
+            return;
+        }
+
+        this.quickStep = 'done';
+        const storage = this.quickAttribute('storage');
+        const storageValue = storage ? this.filters[storage.id] : '';
+        this.query = `${this.selectedModelLabel}${storageValue ? ` · ${storageValue} GB` : ''} · ${value}`;
+        this.open = false;
+    },
+
     reset() {
         this.query = '';
+        this.searchQuery = '';
         this.selectedBrandId = '';
         this.selectedModelId = '';
+        this.selectedModelLabel = '';
         this.modelsController?.abort();
         this.modelsController = null;
         this.modelsLoading = false;
@@ -1155,6 +1271,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.cities = [];
         this.attributes = [];
         this.filters = {};
+        this.quickStep = 'storage';
         this.suggestions = { brands: [], models: [] };
         this.cancelSuggestionRequest();
         this.open = false;

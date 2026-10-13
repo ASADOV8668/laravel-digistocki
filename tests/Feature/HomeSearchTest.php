@@ -64,7 +64,8 @@ class HomeSearchTest extends TestCase
 
         $this->assertStringContainsString("url('/listings/models')", $view);
         $this->assertStringContainsString('quickAttributes()', $view);
-        $this->assertStringContainsString('attributeChanged()', $view);
+        $this->assertStringContainsString('selectQuickAttribute(', $view);
+        $this->assertStringContainsString('quickStep', $view);
         $this->assertStringContainsString('filters[${attribute.id}]', $view);
     }
 
