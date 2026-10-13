@@ -34,7 +34,11 @@ class PhaseFiveUserListingsTest extends TestCase
         $mine = $this->listing($owner, $brand, $model, 'آگهی من', ListingStatus::Pending);
         $otherListing = $this->listing($other, $brand, $model, 'آگهی کاربر دیگر', ListingStatus::Approved);
 
-        $this->actingAs($owner)->get(route('dashboard'))->assertOk()->assertSee($mine->title)->assertDontSee($otherListing->title);
+        $this->actingAs($owner)->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee($mine->title)
+            ->assertDontSee($otherListing->title)
+            ->assertDontSee('همه‌چیز مرتب و آماده فروش');
     }
 
     public function test_user_can_create_listing_with_primary_image(): void

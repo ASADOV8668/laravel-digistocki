@@ -21,16 +21,18 @@
             <x-flowbite-alert type="warning">بازه تاریخ معتبر نیست؛ تاریخ شروع باید قبل از تاریخ پایان
                 باشد.</x-flowbite-alert>
         @endif
-        <div class="relative overflow-hidden rounded-lg bg-primary p-5 text-white shadow-lg shadow-primary/15">
-            <div class="relative">
-                <p class="text-sm text-white/75">مدیریت آگهی‌های شما</p>
-                <h2 class="mt-1 text-2xl font-black">همه‌چیز مرتب و آماده فروش</h2>
-                <p class="mt-2 text-xs leading-6 text-white/75">وضعیت آگهی‌هایت را بررسی کن و سریع‌تر به خریدارها پاسخ
-                    بده.</p><a href="{{ route('listings.create') }}"
-                    class="mt-4 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-black text-primary transition hover:bg-primary-50"><x-heroicon-o-plus
-                        class="h-5 w-5" />ثبت آگهی جدید</a>
+        @unless ($hasListings)
+            <div class="relative overflow-hidden rounded-lg bg-primary p-5 text-white shadow-lg shadow-primary/15">
+                <div class="relative">
+                    <p class="text-sm text-white/75">مدیریت آگهی‌های شما</p>
+                    <h2 class="mt-1 text-2xl font-black">همه‌چیز مرتب و آماده فروش</h2>
+                    <p class="mt-2 text-xs leading-6 text-white/75">وضعیت آگهی‌هایت را بررسی کن و سریع‌تر به خریدارها پاسخ
+                        بده.</p><a href="{{ route('listings.create') }}"
+                        class="mt-4 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-black text-primary transition hover:bg-primary-50"><x-heroicon-o-plus
+                            class="h-5 w-5" />ثبت آگهی جدید</a>
+                </div>
             </div>
-        </div>
+        @endunless
         @if ($store)
             <div
                 class="rounded-lg {{ $store->is_enabled ? 'bg-neutral text-white' : 'bg-slate-100 text-neutral' }} p-5 shadow-sm">

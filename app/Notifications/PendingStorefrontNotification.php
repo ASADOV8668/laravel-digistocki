@@ -27,7 +27,7 @@ class PendingStorefrontNotification extends Notification
             'status' => 'pending',
             'store_id' => $this->store->getKey(),
             'user_id' => $this->store->user_id,
-            'url' => route('admin.storefronts.show', $this->store),
+            'url' => route('admin.storefronts.edit', $this->store->user_id),
         ];
     }
 }

@@ -6,6 +6,7 @@ use App\Enums\ListingStatus;
 use App\Models\Brand;
 use App\Models\ContactOtp;
 use App\Models\Listing;
+use App\Models\SellerStore;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -55,6 +56,26 @@ class PhaseSixSingleListingTest extends TestCase
         $related = $this->listing(User::factory()->create(), 'آگهی مرتبط');
 
         $this->get(route('listings.show', $main))->assertOk()->assertSee('آگهی‌های مرتبط')->assertSee($related->title);
+    }
+
+    public function test_single_listing_shows_the_public_store_logo_and_name(): void
+    {
+        $seller = User::factory()->create(['name' => 'نام شخصی فروشنده']);
+        $store = SellerStore::create([
+            'user_id' => $seller->id,
+            'slug' => 'single-listing-store',
+            'name' => 'فروشگاه آیفون مرکزی',
+            'logo_path' => 'storefronts/logo.jpg',
+            'is_enabled' => true,
+            'approval_status' => 'approved',
+        ]);
+        $listing = $this->listing($seller, 'آگهی فروشگاه‌دار');
+
+        $this->get(route('listings.show', $listing))
+            ->assertOk()
+            ->assertSee($store->name)
+            ->assertSee(asset('storage/'.$store->logo_path), false)
+            ->assertDontSee('نام شخصی فروشنده');
     }
 
     private function listing(User $seller, string $title): Listing

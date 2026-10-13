@@ -162,7 +162,7 @@
                         <span
                             class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{{ $listing->phoneModel->name_fa ?: $listing->phoneModel->name }}</span>
                     </div>
-                    <h2 class="mt-3 text-2xl font-black leading-9 text-neutral">{{ $listing->title }}</h2>
+                    <h2 class="mt-3 truncate text-2xl font-black leading-9 text-neutral" title="{{ $listing->title }}">{{ $listing->title }}</h2>
                 </div>
                 <div class="flex shrink-0 items-center gap-2">
                     <button type="button" @click="share()"
@@ -276,15 +276,21 @@
 
         <div class="overflow-hidden rounded-lg bg-neutral p-5 text-white shadow-xl shadow-slate-900/10">
             <div class="flex items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-black">
-                        {{ mb_substr($listing->user->name, 0, 1) }}</div>
+                <div class="flex min-w-0 items-center gap-3">
+                    @if ($listing->user->storefront?->isPubliclyEnabled() && $listing->user->storefront->logo_path)
+                        <img src="{{ asset('storage/' . $listing->user->storefront->logo_path) }}"
+                            alt="{{ $listing->user->storefront->name }}"
+                            class="h-12 w-12 shrink-0 rounded-full bg-white object-cover p-1">
+                    @else
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-black">
+                            {{ mb_substr($listing->user->storefront?->name ?? $listing->user->name, 0, 1) }}</div>
+                    @endif
                     <div>
                         <p class="text-xs text-white/60">فروشنده آگهی</p>
-                        <p class="font-black">{{ $listing->user->name }}</p>
+                        <p class="truncate font-black">{{ $listing->user->storefront?->isPubliclyEnabled() ? $listing->user->storefront->name : $listing->user->name }}</p>
                     </div>
                 </div>
-                @if ($listing->user->storefront?->is_enabled)
+                @if ($listing->user->storefront?->isPubliclyEnabled())
                     <a href="{{ route('storefront.show', $listing->user->storefront) }}"
                         class="rounded-full bg-primary px-3 py-1.5 text-[10px] font-bold text-white transition hover:bg-primary-600">مشاهده فروشگاه</a>
                 @else

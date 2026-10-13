@@ -26,6 +26,35 @@ window.adminToast = () => ({
     },
 });
 
+window.moneyInput = (initial = '') => ({
+    raw: '',
+    display: '',
+
+    init() {
+        this.setRaw(initial);
+    },
+
+    normalize(value) {
+        return String(value ?? '')
+            .replace(/[۰-۹٠-٩]/g, (digit) => {
+                const persianIndex = '۰۱۲۳۴۵۶۷۸۹'.indexOf(digit);
+                return persianIndex >= 0 ? String(persianIndex) : String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit));
+            })
+            .replace(/\D/g, '');
+    },
+
+    setRaw(value) {
+        this.raw = this.normalize(value);
+        this.display = this.raw ? Number(this.raw).toLocaleString('fa-IR') : '';
+    },
+
+    formatInput(event) {
+        const value = this.normalize(event.target.value);
+        this.raw = value;
+        this.display = value ? Number(value).toLocaleString('fa-IR') : '';
+    },
+});
+
 const adminStatusClasses = {
     approved: 'bg-success/10 text-success',
     rejected: 'bg-error/10 text-error',

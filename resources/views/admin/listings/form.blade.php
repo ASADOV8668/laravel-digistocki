@@ -104,9 +104,11 @@
                             class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">
                     </div>
                     <div x-data="{ priceOnRequest: @js((bool) old('price_on_request', $listing->price_on_request ?? false)) }"><label class="mb-2 block text-sm font-bold text-slate-700">قیمت
-                            (تومان)</label><input x-show="!priceOnRequest" type="number" min="0" name="price"
-                            value="{{ old('price', $listing->price ?? '') }}" :required="!priceOnRequest"
-                            class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">
+                            (تومان)</label><div x-data="moneyInput(@js(old('price', $listing->price ?? '')))" x-show="!priceOnRequest"><input
+                                x-model="display" @input="formatInput($event)" :required="!priceOnRequest" type="text"
+                                inputmode="numeric" autocomplete="off" dir="ltr" placeholder="مثلاً ۳۲٬۰۰۰٬۰۰۰"
+                                class="w-full rounded-xl border-slate-200 text-left text-sm focus:border-primary focus:ring-primary"><input
+                                type="hidden" name="price" :value="raw"></div>
                         @if ($allowContactPrice)
                             <label
                                 class="mt-3 flex cursor-pointer items-center gap-2 text-sm font-bold text-slate-700"><input

@@ -73,7 +73,7 @@
                             :component="$card['icon']" class="h-5 w-5" /></span>
                     <span><strong
                             class="block text-lg font-black text-slate-900">{{ number_format((int) ($statusCounts[$card['key']] ?? 0)) }}</strong><span
-                            class="text-[11px] font-bold text-slate-500">{{ $card['label'] }}</span></span>
+                            class="block whitespace-nowrap text-[11px] font-bold text-slate-500">{{ $card['label'] }}</span></span>
                 </a>
             @endforeach
         </div>
@@ -173,7 +173,7 @@
                                         {{ $listing->user->mobile ?: $listing->user->email }}</p>
                                 </td>
                                 <td class="px-5 py-4"><span
-                                        class="rounded-full px-3 py-1.5 text-[11px] font-black {{ $statusClass }}">{{ $listing->status->label() }}</span>
+                                        class="inline-flex whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-black {{ $statusClass }}">{{ $listing->status->label() }}</span>
                                 </td>
                                 <td class="px-5 py-4">
                                     <p class="font-bold text-slate-700">
@@ -247,7 +247,7 @@
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-start justify-between gap-2">
                                     <h2 class="font-black text-slate-800">{{ $listing->title }}</h2><span
-                                        class="shrink-0 rounded-full px-2 py-1 text-[10px] font-black {{ $statusClass }}">{{ $listing->status->label() }}</span>
+                                        class="inline-flex shrink-0 whitespace-nowrap rounded-full px-2 py-1 text-[10px] font-black {{ $statusClass }}">{{ $listing->status->label() }}</span>
                                 </div>
                                 <p class="mt-1 text-xs text-slate-400">{{ $listing->user->name }} ·
                                     {{ $listing->brand->name }} {{ $listing->phoneModel->name }}</p>

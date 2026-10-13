@@ -113,6 +113,7 @@ class DashboardController extends Controller
             ->selectRaw('status, COUNT(*) as aggregate')
             ->groupBy('status')
             ->pluck('aggregate', 'status');
+        $hasListings = $countsByStatus->sum() > 0;
 
         $brands = Brand::query()->where('is_active', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name_fa')])->orderBy('name')->get();
         $modelBrands = $request->integer('brand_id')
@@ -123,6 +124,7 @@ class DashboardController extends Controller
             'listings' => $listings,
             'status' => $status,
             'counts' => collect($statuses)->mapWithKeys(fn (string $item) => [$item => (int) $countsByStatus->get($item, 0)]),
+            'hasListings' => $hasListings,
             'store' => $user->storefront,
             'brands' => $brands,
             'modelBrands' => $modelBrands,

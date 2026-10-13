@@ -56,6 +56,7 @@ class PhaseTwoHundredFiftyFourNotificationCenterTest extends TestCase
         $this->assertSame(PendingStorefrontNotification::class, $notification->type);
         $this->assertSame('فروشگاه منتظر تأیید است', $notification->data['title']);
         $this->assertSame(SellerStore::firstOrFail()->id, $notification->data['store_id']);
+        $this->assertSame(route('admin.storefronts.edit', $user), $notification->data['url']);
         $this->assertNull($notification->read_at);
     }
 
@@ -78,7 +79,7 @@ class PhaseTwoHundredFiftyFourNotificationCenterTest extends TestCase
         $notification = $admin->notifications()->firstOrFail();
         $this->assertSame(PendingListingNotification::class, $notification->type);
         $this->assertSame('آگهی منتظر تأیید است', $notification->data['title']);
-        $this->assertStringContainsString('/admin/listings/', $notification->data['url']);
+        $this->assertSame(route('admin.listings.edit', $notification->data['listing_id']), $notification->data['url']);
         $this->assertNull($notification->read_at);
     }
 
