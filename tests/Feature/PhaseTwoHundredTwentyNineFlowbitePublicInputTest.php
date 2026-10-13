@@ -18,7 +18,7 @@ class PhaseTwoHundredTwentyNineFlowbitePublicInputTest extends TestCase
         $this->assertStringContainsString('.public-input', $css);
         $this->assertStringContainsString('class="public-input bg-white', $home);
         $this->assertStringContainsString('class="public-input min-w-0', $listing);
-        $this->assertStringContainsString('class="public-input min-w-0', $storefront);
+        $this->assertStringContainsString('class="public-input min-w-0 pr-10 pl-3', $storefront);
         $this->assertGreaterThanOrEqual(2, substr_count($login, 'mobile-button w-full'));
         $this->assertStringContainsString('mobile-button w-full border border-primary/20', $register);
     }

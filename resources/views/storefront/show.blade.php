@@ -206,7 +206,7 @@
                             <input id="storefront-search" name="q" x-model="query" @input="search"
                                 @focus="query.length >= 2 && (open = true)" @keydown.escape="open = false"
                                 type="search" autocomplete="off" placeholder="مثلاً آیفون یا iPhone 13"
-                                class="public-input min-w-0">
+                                class="public-input min-w-0 pr-10 pl-3">
                             <div x-show="open" x-cloak @click.outside="open = false"
                                 class="absolute inset-x-0 top-full z-20 mt-2 max-h-80 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2 shadow-xl">
                                 <div x-show="loading" class="px-3 py-3 text-xs text-slate-500">در حال جستجو...</div>
