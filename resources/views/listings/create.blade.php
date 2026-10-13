@@ -154,7 +154,7 @@
             <div x-show="step === 4" x-cloak class="space-y-4">
                 <div>
                     <h2 class="text-lg font-black text-neutral">تصاویر و ارسال</h2>
-                    <p class="mt-1 text-xs leading-6 text-slate-500">حداکثر {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر، هر تصویر حداکثر {{ $maxImageUploadMb }} مگابایت. تصویر اول به‌عنوان تصویر اصلی نمایش داده می‌شود.</p>
+                    <p class="mt-1 text-xs leading-6 text-slate-500">حداقل یک تصویر و حداکثر {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر، هر تصویر حداکثر {{ $maxImageUploadMb }} مگابایت. تصویر اول به‌عنوان تصویر اصلی نمایش داده می‌شود.</p>
                 </div>
                 <div x-data='imagePicker(@js($maxImageUploadMb), @js($maxImageUploadCount))'
                     class="space-y-3"><label
@@ -163,7 +163,7 @@
                                 class="h-6 w-6" /></span><span class="mt-3 text-sm font-black text-neutral">تصاویر
                             گوشی را انتخاب کنید</span><span class="mt-1 text-xs text-slate-400">JPG، PNG یا WEBP ·
                             حداکثر {{ $maxImageUploadMb }}MB</span><input @change="select($event)" type="file"
-                            name="images[]" multiple accept=".jpg,.jpeg,.png,.webp" class="sr-only"></label>
+                            name="images[]" multiple @if (!$clone || $clone->images->isEmpty()) required @endif accept=".jpg,.jpeg,.png,.webp" class="sr-only"></label>
                     <div x-show="previews.length" x-cloak class="grid grid-cols-4 gap-2"><template
                             x-for="preview in previews" :key="preview.url">
                             <div class="overflow-hidden rounded-lg bg-slate-50 border border-slate-200"><img

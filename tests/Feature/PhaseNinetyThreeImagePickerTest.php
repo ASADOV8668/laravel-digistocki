@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\SellerStore;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,12 +21,13 @@ class PhaseNinetyThreeImagePickerTest extends TestCase
     public function test_create_page_exposes_image_preview_picker(): void
     {
         $user = User::factory()->create();
-        \App\Models\SellerStore::create(['user_id' => $user->id, 'slug' => 'picker-store-'.$user->id, 'name' => 'فروشگاه تصویر']);
+        SellerStore::create(['user_id' => $user->id, 'slug' => 'picker-store-'.$user->id, 'name' => 'فروشگاه تصویر']);
         $this->actingAs($user)
             ->get(route('listings.create'))
             ->assertOk()
             ->assertSee('imagePicker', false)
             ->assertSee('حداکثر ۵ تصویر')
+            ->assertSee('حداقل یک تصویر', false)
             ->assertSee('preview.url', false);
     }
 
@@ -36,6 +38,8 @@ class PhaseNinetyThreeImagePickerTest extends TestCase
         $this->assertIsString($source);
         $this->assertStringContainsString('window.imagePicker =', $source);
         $this->assertStringContainsString('file.size > maxMb * 1024 * 1024', $source);
+        $this->assertStringContainsString('new DataTransfer()', $source);
+        $this->assertStringContainsString('event.target.files = transfer.files', $source);
         $this->assertStringContainsString('URL.revokeObjectURL(preview.url)', $source);
     }
 }

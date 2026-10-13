@@ -9,6 +9,8 @@ use App\Models\SellerStore;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Sadegh19b\LaravelIranCities\Models\City;
 use Sadegh19b\LaravelIranCities\Models\County;
 use Sadegh19b\LaravelIranCities\Models\Province;
@@ -24,6 +26,7 @@ class PhaseTwoHundredFiftyOneUserListingDefaultsTest extends TestCase
     {
         parent::setUp();
         $this->seed(CatalogSeeder::class);
+        Storage::fake('public');
     }
 
     public function test_user_listing_form_uses_store_location_and_generates_title_without_formatted_price(): void
@@ -58,6 +61,7 @@ class PhaseTwoHundredFiftyOneUserListingDefaultsTest extends TestCase
             'phone_model_id' => $model->id,
             'price' => '32000000',
             'attributes' => $attributes,
+            'images' => [UploadedFile::fake()->create('phone.jpg', 100, 'image/jpeg')],
         ])->assertRedirect();
 
         $listing = Listing::query()->where('user_id', $user->id)->firstOrFail();
@@ -68,6 +72,31 @@ class PhaseTwoHundredFiftyOneUserListingDefaultsTest extends TestCase
         $this->assertStringContainsString('آیفون ۱۳ پرو', $listing->title);
         $this->assertStringContainsString('آبی', $listing->title);
         $this->assertStringContainsString('۲۵۶ گیگابایت', $listing->title);
+    }
+
+    public function test_user_cannot_create_a_listing_without_an_image(): void
+    {
+        [$province, $city] = $this->location();
+        $user = User::factory()->create();
+        SellerStore::create([
+            'user_id' => $user->id,
+            'slug' => 'required-image-store-'.$user->id,
+            'name' => 'فروشگاه تصویر',
+            'province_id' => $province->id,
+            'city_id' => $city->id,
+        ]);
+        $brand = Brand::where('name_en', 'Apple')->firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+
+        $this->actingAs($user)
+            ->post(route('listings.store'), [
+                'brand_id' => $brand->id,
+                'phone_model_id' => $model->id,
+                'title' => 'آگهی بدون تصویر',
+                'price' => 1000000,
+                'attributes' => $this->requiredAttributeValues($model),
+            ])
+            ->assertSessionHasErrors(['images' => 'حداقل یک تصویر برای آگهی انتخاب کنید.']);
     }
 
     /** @return array{0: Province, 1: City} */

@@ -85,6 +85,16 @@ class UpdateListingRequest extends FormRequest
                 $validator->errors()->add('price_on_request', 'امکان انتخاب «تماس بگیرید» در تنظیمات سیستم فعال نیست.');
             }
 
+            $listing = $this->route('listing');
+            if (! $this->user()?->isAdmin()
+                && $this->user()?->storefront?->province_id
+                && $this->user()?->storefront?->city_id
+                && $listing instanceof Listing
+                && $listing->images()->count() === 0
+                && count($this->file('images', [])) === 0) {
+                $validator->errors()->add('images', 'حداقل یک تصویر برای آگهی لازم است.');
+            }
+
             $model = PhoneModel::query()->find($this->integer('phone_model_id'));
             if (! $model || $model->brand_id !== $this->integer('brand_id')) {
                 return;
@@ -96,5 +106,13 @@ class UpdateListingRequest extends FormRequest
                 $validator->errors()->add($field, $message);
             }
         });
+    }
+
+    public function messages(): array
+    {
+        return [
+            'images.max' => 'تعداد تصاویر جدید بیشتر از ظرفیت باقی‌مانده آگهی است.',
+            'images.*.max' => 'حجم هر تصویر نباید بیشتر از '.app(SystemOptions::class)->maxImageUploadMb().' مگابایت باشد.',
+        ];
     }
 }

@@ -51,6 +51,16 @@ class StoreListingRequest extends FormRequest
         $locationRequirement = ! $this->user()?->isAdmin() && $store?->province_id && $store?->city_id
             ? 'required'
             : 'nullable';
+        $imageRules = ['nullable', 'array', 'max:'.app(SystemOptions::class)->maxImageUploadCount()];
+        $cloneHasImages = $this->integer('clone') > 0
+            && Listing::query()
+                ->where('user_id', $this->user()?->id)
+                ->whereKey($this->integer('clone'))
+                ->whereHas('images')
+                ->exists();
+        if (! $this->user()?->isAdmin() && $store?->province_id && $store?->city_id && ! $cloneHasImages) {
+            $imageRules = ['required', 'array', 'min:1', 'max:'.app(SystemOptions::class)->maxImageUploadCount()];
+        }
         $priceRules = ['nullable', 'integer', 'min:0'];
         if (app(SystemOptions::class)->allowContactPrice()) {
             $priceRules[] = 'required_unless:price_on_request,1';
@@ -70,7 +80,7 @@ class StoreListingRequest extends FormRequest
             'city_id' => [$locationRequirement, 'integer', Rule::exists('cities', 'id')->where(fn ($query) => $query->where('province_id', $this->input('province_id')))],
             'attributes' => ['nullable', 'array'],
             'attributes.*' => ['nullable'],
-            'images' => ['nullable', 'array', 'max:'.app(SystemOptions::class)->maxImageUploadCount()],
+            'images' => $imageRules,
             'images.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
         ];
     }
@@ -102,6 +112,10 @@ class StoreListingRequest extends FormRequest
             'phone_model_id.required' => 'انتخاب مدل الزامی است.',
             'title.required' => 'عنوان آگهی را وارد کنید.',
             'price.required' => 'قیمت را وارد کنید یا گزینه «تماس بگیرید» را انتخاب کنید.',
+            'images.required' => 'حداقل یک تصویر برای آگهی انتخاب کنید.',
+            'images.min' => 'حداقل یک تصویر برای آگهی انتخاب کنید.',
+            'images.max' => 'تعداد تصاویر انتخاب‌شده بیشتر از حد مجاز تنظیمات است.',
+            'images.*.max' => 'حجم هر تصویر نباید بیشتر از '.app(SystemOptions::class)->maxImageUploadMb().' مگابایت باشد.',
             'city_id.exists' => 'شهر انتخاب‌شده با استان انتخابی مطابقت ندارد.',
         ];
     }
