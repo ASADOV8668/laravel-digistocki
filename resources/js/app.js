@@ -958,9 +958,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     },
 
     isQuickAttributeVisible(attribute) {
-        if (attribute.slug !== 'color') return true;
-        const storage = this.attributes.find((item) => item.slug === 'storage');
-        return !storage || Boolean(this.filters[storage.id]);
+        return true;
     },
 
     activeFilterCount() {
