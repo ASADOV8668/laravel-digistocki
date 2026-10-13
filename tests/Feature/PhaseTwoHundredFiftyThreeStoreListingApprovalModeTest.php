@@ -158,4 +158,47 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
             Listing::query()->where('title', 'آگهی نیازمند تأیید')->firstOrFail()->status,
         );
     }
+
+    public function test_manual_listing_mode_allows_editing_published_listing_and_resubmits_it_for_review(): void
+    {
+        $user = User::factory()->create();
+        $store = $this->storeApplication($user);
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+        $listing = Listing::create([
+            'user_id' => $user->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی منتشرشده قابل ویرایش',
+            'slug' => 'manual-edit-'.$user->id,
+            'price' => 30000000,
+            'status' => ListingStatus::Approved,
+            'published_at' => now()->subDay(),
+            'expires_at' => now()->addDays(10),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('listings.edit', $listing))
+            ->assertOk()
+            ->assertSee('ذخیره و ارسال برای بررسی');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('ویرایش کامل');
+
+        $this->actingAs($user)
+            ->put(route('listings.update', $listing), [
+                'brand_id' => $brand->id,
+                'phone_model_id' => $model->id,
+                'title' => 'آگهی منتشرشده ویرایش‌شده',
+                'price' => 35000000,
+                'attributes' => $this->requiredAttributeValues($model),
+            ])
+            ->assertRedirect(route('listings.show', $listing))
+            ->assertSessionHas('status', 'تغییرات ذخیره و آگهی دوباره برای بررسی ارسال شد.');
+
+        $this->assertSame(ListingStatus::Pending, $listing->refresh()->status);
+        $this->assertSame('آگهی منتشرشده ویرایش‌شده', $listing->title);
+    }
 }

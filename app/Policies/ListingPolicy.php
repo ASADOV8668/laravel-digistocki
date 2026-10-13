@@ -35,8 +35,7 @@ class ListingPolicy
             return false;
         }
 
-        return in_array($listing->status->value, ['pending', 'rejected'], true)
-            || ($listing->status->value === 'approved' && $listing->user?->storefront?->allowsFreeListing());
+        return in_array($listing->status->value, ['pending', 'rejected', 'approved'], true);
     }
 
     public function delete(User $user, Listing $listing): bool

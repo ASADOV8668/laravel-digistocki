@@ -205,7 +205,7 @@
                         </div>
                     </div>
                     <div class="mt-4 flex flex-wrap gap-2">
-                        @if (in_array($listing->status->value, ['pending', 'rejected'], true) || ($listing->status->value === 'approved' && $store?->allowsFreeListing()))
+                        @if (in_array($listing->status->value, ['pending', 'rejected', 'approved'], true))
                             <a href="{{ route('listings.edit', $listing) }}"
                                 class="rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary">{{ $store?->allowsFreeListing() ? 'ویرایش آگهی' : 'ویرایش کامل' }}</a>
                         @endif
