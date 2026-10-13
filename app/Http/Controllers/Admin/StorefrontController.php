@@ -185,6 +185,7 @@ class StorefrontController extends Controller
             'is_enabled' => (bool) ($validated['store_enabled'] ?? false),
             'is_admin_disabled' => (bool) ($validated['admin_disabled'] ?? false),
             'approval_status' => $validated['approval_status'],
+            'listing_approval_mode' => $validated['listing_approval_mode'] ?? ($store?->listing_approval_mode ?? SellerStore::LISTING_APPROVAL_MANUAL),
             'province_id' => $validated['province_id'] ?? $store?->province_id,
             'city_id' => $validated['city_id'] ?? $store?->city_id,
             'logo_path' => $logoPath,

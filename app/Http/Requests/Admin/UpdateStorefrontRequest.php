@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\SellerStore;
 use App\Services\SystemOptions;
 use App\Support\PersianDate;
 use App\Support\PersianDigits;
@@ -33,6 +34,7 @@ class UpdateStorefrontRequest extends FormRequest
             'contact_phone' => $this->englishDigits($this->input('contact_phone')),
             'business_license_expires_at' => $expiry,
             'approval_status' => $this->input('approval_status') ?: ($this->route('user')?->storefront?->approval_status ?? 'pending'),
+            'listing_approval_mode' => $this->input('listing_approval_mode') ?: ($this->route('user')?->storefront?->listing_approval_mode ?? SellerStore::LISTING_APPROVAL_MANUAL),
             'instagram_url' => SocialHandle::normalize($this->input('instagram_url')),
             'telegram_url' => SocialHandle::normalize($this->input('telegram_url')),
             'whatsapp_url' => SocialHandle::normalize($this->input('whatsapp_url')),
@@ -52,6 +54,7 @@ class UpdateStorefrontRequest extends FormRequest
             'store_enabled' => ['boolean'],
             'admin_disabled' => ['boolean'],
             'approval_status' => ['required', 'in:pending,approved,rejected'],
+            'listing_approval_mode' => ['required', 'in:manual,free'],
             'rejection_reason' => ['nullable', 'string', 'max:1000'],
             'first_name' => ['nullable', 'string', 'max:80'],
             'last_name' => ['nullable', 'string', 'max:100'],

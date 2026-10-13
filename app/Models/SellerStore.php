@@ -13,6 +13,10 @@ class SellerStore extends Model
 {
     use HasFactory;
 
+    public const LISTING_APPROVAL_MANUAL = 'manual';
+
+    public const LISTING_APPROVAL_FREE = 'free';
+
     protected $fillable = [
         'user_id',
         'slug',
@@ -23,6 +27,7 @@ class SellerStore extends Model
         'is_enabled',
         'is_admin_disabled',
         'approval_status',
+        'listing_approval_mode',
         'province_id',
         'city_id',
         'logo_path',
@@ -102,5 +107,10 @@ class SellerStore extends Model
     public function isRejected(): bool
     {
         return $this->approval_status === 'rejected';
+    }
+
+    public function allowsFreeListing(): bool
+    {
+        return $this->listing_approval_mode === self::LISTING_APPROVAL_FREE;
     }
 }

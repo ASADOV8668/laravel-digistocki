@@ -527,16 +527,18 @@ class ListingController extends Controller
         }
 
         $storedFiles = [];
+        $autoPublish = $request->user()->storefront?->allowsFreeListing() ?? false;
         try {
-            $listing = DB::transaction(function () use ($validated, $request, $model, $imageService, $options, &$storedFiles) {
+            $listing = DB::transaction(function () use ($validated, $request, $model, $imageService, $options, $rules, $autoPublish, &$storedFiles) {
                 $listingData = $validated;
                 unset($listingData['attributes'], $listingData['images'], $listingData['primary_image_index'], $listingData['primary_image_id']);
                 $listing = Listing::create([
                     ...$listingData,
                     'user_id' => $request->user()->id,
                     'slug' => Str::slug($validated['title']).'-'.Str::lower(Str::random(8)),
-                    'status' => 'pending',
-                    'expires_at' => null,
+                    'status' => $autoPublish ? 'approved' : 'pending',
+                    'published_at' => $autoPublish ? now() : null,
+                    'expires_at' => $autoPublish ? $rules->expiryDate() : null,
                 ]);
 
                 $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
@@ -554,7 +556,7 @@ class ListingController extends Controller
             throw $exception;
         }
 
-        return redirect()->route('listings.show', $listing)->with('status', 'آگهی شما برای بررسی ارسال شد.');
+        return redirect()->route('listings.show', $listing)->with('status', $autoPublish ? 'آگهی شما به‌صورت خودکار منتشر شد.' : 'آگهی شما برای بررسی ارسال شد.');
     }
 
     public function quickUpdate(Request $request, Listing $listing, SystemOptions $options): RedirectResponse|JsonResponse

@@ -183,6 +183,15 @@
                         <option value="approved" @selected(old('approval_status', $store?->approval_status) === 'approved')>تأییدشده</option>
                         <option value="rejected" @selected(old('approval_status', $store?->approval_status) === 'rejected')>ردشده</option>
                     </select></div>
+                <div>
+                    <label for="admin-listing-approval-mode" class="mb-2 block text-sm font-bold text-slate-700">مجوز ثبت آگهی</label>
+                    <select id="admin-listing-approval-mode" name="listing_approval_mode"
+                        class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">
+                        <option value="manual" @selected(old('listing_approval_mode', $store?->listing_approval_mode ?? \App\Models\SellerStore::LISTING_APPROVAL_MANUAL) === \App\Models\SellerStore::LISTING_APPROVAL_MANUAL)>با تأیید مدیریت</option>
+                        <option value="free" @selected(old('listing_approval_mode', $store?->listing_approval_mode ?? \App\Models\SellerStore::LISTING_APPROVAL_MANUAL) === \App\Models\SellerStore::LISTING_APPROVAL_FREE)>ثبت آزاد (بدون تأیید مدیریت)</option>
+                    </select>
+                    <p class="mt-1 text-[11px] text-slate-400">در حالت ثبت آزاد، آگهی‌های جدید این فروشگاه مستقیم منتشر می‌شوند.</p>
+                </div>
                 <div><label for="admin-sort-order" class="mb-2 block text-sm font-bold text-slate-700">اولویت نمایش
                         (Sort)</label><input id="admin-sort-order" name="sort_order" type="number" min="0"
                         value="{{ old('sort_order', $store?->sort_order ?? 0) }}"
