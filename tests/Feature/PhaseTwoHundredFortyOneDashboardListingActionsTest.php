@@ -38,6 +38,28 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
         $this->assertTrue($listing->is_user_disabled);
     }
 
+    public function test_dashboard_quick_price_forms_group_digits_and_submit_a_raw_price(): void
+    {
+        $user = User::factory()->create();
+        $brand = Brand::firstOrFail();
+        $listing = Listing::create([
+            'user_id' => $user->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $brand->phoneModels()->first()->id,
+            'title' => 'فرم قیمت سریع',
+            'slug' => Str::uuid(),
+            'price' => 1000000,
+            'status' => ListingStatus::Approved,
+        ]);
+
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('x-data="moneyInput(', false)
+            ->assertSee('x-model="display"', false)
+            ->assertSee('type="hidden" name="price"', false)
+            ->assertSee('type="hidden" name="bulk_price"', false);
+    }
+
     public function test_quick_dashboard_actions_return_json_for_ajax_requests(): void
     {
         $user = User::factory()->create();

@@ -224,17 +224,25 @@
                         <p class="text-xs font-bold text-primary">ویرایش سریع آگهی</p>
                         <h3 class="mt-1 text-lg font-black text-neutral">{{ $listing->title }}</h3>
                         <form method="POST" action="{{ route('listings.quick-update', $listing) }}"
-                            class="mt-5 space-y-4">@csrf @method('PATCH')<div><label
+                            class="mt-5 space-y-4">@csrf @method('PATCH')<div
+                                x-data="{ priceOnRequest: @js((bool) old('price_on_request', $listing->price_on_request)) }"><label
                                     for="quick-price-{{ $listing->id }}"
-                                    class="mb-2 block text-sm font-bold text-neutral">قیمت (تومان)</label><input
-                                    id="quick-price-{{ $listing->id }}" name="price"
-                                    value="{{ $listing->price }}" type="number" min="0" @required(!$listing->price_on_request)
-                                    class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary/30">
+                                    class="mb-2 block text-sm font-bold text-neutral">قیمت (تومان)</label>
+                                <div x-data="moneyInput(@js(old('price', $listing->price ?? '')))"
+                                    x-show="!priceOnRequest">
+                                    <input id="quick-price-{{ $listing->id }}" x-model="display"
+                                        @input="formatInput($event)" :required="!priceOnRequest" type="text"
+                                        inputmode="numeric" autocomplete="off" dir="ltr"
+                                        placeholder="مثلاً ۳۲٬۰۰۰٬۰۰۰"
+                                        class="w-full rounded-lg border-slate-200 text-left text-sm focus:border-primary focus:ring-primary/30">
+                                    <input type="hidden" name="price" :value="raw">
+                                </div>
                             </div>
                             @if ($allowContactPrice)
                                 <label class="flex items-center gap-2 text-sm font-bold text-neutral"><input
                                         type="checkbox" name="price_on_request" value="1"
-                                        @checked($listing->price_on_request) class="public-check"> قیمت نمایش داده نشود؛ تماس
+                                        x-model="priceOnRequest" @checked($listing->price_on_request)
+                                        class="public-check"> قیمت نمایش داده نشود؛ تماس
                                     بگیرید</label>
                             @endif
                             <div class="flex justify-end gap-2"><button type="button"
@@ -267,10 +275,13 @@
                     @csrf<input type="hidden" name="action" value="price"><template x-for="id in selectedIds"
                         :key="`bulk-price-${id}`"><input type="hidden" name="listing_ids[]"
                             :value="id"></template>
-                    <div><label for="bulk-price" class="mb-2 block text-sm font-bold text-neutral">قیمت جدید
-                            (تومان)</label><input id="bulk-price" name="bulk_price" type="number" min="0"
+                    <div x-data="moneyInput('')"><label for="bulk-price"
+                            class="mb-2 block text-sm font-bold text-neutral">قیمت جدید (تومان)</label><input
+                            id="bulk-price" x-model="display" @input="formatInput($event)" type="text"
+                            inputmode="numeric" autocomplete="off" dir="ltr" placeholder="مثلاً ۳۲٬۰۰۰٬۰۰۰"
                             required
-                            class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary/30">
+                            class="w-full rounded-lg border-slate-200 text-left text-sm focus:border-primary focus:ring-primary/30"><input
+                            type="hidden" name="bulk_price" :value="raw">
                     </div>
                     <div class="flex justify-end gap-2"><button type="button" data-modal-hide="bulk-price-modal"
                             class="rounded-lg bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-600">انصراف</button><button
