@@ -38,6 +38,8 @@ class UpdateStorefrontRequest extends FormRequest
             'whatsapp_url' => SocialHandle::normalize($this->input('whatsapp_url')),
             'bale_url' => SocialHandle::normalize($this->input('bale_url')),
             'rubika_url' => SocialHandle::normalize($this->input('rubika_url')),
+            'remove_logo' => $this->boolean('remove_logo'),
+            'remove_business_license' => $this->boolean('remove_business_license'),
         ]);
     }
 
@@ -65,6 +67,8 @@ class UpdateStorefrontRequest extends FormRequest
             'city_id' => ['nullable', 'integer', Rule::exists('cities', 'id')->where(fn ($query) => $query->where('province_id', $this->input('province_id')))],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
             'business_license' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
+            'remove_logo' => ['nullable', 'boolean'],
+            'remove_business_license' => ['nullable', 'boolean'],
             'address' => ['nullable', 'string', 'max:1000'],
             'contact_phone' => ['nullable', 'string', 'regex:/^09\d{9}$/'],
             'instagram_url' => ['nullable', 'string', 'max:120', 'regex:/^[A-Za-z0-9._+\-]+$/'],

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 use Sadegh19b\LaravelIranCities\Models\City;
 use Sadegh19b\LaravelIranCities\Models\Province;
 
@@ -51,6 +52,16 @@ class SellerStore extends Model
             'approved_at' => 'datetime',
             'sort_order' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (SellerStore $store): void {
+            Storage::disk('public')->delete(array_values(array_filter([
+                $store->logo_path,
+                $store->business_license_path,
+            ])));
+        });
     }
 
     public function user(): BelongsTo

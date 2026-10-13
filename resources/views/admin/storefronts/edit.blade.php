@@ -36,6 +36,7 @@
                 فروشگاه را تغییر دهد.</p>
         </div>
         <form method="POST" action="{{ route('admin.storefronts.update', $user) }}" enctype="multipart/form-data"
+            x-data="{ removeLogo: false, removeBusinessLicense: false }"
             class="admin-card space-y-5 p-5">
             @csrf @method('PUT')
             <div class="grid gap-4 sm:grid-cols-2">
@@ -129,11 +130,33 @@
             <div class="grid gap-4 sm:grid-cols-2">
                 <div><label for="admin-store-logo" class="mb-2 block text-sm font-bold text-slate-700">لوگوی
                         فروشگاه</label><input id="admin-store-logo" name="logo" type="file"
-                        accept=".jpg,.jpeg,.png,.webp" class="w-full rounded-xl border border-slate-200 p-2 text-sm">
+                        accept=".jpg,.jpeg,.png,.webp" @change="removeLogo = false"
+                        class="w-full rounded-xl border border-slate-200 p-2 text-sm">
+                    @if ($store?->logo_path)
+                        <div x-show="!removeLogo" class="relative mt-3 w-fit">
+                            <img src="{{ asset('storage/'.$store->logo_path) }}" alt="لوگوی فعلی فروشگاه"
+                                class="h-28 w-28 rounded-xl border border-slate-200 object-cover">
+                            <button type="button" @click="removeLogo = true"
+                                class="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-error text-white shadow"
+                                aria-label="حذف لوگوی فعلی فروشگاه"><x-heroicon-o-x-mark class="h-4 w-4" /></button>
+                        </div>
+                    @endif
+                    <input type="hidden" name="remove_logo" value="1" x-bind:disabled="!removeLogo">
                 </div>
                 <div><label for="admin-business-license" class="mb-2 block text-sm font-bold text-slate-700">تصویر
                         جواز کسب</label><input id="admin-business-license" name="business_license" type="file"
-                        accept=".jpg,.jpeg,.png,.webp" class="w-full rounded-xl border border-slate-200 p-2 text-sm">
+                        accept=".jpg,.jpeg,.png,.webp" @change="removeBusinessLicense = false"
+                        class="w-full rounded-xl border border-slate-200 p-2 text-sm">
+                    @if ($store?->business_license_path)
+                        <div x-show="!removeBusinessLicense" class="relative mt-3 w-fit">
+                            <img src="{{ asset('storage/'.$store->business_license_path) }}" alt="تصویر فعلی جواز کسب"
+                                class="h-28 w-28 rounded-xl border border-slate-200 object-cover">
+                            <button type="button" @click="removeBusinessLicense = true"
+                                class="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-error text-white shadow"
+                                aria-label="حذف تصویر فعلی جواز کسب"><x-heroicon-o-x-mark class="h-4 w-4" /></button>
+                        </div>
+                    @endif
+                    <input type="hidden" name="remove_business_license" value="1" x-bind:disabled="!removeBusinessLicense">
                 </div>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">

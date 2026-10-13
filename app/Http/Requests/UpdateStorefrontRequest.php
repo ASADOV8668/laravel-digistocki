@@ -36,6 +36,8 @@ class UpdateStorefrontRequest extends FormRequest
             'whatsapp_url' => SocialHandle::normalize($this->input('whatsapp_url')),
             'bale_url' => SocialHandle::normalize($this->input('bale_url')),
             'rubika_url' => SocialHandle::normalize($this->input('rubika_url')),
+            'remove_logo' => $this->boolean('remove_logo'),
+            'remove_business_license' => $this->boolean('remove_business_license'),
         ]);
     }
 
@@ -68,7 +70,9 @@ class UpdateStorefrontRequest extends FormRequest
             'city_id' => ['required', 'integer', Rule::exists('cities', 'id')->where(fn ($query) => $query->where('province_id', $this->input('province_id')))],
             'address' => ['required', 'string', 'max:1000'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
-            'business_license' => [Rule::requiredIf(! $store?->business_license_path), 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
+            'business_license' => [Rule::requiredIf(! $store?->business_license_path || $this->boolean('remove_business_license')), 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
+            'remove_logo' => ['nullable', 'boolean'],
+            'remove_business_license' => ['nullable', 'boolean'],
             'contact_phone' => ['required', 'string', 'regex:/^09\d{9}$/'],
             'instagram_url' => ['nullable', 'string', 'max:120', 'regex:/^[A-Za-z0-9._+\-]+$/'],
             'telegram_url' => ['nullable', 'string', 'max:120', 'regex:/^[A-Za-z0-9._+\-]+$/'],
@@ -118,6 +122,7 @@ class UpdateStorefrontRequest extends FormRequest
             'rubika_url.regex' => 'نام کاربری روبیکا باید فقط شامل حروف انگلیسی، عدد، نقطه، زیرخط یا خط تیره باشد.',
             'business_license.image' => 'تصویر جواز کسب باید یک فایل تصویری معتبر باشد.',
             'business_license.max' => 'حجم تصویر جواز کسب بیشتر از حد مجاز تنظیمات است.',
+            'business_license.required' => 'برای حذف تصویر قبلی جواز کسب، تصویر جدید را انتخاب کنید.',
         ];
     }
 

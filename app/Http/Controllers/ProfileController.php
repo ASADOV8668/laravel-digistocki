@@ -52,11 +52,13 @@ class ProfileController extends Controller
             ->with('images')
             ->get()
             ->flatMap(fn ($listing) => $listing->images->map(fn ($image) => [$image->path, $image->thumbnail_path]));
+        $storeFiles = [$user->storefront?->logo_path, $user->storefront?->business_license_path];
 
         Auth::logout();
 
         $user->delete();
         $imageService->deleteMany($imageFiles);
+        $imageService->deleteMany($storeFiles);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

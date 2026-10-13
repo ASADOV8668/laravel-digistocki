@@ -8,6 +8,7 @@ use App\Support\PersianDate;
 use App\Support\SocialHandle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Sadegh19b\LaravelIranCities\Models\City;
 use Sadegh19b\LaravelIranCities\Models\County;
 use Sadegh19b\LaravelIranCities\Models\Province;
@@ -252,6 +253,110 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
         $this->actingAs($admin)->get(route('admin.storefronts.edit', $owner))
             ->assertOk()
             ->assertSee('value="989120009999"', false);
+    }
+
+    public function test_storefront_edit_forms_show_existing_images_and_remove_controls(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('stores/current-logo.webp', 'logo');
+        Storage::disk('public')->put('business-licenses/current-license.webp', 'license');
+
+        $user = User::factory()->create(['mobile' => '09120001030']);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $store = SellerStore::create([
+            'user_id' => $user->id,
+            'slug' => 'image-preview-store',
+            'name' => 'فروشگاه پیش‌نمایش تصاویر',
+            'logo_path' => 'stores/current-logo.webp',
+            'business_license_path' => 'business-licenses/current-license.webp',
+            'approval_status' => 'approved',
+            'is_enabled' => true,
+        ]);
+
+        $this->actingAs($user)->get(route('storefront.edit'))
+            ->assertOk()
+            ->assertSee(asset('storage/'.$store->logo_path), false)
+            ->assertSee(asset('storage/'.$store->business_license_path), false)
+            ->assertSee('name="remove_logo"', false)
+            ->assertSee('name="remove_business_license"', false);
+
+        $this->actingAs($admin)->get(route('admin.storefronts.edit', $user))
+            ->assertOk()
+            ->assertSee(asset('storage/'.$store->logo_path), false)
+            ->assertSee(asset('storage/'.$store->business_license_path), false)
+            ->assertSee('name="remove_logo"', false)
+            ->assertSee('name="remove_business_license"', false);
+    }
+
+    public function test_storefront_image_controls_can_remove_existing_files(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('stores/remove-logo.webp', 'logo');
+        Storage::disk('public')->put('business-licenses/remove-license.webp', 'license');
+
+        $user = User::factory()->create(['mobile' => '09120001040']);
+        $province = Province::create(['name' => 'استان حذف', 'tel_prefix' => '96']);
+        $county = County::create(['name' => 'شهرستان حذف', 'province_id' => $province->id]);
+        $city = City::create(['name' => 'شهر حذف', 'province_id' => $province->id, 'county_id' => $county->id]);
+        $store = SellerStore::create([
+            'user_id' => $user->id,
+            'slug' => 'remove-image-store',
+            'name' => 'فروشگاه حذف تصاویر',
+            'first_name' => 'کاربر',
+            'last_name' => 'تصویر',
+            'national_id' => '0067123457',
+            'contact_phone' => $user->mobile,
+            'business_license_number' => 'LIC-1040',
+            'business_license_expires_at' => '2030-01-01',
+            'logo_path' => 'stores/remove-logo.webp',
+            'business_license_path' => 'business-licenses/remove-license.webp',
+            'approval_status' => 'approved',
+            'is_enabled' => true,
+        ]);
+
+        $this->actingAs($user)->put(route('storefront.update'), [
+            'first_name' => 'کاربر',
+            'last_name' => 'تصویر',
+            'national_id' => '0067123457',
+            'name' => $store->name,
+            'contact_phone' => $user->mobile,
+            'business_license_number' => 'LIC-1040',
+            'business_license_expires_at_year' => '1405',
+            'business_license_expires_at_month' => '12',
+            'business_license_expires_at_day' => '29',
+            'province_id' => $province->id,
+            'city_id' => $city->id,
+            'address' => 'آدرس حذف',
+            'remove_logo' => 1,
+            'remove_business_license' => 1,
+            'logo' => UploadedFile::fake()->create('new-logo.jpg', 10, 'image/jpeg'),
+            'business_license' => UploadedFile::fake()->create('new-license.jpg', 10, 'image/jpeg'),
+        ])->assertRedirect();
+
+        Storage::disk('public')->assertMissing('stores/remove-logo.webp');
+        Storage::disk('public')->assertMissing('business-licenses/remove-license.webp');
+        $this->assertNotSame('stores/remove-logo.webp', $store->refresh()->logo_path);
+        $this->assertNotSame('business-licenses/remove-license.webp', $store->business_license_path);
+    }
+
+    public function test_deleting_a_storefront_removes_its_stored_images(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('stores/deleted-logo.webp', 'logo');
+        Storage::disk('public')->put('business-licenses/deleted-license.webp', 'license');
+
+        $store = SellerStore::create([
+            'user_id' => User::factory()->create()->id,
+            'slug' => 'deleted-image-store',
+            'name' => 'فروشگاه حذف‌شده',
+            'logo_path' => 'stores/deleted-logo.webp',
+            'business_license_path' => 'business-licenses/deleted-license.webp',
+        ]);
+
+        $store->delete();
+
+        Storage::disk('public')->assertMissing('stores/deleted-logo.webp');
+        Storage::disk('public')->assertMissing('business-licenses/deleted-license.webp');
     }
 
     private function assertSeeDateSelectOn($response): void

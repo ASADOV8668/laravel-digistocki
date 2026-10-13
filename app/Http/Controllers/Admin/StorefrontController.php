@@ -160,6 +160,9 @@ class StorefrontController extends Controller
             if ($store?->logo_path) {
                 Storage::disk('public')->delete($store->logo_path);
             }
+        } elseif ($store?->logo_path && $request->boolean('remove_logo')) {
+            Storage::disk('public')->delete($store->logo_path);
+            $logoPath = null;
         }
 
         if ($request->hasFile('business_license')) {
@@ -167,6 +170,9 @@ class StorefrontController extends Controller
             if ($store?->business_license_path) {
                 Storage::disk('public')->delete($store->business_license_path);
             }
+        } elseif ($store?->business_license_path && $request->boolean('remove_business_license')) {
+            Storage::disk('public')->delete($store->business_license_path);
+            $businessLicensePath = null;
         }
 
         $payload = [

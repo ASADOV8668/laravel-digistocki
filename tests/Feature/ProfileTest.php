@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\SellerStore;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -77,6 +79,26 @@ class ProfileTest extends TestCase
 
         $this->assertGuest();
         $this->assertNull($user->fresh());
+    }
+
+    public function test_deleting_an_account_removes_storefront_images_before_cascade_delete(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('stores/account-logo.webp', 'logo');
+        Storage::disk('public')->put('business-licenses/account-license.webp', 'license');
+        $user = User::factory()->create();
+        SellerStore::create([
+            'user_id' => $user->id,
+            'slug' => 'account-store',
+            'name' => 'فروشگاه حساب',
+            'logo_path' => 'stores/account-logo.webp',
+            'business_license_path' => 'business-licenses/account-license.webp',
+        ]);
+
+        $this->actingAs($user)->delete('/profile', ['password' => 'password'])->assertRedirect('/');
+
+        Storage::disk('public')->assertMissing('stores/account-logo.webp');
+        Storage::disk('public')->assertMissing('business-licenses/account-license.webp');
     }
 
     public function test_correct_password_must_be_provided_to_delete_account(): void
