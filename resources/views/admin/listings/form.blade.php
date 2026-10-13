@@ -11,7 +11,7 @@
             </div>
         </div>
     </x-slot>
-    <section x-data="listingAdminForm()" data-models-endpoint="{{ url('/listings/models') }}"
+    <section x-data='Object.assign(listingAdminForm(), imagePicker(@js($maxImageUploadMb), {{ $editing ? max(0, $maxImageUploadCount - $listing->images->count()) : $maxImageUploadCount }}, @js($listing?->images?->firstWhere("is_primary", true)?->id)))' data-models-endpoint="{{ url('/listings/models') }}"
         data-cities-endpoint="{{ url('/locations/provinces') }}" data-users-endpoint="{{ route('admin.users.search') }}"
         data-initial-brand-id="{{ old('brand_id', $listing->brand_id ?? '') }}"
         data-initial-model-id="{{ old('phone_model_id', $listing->phone_model_id ?? '') }}"
@@ -154,8 +154,7 @@
                     </div>
                 </div>
             </div>
-            <div x-data='imagePicker(@js($maxImageUploadMb), {{ $editing ? max(0, $maxImageUploadCount - $listing->images->count()) : $maxImageUploadCount }}, @js($listing?->images?->firstWhere("is_primary", true)?->id))'
-                class="border-t border-slate-100 pt-6">
+            <div class="border-t border-slate-100 pt-6">
                 <h2 class="text-base font-black text-slate-900">تصاویر</h2>
                 <p class="mt-1 text-xs text-slate-400">حداکثر {{ $maxImageUploadCount }} تصویر، هر تصویر
                     {{ $maxImageUploadMb }} مگابایت.</p>
