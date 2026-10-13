@@ -178,6 +178,21 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
         ]);
     }
 
+    public function test_storefront_forms_prefill_whatsapp_from_the_user_mobile(): void
+    {
+        $user = User::factory()->create(['mobile' => '09120008888']);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $owner = User::factory()->create(['mobile' => '09120009999']);
+
+        $this->actingAs($user)->get(route('storefront.edit'))
+            ->assertOk()
+            ->assertSee('value="989120008888"', false);
+
+        $this->actingAs($admin)->get(route('admin.storefronts.edit', $owner))
+            ->assertOk()
+            ->assertSee('value="989120009999"', false);
+    }
+
     private function assertSeeDateSelectOn($response): void
     {
         $response->assertOk()

@@ -2,6 +2,8 @@
     $storeExpiry = $store?->business_license_expires_at
         ? \App\Support\PersianDate::format($store->business_license_expires_at)
         : '';
+    $defaultWhatsapp = $store?->whatsapp_url
+        ?: \App\Support\SocialHandle::fromMobile($store?->contact_phone ?? auth()->user()->mobile);
     $nameParts = preg_split('/\s+/', trim((string) auth()->user()->name), 2);
 @endphp
 <x-app-layout title="ثبت فروشگاه">
@@ -159,7 +161,7 @@
                             class="public-input" placeholder="مثلاً digistocki"></div>
                     <div><label for="store-whatsapp" class="mb-2 block text-sm font-bold text-neutral">نام کاربری
                             واتساپ</label><input id="store-whatsapp" name="whatsapp_url"
-                            value="{{ old('whatsapp_url', $store?->whatsapp_url) }}" dir="ltr"
+                            value="{{ old('whatsapp_url', $defaultWhatsapp) }}" dir="ltr"
                             class="public-input" placeholder="مثلاً 989120000000"></div>
                     <div><label for="store-bale" class="mb-2 block text-sm font-bold text-neutral">نام کاربری
                             بله</label><input id="store-bale" name="bale_url"
