@@ -156,6 +156,7 @@ class PhaseTwoHundredFiftyStorefrontFiltersTest extends TestCase
             'contact_phone' => '09120000000',
             'address' => 'تهران، خیابان تست',
             'instagram_url' => 'store_test',
+            'telegram_url' => 'store_test_telegram',
         ]);
         $this->listing($store->user, $brand, $model, 'آگهی اطلاعات تماس', 22000000);
 
@@ -165,7 +166,11 @@ class PhaseTwoHundredFiftyStorefrontFiltersTest extends TestCase
             ->assertSee('اطلاعات تماس فروشگاه')
             ->assertSee('09120000000')
             ->assertSee('تهران، خیابان تست')
-            ->assertSee('instagram.com/store_test');
+            ->assertSee('instagram.com/store_test')
+            ->assertSee('t.me/store_test_telegram')
+            ->assertSee('aria-label="اینستاگرام"', false)
+            ->assertSee('aria-label="تلگرام"', false)
+            ->assertSee('aria-label="اشتراک‌گذاری فروشگاه"', false);
     }
 
     private function storeContext(string $slug): array

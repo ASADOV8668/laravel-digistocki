@@ -27,12 +27,16 @@
     }
 
     $socialLinks = collect([
-        'اینستاگرام' => \App\Support\SocialHandle::url($store->instagram_url, 'instagram'),
-        'تلگرام' => \App\Support\SocialHandle::url($store->telegram_url, 'telegram'),
-        'واتساپ' => \App\Support\SocialHandle::url($store->whatsapp_url, 'whatsapp'),
-        'بله' => \App\Support\SocialHandle::url($store->bale_url, 'bale'),
-        'روبیکا' => \App\Support\SocialHandle::url($store->rubika_url, 'rubika'),
-    ])->filter();
+        ['label' => 'اینستاگرام', 'platform' => 'instagram', 'value' => $store->instagram_url],
+        ['label' => 'تلگرام', 'platform' => 'telegram', 'value' => $store->telegram_url],
+        ['label' => 'واتساپ', 'platform' => 'whatsapp', 'value' => $store->whatsapp_url],
+        ['label' => 'بله', 'platform' => 'bale', 'value' => $store->bale_url],
+        ['label' => 'روبیکا', 'platform' => 'rubika', 'value' => $store->rubika_url],
+    ])->filter(fn (array $social): bool => filled($social['value']))->map(function (array $social): array {
+        $social['url'] = \App\Support\SocialHandle::url($social['value'], $social['platform']);
+
+        return $social;
+    });
 @endphp
 
 @push('head')
@@ -99,6 +103,7 @@
             </div>
 
             <div x-data="{ contactOpen: false }" class="mt-5 border-t border-white/10 pt-4">
+                <div class="flex items-center justify-between gap-3">
                 @auth
                     <button type="button" @click="contactOpen = !contactOpen" :aria-expanded="contactOpen.toString()"
                         class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-black text-white transition hover:bg-primary-600">
@@ -106,6 +111,26 @@
                         <span x-text="contactOpen ? 'بستن اطلاعات تماس' : 'اطلاعات تماس فروشگاه'">اطلاعات تماس
                             فروشگاه</span>
                     </button>
+                @else
+                    <a href="{{ route('login') }}"
+                        class="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/20">
+                        <x-heroicon-o-lock-closed class="h-4 w-4" />
+                        برای مشاهده اطلاعات تماس وارد شوید
+                    </a>
+                @endauth
+                <div x-data="shareLink(@js(route('storefront.show', $store)))" class="flex items-center gap-2">
+                    <button type="button" @click="share()" aria-label="اشتراک‌گذاری فروشگاه"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white transition hover:bg-primary-600">
+                        <x-heroicon-o-share class="h-5 w-5" />
+                    </button>
+                    <button type="button" @click="copy()" aria-label="کپی لینک فروشگاه"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-white/15">
+                        <x-heroicon-o-clipboard-document class="h-5 w-5" />
+                    </button>
+                </div>
+                </div>
+
+                @auth
                     <div x-show="contactOpen" x-cloak class="mt-4 grid gap-3 text-xs text-white/80 sm:grid-cols-2">
                         @if ($store->contact_phone)
                             <a href="tel:{{ $store->contact_phone }}"
@@ -120,34 +145,15 @@
                                 {{ $store->address }}
                             </p>
                         @endif
-                        @foreach ($socialLinks as $label => $url)
-                            <a href="{{ $url }}" target="_blank" rel="noopener noreferrer"
+                        @foreach ($socialLinks as $social)
+                            <a href="{{ $social['url'] }}" target="_blank" rel="noopener noreferrer"
                                 class="flex items-center gap-2 text-white transition hover:text-primary-100">
-                                <x-heroicon-o-link class="h-4 w-4" />
-                                {{ $label }}
+                                <x-social-icon :platform="$social['platform']" class="h-5 w-5 shrink-0" />
+                                <span>{{ $social['label'] }}: {{ $social['value'] }}</span>
                             </a>
                         @endforeach
                     </div>
-                @else
-                    <a href="{{ route('login') }}"
-                        class="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/20">
-                        <x-heroicon-o-lock-closed class="h-4 w-4" />
-                        برای مشاهده اطلاعات تماس وارد شوید
-                    </a>
                 @endauth
-            </div>
-
-            <div x-data="shareLink(@js(route('storefront.show', $store)))" class="mt-5 flex flex-wrap gap-2 border-t border-white/10 pt-4">
-                <button type="button" @click="share()"
-                    class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-black text-white transition hover:bg-primary-600">
-                    <x-heroicon-o-share class="h-4 w-4" />
-                    اشتراک‌گذاری فروشگاه
-                </button>
-                <button type="button" @click="copy()"
-                    class="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/15">
-                    <x-heroicon-o-clipboard-document class="h-4 w-4" />
-                    <span x-text="copied ? 'لینک کپی شد' : 'کپی لینک'">کپی لینک</span>
-                </button>
             </div>
         </div>
 
