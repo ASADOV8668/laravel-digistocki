@@ -27,8 +27,7 @@
                     class="rounded-lg bg-rose-500 px-6 py-3 font-bold text-white transition hover:bg-rose-600">بازگشت به
                     خانه</a>
                 <a href="{{ route('listings.index') }}"
-                    class="rounded-lg border border-slate-200 px-6 py-3 font-bold text-slate-700 transition hover:border-rose-200 hover:text-rose-500">مشاهده
-                    آگهی‌ها</a>
+                    class="rounded-lg border border-slate-200 px-6 py-3 font-bold text-slate-700 transition hover:border-rose-200 hover:text-rose-500">مشاهده آگهی‌ها</a>
             </div>
         </section>
     </main>

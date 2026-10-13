@@ -17,7 +17,7 @@ class PhaseOneHundredThirtyTwoAdminUserCreationTest extends TestCase
 
         $response = $this->actingAs($admin)->post(route('admin.users.store'), [
             'name' => 'کاربر مدیریت',
-            'mobile' => '+98 912 345 6789',
+            'mobile' => '۰۹۱۲۳۴۵۶۷۸۹',
             'national_id' => '۱۲۳۴۵۶۷۸۹۰',
             'password' => 'secret-pass',
             'password_confirmation' => 'secret-pass',

@@ -21,6 +21,10 @@ class PhaseOneHundredSeventyTwoListingSidebarFiltersTest extends TestCase
     public function test_listing_filter_sidebar_has_ajax_location_model_and_dynamic_attribute_controls(): void
     {
         $this->seed(CatalogSeeder::class);
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+        $this->listing(User::factory()->create(), $brand->id, $model->id, null, null, 'آگهی بازه اول', 1000000);
+        $this->listing(User::factory()->create(), $brand->id, $model->id, null, null, 'آگهی بازه دوم', 2000000);
         Province::create(['name' => 'استان فیلتر', 'tel_prefix' => '31']);
 
         $this->get(route('listings.index'))

@@ -148,9 +148,7 @@
             @if (count($matchingListingIds) > count($visibleListingIds))
                 <button type="button" @click="allMatching ? clearSelection() : selectAllMatching()"
                     class="rounded-lg bg-white px-3 py-2 text-[11px] font-bold text-primary ring-1 ring-primary/20"><span
-                        x-text="allMatching ? 'لغو انتخاب همه نتایج' : 'انتخاب همه نتایج فیلترشده ('.concat('{{ \App\Support\PersianNumber::digits(count($matchingListingIds)) }}', ' مورد)' )">انتخاب
-                        همه نتایج فیلترشده ({{ \App\Support\PersianNumber::digits(count($matchingListingIds)) }}
-                        مورد)</span></button>
+                        x-text="allMatching ? 'لغو انتخاب همه نتایج' : 'انتخاب همه نتایج فیلترشده ('.concat('{{ \App\Support\PersianNumber::digits(count($matchingListingIds)) }}', ' مورد)' )">انتخاب همه نتایج فیلترشده ({{ \App\Support\PersianNumber::digits(count($matchingListingIds)) }} مورد)</span></button>
             @endif
             <span class="w-full text-[11px] text-primary/70"
                 x-text="selectedIds.length ? `${selectedIds.length} آگهی انتخاب شده` : 'برای انتخاب همه موارد، مربع هر آگهی را بزنید.'">

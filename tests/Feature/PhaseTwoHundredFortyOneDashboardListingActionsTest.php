@@ -45,7 +45,7 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
         $listing = Listing::create(['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $brand->phoneModels()->first()->id, 'title' => 'آگهی آجاکس', 'slug' => Str::uuid(), 'price' => 1000000, 'status' => ListingStatus::Approved]);
 
         $this->actingAs($user)
-            ->patchJson(route('listings.quick-update', $listing), ['price' => 2750000])
+            ->patchJson(route('listings.quick-update', $listing), ['price' => '۲۷۵۰۰۰۰'])
             ->assertOk()
             ->assertJson(['price' => 2750000, 'price_on_request' => false]);
 
@@ -66,7 +66,7 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
         $this->actingAs($user)
             ->postJson(route('dashboard.listings.bulk'), [
                 'action' => 'price',
-                'bulk_price' => 3200000,
+                'bulk_price' => '۳۲۰۰۰۰۰',
                 'listing_ids' => [$first->id, $second->id],
             ])
             ->assertOk()

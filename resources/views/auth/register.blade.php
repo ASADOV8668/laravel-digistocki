@@ -40,8 +40,7 @@
         </form>
         <form id="otp-resend-form" method="POST" action="{{ route('register.otp.resend') }}" class="mt-3" hidden>
             @csrf<button type="submit"
-                class="mobile-button w-full border border-primary/20 bg-primary-50 text-primary hover:bg-primary-100 focus:ring-primary/20">ارسال
-                مجدد کد</button></form>
+                class="mobile-button w-full border border-primary/20 bg-primary-50 text-primary hover:bg-primary-100 focus:ring-primary/20">ارسال مجدد کد</button></form>
     @else
         <form method="POST" action="{{ route('register') }}" class="space-y-4">@csrf
             <input type="hidden" name="mobile" value="{{ $mobile }}">

@@ -17,7 +17,7 @@ class PhaseFifteenMobileAuthTest extends TestCase
         $user = User::factory()->create(['mobile' => '09121234567']);
 
         $this->post(route('login'), [
-            'login' => '09121234567',
+            'login' => '۰۹۱۲۱۲۳۴۵۶۷',
             'password' => 'password',
         ])->assertRedirect(route('dashboard', absolute: false));
 
@@ -84,5 +84,20 @@ class PhaseFifteenMobileAuthTest extends TestCase
         ])->assertRedirect(route('profile.edit'));
 
         $this->assertSame('09121234567', $user->refresh()->mobile);
+    }
+
+    public function test_registration_otp_accepts_persian_digits(): void
+    {
+        $this->post(route('register'), ['mobile' => '۰۹۱۲۱۱۱۲۲۳۳'])->assertRedirect(route('register'));
+        $otp = MobileOtp::latest()->firstOrFail();
+        $otp->update(['code_hash' => Hash::make('123456')]);
+
+        $this->post(route('register.otp.verify'), [
+            'mobile' => '۰۹۱۲۱۱۱۲۲۳۳',
+            'otp' => '۱۲۳۴۵۶',
+        ])->assertRedirect(route('register'));
+
+        $this->post(route('register'), ['name' => 'کاربر رقم فارسی'])->assertRedirect(route('home'));
+        $this->assertAuthenticated();
     }
 }

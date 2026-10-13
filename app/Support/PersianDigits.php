@@ -21,7 +21,13 @@ final class PersianDigits
     public static function normalizeRecursive(mixed $value): mixed
     {
         if (is_array($value)) {
-            return array_map([self::class, 'normalizeRecursive'], $value);
+            $normalized = [];
+            foreach ($value as $key => $item) {
+                $normalizedKey = is_string($key) ? self::toEnglish($key) : $key;
+                $normalized[$normalizedKey] = self::normalizeRecursive($item);
+            }
+
+            return $normalized;
         }
 
         return self::toEnglish($value);

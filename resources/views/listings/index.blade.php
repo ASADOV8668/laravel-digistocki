@@ -3,7 +3,7 @@
         <h1 class="text-xl font-black text-neutral">جستجوی آگهی‌ها</h1>
     </x-slot>
 
-    <section x-data="listingSearch(@js(route('listings.search.suggestions')), @js(url('/listings/models')), @js(url('/listings/models')), @js(url('/locations/provinces')), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input('filters', [])), @js(request('province_id')), @js(request('city_id')), @js(request('q')), @js(request('brand_id')), @js(request('min_price')), @js(request('max_price')), @js($sort), @js($priceCeiling), @js(request()->input('city_ids', [])), @js(0), @js($activeOnly))" class="space-y-6 px-4 py-6">
+    <section x-data="listingSearch(@js(route('listings.search.suggestions')), @js(url("/listings/models")), @js(url("/listings/models")), @js(url('/locations/provinces')), @js($selectedModel?->id), @js($filterAttributesPayload), @js(request()->input('filters', [])), @js(request('province_id')), @js(request('city_id')), @js(request('q')), @js(request('brand_id')), @js(request('min_price')), @js(request('max_price')), @js($sort), @js($priceCeiling), @js(request()->input('city_ids', [])), @js(0), @js($activeOnly))" class="space-y-6 px-4 py-6">
         <div class="flex items-end justify-between gap-3">
             <div>
                 <p class="text-xs font-bold text-primary">بازار موبایل</p>

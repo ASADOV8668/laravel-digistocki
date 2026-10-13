@@ -148,8 +148,7 @@
                             class="flex items-center gap-3"><span
                                 class="flex h-9 w-9 items-center justify-center rounded-xl {{ $allowContactPrice ? 'bg-success/10 text-success' : 'bg-slate-200 text-slate-500' }}"><x-heroicon-o-tag
                                     class="h-5 w-5" /></span><span><strong
-                                    class="block text-sm font-black text-slate-800">اجازه ثبت «تماس
-                                    بگیرید»</strong><small class="mt-1 block text-[11px] text-slate-400">در صورت فعال
+                                    class="block text-sm font-black text-slate-800">اجازه ثبت «تماس بگیرید»</strong><small class="mt-1 block text-[11px] text-slate-400">در صورت فعال
                                     بودن، ورود قیمت برای آگهی اختیاری می‌شود.</small></span></span><input
                             name="allow_contact_price" value="1" type="checkbox" @checked($allowContactPrice)
                             class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary"></label></div>

@@ -48,12 +48,10 @@
                             class="rounded-lg bg-neutral px-3 py-2 text-xs font-bold text-white">مشاهده آگهی</a>
                         @if (($data['status'] ?? null) === 'rejected' && !empty($data['listing_id']))
                             <a href="{{ route('listings.edit', ['listing' => $data['listing_id']]) }}"
-                                class="rounded-lg bg-primary px-3 py-2 text-xs font-bold text-white">ویرایش و ارسال
-                                مجدد</a>
+                                class="rounded-lg bg-primary px-3 py-2 text-xs font-bold text-white">ویرایش و ارسال مجدد</a>
                         @endif
                     @elseif (array_key_exists('listing_available', $data) && !$data['listing_available'])
-                        <span class="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-500">آگهی دیگر در
-                            دسترس نیست</span>
+                        <span class="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-500">آگهی دیگر در دسترس نیست</span>
                         @endif @if (!$notification->read_at)
                             <form method="POST" action="{{ route('notifications.read', $notification->id) }}"
                                 data-notification-read>@csrf @method('PATCH')<button

@@ -52,13 +52,14 @@ class ListingFlowTest extends TestCase
             'phone_model_id' => $model->id,
             'title' => 'آگهی تست آیفون',
             'description' => 'توضیحات تست',
-            'price' => 32000000,
+            'price' => '۳۲۰۰۰۰۰۰',
             'attributes' => array_replace($this->requiredAttributeValues($model), [$memory->id => 256]),
         ]);
 
         $response->assertRedirect();
         $listing = Listing::query()->where('title', 'آگهی تست آیفون')->firstOrFail();
         $this->assertSame(ListingStatus::Pending, $listing->status);
+        $this->assertSame(32000000, $listing->price);
         $this->assertSame(256, $listing->attributeValues()->firstOrFail()->value_integer);
     }
 

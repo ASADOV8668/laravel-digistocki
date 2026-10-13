@@ -71,8 +71,7 @@
                     </p>
                     <p x-show="!isIos" class="mt-1 text-xs leading-6 text-slate-600">برای دسترسی سریع‌تر و تجربه‌ای شبیه
                         اپلیکیشن.</p>
-                    <p x-show="isIos" class="mt-1 text-xs leading-6 text-slate-600">در Safari روی دکمه اشتراک‌گذاری
-                        بزنید و گزینه «افزودن به صفحه اصلی» را انتخاب کنید.</p>
+                    <p x-show="isIos" class="mt-1 text-xs leading-6 text-slate-600">در Safari روی دکمه اشتراک‌گذاری بزنید و گزینه «افزودن به صفحه اصلی» را انتخاب کنید.</p>
                     <div class="mt-3 flex flex-wrap gap-2">
                         <button x-show="!isIos" type="button" @click="install()"
                             class="mobile-button bg-primary text-white">

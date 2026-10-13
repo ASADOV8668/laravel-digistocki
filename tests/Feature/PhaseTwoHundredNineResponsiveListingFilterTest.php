@@ -30,6 +30,16 @@ class PhaseTwoHundredNineResponsiveListingFilterTest extends TestCase
             'status' => ListingStatus::Approved,
             'published_at' => now(),
         ]);
+        Listing::create([
+            'user_id' => User::factory()->create()->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی برای کف قیمت',
+            'slug' => Str::uuid(),
+            'price' => 41000000,
+            'status' => ListingStatus::Approved,
+            'published_at' => now()->subMinute(),
+        ]);
 
         $response = $this->get(route('listings.index'))->assertOk();
         $view = $response->getContent();

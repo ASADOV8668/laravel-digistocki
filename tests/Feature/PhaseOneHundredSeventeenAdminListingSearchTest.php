@@ -49,4 +49,28 @@ class PhaseOneHundredSeventeenAdminListingSearchTest extends TestCase
             ->assertOk()
             ->assertSee($listing->title);
     }
+
+    public function test_admin_listing_date_filter_accepts_persian_digits(): void
+    {
+        $brand = Brand::where('name_en', 'Apple')->firstOrFail();
+        $model = $brand->phoneModels()->where('name', 'iPhone 13 Pro')->firstOrFail();
+        $listing = Listing::create([
+            'user_id' => User::factory()->create()->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی تاریخ شمسی',
+            'slug' => Str::uuid(),
+            'price' => 42000000,
+            'status' => ListingStatus::Pending,
+        ]);
+        $listing->forceFill(['created_at' => now()->subDay()])->save();
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.listings.index', [
+                'date_from' => '۱۴۰۵/۰۱/۰۱',
+                'date_to' => '۱۵۰۰/۱۲/۲۹',
+            ]))
+            ->assertOk()
+            ->assertSee($listing->title);
+    }
 }

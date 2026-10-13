@@ -27,8 +27,7 @@
                     class="rounded-lg bg-amber-500 px-6 py-3 font-bold text-white transition hover:bg-amber-600">بازگشت
                     به خانه</a>
                 <a href="{{ route('support.index') }}"
-                    class="rounded-lg border border-slate-200 px-6 py-3 font-bold text-slate-700 transition hover:border-amber-200 hover:text-amber-600">ارتباط
-                    با پشتیبانی</a>
+                    class="rounded-lg border border-slate-200 px-6 py-3 font-bold text-slate-700 transition hover:border-amber-200 hover:text-amber-600">ارتباط با پشتیبانی</a>
             </div>
         </section>
     </main>

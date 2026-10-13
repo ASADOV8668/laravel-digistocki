@@ -80,7 +80,7 @@
                         value="{{ old('name', $store?->name ?? $user->name) }}" required
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">
                 </div>
-                <div><label for="admin-store-slug" class="mb-2 block text-sm font-bold text-slate-700">آدرس انگلیسی
+                <div><label for="admin-store-slug" class="mb-2 block text-sm font-bold text-slate-700">شناسه اینترنتی انگلیسی
                         فروشگاه</label>
                     <div class="flex items-center gap-2" dir="ltr"><span
                             class="rounded-xl bg-slate-100 px-3 py-3 text-xs text-slate-500">/store/</span><input
@@ -88,8 +88,10 @@
                             dir="ltr" required
                             class="min-w-0 flex-1 rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary"
                             placeholder="mobile-shop"></div>
-                    <p class="mt-1 text-[11px] text-slate-400">مدیریت می‌تواند این آدرس را اصلاح کند؛ کاربر پس از ثبت
-                        امکان تغییر ندارد.</p>
+                    <p class="mt-1 text-[11px] text-slate-400">این بخش فقط برای URL است و مدیریت می‌تواند آن را اصلاح کند؛ کاربر پس از ثبت امکان تغییر ندارد.</p>
+                    @error('slug')
+                        <p class="mt-1 text-xs font-bold text-error" role="alert">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
             <div x-data="storefrontLocation($el.dataset.citiesEndpoint, $el.dataset.provinceId, $el.dataset.cityId)" data-cities-endpoint="{{ url('/locations/provinces') }}"
@@ -116,11 +118,13 @@
                     <p x-show="citiesLoading" class="mt-1 text-[11px] text-slate-400">در حال دریافت شهرها...</p>
                 </div>
             </div>
-            <div><label for="admin-store-address" class="mb-2 block text-sm font-bold text-slate-700">آدرس
-                    فروشگاه</label>
+            <div><label for="admin-store-address" class="mb-2 block text-sm font-bold text-slate-700">آدرس دقیق فروشگاه (فارسی یا انگلیسی)</label>
                 <textarea id="admin-store-address" name="address" rows="3"
                     dir="rtl" class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">{{ old('address', $store?->address) }}</textarea>
                 <p class="mt-1 text-[11px] text-slate-400">آدرس دقیق می‌تواند فارسی یا انگلیسی باشد.</p>
+                @error('address')
+                    <p class="mt-1 text-xs font-bold text-error" role="alert">{{ $message }}</p>
+                @enderror
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
                 <div><label for="admin-store-logo" class="mb-2 block text-sm font-bold text-slate-700">لوگوی

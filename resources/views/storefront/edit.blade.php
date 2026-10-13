@@ -91,7 +91,7 @@
                         class="text-error">*</span></label><input id="store-name" name="name"
                     value="{{ old('name', $store?->name ?? auth()->user()->name) }}" required class="public-input"
                     placeholder="مثلاً فروشگاه موبایل رضایی"></div>
-            <div><label for="store-slug" class="mb-2 block text-sm font-bold text-neutral">آدرس انگلیسی فروشگاه <span
+            <div><label for="store-slug" class="mb-2 block text-sm font-bold text-neutral">شناسه اینترنتی انگلیسی فروشگاه <span
                         class="text-error">*</span></label>
                 <div class="flex items-center gap-2" dir="ltr"><span
                         class="shrink-0 rounded-lg bg-slate-100 px-3 py-3 text-xs text-slate-500">/store/</span><input
@@ -99,8 +99,10 @@
                         @disabled($store) dir="ltr" required
                         class="public-input min-w-0 flex-1 disabled:bg-slate-100 disabled:text-slate-500"
                         placeholder="mobile-rezaei"></div>
-                <p class="mt-1 text-[11px] text-slate-400">فقط حروف انگلیسی کوچک، عدد و خط تیره؛ پس از ایجاد قابل تغییر
-                    نیست.</p>
+                <p class="mt-1 text-[11px] text-slate-400">این بخش فقط برای URL است و باید با حروف انگلیسی کوچک، عدد و خط تیره وارد شود؛ پس از ایجاد قابل تغییر نیست.</p>
+                @error('slug')
+                    <p class="mt-1 text-xs font-bold text-error" role="alert">{{ $message }}</p>
+                @enderror
             </div>
             <div x-data="storefrontLocation($el.dataset.citiesEndpoint, $el.dataset.provinceId, $el.dataset.cityId)" data-cities-endpoint="{{ url('/locations/provinces') }}"
                 data-province-id="{{ old('province_id', $store?->province_id) }}"
@@ -124,10 +126,13 @@
                     <p x-show="citiesLoading" class="mt-1 text-[11px] text-slate-400">در حال دریافت شهرها...</p>
                 </div>
             </div>
-            <div><label for="store-address" class="mb-2 block text-sm font-bold text-neutral">آدرس دقیق <span
+            <div><label for="store-address" class="mb-2 block text-sm font-bold text-neutral">آدرس دقیق فروشگاه (فارسی یا انگلیسی) <span
                         class="text-error">*</span></label>
                 <textarea id="store-address" name="address" rows="3" dir="rtl" required class="public-input">{{ old('address', $store?->address) }}</textarea>
                 <p class="mt-1 text-[11px] text-slate-400">آدرس دقیق را می‌توانید به فارسی یا انگلیسی وارد کنید.</p>
+                @error('address')
+                    <p class="mt-1 text-xs font-bold text-error" role="alert">{{ $message }}</p>
+                @enderror
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
                 <div><label for="store-license" class="mb-2 block text-sm font-bold text-neutral">تصویر جواز کسب <span

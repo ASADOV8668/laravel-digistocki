@@ -122,4 +122,25 @@ class PhaseElevenSystemSettingsTest extends TestCase
             'images' => [UploadedFile::fake()->create('large.jpg', 1500, 'image/jpeg')],
         ])->assertSessionHasErrors('images.0');
     }
+
+    public function test_numeric_system_settings_accept_persian_digits(): void
+    {
+        $this->actingAs($this->admin)->put(route('admin.settings.update'), [
+            'site_title' => 'دیجی استوکی',
+            'page_title_prefix' => 'دیجی استوکی',
+            'title_separator' => '|',
+            'max_image_upload_mb' => '۵',
+            'max_image_upload_count' => '۷',
+            'listing_duplicate_cooldown_hours' => '۲۴',
+            'otp_expiry_minutes' => '۶',
+            'session_lifetime_days' => '۳۶۵',
+            'listings_enabled' => 1,
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('options', ['key' => 'max_image_upload_mb', 'value' => '5']);
+        $this->assertDatabaseHas('options', ['key' => 'max_image_upload_count', 'value' => '7']);
+        $this->assertDatabaseHas('options', ['key' => 'listing_duplicate_cooldown_hours', 'value' => '24']);
+        $this->assertDatabaseHas('options', ['key' => 'otp_expiry_minutes', 'value' => '6']);
+        $this->assertDatabaseHas('options', ['key' => 'session_lifetime_days', 'value' => '365']);
+    }
 }

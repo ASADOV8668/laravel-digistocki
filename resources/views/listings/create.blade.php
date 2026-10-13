@@ -153,9 +153,7 @@
             <div x-show="step === 4" x-cloak class="space-y-4">
                 <div>
                     <h2 class="text-lg font-black text-neutral">تصاویر و ارسال</h2>
-                    <p class="mt-1 text-xs leading-6 text-slate-500">حداکثر
-                        {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر، هر تصویر حداکثر
-                        {{ $maxImageUploadMb }} مگابایت. تصویر اول به‌عنوان تصویر اصلی نمایش داده می‌شود.</p>
+                    <p class="mt-1 text-xs leading-6 text-slate-500">حداکثر {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر، هر تصویر حداکثر {{ $maxImageUploadMb }} مگابایت. تصویر اول به‌عنوان تصویر اصلی نمایش داده می‌شود.</p>
                 </div>
                 <div x-data='imagePicker(@js($maxImageUploadMb), @js($maxImageUploadCount))'
                     class="space-y-3"><label
@@ -174,8 +172,7 @@
                         </template></div>
                     <div class="flex items-center justify-between text-[10px] text-slate-400"><span
                             x-show="previews.length" x-text="`${previews.length} تصویر انتخاب شده`"></span><span
-                            x-show="!previews.length">هنوز تصویری انتخاب نشده است</span><span>حداکثر
-                            {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر</span></div>
+                            x-show="!previews.length">هنوز تصویری انتخاب نشده است</span><span>حداکثر {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر</span></div>
                     <p x-show="invalid" x-text="message"
                         class="rounded-lg bg-error/10 px-3 py-2 text-xs font-bold text-error"></p>
                 </div>

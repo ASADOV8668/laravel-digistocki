@@ -18,7 +18,7 @@ class PhaseOneHundredThirtyFiveAdminUserEditTest extends TestCase
 
         $this->actingAs($admin)->get(route('admin.users.edit', $user))->assertOk()->assertSee('قدیمی');
         $this->actingAs($admin)->put(route('admin.users.update', $user), [
-            'name' => 'جدید', 'mobile' => '+98 912 222 2222', 'password' => 'new-secret', 'password_confirmation' => 'new-secret', 'role' => 'user', 'is_active' => 1, 'can_post_listings' => 1,
+            'name' => 'جدید', 'mobile' => '۰۹۱۲۲۲۲۲۲۲۲', 'password' => 'new-secret', 'password_confirmation' => 'new-secret', 'role' => 'user', 'is_active' => 1, 'can_post_listings' => 1,
         ])->assertRedirect(route('admin.users.index'));
 
         $user->refresh();

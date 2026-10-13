@@ -102,9 +102,7 @@
             <div
                 x-data='imagePicker(@js($maxImageUploadMb), {{ max(0, $maxImageUploadCount - $listing->images->count()) }})'>
                 <label class="mb-2 block text-sm font-bold text-neutral">افزودن تصاویر <span
-                        class="text-xs font-normal text-slate-400">حداکثر
-                        {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر، هر تصویر
-                        {{ $maxImageUploadMb }} مگابایت</span></label><label
+                        class="text-xs font-normal text-slate-400">حداکثر {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر، هر تصویر {{ $maxImageUploadMb }} مگابایت</span></label><label
                     class="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-dashed border-primary/20 bg-primary-50/40 p-4 transition hover:border-primary/50"><span
                         class="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-primary shadow-sm"><x-heroicon-o-photo
                             class="h-5 w-5" /></span><span class="text-xs font-bold text-slate-600">برای افزودن تصاویر
@@ -119,9 +117,7 @@
                     </template></div>
                 <div class="mt-2 flex items-center justify-between text-[10px] text-slate-400"><span
                         x-show="previews.length"
-                        x-text="`${previews.length} تصویر جدید انتخاب شده`"></span><span>ظرفیت باقی‌مانده:
-                        {{ \App\Support\PersianNumber::digits(max(0, $maxImageUploadCount - $listing->images->count())) }}
-                        تصویر</span></div>
+                        x-text="`${previews.length} تصویر جدید انتخاب شده`"></span><span>ظرفیت باقی‌مانده: {{ \App\Support\PersianNumber::digits(max(0, $maxImageUploadCount - $listing->images->count())) }} تصویر</span></div>
                 <p x-show="invalid" x-text="message"
                     class="mt-2 rounded-lg bg-error/10 px-3 py-2 text-xs font-bold text-error"></p>
             </div>
