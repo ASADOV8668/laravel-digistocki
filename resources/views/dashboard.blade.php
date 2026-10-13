@@ -169,7 +169,8 @@
         </form>
         <div id="dashboard-listings" role="tabpanel" aria-label="فهرست آگهی‌های من" class="space-y-3">
             @forelse ($listings as $listing)
-                <article class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <article data-listing-card="{{ $listing->id }}"
+                    class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                     <div class="flex gap-3"><label class="pt-1"><input type="checkbox" name="listing_ids[]"
                                 value="{{ $listing->id }}" form="bulk-listings-form" x-model="selectedIds"
                                 class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary/30"><span
@@ -234,6 +235,7 @@
                         <p class="text-xs font-bold text-primary">ویرایش سریع آگهی</p>
                         <h3 class="mt-1 text-lg font-black text-neutral">{{ $listing->title }}</h3>
                         <form method="POST" action="{{ route('listings.quick-update', $listing) }}"
+                            data-quick-update-listing="{{ $listing->id }}"
                             class="mt-5 space-y-4">@csrf @method('PATCH')<div
                                 x-data="{ priceOnRequest: @js((bool) old('price_on_request', $listing->price_on_request)) }"><label
                                     for="quick-price-{{ $listing->id }}"

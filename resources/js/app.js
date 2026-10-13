@@ -1368,12 +1368,15 @@ document.addEventListener('submit', async (event) => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.message || 'عملیات انجام نشد؛ دوباره تلاش کنید.');
 
-        const card = form.closest('article');
+        const listingId = form.dataset.quickUpdateListing;
+        const card = form.closest('article') || (listingId
+            ? document.querySelector('[data-listing-card="' + CSS.escape(String(listingId)) + '"]')
+            : null);
         if (form.action.includes('/quick-update')) {
             const priceNode = card?.querySelector('[data-listing-price]');
             if (priceNode) priceNode.textContent = data.price_on_request ? 'تماس بگیرید' : formatDashboardPrice(data.price) + ' تومان';
             form.querySelector('input[name="price"]')?.setAttribute('value', data.price ?? '');
-            form.querySelector('[data-modal-hide]')?.click();
+            form.closest('[role="dialog"]')?.querySelector('[data-modal-hide]')?.click();
             showDashboardNotification('آگهی به‌روزرسانی شد', data.message || 'قیمت آگهی ذخیره شد.', 'success');
         } else {
             const toggleButton = form.querySelector('button');

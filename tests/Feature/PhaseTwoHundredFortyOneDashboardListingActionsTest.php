@@ -58,6 +58,8 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
             ->assertSee('x-model="display"', false)
             ->assertSee('type="hidden" name="price"', false)
             ->assertSee('data-listing-price', false)
+            ->assertSee('data-listing-card="'.$listing->id.'"', false)
+            ->assertSee('data-quick-update-listing="'.$listing->id.'"', false)
             ->assertSee('type="hidden" name="bulk_price"', false);
     }
 
