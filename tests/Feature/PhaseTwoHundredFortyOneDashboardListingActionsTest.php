@@ -93,6 +93,35 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
         $this->assertCount(12, $response->viewData('listings')->getCollection());
     }
 
+    public function test_dashboard_renders_flowbite_pagination_when_listing_results_span_multiple_pages(): void
+    {
+        $user = User::factory()->create();
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+
+        foreach (range(1, 12) as $number) {
+            Listing::create([
+                'user_id' => $user->id,
+                'brand_id' => $brand->id,
+                'phone_model_id' => $model->id,
+                'title' => 'آگهی صفحه‌بندی '.$number,
+                'slug' => Str::uuid(),
+                'price' => 1000000,
+                'status' => ListingStatus::Approved,
+            ]);
+        }
+
+        $response = $this->actingAs($user)->get(route('dashboard', ['per_page' => 10]));
+
+        $response->assertOk()
+            ->assertSee('aria-label="صفحه‌بندی"', false)
+            ->assertSee('بعدی')
+            ->assertSee('page=2', false)
+            ->assertSee('نمایش ۱ تا', false)
+            ->assertSee('۱۰ از', false)
+            ->assertSee('۱۲ آگهی', false);
+    }
+
     public function test_quick_dashboard_actions_return_json_for_ajax_requests(): void
     {
         $user = User::factory()->create();

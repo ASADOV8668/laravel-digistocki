@@ -291,7 +291,22 @@
                 </div>
             @endforelse
         </div>
-        {{ $listings->links('vendor.pagination.flowbite') }}
+        @if ($listings->total())
+            <div class="flex flex-col gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                <span>
+                    نمایش {{ \App\Support\PersianNumber::format($listings->firstItem()) }} تا
+                    {{ \App\Support\PersianNumber::format($listings->lastItem()) }} از
+                    {{ \App\Support\PersianNumber::format($listings->total()) }} آگهی
+                </span>
+                <span class="font-bold text-slate-700">
+                    صفحه {{ \App\Support\PersianNumber::format($listings->currentPage()) }} از
+                    {{ \App\Support\PersianNumber::format($listings->lastPage()) }}
+                </span>
+            </div>
+        @endif
+        <div class="listing-pagination">
+            {{ $listings->links('vendor.pagination.flowbite') }}
+        </div>
         <x-modal name="bulk-price-modal" maxWidth="md">
             <div class="p-6">
                 <p class="text-xs font-bold text-info">عملیات گروهی</p>
