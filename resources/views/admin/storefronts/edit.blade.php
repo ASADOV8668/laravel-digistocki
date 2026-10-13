@@ -117,7 +117,8 @@
             <div><label for="admin-store-address" class="mb-2 block text-sm font-bold text-slate-700">آدرس
                     فروشگاه</label>
                 <textarea id="admin-store-address" name="address" rows="3"
-                    class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">{{ old('address', $store?->address) }}</textarea>
+                    dir="rtl" class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">{{ old('address', $store?->address) }}</textarea>
+                <p class="mt-1 text-[11px] text-slate-400">آدرس دقیق می‌تواند فارسی یا انگلیسی باشد.</p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
                 <div><label for="admin-store-logo" class="mb-2 block text-sm font-bold text-slate-700">لوگوی

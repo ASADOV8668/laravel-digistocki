@@ -124,7 +124,8 @@
             </div>
             <div><label for="store-address" class="mb-2 block text-sm font-bold text-neutral">آدرس دقیق <span
                         class="text-error">*</span></label>
-                <textarea id="store-address" name="address" rows="3" required class="public-input">{{ old('address', $store?->address) }}</textarea>
+                <textarea id="store-address" name="address" rows="3" dir="rtl" required class="public-input">{{ old('address', $store?->address) }}</textarea>
+                <p class="mt-1 text-[11px] text-slate-400">آدرس دقیق را می‌توانید به فارسی یا انگلیسی وارد کنید.</p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
                 <div><label for="store-license" class="mb-2 block text-sm font-bold text-neutral">تصویر جواز کسب <span

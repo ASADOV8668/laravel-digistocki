@@ -160,6 +160,24 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
             ->assertSee(SocialHandle::url($store->whatsapp_url, 'whatsapp'), false);
     }
 
+    public function test_admin_can_save_a_persian_storefront_address(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $owner = User::factory()->create(['mobile' => '09120007777']);
+
+        $this->actingAs($admin)->put(route('admin.storefronts.update', $owner), [
+            'approval_status' => 'pending',
+            'name' => 'فروشگاه مدیریت',
+            'slug' => 'admin-persian-address',
+            'address' => 'مازندران، بابلسر، خیابان اصلی، پلاک ۱۲',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('seller_stores', [
+            'user_id' => $owner->id,
+            'address' => 'مازندران، بابلسر، خیابان اصلی، پلاک ۱۲',
+        ]);
+    }
+
     private function assertSeeDateSelectOn($response): void
     {
         $response->assertOk()

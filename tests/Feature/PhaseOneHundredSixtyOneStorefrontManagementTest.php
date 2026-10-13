@@ -46,6 +46,7 @@ class PhaseOneHundredSixtyOneStorefrontManagementTest extends TestCase
         $this->assertFalse($store->is_enabled);
         $this->assertSame('reza-mobile', $store->slug);
         $this->assertSame('09120001111', $store->contact_phone);
+        $this->assertSame('آدرس تست', $store->address);
     }
 
     public function test_existing_storefront_slug_cannot_be_changed_by_the_owner(): void
