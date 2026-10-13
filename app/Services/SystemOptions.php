@@ -24,7 +24,8 @@ class SystemOptions
         'sms_mode' => 'test',
         'registration_mode' => 'mobile',
         'otp_expiry_minutes' => '5',
-        'listing_duplicate_cooldown_hours' => '24',
+        // 24 hours expressed in minutes. Zero means no duplicate-listing limit.
+        'listing_duplicate_cooldown_minutes' => '1440',
         'session_lifetime_days' => '365',
     ];
 
@@ -127,9 +128,9 @@ class SystemOptions
         return min(30, max(1, (int) $this->get('otp_expiry_minutes')));
     }
 
-    public function listingDuplicateCooldownHours(): int
+    public function listingDuplicateCooldownMinutes(): int
     {
-        return min(720, max(1, (int) $this->get('listing_duplicate_cooldown_hours')));
+        return min(43200, max(0, (int) $this->get('listing_duplicate_cooldown_minutes')));
     }
 
     public function sessionLifetimeDays(): int

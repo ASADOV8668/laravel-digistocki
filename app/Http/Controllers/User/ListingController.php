@@ -500,7 +500,7 @@ class ListingController extends Controller
 
         if ($rules->hasRecentDuplicate($request->user(), $brand->id, $model->id)) {
             throw ValidationException::withMessages([
-                'phone_model_id' => 'برای این مدل در '.PersianNumber::digits($options->listingDuplicateCooldownHours()).' ساعت گذشته آگهی ثبت کرده‌اید.',
+                'phone_model_id' => 'برای این مدل در '.PersianNumber::digits($options->listingDuplicateCooldownMinutes()).' دقیقه گذشته آگهی ثبت کرده‌اید.',
             ]);
         }
 
@@ -654,7 +654,7 @@ class ListingController extends Controller
 
         if ($rules->hasRecentDuplicate($request->user(), $brand->id, $model->id, null, $listing->id)) {
             throw ValidationException::withMessages([
-                'phone_model_id' => 'برای این مدل در '.PersianNumber::digits($options->listingDuplicateCooldownHours()).' ساعت گذشته آگهی دیگری ثبت کرده‌اید.',
+                'phone_model_id' => 'برای این مدل در '.PersianNumber::digits($options->listingDuplicateCooldownMinutes()).' دقیقه گذشته آگهی دیگری ثبت کرده‌اید.',
             ]);
         }
 

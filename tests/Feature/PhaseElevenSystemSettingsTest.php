@@ -33,7 +33,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
             ->assertSee('تنظیمات سیستم')
             ->assertSee('ارسال پیامک و OTP')
             ->assertSee('max_image_upload_count', false)
-            ->assertSee('listing_duplicate_cooldown_hours', false)
+            ->assertSee('listing_duplicate_cooldown_minutes', false)
             ->assertSee('session_lifetime_days', false);
 
         $this->actingAs($this->admin)->put(route('admin.settings.update'), [
@@ -42,7 +42,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
             'title_separator' => '—',
             'max_image_upload_mb' => 8,
             'max_image_upload_count' => 6,
-            'listing_duplicate_cooldown_hours' => 48,
+            'listing_duplicate_cooldown_minutes' => 48,
             'support_office_address' => 'تهران، خیابان تست',
             'support_email' => 'help@example.test',
             'support_phone' => '02112345678',
@@ -54,7 +54,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
         $this->assertDatabaseHas('options', ['key' => 'site_title', 'value' => 'بازار موبایل']);
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_mb', 'value' => '8']);
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_count', 'value' => '6']);
-        $this->assertDatabaseHas('options', ['key' => 'listing_duplicate_cooldown_hours', 'value' => '48']);
+        $this->assertDatabaseHas('options', ['key' => 'listing_duplicate_cooldown_minutes', 'value' => '48']);
         $this->assertDatabaseHas('options', ['key' => 'otp_expiry_minutes', 'value' => '7']);
         $this->assertDatabaseHas('options', ['key' => 'session_lifetime_days', 'value' => '30']);
         $this->assertDatabaseHas('options', ['key' => 'registration_mode', 'value' => 'mobile']);
@@ -131,7 +131,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
             'title_separator' => '|',
             'max_image_upload_mb' => '۵',
             'max_image_upload_count' => '۷',
-            'listing_duplicate_cooldown_hours' => '۲۴',
+            'listing_duplicate_cooldown_minutes' => '۲۴',
             'otp_expiry_minutes' => '۶',
             'session_lifetime_days' => '۳۶۵',
             'listings_enabled' => 1,
@@ -139,8 +139,28 @@ class PhaseElevenSystemSettingsTest extends TestCase
 
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_mb', 'value' => '5']);
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_count', 'value' => '7']);
-        $this->assertDatabaseHas('options', ['key' => 'listing_duplicate_cooldown_hours', 'value' => '24']);
+        $this->assertDatabaseHas('options', ['key' => 'listing_duplicate_cooldown_minutes', 'value' => '24']);
         $this->assertDatabaseHas('options', ['key' => 'otp_expiry_minutes', 'value' => '6']);
         $this->assertDatabaseHas('options', ['key' => 'session_lifetime_days', 'value' => '365']);
+    }
+
+    public function test_zero_duplicate_cooldown_is_saved_as_no_limit(): void
+    {
+        $this->actingAs($this->admin)->put(route('admin.settings.update'), [
+            'site_title' => 'دیجی استوکی',
+            'page_title_prefix' => 'دیجی استوکی',
+            'title_separator' => '|',
+            'max_image_upload_mb' => 5,
+            'listing_duplicate_cooldown_minutes' => 0,
+            'listings_enabled' => 1,
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('options', ['key' => 'listing_duplicate_cooldown_minutes', 'value' => '0']);
+        $this->assertSame(0, app(SystemOptions::class)->listingDuplicateCooldownMinutes());
+        $this->actingAs($this->admin)->get(route('admin.settings.edit'))
+            ->assertOk()
+            ->assertSee('value="0"', false)
+            ->assertSee('بدون', false)
+            ->assertSee('محدودیت', false);
     }
 }

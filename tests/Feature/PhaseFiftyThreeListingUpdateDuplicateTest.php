@@ -41,7 +41,7 @@ class PhaseFiftyThreeListingUpdateDuplicateTest extends TestCase
                 'attributes' => $this->requiredAttributeValues($model),
             ])
             ->assertRedirect(route('listings.edit', $target))
-            ->assertSessionHasErrors(['phone_model_id' => 'برای این مدل در ۲۴ ساعت گذشته آگهی دیگری ثبت کرده‌اید.']);
+            ->assertSessionHasErrors(['phone_model_id' => 'برای این مدل در ۱۴۴۰ دقیقه گذشته آگهی دیگری ثبت کرده‌اید.']);
 
         $otherListing->delete();
 

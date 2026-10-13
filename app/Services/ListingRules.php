@@ -45,12 +45,18 @@ class ListingRules
 
     public function hasRecentDuplicate(User $user, int $brandId, int $phoneModelId, ?CarbonInterface $since = null, ?int $exceptListingId = null): bool
     {
+        $cooldownMinutes = app(SystemOptions::class)->listingDuplicateCooldownMinutes();
+
+        if ($since === null && $cooldownMinutes === 0) {
+            return false;
+        }
+
         return Listing::query()
             ->where('user_id', $user->id)
             ->where('brand_id', $brandId)
             ->where('phone_model_id', $phoneModelId)
             ->when($exceptListingId !== null, fn ($query) => $query->where('id', '!=', $exceptListingId))
-            ->where('created_at', '>=', $since ?? now()->subHours(app(SystemOptions::class)->listingDuplicateCooldownHours()))
+            ->where('created_at', '>=', $since ?? now()->subMinutes($cooldownMinutes))
             ->exists();
     }
 

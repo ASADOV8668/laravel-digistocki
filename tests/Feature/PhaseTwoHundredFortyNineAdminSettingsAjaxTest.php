@@ -29,7 +29,7 @@ class PhaseTwoHundredFortyNineAdminSettingsAjaxTest extends TestCase
                 'sms_mode' => 'test',
                 'registration_mode' => 'mobile',
                 'otp_expiry_minutes' => 8,
-                'listing_duplicate_cooldown_hours' => 48,
+                'listing_duplicate_cooldown_minutes' => 48,
             ])
             ->assertOk()
             ->assertJson(['message' => 'تنظیمات سیستم ذخیره شد.']);

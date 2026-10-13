@@ -7,6 +7,7 @@ use App\Models\Brand;
 use App\Models\Listing;
 use App\Models\SellerStore;
 use App\Models\User;
+use App\Services\ListingRules;
 use App\Services\SystemOptions;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -46,7 +47,7 @@ class PhaseTwoHundredThirtySixDuplicateListingFeedbackTest extends TestCase
             'status' => ListingStatus::Pending,
         ]);
 
-        app(SystemOptions::class)->set('listing_duplicate_cooldown_hours', 48, 'integer');
+        app(SystemOptions::class)->set('listing_duplicate_cooldown_minutes', 48, 'integer');
 
         $this->actingAs($user)
             ->from(route('listings.create'))
@@ -58,8 +59,34 @@ class PhaseTwoHundredThirtySixDuplicateListingFeedbackTest extends TestCase
                 'attributes' => $this->requiredAttributeValues($model),
             ])
             ->assertRedirect(route('listings.create'))
-            ->assertSessionHasErrors(['phone_model_id' => 'برای این مدل در ۴۸ ساعت گذشته آگهی ثبت کرده‌اید.']);
+            ->assertSessionHasErrors(['phone_model_id' => 'برای این مدل در ۴۸ دقیقه گذشته آگهی ثبت کرده‌اید.']);
 
         $this->assertDatabaseMissing('listings', ['title' => 'آگهی تکراری']);
+    }
+
+    public function test_zero_duplicate_cooldown_allows_another_listing_for_the_same_model(): void
+    {
+        $user = User::factory()->create();
+        SellerStore::create([
+            'user_id' => $user->id,
+            'slug' => 'unlimited-duplicate-store',
+            'name' => 'فروشگاه بدون محدودیت',
+            'approval_status' => 'pending',
+        ]);
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+        Listing::create([
+            'user_id' => $user->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی قبلی بدون محدودیت',
+            'slug' => Str::uuid(),
+            'price' => 1000000,
+            'status' => ListingStatus::Pending,
+        ]);
+
+        app(SystemOptions::class)->set('listing_duplicate_cooldown_minutes', 0, 'integer');
+
+        $this->assertFalse(app(ListingRules::class)->hasRecentDuplicate($user, $brand->id, $model->id));
     }
 }
