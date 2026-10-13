@@ -1,4 +1,5 @@
 @php($systemOptions = app(\App\Services\SystemOptions::class))
+@php($unreadNotifications = auth()->user()->unreadNotifications()->count())
 <!DOCTYPE html>
 <html lang="fa" dir="rtl" x-data="{ loaded: true, darkMode: false, sidebarOpen: false, sidebarCollapsed: false }" x-init="const storedTheme = localStorage.getItem('admin-dark-mode');
 const storedSidebar = localStorage.getItem('admin-sidebar-collapsed');
@@ -194,13 +195,18 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                             <x-heroicon-o-sun x-show="darkMode" class="h-5 w-5" />
                             <x-heroicon-o-moon x-show="!darkMode" class="h-5 w-5" />
                         </button>
-                        <button type="button"
+                        <a href="{{ route('admin.notifications.index') }}"
                             class="relative flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
-                            aria-label="اعلان‌ها">
+                            aria-label="اعلان‌ها" data-admin-notifications-link>
                             <x-heroicon-o-bell class="h-5 w-5" />
-                            <span
-                                class="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary ring-2 ring-white dark:ring-gray-900"></span>
-                        </button>
+                            @if ($unreadNotifications)
+                                <span data-admin-unread-notifications-badge
+                                    class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-black text-white ring-2 ring-white dark:ring-gray-900"
+                                    aria-label="{{ $unreadNotifications }} اعلان خوانده‌نشده">
+                                    {{ \App\Support\PersianNumber::digits($unreadNotifications > 99 ? '99+' : $unreadNotifications) }}
+                                </span>
+                            @endif
+                        </a>
                         <div x-data="{ open: false }" class="relative">
                             <button type="button" @click="open = !open"
                                 class="flex items-center gap-2 rounded-lg p-1.5 transition hover:bg-gray-50 dark:hover:bg-white/5"

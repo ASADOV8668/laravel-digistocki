@@ -5,12 +5,21 @@
                 <p class="text-xs font-bold text-primary">به‌روزرسانی‌ها</p>
                 <h1 class="mt-1 text-xl font-black text-neutral">اعلان‌ها</h1>
             </div>
-            @if (auth()->user()->unreadNotifications()->exists())
-                <form method="POST" action="{{ route('notifications.read-all') }}" data-notifications-read-all>@csrf
-                    @method('PATCH')<button
-                        class="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary"><x-heroicon-o-check
-                            class="h-4 w-4" />خواندن همه</button></form>
-            @endif
+            <div class="flex flex-wrap items-center gap-2">
+                @if (auth()->user()->unreadNotifications()->exists())
+                    <form method="POST" action="{{ route('notifications.read-all') }}" data-notifications-read-all>@csrf
+                        @method('PATCH')<button
+                            class="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary"><x-heroicon-o-check
+                                class="h-4 w-4" />خواندن همه</button></form>
+                @endif
+                @if (auth()->user()->notifications()->exists())
+                    <form method="POST" action="{{ route('notifications.destroy-all') }}" data-notifications-delete-all>@csrf
+                        @method('DELETE')<button
+                            class="inline-flex items-center gap-1.5 rounded-lg bg-error/10 px-3 py-2 text-xs font-bold text-error"
+                            onclick="return confirm('همه اعلان‌ها حذف شوند؟')"><x-heroicon-o-trash class="h-4 w-4" />حذف همه</button>
+                    </form>
+                @endif
+            </div>
         </div>
     </x-slot>
     <section class="space-y-3 px-4 py-6">

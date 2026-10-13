@@ -11,6 +11,8 @@ use App\Models\Listing;
 use App\Models\ListingAttributeValue;
 use App\Models\PhoneModel;
 use App\Models\SellerStore;
+use App\Models\User;
+use App\Notifications\PendingStorefrontNotification;
 use App\Support\PersianDate;
 use App\Support\PersianSearch;
 use Illuminate\Database\Eloquent\Builder;
@@ -339,6 +341,7 @@ class StorefrontController extends Controller
     {
         $user = $request->user();
         $store = $user->storefront;
+        $requiresAdminReview = ! $store || $store->isRejected();
         $validated = $request->validated();
         $logoPath = $store?->logo_path;
         $businessLicensePath = $store?->business_license_path;
@@ -406,6 +409,12 @@ class StorefrontController extends Controller
             'name' => trim($validated['first_name'].' '.$validated['last_name']),
             'national_id' => $validated['national_id'],
         ])->save();
+
+        if ($requiresAdminReview) {
+            User::query()->where('role', 'admin')->get()->each(
+                fn (User $admin) => $admin->notify(new PendingStorefrontNotification($store)),
+            );
+        }
 
         return back()->with('status', $store->isApproved() ? 'اطلاعات فروشگاه شما ذخیره شد.' : 'درخواست فروشگاه شما ثبت شد و پس از بررسی مدیریت اعلام نتیجه خواهد شد.');
     }

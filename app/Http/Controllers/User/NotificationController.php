@@ -5,8 +5,8 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Listing;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
@@ -64,5 +64,19 @@ class NotificationController extends Controller
         }
 
         return back()->with('status', 'همه اعلان‌ها خوانده‌شده علامت خوردند.');
+    }
+
+    public function destroyAll(Request $request): RedirectResponse|JsonResponse
+    {
+        $request->user()->notifications()->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'همه اعلان‌ها حذف شدند.',
+                'unread_count' => 0,
+            ]);
+        }
+
+        return back()->with('status', 'همه اعلان‌ها حذف شدند.');
     }
 }

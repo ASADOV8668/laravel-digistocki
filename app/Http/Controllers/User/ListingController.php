@@ -12,6 +12,8 @@ use App\Models\Listing;
 use App\Models\ListingAttributeValue;
 use App\Models\ListingImage;
 use App\Models\PhoneModel;
+use App\Models\User;
+use App\Notifications\PendingListingNotification;
 use App\Services\ContactOtpService;
 use App\Services\ImageService;
 use App\Services\ListingAttributeOptionRegistrar;
@@ -554,6 +556,12 @@ class ListingController extends Controller
             $imageService->deleteMany($storedFiles);
 
             throw $exception;
+        }
+
+        if ($listing->status->value === 'pending') {
+            User::query()->where('role', 'admin')->get()->each(
+                fn (User $admin) => $admin->notify(new PendingListingNotification($listing)),
+            );
         }
 
         return redirect()->route('listings.show', $listing)->with('status', $autoPublish ? 'آگهی شما به‌صورت خودکار منتشر شد.' : 'آگهی شما برای بررسی ارسال شد.');

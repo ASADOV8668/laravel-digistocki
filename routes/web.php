@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AttributeController as AdminAttributeController;
 use App\Http\Controllers\Admin\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ListingController as AdminListingController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\PhoneModelController as AdminPhoneModelController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -67,6 +68,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::delete('/notifications', [NotificationController::class, 'destroyAll'])->name('notifications.destroy-all');
     Route::get('/reports', [UserReportController::class, 'index'])->name('reports.index');
 });
 
@@ -112,6 +114,10 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::patch('/attributes/{attribute}/toggle', [AdminAttributeController::class, 'toggle'])->name('admin.attributes.toggle');
     Route::get('/settings', [SettingsController::class, 'edit'])->name('admin.settings.edit');
     Route::put('/settings', [SettingsController::class, 'update'])->name('admin.settings.update');
+    Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('admin.notifications.index');
+    Route::patch('/notifications/{notification}/read', [AdminNotificationController::class, 'markAsRead'])->name('admin.notifications.read');
+    Route::patch('/notifications/read-all', [AdminNotificationController::class, 'markAllAsRead'])->name('admin.notifications.read-all');
+    Route::delete('/notifications', [AdminNotificationController::class, 'destroyAll'])->name('admin.notifications.destroy-all');
 });
 
 require __DIR__.'/auth.php';
