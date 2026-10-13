@@ -268,6 +268,12 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint) => ({
             return;
         }
 
+        if (!window.isSecureContext) {
+            this.locationError = 'مکان‌یابی فقط در HTTPS یا localhost فعال می‌شود.';
+            window.dispatchEvent(new CustomEvent('show-notification', { detail: { tone: 'error', title: 'اتصال امن لازم است', message: this.locationError } }));
+            return;
+        }
+
         this.locationLoading = true;
         this.locationError = '';
         navigator.geolocation.getCurrentPosition(async (position) => {
@@ -289,11 +295,15 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint) => ({
             } finally {
                 this.locationLoading = false;
             }
-        }, () => {
+        }, (error) => {
             this.locationLoading = false;
-            this.locationError = 'دسترسی مکان‌یابی داده نشد؛ محدوده را دستی انتخاب کنید.';
-            window.dispatchEvent(new CustomEvent('show-notification', { detail: { tone: 'error', title: 'دسترسی مکان‌یابی رد شد', message: 'برای استفاده از این قابلیت، اجازه مکان‌یابی را فعال کنید.' } }));
-        }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 });
+            this.locationError = error?.code === 1
+                ? 'اجازه مکان‌یابی داده نشد. اگر قبلاً آن را رد کرده‌اید، از قفل کنار آدرس سایت اجازه Location را روی Allow بگذارید و دوباره تلاش کنید.'
+                : error?.code === 3
+                    ? 'دریافت موقعیت بیش از حد طول کشید؛ دوباره تلاش کنید یا محدوده را دستی انتخاب کنید.'
+                    : 'موقعیت شما دریافت نشد؛ دوباره تلاش کنید یا محدوده را دستی انتخاب کنید.';
+            window.dispatchEvent(new CustomEvent('show-notification', { detail: { tone: 'error', title: 'مکان‌یابی انجام نشد', message: this.locationError } }));
+        }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 0 });
     },
 
     search() {
@@ -439,6 +449,11 @@ window.storefrontDirectory = (citiesEndpoint, initialProvinceId = '', initialCit
             return;
         }
 
+        if (!window.isSecureContext) {
+            this.locationError = 'مکان‌یابی فقط در HTTPS یا localhost فعال می‌شود.';
+            return;
+        }
+
         this.locationLoading = true;
         this.locationError = '';
         navigator.geolocation.getCurrentPosition(async (position) => {
@@ -457,10 +472,14 @@ window.storefrontDirectory = (citiesEndpoint, initialProvinceId = '', initialCit
             } finally {
                 this.locationLoading = false;
             }
-        }, () => {
+        }, (error) => {
             this.locationLoading = false;
-            this.locationError = 'دسترسی مکان‌یابی داده نشد؛ محدوده را دستی انتخاب کنید.';
-        }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 });
+            this.locationError = error?.code === 1
+                ? 'اجازه مکان‌یابی داده نشد. اگر قبلاً آن را رد کرده‌اید، از قفل کنار آدرس سایت اجازه Location را روی Allow بگذارید و دوباره تلاش کنید.'
+                : error?.code === 3
+                    ? 'دریافت موقعیت بیش از حد طول کشید؛ دوباره تلاش کنید یا محدوده را دستی انتخاب کنید.'
+                    : 'موقعیت شما دریافت نشد؛ دوباره تلاش کنید یا محدوده را دستی انتخاب کنید.';
+        }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 0 });
     },
 });
 

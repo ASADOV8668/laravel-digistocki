@@ -18,6 +18,7 @@ use App\Services\ContactOtpService;
 use App\Services\ImageService;
 use App\Services\ListingAttributeOptionRegistrar;
 use App\Services\ListingRules;
+use App\Services\LocationResolver;
 use App\Services\SystemOptions;
 use App\Support\PersianNumber;
 use App\Support\PersianSearch;
@@ -28,7 +29,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -171,43 +171,19 @@ class ListingController extends Controller
         return response()->json($province->cities()->orderBy('name')->get(['id', 'name', 'province_id']));
     }
 
-    public function reverseLocation(Request $request)
+    public function reverseLocation(Request $request, LocationResolver $resolver)
     {
         $validated = $request->validate([
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
         ]);
 
-        try {
-            $response = Http::acceptJson()
-                ->withHeaders(['User-Agent' => 'Digistoki/2.0 (location search)'])
-                ->timeout(5)
-                ->get('https://nominatim.openstreetmap.org/reverse', [
-                    'lat' => $validated['latitude'],
-                    'lon' => $validated['longitude'],
-                    'format' => 'jsonv2',
-                    'accept-language' => 'fa',
-                    'zoom' => 10,
-                ]);
-
-            if (! $response->successful()) {
-                return response()->json(['message' => 'موقعیت پیدا نشد.'], 422);
-            }
-
-            $address = $response->json('address', []);
-            $cityName = $address['city'] ?? $address['town'] ?? $address['municipality'] ?? $address['village'] ?? null;
-            $provinceName = $address['state'] ?? null;
-            $city = $cityName ? City::query()->where('name', 'like', '%'.$cityName.'%')->first() : null;
-
-            return response()->json([
-                'city_id' => $city?->id,
-                'province_id' => $city?->province_id,
-                'city_name' => $city?->name ?? $cityName,
-                'province_name' => $city?->province?->name ?? $provinceName,
-            ]);
-        } catch (Throwable) {
-            return response()->json(['message' => 'سرویس مکان‌یابی در دسترس نیست.'], 422);
+        $location = $resolver->nearest((float) $validated['latitude'], (float) $validated['longitude']);
+        if (! $location) {
+            return response()->json(['message' => 'برای استان‌ها و شهرها مختصات ثبت نشده است.'], 422);
         }
+
+        return response()->json($location);
     }
 
     public function index(Request $request)

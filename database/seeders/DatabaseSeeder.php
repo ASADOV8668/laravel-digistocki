@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             IranCitiesSeeder::class,
+            LocationCoordinatesSeeder::class,
             CatalogSeeder::class,
             DemoListingSeeder::class,
             SystemOptionsSeeder::class,
