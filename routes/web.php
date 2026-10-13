@@ -35,11 +35,11 @@ Route::get('/locations/provinces/{province}/cities', [ListingController::class, 
 Route::get('/locations/reverse', [ListingController::class, 'reverseLocation'])->middleware('throttle:10,1')->name('locations.reverse');
 Route::get('/listings/create', [ListingController::class, 'create'])->middleware(['auth', 'active'])->name('listings.create');
 Route::post('/listings', [ListingController::class, 'store'])->middleware(['auth', 'active'])->name('listings.store');
-  Route::get('/stores', [StorefrontController::class, 'index'])->name('storefront.index');
-  Route::get('/store/{sellerStore:slug}/search/suggestions', [StorefrontController::class, 'searchSuggestions'])->middleware('throttle:60,1')->name('storefront.search.suggestions');
-  Route::get('/store/{sellerStore:slug}/models', [StorefrontController::class, 'models'])->middleware('throttle:60,1')->name('storefront.models');
-  Route::get('/store/{sellerStore:slug}/models/{phoneModel}/attributes', [StorefrontController::class, 'modelAttributes'])->middleware('throttle:60,1')->name('storefront.models.attributes');
-  Route::get('/store/{sellerStore:slug}', [StorefrontController::class, 'show'])->name('storefront.show');
+Route::get('/stores', [StorefrontController::class, 'index'])->name('storefront.index');
+Route::get('/store/{sellerStore:slug}/search/suggestions', [StorefrontController::class, 'searchSuggestions'])->middleware('throttle:60,1')->name('storefront.search.suggestions');
+Route::get('/store/{sellerStore:slug}/models', [StorefrontController::class, 'models'])->middleware('throttle:60,1')->name('storefront.models');
+Route::get('/store/{sellerStore:slug}/models/{phoneModel}/attributes', [StorefrontController::class, 'modelAttributes'])->middleware('throttle:60,1')->name('storefront.models.attributes');
+Route::get('/store/{sellerStore:slug}', [StorefrontController::class, 'show'])->name('storefront.show');
 Route::get('/listings/{listing}', [ListingController::class, 'show'])->name('listings.show');
 
 Route::get('/dashboard', [UserDashboardController::class, 'index'])->middleware(['auth', 'active', 'verified'])->name('dashboard');
@@ -52,9 +52,9 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/listings/{listing}/contact-otp/verify', [ListingController::class, 'verifyContactOtp'])->middleware('throttle:5,1')->name('listings.contact-otp.verify');
     Route::get('/listings/{listing}/edit', [ListingController::class, 'edit'])->name('listings.edit');
     Route::put('/listings/{listing}', [ListingController::class, 'update'])->name('listings.update');
-      Route::patch('/listings/{listing}/quick-update', [ListingController::class, 'quickUpdate'])->name('listings.quick-update');
-      Route::patch('/listings/{listing}/toggle-disabled', [ListingController::class, 'toggleDisabled'])->name('listings.toggle-disabled');
-      Route::post('/dashboard/listings/bulk', [ListingController::class, 'bulkAction'])->name('dashboard.listings.bulk');
+    Route::patch('/listings/{listing}/quick-update', [ListingController::class, 'quickUpdate'])->name('listings.quick-update');
+    Route::patch('/listings/{listing}/toggle-disabled', [ListingController::class, 'toggleDisabled'])->name('listings.toggle-disabled');
+    Route::post('/dashboard/listings/bulk', [ListingController::class, 'bulkAction'])->name('dashboard.listings.bulk');
     Route::delete('/listings/{listing}', [ListingController::class, 'destroy'])->name('listings.destroy');
     Route::patch('/listings/{listing}/sold', [ListingController::class, 'markSold'])->name('listings.sold');
     Route::patch('/listings/{listing}/renew', [ListingController::class, 'renew'])->name('listings.renew');
@@ -83,6 +83,7 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::patch('/listings/{listing}/reject', [AdminListingController::class, 'reject'])->name('admin.listings.reject');
     Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users.index');
     Route::get('/storefronts', [AdminStorefrontController::class, 'index'])->name('admin.storefronts.index');
+    Route::get('/storefronts/{sellerStore}', [AdminStorefrontController::class, 'show'])->name('admin.storefronts.show');
     Route::patch('/storefronts/{sellerStore}/toggle', [AdminStorefrontController::class, 'toggle'])->name('admin.storefronts.toggle');
     Route::patch('/storefronts/{sellerStore}/approve', [AdminStorefrontController::class, 'approve'])->name('admin.storefronts.approve');
     Route::patch('/storefronts/{sellerStore}/reject', [AdminStorefrontController::class, 'reject'])->name('admin.storefronts.reject');

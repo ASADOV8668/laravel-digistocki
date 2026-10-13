@@ -47,7 +47,8 @@
                 شما تأیید شده است. اطلاعات قابل ویرایش هستند، اما آدرس فروشگاه قابل تغییر نیست.</div>
         @endif
 
-        <form method="POST" action="{{ route('storefront.update') }}" enctype="multipart/form-data"
+        @if (! $store?->isPending())
+            <form method="POST" action="{{ route('storefront.update') }}" enctype="multipart/form-data"
             class="space-y-5 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             @csrf @method('PUT')
             <div class="grid gap-4 sm:grid-cols-2">
@@ -180,6 +181,24 @@
             </div>
             <button class="mobile-button w-full bg-primary text-white hover:bg-primary-600"><x-heroicon-o-check
                     class="h-5 w-5" />{{ $store ? 'ذخیره اطلاعات فروشگاه' : 'ثبت درخواست فروشگاه' }}</button>
-        </form>
+            </form>
+        @else
+            <section class="space-y-4 rounded-lg border border-warning/20 bg-white p-5 shadow-sm"
+                aria-label="اطلاعات درخواست فروشگاه">
+                <div class="flex items-start gap-3 rounded-lg bg-warning/10 p-4 text-sm font-bold text-amber-900">
+                    <x-heroicon-o-clock class="mt-0.5 h-5 w-5 shrink-0" />
+                    <p>تا زمان اعلام نتیجه مدیریت، فرم ویرایش در دسترس نیست. پس از تأیید یا رد درخواست، امکان ادامه فرآیند برای شما فعال می‌شود.</p>
+                </div>
+                <div class="grid gap-3 text-sm sm:grid-cols-2">
+                    <div class="rounded-lg bg-slate-50 p-3"><span class="text-xs text-slate-400">نام مالک</span><strong class="mt-1 block text-neutral">{{ trim($store->first_name.' '.$store->last_name) ?: auth()->user()->name }}</strong></div>
+                    <div class="rounded-lg bg-slate-50 p-3"><span class="text-xs text-slate-400">نام فروشگاه</span><strong class="mt-1 block text-neutral">{{ $store->name }}</strong></div>
+                    <div class="rounded-lg bg-slate-50 p-3"><span class="text-xs text-slate-400">شناسه اینترنتی</span><strong class="mt-1 block text-neutral" dir="ltr">/store/{{ $store->slug }}</strong></div>
+                    <div class="rounded-lg bg-slate-50 p-3"><span class="text-xs text-slate-400">شماره تماس</span><strong class="mt-1 block text-neutral" dir="ltr">{{ $store->contact_phone }}</strong></div>
+                    <div class="rounded-lg bg-slate-50 p-3"><span class="text-xs text-slate-400">موقعیت</span><strong class="mt-1 block text-neutral">{{ collect([$store->province?->name, $store->city?->name])->filter()->implode('، ') ?: 'ثبت نشده' }}</strong></div>
+                    <div class="rounded-lg bg-slate-50 p-3"><span class="text-xs text-slate-400">تاریخ ثبت درخواست</span><strong class="mt-1 block text-neutral">{{ $store->application_submitted_at ? \App\Support\PersianDate::format($store->application_submitted_at, 'Y/m/d') : 'ثبت نشده' }}</strong></div>
+                </div>
+                <div class="rounded-lg bg-slate-50 p-3 text-sm"><span class="text-xs text-slate-400">آدرس دقیق</span><p class="mt-1 leading-7 text-neutral">{{ $store->address ?: 'ثبت نشده' }}</p></div>
+            </section>
+        @endif
     </section>
 </x-app-layout>

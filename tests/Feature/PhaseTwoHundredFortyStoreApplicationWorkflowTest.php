@@ -30,6 +30,67 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
         $this->assertDatabaseMissing('seller_stores', ['user_id' => $user->id]);
     }
 
+    public function test_pending_storefront_hides_the_edit_form_until_management_decides(): void
+    {
+        $user = User::factory()->create(['mobile' => '09120001010']);
+        SellerStore::create([
+            'user_id' => $user->id,
+            'slug' => 'pending-store',
+            'name' => 'فروشگاه در انتظار',
+            'first_name' => 'کاربر',
+            'last_name' => 'در انتظار',
+            'contact_phone' => $user->mobile,
+            'approval_status' => 'pending',
+            'is_enabled' => false,
+        ]);
+
+        $this->actingAs($user)->get(route('storefront.edit'))
+            ->assertOk()
+            ->assertSee('فرم ویرایش در دسترس نیست')
+            ->assertDontSee('name="first_name"', false)
+            ->assertSee('فروشگاه در انتظار');
+    }
+
+    public function test_admin_can_open_the_full_storefront_and_user_details_from_the_storefront_list(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $owner = User::factory()->create([
+            'name' => 'فرشید نعمتی',
+            'email' => 'farshid@example.test',
+            'mobile' => '09120001020',
+            'national_id' => '0012345678',
+        ]);
+        $store = SellerStore::create([
+            'user_id' => $owner->id,
+            'slug' => 'full-details-store',
+            'name' => 'فروشگاه اطلاعات کامل',
+            'first_name' => 'فرشید',
+            'last_name' => 'نعمتی',
+            'national_id' => '0012345678',
+            'contact_phone' => '09120001020',
+            'address' => 'تهران، خیابان اصلی',
+            'business_license_number' => 'LIC-1020',
+            'instagram_url' => 'digistocki',
+            'approval_status' => 'pending',
+            'is_enabled' => false,
+        ]);
+
+        $this->actingAs($admin)->get(route('admin.storefronts.index'))
+            ->assertOk()
+            ->assertSee(route('admin.storefronts.show', $store), false)
+            ->assertSee($owner->name);
+
+        $this->actingAs($admin)->get(route('admin.storefronts.show', $store))
+            ->assertOk()
+            ->assertSee($owner->name)
+            ->assertSee($owner->email)
+            ->assertSee($owner->mobile)
+            ->assertSee($store->national_id)
+            ->assertSee($store->business_license_number)
+            ->assertSee($store->address)
+            ->assertSee($store->instagram_url);
+    }
+
     public function test_admin_approval_and_rejection_create_database_notifications(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

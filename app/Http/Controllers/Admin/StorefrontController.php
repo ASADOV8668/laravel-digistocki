@@ -56,6 +56,16 @@ class StorefrontController extends Controller
         return view('admin.storefronts.index', compact('stores', 'storeStats'));
     }
 
+    public function show(SellerStore $sellerStore): View
+    {
+        $sellerStore->load(['user', 'province', 'city']);
+
+        return view('admin.storefronts.show', [
+            'store' => $sellerStore,
+            'user' => $sellerStore->user,
+        ]);
+    }
+
     public function edit(User $user): View
     {
         return view('admin.storefronts.edit', [

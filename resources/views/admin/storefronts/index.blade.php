@@ -74,6 +74,10 @@
                             @endif
                             <div class="min-w-0">
                                 <h3 class="truncate font-black text-slate-800">{{ $store->name }}</h3>
+                                <a href="{{ route('admin.storefronts.show', $store) }}"
+                                    class="mt-1 inline-flex items-center gap-1 text-sm font-black text-primary hover:text-primary-700">
+                                    <x-heroicon-o-user-circle class="h-4 w-4" />{{ $store->user->name }}
+                                </a>
                                 <p class="mt-1 truncate text-xs text-slate-400" dir="ltr">
                                     /store/{{ $store->slug }} · {{ $store->user->mobile }}</p>
                                 <p class="mt-1 text-xs text-slate-500">
