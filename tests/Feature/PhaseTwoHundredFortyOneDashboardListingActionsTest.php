@@ -186,7 +186,8 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
 
         $this->actingAs($user)->get(route('listings.create', ['clone' => $listing->id]))
             ->assertOk()
-            ->assertSee('آگهی قابل کپی (کپی)')
+            ->assertSee('value="آگهی قابل کپی"', false)
+            ->assertDontSee('آگهی قابل کپی (کپی)')
             ->assertSee('name="clone"', false)
             ->assertSee('تصاویر آگهی اصلی برای کپی')
             ->assertSee('storage/listings/thumbs/source-phone.webp', false);
@@ -303,6 +304,47 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
         $this->assertNull($inside->price);
         $this->assertTrue($outside->refresh()->price_on_request);
         $this->assertNull($outside->price);
+    }
+
+    public function test_bulk_price_modal_supports_contact_equal_and_percentage_modes(): void
+    {
+        $user = User::factory()->create();
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+        $contact = Listing::create(['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $model->id, 'title' => 'قیمت تماس', 'slug' => Str::uuid(), 'price' => null, 'price_on_request' => true, 'status' => ListingStatus::Approved]);
+        $priced = Listing::create(['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $model->id, 'title' => 'قیمت‌دار', 'slug' => Str::uuid(), 'price' => 230455230, 'status' => ListingStatus::Approved]);
+
+        $this->actingAs($user)->postJson(route('dashboard.listings.bulk'), [
+            'action' => 'price', 'bulk_price_mode' => 'increase_percent', 'bulk_percent' => '10',
+            'listing_ids' => [$contact->id, $priced->id],
+        ])->assertOk()->assertJsonPath('price_mode', 'increase_percent');
+        $this->assertTrue($contact->refresh()->price_on_request);
+        $this->assertSame(253501000, $priced->refresh()->price);
+
+        $this->actingAs($user)->postJson(route('dashboard.listings.bulk'), [
+            'action' => 'price', 'bulk_price_mode' => 'contact', 'listing_ids' => [$priced->id],
+        ])->assertOk()->assertJsonPath('price_mode', 'contact');
+        $this->assertTrue($priced->refresh()->price_on_request);
+        $this->assertNull($priced->price);
+
+        $this->actingAs($user)->postJson(route('dashboard.listings.bulk'), [
+            'action' => 'price', 'bulk_price_mode' => 'equal', 'bulk_price' => '3200000', 'listing_ids' => [$contact->id, $priced->id],
+        ])->assertOk()->assertJsonPath('price', 3200000);
+        $this->assertSame(3200000, $contact->refresh()->price);
+        $this->assertFalse($contact->price_on_request);
+        $this->assertSame(3200000, $priced->refresh()->price);
+    }
+
+    public function test_quick_update_can_set_a_price_for_a_contact_listing(): void
+    {
+        $user = User::factory()->create();
+        $brand = Brand::firstOrFail();
+        $listing = Listing::create(['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $brand->phoneModels()->first()->id, 'title' => 'تغییر قیمت تماس', 'slug' => Str::uuid(), 'price' => null, 'price_on_request' => true, 'status' => ListingStatus::Approved]);
+
+        $this->actingAs($user)->patchJson(route('listings.quick-update', $listing), ['price' => '4500000'])
+            ->assertOk()->assertJson(['price' => 4500000, 'price_on_request' => false]);
+        $this->assertSame(4500000, $listing->refresh()->price);
+        $this->assertFalse($listing->price_on_request);
     }
 
     public function test_dashboard_can_select_all_filtered_listings_across_pages(): void

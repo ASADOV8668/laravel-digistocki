@@ -18,6 +18,12 @@
                     @if ($attribute->slug === 'color' && $attributeType === 'select')
                         <div
                             class="flex min-h-10 flex-wrap items-center gap-1 rounded-lg border border-slate-200 bg-white p-1.5">
+                            <label
+                                class="inline-flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[10px] font-bold transition hover:bg-primary-50">
+                                <input type="radio" name="filters[{{ $attribute->id }}]" value=""
+                                    @checked($filterValues === []) class="sr-only peer">
+                                <span class="rounded-md border border-slate-200 px-1.5 py-0.5 peer-checked:border-primary peer-checked:bg-primary/10">همه موارد</span>
+                            </label>
                             @foreach ($attribute->options ?? [] as $option)
                                 <label
                                     class="inline-flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[10px] font-bold transition hover:bg-primary-50">
@@ -41,15 +47,16 @@
                     @elseif ($attributeType === 'multi_select')
                         <select id="dashboard-filter-{{ $attribute->id }}" name="filters[{{ $attribute->id }}][]"
                             multiple class="public-select min-h-20 text-xs">
+                            <option value="" @selected($filterValues === [])>همه موارد</option>
                             @foreach ($attribute->options ?? [] as $option)
                                 <option value="{{ $option }}" @selected(in_array($option, $filterValues, true))>{{ $option }}
                                 </option>
                             @endforeach
                         </select>
-                    @elseif ($attributeType === 'select')
+                    @elseif ($attributeType === 'select' || (($attributeType === 'integer' || $attributeType === 'decimal') && !empty($attribute->options)))
                         <select id="dashboard-filter-{{ $attribute->id }}" name="filters[{{ $attribute->id }}]"
                             class="public-select text-xs">
-                            <option value="">همه</option>
+                            <option value="">همه موارد</option>
                             @foreach ($attribute->options ?? [] as $option)
                                 <option value="{{ $option }}" @selected(in_array($option, $filterValues, true))>{{ $option }}
                                 </option>
@@ -65,6 +72,6 @@
                 </div>
             @endforeach
         </div>
-        <p class="mt-2 text-[10px] text-slate-400">ویژگی‌ها بعد از انتخاب مدل، فقط برای همان مدل جستجو می‌شوند.</p>
+        <p class="mt-2 text-[10px] text-slate-400">ویژگی‌ها بعد از انتخاب مدل، فقط برای همان مدل جستجو می‌شوند؛ «همه موارد» یعنی بدون فیلتر.</p>
     </div>
 @endif

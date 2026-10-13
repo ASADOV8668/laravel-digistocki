@@ -257,7 +257,6 @@
                                     for="quick-price-{{ $listing->id }}"
                                     class="mb-2 block text-sm font-bold text-neutral">قیمت (تومان)</label>
                                 <div x-data="moneyInput(@js(old('price', $listing->price ?? '')))"
-                                    x-show="!priceOnRequest">
                                     <input id="quick-price-{{ $listing->id }}" x-model="display"
                                         @input="formatInput($event)" :required="!priceOnRequest" type="text"
                                         inputmode="numeric" autocomplete="off" dir="ltr"
@@ -299,21 +298,41 @@
                 <h3 class="mt-1 text-lg font-black text-neutral">تغییر قیمت آگهی‌های انتخاب‌شده</h3>
                 <p class="mt-2 text-xs leading-6 text-slate-500">این قیمت روی <span class="font-black text-primary"
                         x-text="selectedIds.length"></span> آگهی انتخاب‌شده اعمال می‌شود.</p>
-                <form method="POST" action="{{ route('dashboard.listings.bulk') }}" class="mt-5 space-y-4">
+                <form method="POST" action="{{ route('dashboard.listings.bulk') }}" class="mt-5 space-y-4"
+                    x-data="{ mode: 'equal' }">
                     @csrf<input type="hidden" name="action" value="price"><template x-for="id in selectedIds"
                         :key="`bulk-price-${id}`"><input type="hidden" name="listing_ids[]"
                             :value="id"></template>
-                    <div x-data="moneyInput('')"><label for="bulk-price"
-                            class="mb-2 block text-sm font-bold text-neutral">قیمت جدید (تومان)</label><input
-                            id="bulk-price" x-model="display" @input="formatInput($event)" type="text"
+                    <div>
+                        <label for="bulk-price-mode" class="mb-2 block text-sm font-bold text-neutral">نوع تغییر قیمت</label>
+                        <select id="bulk-price-mode" name="bulk_price_mode" x-model="mode" class="public-select">
+                            <option value="contact">تماس بگیرید</option>
+                            <option value="equal">قیمت برابر با</option>
+                            <option value="increase_percent">افزایش درصد</option>
+                            <option value="decrease_percent">کاهش درصد</option>
+                        </select>
+                    </div>
+                    <div x-show="mode === 'equal'" x-data="moneyInput('')">
+                        <label for="bulk-price" class="mb-2 block text-sm font-bold text-neutral">قیمت جدید (تومان)</label>
+                        <input id="bulk-price" x-model="display" @input="formatInput($event)" type="text"
                             inputmode="numeric" autocomplete="off" dir="ltr" placeholder="مثلاً ۳۲٬۰۰۰٬۰۰۰"
-                            required
-                            class="w-full rounded-lg border-slate-200 text-left text-sm focus:border-primary focus:ring-primary/30"><input
-                            type="hidden" name="bulk_price" :value="raw">
+                            :required="mode === 'equal'"
+                            class="w-full rounded-lg border-slate-200 text-left text-sm focus:border-primary focus:ring-primary/30">
+                        <input type="hidden" name="bulk_price" :value="raw">
+                    </div>
+                    <div x-show="mode === 'increase_percent' || mode === 'decrease_percent'">
+                        <label for="bulk-percent" class="mb-2 block text-sm font-bold text-neutral">درصد تغییر</label>
+                        <div class="relative">
+                            <input id="bulk-percent" name="bulk_percent" type="number" min="0" max="100" step="0.01"
+                                :required="mode === 'increase_percent' || mode === 'decrease_percent'"
+                                placeholder="مثلاً ۱۰" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary/30">
+                            <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm font-bold text-slate-400">٪</span>
+                        </div>
+                        <p class="mt-1 text-[11px] text-slate-400">قیمت‌های «تماس بگیرید» تغییر نمی‌کنند و مبلغ نهایی تا هزار تومان گرد می‌شود.</p>
                     </div>
                     <div class="flex justify-end gap-2"><button type="button" data-modal-hide="bulk-price-modal"
                             class="rounded-lg bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-600">انصراف</button><button
-                            class="rounded-lg bg-info px-4 py-2.5 text-sm font-bold text-white">اعمال قیمت</button>
+                            class="rounded-lg bg-info px-4 py-2.5 text-sm font-bold text-white">اعمال تغییر</button>
                     </div>
                 </form>
             </div>

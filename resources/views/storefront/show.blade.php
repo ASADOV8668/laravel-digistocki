@@ -350,6 +350,11 @@
                                                 <input type="hidden" :name="`filters[${attribute.id}]`"
                                                     x-model="filters[attribute.id]">
                                                 <div class="flex flex-wrap gap-1.5">
+                                                    <button type="button" @click="filters[attribute.id] = ''"
+                                                        :class="filters[attribute.id] === '' ? 'border-primary bg-white ring-2 ring-primary/20' : ''"
+                                                        class="rounded-md border border-transparent px-2 py-1 text-[11px] font-bold text-neutral hover:border-primary/30">
+                                                        همه موارد
+                                                    </button>
                                                     <template x-for="option in attribute.options"
                                                         :key="option">
                                                         <button type="button" @click="filters[attribute.id] = option"
@@ -377,7 +382,7 @@
                                         <template x-if="attribute.type === 'select' && attribute.slug !== 'color'">
                                             <select :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]"
                                                 class="public-select font-normal">
-                                                <option value="">همه</option>
+                                                <option value="">همه موارد</option>
                                                 <template x-for="option in attribute.options" :key="option">
                                                     <option :value="option" x-text="option"></option>
                                                 </template>
@@ -387,12 +392,22 @@
                                             <select multiple :name="`filters[${attribute.id}][]`"
                                                 x-model="filters[attribute.id]" x-init="filters[attribute.id] = Array.isArray(filters[attribute.id]) ? filters[attribute.id] : (filters[attribute.id] ? [filters[attribute.id]] : [])"
                                                 class="public-select min-h-28 font-normal">
+                                                <option value="">همه موارد</option>
                                                 <template x-for="option in attribute.options" :key="option">
                                                     <option :value="option" x-text="option"></option>
                                                 </template>
                                             </select>
                                         </template>
-                                        <template x-if="attribute.type === 'integer' || attribute.type === 'decimal'">
+                                        <template x-if="(attribute.type === 'integer' || attribute.type === 'decimal') && attribute.options && attribute.options.length">
+                                            <select :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]"
+                                                class="public-select font-normal">
+                                                <option value="">همه موارد</option>
+                                                <template x-for="option in attribute.options" :key="option">
+                                                    <option :value="option" x-text="option"></option>
+                                                </template>
+                                            </select>
+                                        </template>
+                                        <template x-if="(attribute.type === 'integer' || attribute.type === 'decimal') && (!attribute.options || !attribute.options.length)">
                                             <input :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]"
                                                 type="number" :step="attribute.type === 'decimal' ? '0.01' : '1'"
                                                 class="block w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/30">

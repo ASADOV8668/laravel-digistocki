@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 use Sadegh19b\LaravelIranCities\Models\City;
 use Sadegh19b\LaravelIranCities\Models\Province;
 use Throwable;
@@ -598,7 +599,9 @@ class ListingController extends Controller
             'action' => ['required', 'in:disable,enable,delete,contact_price,price,sold'],
             'listing_ids' => ['required', 'array', 'min:1'],
             'listing_ids.*' => ['integer'],
-            'bulk_price' => ['nullable', 'integer', 'min:0', 'required_if:action,price'],
+            'bulk_price' => ['nullable', 'integer', 'min:0', Rule::requiredIf(fn (): bool => $request->input('action') === 'price' && in_array($request->input('bulk_price_mode', 'equal'), ['equal'], true))],
+            'bulk_price_mode' => ['nullable', 'in:contact,equal,increase_percent,decrease_percent'],
+            'bulk_percent' => ['nullable', 'numeric', 'min:0', 'max:100', 'required_if:bulk_price_mode,increase_percent,decrease_percent'],
         ]);
         $listings = Listing::query()->where('user_id', $request->user()->id)->whereKey($validated['listing_ids'])->with('images')->get();
         $affectedListingIds = $listings->modelKeys();
@@ -617,7 +620,33 @@ class ListingController extends Controller
 
             $listings->each->update(['price' => null, 'price_on_request' => true]);
         } elseif ($validated['action'] === 'price') {
-            $listings->each->update(['price' => $validated['bulk_price'], 'price_on_request' => false]);
+            $mode = $validated['bulk_price_mode'] ?? 'equal';
+
+            if ($mode === 'contact') {
+                if (! $options->allowContactPrice()) {
+                    if ($request->expectsJson()) {
+                        return response()->json(['message' => 'امکان «تماس بگیرید» در تنظیمات سیستم فعال نیست.'], 422);
+                    }
+
+                    return back()->withErrors(['bulk_price_mode' => 'امکان «تماس بگیرید» در تنظیمات سیستم فعال نیست.']);
+                }
+
+                $listings->each->update(['price' => null, 'price_on_request' => true]);
+            } elseif ($mode === 'equal') {
+                $listings->each->update(['price' => (int) $validated['bulk_price'], 'price_on_request' => false]);
+            } else {
+                $percent = (float) $validated['bulk_percent'];
+                $increase = $mode === 'increase_percent';
+                $listings->each(function (Listing $listing) use ($percent, $increase): void {
+                    if ($listing->price_on_request || $listing->price === null) {
+                        return;
+                    }
+
+                    $factor = $increase ? 1 + ($percent / 100) : 1 - ($percent / 100);
+                    $price = (int) round(($listing->price * $factor) / 1000) * 1000;
+                    $listing->update(['price' => max(0, $price), 'price_on_request' => false]);
+                });
+            }
         } elseif ($validated['action'] === 'sold') {
             $approvedListings = $listings->filter(fn (Listing $listing): bool => $listing->status->value === 'approved');
             $approvedListings->each->update(['status' => 'sold']);
@@ -639,7 +668,16 @@ class ListingController extends Controller
                 'message' => $messages[$validated['action']],
                 'action' => $validated['action'],
                 'listing_ids' => array_values($affectedListingIds),
-                'price' => $validated['action'] === 'price' ? $validated['bulk_price'] : null,
+                'price' => $validated['action'] === 'price' && ($validated['bulk_price_mode'] ?? 'equal') === 'equal'
+                    ? (int) $validated['bulk_price']
+                    : null,
+                'price_mode' => $validated['action'] === 'price' ? ($validated['bulk_price_mode'] ?? 'equal') : null,
+                'prices' => $validated['action'] === 'price'
+                    ? $listings->fresh()->mapWithKeys(fn (Listing $listing) => [$listing->id => [
+                        'price' => $listing->price,
+                        'price_on_request' => $listing->price_on_request,
+                    ]])->all()
+                    : [],
             ]);
         }
 

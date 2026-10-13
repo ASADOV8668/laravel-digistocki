@@ -105,8 +105,8 @@
                     <p class="mt-1 text-xs text-slate-500">عنوان روشن، قیمت دقیق و موقعیت آگهی باعث اعتماد بیشتر خریدار
                         می‌شود.</p>
                 </div>
-                <div><label class="mb-2 block text-sm font-bold text-neutral">عنوان آگهی</label><input id="public-listing-title" data-auto-listing-title="{{ old('title', $clone ? $clone->title . ' (کپی)' : '') === '' ? 'true' : 'false' }}" name="title"
-                        value="{{ old('title', $clone ? $clone->title . ' (کپی)' : '') }}" required
+                <div><label class="mb-2 block text-sm font-bold text-neutral">عنوان آگهی</label><input id="public-listing-title" data-auto-listing-title="{{ old('title', $clone?->title ?? '') === '' ? 'true' : 'false' }}" name="title"
+                        value="{{ old('title', $clone?->title ?? '') }}" required
                         class="block w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30"
                         placeholder="پس از انتخاب مدل و ویژگی‌ها خودکار تکمیل می‌شود">
                     @if ($clone)
