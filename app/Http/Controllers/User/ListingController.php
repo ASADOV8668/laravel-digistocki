@@ -288,7 +288,16 @@ class ListingController extends Controller
                     AttributeType::Integer => $query->where('value_integer', (int) $value),
                     AttributeType::Decimal => $query->where('value_decimal', (float) $value),
                     AttributeType::Boolean => $query->where('value_boolean', filter_var($value, FILTER_VALIDATE_BOOLEAN)),
-                    default => $query->where('value_string', $value),
+                    default => $query->where(function (Builder $query) use ($value): void {
+                        $query->where('value_string', (string) $value);
+
+                        // Support values saved before a catalog attribute changed
+                        // from numeric to select/string.
+                        if (is_numeric($value)) {
+                            $query->orWhere('value_integer', (int) $value)
+                                ->orWhere('value_decimal', (float) $value);
+                        }
+                    }),
                 };
             });
         }

@@ -67,4 +67,27 @@ class HomeSearchTest extends TestCase
         $this->assertStringContainsString('attributeChanged()', $view);
         $this->assertStringContainsString('filters[${attribute.id}]', $view);
     }
+
+    public function test_chained_search_reads_legacy_numeric_values_after_attribute_type_change(): void
+    {
+        $model = \App\Models\PhoneModel::where('name_en', 'iPhone 13 Pro Max')->firstOrFail();
+        $storage = \App\Models\Attribute::where('slug', 'storage')->firstOrFail();
+
+        // Existing production data may still use value_integer after an admin
+        // changes the catalog field from integer to select.
+        $storage->update(['type' => \App\Enums\AttributeType::Select]);
+
+        $this->getJson(route('listings.models.attributes', $model))
+            ->assertOk()
+            ->assertJsonPath('0.slug', 'storage')
+            ->assertJsonPath('0.values', [256]);
+
+        $response = $this->get(route('listings.index', [
+            'phone_model_id' => $model->id,
+            'filters' => [$storage->id => 256],
+        ]));
+
+        $response->assertOk();
+        $this->assertTrue($response->viewData('listings')->getCollection()->contains('title', 'آیفون ۱۳ پرو مکس با حافظه ۲۵۶'));
+    }
 }

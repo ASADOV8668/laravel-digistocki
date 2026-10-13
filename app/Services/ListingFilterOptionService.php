@@ -58,10 +58,10 @@ class ListingFilterOptionService
             }
 
             $value = match ($attribute->type) {
-                AttributeType::Integer => $row->value_integer,
-                AttributeType::Decimal => $row->value_decimal,
+                AttributeType::Integer => $row->value_integer ?? $row->value_string,
+                AttributeType::Decimal => $row->value_decimal ?? $row->value_string,
                 AttributeType::Boolean => $row->value_boolean ? '1' : '0',
-                default => $row->value_string,
+                default => $row->value_string ?? $row->value_integer ?? $row->value_decimal,
             };
 
             return $value === null || $value === '' ? [] : [$value];
@@ -114,7 +114,16 @@ class ListingFilterOptionService
                     AttributeType::Integer => $valueQuery->where('value_integer', (int) $value),
                     AttributeType::Decimal => $valueQuery->where('value_decimal', (float) $value),
                     AttributeType::Boolean => $valueQuery->where('value_boolean', filter_var($value, FILTER_VALIDATE_BOOLEAN)),
-                    default => $valueQuery->where('value_string', $value),
+                    default => $valueQuery->where(function (Builder $query) use ($value): void {
+                        $query->where('value_string', (string) $value);
+
+                        // Some older listings were stored as numeric values before an
+                        // attribute was changed from integer to select in the catalog.
+                        if (is_numeric($value)) {
+                            $query->orWhere('value_integer', (int) $value)
+                                ->orWhere('value_decimal', (float) $value);
+                        }
+                    }),
                 };
             });
         }
