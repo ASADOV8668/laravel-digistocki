@@ -188,6 +188,29 @@
                         </template></div>
                     <input type="hidden" name="primary_image_index" x-model="primaryIndex">
                     <input type="hidden" name="primary_image_id" x-model="primaryImageId">
+                    @if ($clone?->images->isNotEmpty())
+                        <div class="rounded-lg border border-primary/10 bg-primary-50/40 p-3">
+                            <div class="flex items-center gap-2 text-xs font-black text-primary">
+                                <x-heroicon-o-document-duplicate class="h-4 w-4" />
+                                تصاویر آگهی اصلی برای کپی
+                            </div>
+                            <p class="mt-1 text-[11px] leading-5 text-slate-500">اگر تصویر جدیدی انتخاب نکنید، این تصاویر
+                                همراه آگهی کپی می‌شوند.</p>
+                            <div class="mt-3 grid grid-cols-4 gap-2">
+                                @foreach ($clone->images as $image)
+                                    <div class="relative overflow-hidden rounded-lg border-2 {{ $image->is_primary ? 'border-success ring-2 ring-success/20' : 'border-slate-200' }} bg-white">
+                                        <img src="{{ asset('storage/' . ($image->thumbnail_path ?: $image->path)) }}"
+                                            alt="تصویر آگهی اصلی" class="h-20 w-full object-cover" loading="lazy">
+                                        @if ($image->is_primary)
+                                            <span
+                                                class="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-success text-white shadow-lg"
+                                                aria-label="تصویر اصلی">✓</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                     <p x-show="previews.length" class="text-[10px] text-slate-400">برای تعیین تصویر اصلی روی همان تصویر کلیک کنید.</p>
                     <div class="flex items-center justify-between text-[10px] text-slate-400"><span
                             x-show="previews.length" x-text="`${previews.length} تصویر انتخاب شده`"></span><span

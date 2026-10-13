@@ -8,9 +8,11 @@ use App\Models\Listing;
 use App\Models\ListingAttributeValue;
 use App\Models\SellerStore;
 use App\Models\User;
+use App\Services\SystemOptions;
 use App\Support\PersianDate;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
@@ -180,11 +182,55 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
         SellerStore::create(['user_id' => $user->id, 'slug' => 'clone-store-'.$user->id, 'name' => 'فروشگاه کپی']);
         $brand = Brand::firstOrFail();
         $listing = Listing::create(['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $brand->phoneModels()->first()->id, 'title' => 'آگهی قابل کپی', 'slug' => Str::uuid(), 'price' => 1000000, 'status' => ListingStatus::Approved]);
+        $listing->images()->create(['path' => 'listings/source-phone.webp', 'thumbnail_path' => 'listings/thumbs/source-phone.webp', 'is_primary' => true, 'sort_order' => 1]);
 
         $this->actingAs($user)->get(route('listings.create', ['clone' => $listing->id]))
             ->assertOk()
             ->assertSee('آگهی قابل کپی (کپی)')
-            ->assertSee('name="clone"', false);
+            ->assertSee('name="clone"', false)
+            ->assertSee('تصاویر آگهی اصلی برای کپی')
+            ->assertSee('storage/listings/thumbs/source-phone.webp', false);
+    }
+
+    public function test_cloning_a_listing_copies_its_images_without_removing_the_source_files(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        SellerStore::create(['user_id' => $user->id, 'slug' => 'clone-images-'.$user->id, 'name' => 'فروشگاه تصاویر کپی']);
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+        $source = Listing::create([
+            'user_id' => $user->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی دارای تصاویر',
+            'slug' => Str::uuid(),
+            'price' => 1000000,
+            'status' => ListingStatus::Approved,
+        ]);
+        $source->images()->create(['path' => 'listings/source-phone.webp', 'thumbnail_path' => 'listings/thumbs/source-phone.webp', 'is_primary' => true, 'sort_order' => 1]);
+        Storage::disk('public')->put('listings/source-phone.webp', 'source-image');
+        Storage::disk('public')->put('listings/thumbs/source-phone.webp', 'source-thumbnail');
+        app(SystemOptions::class)->set('listing_duplicate_cooldown_minutes', 0, 'integer');
+
+        $this->actingAs($user)->post(route('listings.store'), [
+            'clone' => $source->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی کپی‌شده با تصاویر',
+            'price' => 2000000,
+            'attributes' => $this->requiredAttributeValues($model),
+        ])->assertRedirect();
+
+        $clone = Listing::where('title', 'آگهی کپی‌شده با تصاویر')->firstOrFail();
+        $clonedImage = $clone->images()->firstOrFail();
+
+        $this->assertNotSame($source->id, $clone->id);
+        $this->assertSame('source-image', Storage::disk('public')->get($clonedImage->path));
+        $this->assertSame('source-thumbnail', Storage::disk('public')->get($clonedImage->thumbnail_path));
+        Storage::disk('public')->assertExists('listings/source-phone.webp');
+        Storage::disk('public')->assertExists('listings/thumbs/source-phone.webp');
+        $this->assertTrue($clonedImage->is_primary);
     }
 
     public function test_dashboard_clone_page_prefills_the_source_listing_attributes(): void
