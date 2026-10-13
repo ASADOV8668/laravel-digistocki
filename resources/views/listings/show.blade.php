@@ -33,18 +33,19 @@
 @endpush
 <x-app-layout :title="$listing->title">
     <x-slot name="header">
-        <div class="flex items-center justify-between gap-3">
-            <div class="flex items-center gap-2">
+        <div class="flex min-w-0 items-center justify-between gap-3">
+            <div class="flex min-w-0 flex-1 items-center gap-2">
                 <a href="{{ route('listings.index') }}"
                     class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100" aria-label="بازگشت">
                     <x-heroicon-o-arrow-right class="h-5 w-5" />
                 </a>
                 <div class="min-w-0">
                     <p class="text-[11px] font-bold text-primary">آگهی</p>
-                    <h1 class="mt-0.5 truncate text-xl font-black text-neutral">{{ $listing->title }}</h1>
+                    <h1 class="mt-0.5 max-w-full truncate text-base font-black text-neutral sm:text-lg"
+                        title="{{ $listing->title }}">{{ $listing->title }}</h1>
                 </div>
-            </div>
-            <span class="rounded-full bg-success/10 px-3 py-1.5 text-[10px] font-black text-success">تأییدشده</span>
+            </div><span
+                class="shrink-0 rounded-full bg-success/10 px-3 py-1.5 text-[10px] font-black text-success">تأییدشده</span>
         </div>
     </x-slot>
 
@@ -154,17 +155,8 @@
         @endif
 
         <div class="rounded-lg bg-white p-5 shadow-sm border border-slate-200">
-            <div x-data="shareLink(@js(url()->current()))" class="flex items-start justify-between gap-4">
-                <div class="min-w-0">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span
-                            class="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">{{ $listing->brand->name }}</span>
-                        <span
-                            class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{{ $listing->phoneModel->name_fa ?: $listing->phoneModel->name }}</span>
-                    </div>
-                    <h2 class="mt-3 truncate text-2xl font-black leading-9 text-neutral" title="{{ $listing->title }}">{{ $listing->title }}</h2>
-                </div>
-                <div class="flex shrink-0 items-center gap-2">
+            <div x-data="shareLink(@js(url()->current()))" class="space-y-4">
+                <div class="flex items-center justify-end gap-2">
                     <button type="button" @click="share()"
                         class="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20">
                         <x-heroicon-o-share class="h-5 w-5" />
@@ -189,6 +181,16 @@
                             <x-heroicon-o-heart class="h-6 w-6" />
                         </a>
                     @endauth
+                </div>
+                <div class="min-w-0 w-full">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span
+                            class="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">{{ $listing->brand->name }}</span>
+                        <span
+                            class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{{ $listing->phoneModel->name_fa ?: $listing->phoneModel->name }}</span>
+                    </div>
+                    <h2 class="mt-3 w-full break-words text-xl font-black leading-8 text-neutral sm:text-2xl"
+                        title="{{ $listing->title }}">{{ $listing->title }}</h2>
                 </div>
             </div>
 
