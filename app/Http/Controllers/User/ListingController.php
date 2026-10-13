@@ -82,8 +82,17 @@ class ListingController extends Controller
         }
 
         $likes = $this->searchLikes($rawTerm);
+        $activeOnly = $request->input('active_only', '1') !== '0';
+        $visibleListings = fn () => Listing::query()
+            ->approved()
+            ->where(function (Builder $query): void {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->when($activeOnly, fn (Builder $query) => $query->where('is_user_disabled', false));
+
         $brands = Brand::query()
             ->where('is_active', true)
+            ->whereIn('id', $visibleListings()->select('brand_id'))
             ->where(fn (Builder $query) => $this->whereAnyLike($query, ['name', 'name_en'], $likes))
             ->orderBy('name')
             ->limit(6)
@@ -91,6 +100,7 @@ class ListingController extends Controller
 
         $models = PhoneModel::query()
             ->where('is_active', true)
+            ->whereIn('id', $visibleListings()->select('phone_model_id'))
             ->with('brand')
             ->where(function (Builder $query) use ($likes) {
                 $query->where(fn (Builder $model) => $this->whereAnyLike($model, ['name', 'name_fa', 'name_en'], $likes))
@@ -148,6 +158,17 @@ class ListingController extends Controller
         $models = PhoneModel::query()
             ->where('is_active', true)
             ->with('brand')
+            ->when($request->input('scope') === 'search', function (Builder $query) use ($request): void {
+                $activeOnly = $request->input('active_only', '1') !== '0';
+                $visibleListings = Listing::query()
+                    ->approved()
+                    ->where(function (Builder $listingQuery): void {
+                        $listingQuery->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                    })
+                    ->when($activeOnly, fn (Builder $listingQuery) => $listingQuery->where('is_user_disabled', false));
+
+                $query->whereIn('id', $visibleListings->select('phone_model_id'));
+            })
             ->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId))
             ->when($likes !== [], function (Builder $query) use ($likes) {
                 $query->where(function (Builder $query) use ($likes) {

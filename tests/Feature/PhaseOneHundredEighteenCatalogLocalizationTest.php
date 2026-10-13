@@ -2,9 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ListingStatus;
 use App\Models\Brand;
+use App\Models\Listing;
+use App\Models\PhoneModel;
+use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class PhaseOneHundredEighteenCatalogLocalizationTest extends TestCase
@@ -26,6 +31,19 @@ class PhaseOneHundredEighteenCatalogLocalizationTest extends TestCase
     public function test_model_suggestions_match_both_persian_and_english_model_names(): void
     {
         $this->seed(CatalogSeeder::class);
+        $seller = User::factory()->create();
+        foreach (['iPhone 13 Pro Max', 'Redmi Note 12 Pro+'] as $modelName) {
+            $model = PhoneModel::where('name_en', $modelName)->firstOrFail();
+            Listing::create([
+                'user_id' => $seller->id,
+                'brand_id' => $model->brand_id,
+                'phone_model_id' => $model->id,
+                'title' => $model->name_fa,
+                'slug' => Str::uuid(),
+                'price' => 1000000,
+                'status' => ListingStatus::Approved,
+            ]);
+        }
 
         $this->getJson(route('listings.search.suggestions', ['q' => 'آیفون ۱۳ پرو مکس']))
             ->assertOk()

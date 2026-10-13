@@ -17,6 +17,9 @@ class PhaseTwoHundredFifteenFlowbitePublicPagesTest extends TestCase
             ->assertSee('data-drawer-show="listing-filters"', false)
             ->assertSee('data-drawer-backdrop="true"', false)
             ->assertSee('data-drawer-hide="listing-filters"', false);
+
+        $script = file_get_contents(resource_path('js/app.js'));
+        $this->assertStringContainsString("form.closest('aside')?.querySelector('[data-drawer-hide]')?.click()", $script);
     }
 
     public function test_public_account_pages_use_flowbite_card_radius_and_borders(): void
@@ -28,5 +31,9 @@ class PhaseTwoHundredFifteenFlowbitePublicPagesTest extends TestCase
             $this->assertStringContainsString('rounded-lg', $source);
             $this->assertStringContainsString('border', $source);
         }
+
+        $favorites = file_get_contents(resource_path('views/favorites/index.blade.php'));
+        $this->assertStringContainsString('aria-label="حذف همه علاقه‌مندی‌ها"', $favorites);
+        $this->assertSame(1, substr_count($favorites, 'حذف همه علاقه‌مندی‌ها'));
     }
 }

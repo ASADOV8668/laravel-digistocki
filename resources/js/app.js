@@ -741,6 +741,8 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.modelsLoading = true;
         const params = new URLSearchParams();
         if (brandId) params.set('brand_id', brandId);
+        params.set('scope', 'search');
+        params.set('active_only', this.activeOnly ? '1' : '0');
 
         try {
             const response = await fetch(`${this.modelsEndpoint}?${params.toString()}`, {
@@ -794,6 +796,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         const form = event.target;
         const url = new URL(form.action, window.location.href);
         url.search = new URLSearchParams(new FormData(form)).toString();
+        form.closest('aside')?.querySelector('[data-drawer-hide]')?.click();
         this.filtersOpen = false;
         await this.fetchResults(url.toString(), 'push');
     },
@@ -932,7 +935,11 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.open = true;
 
         try {
-            const response = await fetch(`${this.suggestionsEndpoint}?q=${encodeURIComponent(query)}`, {
+            const params = new URLSearchParams({
+                q: query,
+                active_only: this.activeOnly ? '1' : '0',
+            });
+            const response = await fetch(`${this.suggestionsEndpoint}?${params.toString()}`, {
                 headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 signal: controller.signal,
             });

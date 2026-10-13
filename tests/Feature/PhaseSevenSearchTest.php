@@ -20,6 +20,17 @@ class PhaseSevenSearchTest extends TestCase
     {
         parent::setUp();
         $this->seed(CatalogSeeder::class);
+        $brand = Brand::where('name_en', 'Apple')->firstOrFail();
+        $model = $brand->phoneModels()->where('name', 'iPhone 13 Pro')->firstOrFail();
+        Listing::create([
+            'user_id' => User::factory()->create()->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی تست جستجو',
+            'slug' => Str::uuid(),
+            'price' => 1000000,
+            'status' => ListingStatus::Approved,
+        ]);
     }
 
     public function test_search_suggestions_find_models_with_persian_and_english_terms(): void
