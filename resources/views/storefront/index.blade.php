@@ -87,7 +87,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <div class="grid grid-cols-2 gap-4 lg:grid-cols-2">
             @forelse ($stores as $store)
                 <a href="{{ route('storefront.show', $store) }}"
                     class="group rounded-lg border border-slate-200 bg-white p-4 text-center shadow-sm transition hover:-translate-y-1 hover:border-primary/30 hover:shadow-md">

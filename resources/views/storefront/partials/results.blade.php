@@ -31,7 +31,7 @@
 </div>
 
 @if ($listings->count())
-    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-2">
         @foreach ($listings as $listing)
             <x-listing-card :listing="$listing" />
         @endforeach
