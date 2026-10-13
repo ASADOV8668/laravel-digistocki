@@ -57,6 +57,7 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
             ->assertSee('x-data="moneyInput(', false)
             ->assertSee('x-model="display"', false)
             ->assertSee('type="hidden" name="price"', false)
+            ->assertSee('data-listing-price', false)
             ->assertSee('type="hidden" name="bulk_price"', false);
     }
 

@@ -30,6 +30,25 @@ class PhaseOneHundredSixtySixUserStorefrontDashboardTest extends TestCase
             ->assertSee(route('storefront.show', $store), false);
     }
 
+    public function test_dashboard_shows_store_logo_and_share_button_without_printing_store_path(): void
+    {
+        $user = User::factory()->create();
+        $store = SellerStore::create([
+            'user_id' => $user->id,
+            'slug' => 'dashboard-logo-shop',
+            'name' => 'فروشگاه لوگودار',
+            'logo_path' => 'stores/dashboard-logo.webp',
+            'is_enabled' => true,
+            'approval_status' => 'approved',
+        ]);
+
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee(asset('storage/'.$store->logo_path), false)
+            ->assertSee('اشتراک‌گذاری فروشگاه')
+            ->assertDontSee('/store/'.$store->slug.'</p>', false);
+    }
+
     public function test_dashboard_shows_disabled_storefront_without_public_view_link(): void
     {
         $user = User::factory()->create();

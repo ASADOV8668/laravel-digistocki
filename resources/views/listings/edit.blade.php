@@ -9,7 +9,7 @@
             </div>
         </div>
     </x-slot>
-    <section x-data="listingWizard()" data-models-endpoint="{{ url('/listings/models') }}"
+    <section x-data='Object.assign(listingWizard(), imagePicker(@js($maxImageUploadMb), {{ max(0, $maxImageUploadCount - $listing->images->count()) }}, @js($listing->images->firstWhere("is_primary", true)?->id)))' data-models-endpoint="{{ url('/listings/models') }}"
         data-cities-endpoint="{{ url('/locations/provinces') }}"
         data-initial-brand-id="{{ old('brand_id', $listing->brand_id) }}"
         data-initial-model-id="{{ old('phone_model_id', $listing->phone_model_id) }}"
@@ -100,8 +100,7 @@
                 <textarea name="description" rows="4"
                     class="block w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30">{{ old('description', $listing->description) }}</textarea>
             </div>
-            <div
-                x-data='imagePicker(@js($maxImageUploadMb), {{ max(0, $maxImageUploadCount - $listing->images->count()) }}, @js($listing->images->firstWhere("is_primary", true)?->id))'>
+            <div>
                 <label class="mb-2 block text-sm font-bold text-neutral">افزودن تصاویر <span
                         class="text-xs font-normal text-slate-400">حداکثر {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر، هر تصویر {{ $maxImageUploadMb }} مگابایت</span></label><label
                     class="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-dashed border-primary/20 bg-primary-50/40 p-4 transition hover:border-primary/50"><span
@@ -135,34 +134,6 @@
                         x-text="`${previews.length} تصویر جدید انتخاب شده`"></span><span>ظرفیت باقی‌مانده: {{ \App\Support\PersianNumber::digits(max(0, $maxImageUploadCount - $listing->images->count())) }} تصویر</span></div>
                 <p x-show="invalid" x-text="message"
                     class="mt-2 rounded-lg bg-error/10 px-3 py-2 text-xs font-bold text-error"></p>
-            @if ($listing->images->isNotEmpty())
-                <div>
-                    <h2 class="mb-2 text-sm font-bold text-neutral">تصاویر فعلی</h2>
-                    <div class="grid grid-cols-3 gap-2">
-                        @foreach ($listing->images as $image)
-                            <div class="relative">
-                                <button type="button" @click="setPrimary('', '{{ $image->id }}')"
-                                    class="relative block w-full overflow-hidden rounded-lg border-2 transition"
-                                    :class="String(primaryImageId) === '{{ $image->id }}' ? 'border-success ring-2 ring-success/20' : 'border-slate-200 hover:border-primary/50'"
-                                    aria-label="انتخاب تصویر اصلی">
-                                    <img src="{{ asset('storage/' . $image->path) }}" alt="{{ $listing->title }}"
-                                        class="h-24 w-full object-cover" loading="lazy" decoding="async">
-                                    <span x-show="String(primaryImageId) === '{{ $image->id }}'"
-                                        class="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-success text-white shadow-lg">✓</span>
-                                </button>
-                                <form method="POST"
-                                    action="{{ route('listings.images.destroy', [$listing, $image]) }}"
-                                    class="absolute right-1 top-1 z-10">@csrf @method('DELETE')<button type="submit"
-                                        class="flex h-6 w-6 items-center justify-center rounded-full bg-error text-white shadow-lg transition hover:bg-error/80"
-                                        aria-label="حذف تصویر">
-                                        <x-heroicon-o-x-mark class="h-4 w-4" />
-                                    </button>
-                                </form>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
             </div>
             <div class="border-t border-slate-100 pt-4">
                 <div class="flex items-center justify-between gap-3">
@@ -179,5 +150,35 @@
             <button type="submit" class="mobile-button w-full bg-primary text-white hover:bg-primary-600">ذخیره و
                 ارسال برای بررسی</button>
         </form>
+        @if ($listing->images->isNotEmpty())
+            <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 class="mb-2 text-sm font-bold text-neutral">تصاویر فعلی</h2>
+                <p class="mb-3 text-xs text-slate-400">برای تغییر تصویر اصلی روی تصویر موردنظر بزنید؛ حذف تصویر اصلی، تصویر بعدی را جایگزین می‌کند.</p>
+                <div class="grid grid-cols-3 gap-2">
+                    @foreach ($listing->images as $image)
+                        <div class="relative">
+                            <button type="button" @click="setPrimary('', '{{ $image->id }}')"
+                                class="relative block w-full overflow-hidden rounded-lg border-2 transition"
+                                :class="String(primaryImageId) === '{{ $image->id }}' ? 'border-success ring-2 ring-success/20' : 'border-slate-200 hover:border-primary/50'"
+                                aria-label="انتخاب تصویر اصلی">
+                                <img src="{{ asset('storage/' . $image->path) }}" alt="{{ $listing->title }}"
+                                    class="h-24 w-full object-cover" loading="lazy" decoding="async">
+                                <span x-show="String(primaryImageId) === '{{ $image->id }}'"
+                                    class="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-success text-white shadow-lg">✓</span>
+                            </button>
+                            <form method="POST" action="{{ route('listings.images.destroy', [$listing, $image]) }}"
+                                class="absolute right-1 top-1 z-10" onsubmit="return confirm('این تصویر حذف شود؟')">
+                                @csrf @method('DELETE')
+                                <button type="submit"
+                                    class="flex h-6 w-6 items-center justify-center rounded-full bg-error text-white shadow-lg transition hover:bg-error/80"
+                                    aria-label="حذف تصویر">
+                                    <x-heroicon-o-x-mark class="h-4 w-4" />
+                                </button>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
     </section>
 </x-app-layout>

@@ -70,6 +70,14 @@
                                 دارد
                             </label>
                         </template>
+                        <template x-if="isBatteryHealth(row.attributeId)">
+                            <select :name="inputName(row)" x-model="row.value" class="public-select">
+                                <option value="">انتخاب سلامت باتری</option>
+                                <template x-for="option in options(row.attributeId)" :key="option">
+                                    <option :value="option" x-text="`${option}٪`"></option>
+                                </template>
+                            </select>
+                        </template>
                         <template x-if="isRam(row.attributeId)">
                             <div>
                                 <input :name="inputName(row)" x-model="row.value" type="number" min="1"
@@ -84,7 +92,7 @@
                             </div>
                         </template>
                         <template
-                            x-if="['integer', 'decimal'].includes(attribute(row.attributeId)?.type) && !isRam(row.attributeId)">
+                            x-if="['integer', 'decimal'].includes(attribute(row.attributeId)?.type) && !isRam(row.attributeId) && !isBatteryHealth(row.attributeId)">
                             <input :name="inputName(row)" x-model="row.value" type="number"
                                 :step="attribute(row.attributeId)?.type === 'decimal' ? '0.01' : '1'"
                                 class="public-input">

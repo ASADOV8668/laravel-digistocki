@@ -1370,7 +1370,7 @@ document.addEventListener('submit', async (event) => {
 
         const card = form.closest('article');
         if (form.action.includes('/quick-update')) {
-            const priceNode = card?.querySelector('p.mt-2.text-xs.font-black.text-primary');
+            const priceNode = card?.querySelector('[data-listing-price]');
             if (priceNode) priceNode.textContent = data.price_on_request ? 'تماس بگیرید' : formatDashboardPrice(data.price) + ' تومان';
             form.querySelector('input[name="price"]')?.setAttribute('value', data.price ?? '');
             form.querySelector('[data-modal-hide]')?.click();

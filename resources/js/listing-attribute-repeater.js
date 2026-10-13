@@ -57,6 +57,10 @@ window.listingAttributeRepeater = () => ({
         return this.attribute(attributeId)?.slug === 'ram';
     },
 
+    isBatteryHealth(attributeId) {
+        return this.attribute(attributeId)?.slug === 'battery_health';
+    },
+
     optionsId(row) {
         return `listing-attribute-options-${row.attributeId}`;
     },

@@ -39,7 +39,7 @@ class ListingAttributeValidator
             }
 
             $message = match ($attribute->type) {
-                AttributeType::Integer => $this->isInteger($value) ? null : 'مقدار باید عدد صحیح باشد.',
+                AttributeType::Integer => $this->validInteger($value, $attribute) ? null : 'مقدار باید عدد صحیح و از گزینه‌های مجاز باشد.',
                 AttributeType::Decimal => is_numeric($value) && ! is_array($value) ? null : 'مقدار باید عددی باشد.',
                 AttributeType::Boolean => $this->isBoolean($value) ? null : 'مقدار بولی نامعتبر است.',
                 AttributeType::Select => $this->inOptions($value, $attribute) ? null : 'گزینه انتخاب‌شده معتبر نیست.',
@@ -63,6 +63,19 @@ class ListingAttributeValidator
     private function isInteger(mixed $value): bool
     {
         return ! is_array($value) && filter_var($value, FILTER_VALIDATE_INT) !== false;
+    }
+
+    private function validInteger(mixed $value, Attribute $attribute): bool
+    {
+        if (! $this->isInteger($value)) {
+            return false;
+        }
+
+        if ($attribute->slug !== 'battery_health' || $attribute->options === []) {
+            return true;
+        }
+
+        return in_array((string) $value, array_map('strval', $attribute->options), true);
     }
 
     private function isBoolean(mixed $value): bool

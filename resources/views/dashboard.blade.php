@@ -37,9 +37,15 @@
             <div
                 class="rounded-lg {{ $store->is_enabled ? 'bg-neutral text-white' : 'bg-slate-100 text-neutral' }} p-5 shadow-sm">
                 <div class="flex items-start justify-between gap-3">
-                    <div class="flex items-center gap-3"><span
-                            class="flex h-11 w-11 items-center justify-center rounded-lg {{ $store->is_enabled ? 'bg-primary text-white' : 'bg-warning/15 text-warning' }}"><x-heroicon-o-building-storefront
-                                class="h-6 w-6" /></span>
+                    <div class="flex items-center gap-3">
+                        @if ($store->logo_path)
+                            <img src="{{ asset('storage/' . $store->logo_path) }}" alt="{{ $store->name }}"
+                                class="h-11 w-11 rounded-lg object-cover ring-2 ring-white/20">
+                        @else
+                            <span
+                                class="flex h-11 w-11 items-center justify-center rounded-lg {{ $store->is_enabled ? 'bg-primary text-white' : 'bg-warning/15 text-warning' }}"><x-heroicon-o-building-storefront
+                                    class="h-6 w-6" /></span>
+                        @endif
                         <div>
                             <p class="text-xs {{ $store->is_enabled ? 'text-white/60' : 'text-slate-500' }}">فروشگاه شما
                             </p>
@@ -48,12 +54,17 @@
                     </div><span
                         class="rounded-full px-3 py-1.5 text-[10px] font-black {{ $store->is_admin_disabled ? 'bg-error/15 text-error' : ($store->isApproved() ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning') }}">{{ $store->is_admin_disabled ? 'غیرفعال توسط مدیریت' : ($store->isApproved() ? ($store->is_enabled ? 'فعال و قابل مشاهده' : 'غیرفعال') : 'در انتظار تأیید مدیریت') }}</span>
                 </div>
-                <p class="mt-4 rounded-lg bg-white/10 px-3 py-2 text-left text-xs" dir="ltr">
-                    /store/{{ $store->slug }}</p>
                 <div class="mt-4 flex flex-wrap gap-2">
                     @if ($store->isPubliclyEnabled())
                         <a href="{{ route('storefront.show', $store) }}"
                             class="rounded-lg bg-white px-4 py-2.5 text-xs font-black text-neutral">مشاهده فروشگاه</a>
+                        <div x-data="shareLink(@js(route('storefront.show', $store)))">
+                            <button type="button" @click="share()"
+                                class="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/20">
+                                <x-heroicon-o-share class="h-4 w-4" />
+                                <span x-text="copied ? 'لینک کپی شد' : 'اشتراک‌گذاری فروشگاه'">اشتراک‌گذاری فروشگاه</span>
+                            </button>
+                        </div>
                     @endif
                     <a href="{{ route('storefront.edit') }}"
                         class="rounded-lg bg-white/10 px-4 py-2.5 text-xs font-bold text-white">
@@ -177,7 +188,7 @@
                             </div>
                             <p class="mt-2 text-xs text-slate-500">{{ $listing->brand->name }} ·
                                 {{ $listing->phoneModel->name }}</p>
-                            <p class="mt-2 text-xs font-black text-primary">
+                            <p data-listing-price class="mt-2 text-xs font-black text-primary">
                                 {{ $listing->price_on_request ? 'تماس بگیرید' : \App\Support\PersianNumber::format($listing->price) . ' تومان' }}
                             </p>
                             <div class="mt-3 flex flex-wrap gap-2"><button type="button"
@@ -248,7 +259,7 @@
                             <div class="flex justify-end gap-2"><button type="button"
                                     data-modal-hide="listing-price-modal-{{ $listing->id }}"
                                     class="rounded-lg bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-600">انصراف</button><button
-                                    class="rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white">ذخیره
+                                    type="submit" class="rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white">ذخیره
                                     قیمت</button></div>
                         </form>
                     </div>
