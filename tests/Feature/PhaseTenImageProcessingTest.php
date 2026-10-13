@@ -102,4 +102,41 @@ class PhaseTenImageProcessingTest extends TestCase
         $this->assertDatabaseHas('listing_images', ['id' => $image->id]);
         Storage::disk('public')->assertExists('listings/private/original.webp');
     }
+
+    public function test_deleting_the_primary_image_promotes_the_next_public_image(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $brand = Brand::where('name_en', 'Apple')->firstOrFail();
+        $listing = Listing::create([
+            'user_id' => $user->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $brand->phoneModels()->firstOrFail()->id,
+            'title' => 'تصویر اصلی قابل حذف',
+            'slug' => Str::uuid(),
+            'price' => 1000000,
+            'status' => ListingStatus::Pending,
+        ]);
+
+        Storage::disk('public')->put('listings/primary.webp', 'primary');
+        Storage::disk('public')->put('listings/next.webp', 'next');
+        $primary = ListingImage::create([
+            'listing_id' => $listing->id,
+            'path' => 'listings/primary.webp',
+            'is_primary' => true,
+            'sort_order' => 1,
+        ]);
+        $next = ListingImage::create([
+            'listing_id' => $listing->id,
+            'path' => 'listings/next.webp',
+            'is_primary' => false,
+            'sort_order' => 2,
+        ]);
+
+        $this->actingAs($user)
+            ->delete(route('listings.images.destroy', [$listing, $primary]))
+            ->assertRedirect();
+
+        $this->assertTrue((bool) $next->refresh()->is_primary);
+    }
 }

@@ -165,17 +165,23 @@
                             حداکثر {{ $maxImageUploadMb }}MB</span><input @change="select($event)" type="file"
                             name="images[]" multiple @if (!$clone || $clone->images->isEmpty()) required @endif accept=".jpg,.jpeg,.png,.webp" class="sr-only"></label>
                     <div x-show="previews.length" x-cloak class="grid grid-cols-4 gap-2"><template
-                            x-for="preview in previews" :key="preview.url">
-                            <button type="button" @click="setPrimary(previews.indexOf(preview))"
+                            x-for="(preview, index) in previews" :key="preview.url">
+                            <div role="button" tabindex="0" @click="setPrimary(index)"
+                                @keydown.enter.prevent="setPrimary(index)" @keydown.space.prevent="setPrimary(index)"
                                 class="relative overflow-hidden rounded-lg border-2 bg-slate-50 text-right transition"
-                                :class="primaryImageId === '' && String(primaryIndex) === String(previews.indexOf(preview)) ? 'border-success ring-2 ring-success/20' : 'border-slate-200 hover:border-primary/50'"
+                                :class="primaryImageId === '' && String(primaryIndex) === String(index) ? 'border-success ring-2 ring-success/20' : 'border-slate-200 hover:border-primary/50'"
                                 :aria-label="`انتخاب ${preview.name} به‌عنوان تصویر اصلی`">
+                                <button type="button" @click.stop="removePreview(index)"
+                                    class="absolute right-1 top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-error text-white shadow-lg transition hover:bg-error/80"
+                                    :aria-label="`حذف ${preview.name}`">
+                                    <x-heroicon-o-x-mark class="h-4 w-4" />
+                                </button>
                                 <img :src="preview.url" :alt="preview.name" class="h-20 w-full object-cover">
-                                <span x-show="primaryImageId === '' && String(primaryIndex) === String(previews.indexOf(preview))"
+                                <span x-show="primaryImageId === '' && String(primaryIndex) === String(index)"
                                     class="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-success text-white shadow-lg"
                                     aria-label="تصویر اصلی">✓</span>
                                 <p x-text="preview.name" class="truncate px-1.5 py-1 text-[9px] text-slate-500"></p>
-                            </button>
+                            </div>
                         </template></div>
                     <input type="hidden" name="primary_image_index" x-model="primaryIndex">
                     <input type="hidden" name="primary_image_id" x-model="primaryImageId">

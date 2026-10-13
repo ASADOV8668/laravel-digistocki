@@ -53,4 +53,30 @@ class PhaseNinetyFourEditImagePickerTest extends TestCase
             ->assertSee('ظرفیت باقی‌مانده: ۲ تصویر')
             ->assertSee('preview.url', false);
     }
+
+    public function test_all_listing_image_pickers_support_removing_selected_previews(): void
+    {
+        foreach ([
+            resource_path('js/app.js'),
+            resource_path('js/admin.js'),
+        ] as $path) {
+            $contents = file_get_contents($path);
+
+            $this->assertIsString($contents);
+            $this->assertStringContainsString('removePreview', $contents, $path);
+            $this->assertStringContainsString('transfer.items.add(preview.file)', $contents, $path);
+        }
+
+        foreach ([
+            resource_path('views/listings/create.blade.php'),
+            resource_path('views/listings/edit.blade.php'),
+            resource_path('views/admin/listings/form.blade.php'),
+        ] as $path) {
+            $contents = file_get_contents($path);
+
+            $this->assertIsString($contents);
+            $this->assertStringContainsString('removePreview', $contents, $path);
+            $this->assertStringContainsString(':aria-label="`حذف ${preview.name}`"', $contents, $path);
+        }
+    }
 }

@@ -106,9 +106,17 @@ class ListingController extends Controller
     {
         abort_unless($image->listing_id === $listing->id, 404);
         $wasPrimary = (bool) $image->is_primary;
+        $sortOrder = (int) $image->sort_order;
         $imageService->delete($image->path, $image->thumbnail_path);
         $image->delete();
-        if ($wasPrimary && ($replacement = $listing->images()->first())) {
+        $replacement = $listing->images()
+            ->where('sort_order', '>', $sortOrder)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->first()
+            ?? $listing->images()->orderBy('sort_order')->orderBy('id')->first();
+
+        if ($wasPrimary && $replacement) {
             $replacement->forceFill(['is_primary' => true])->save();
         }
 

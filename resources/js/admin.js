@@ -333,6 +333,7 @@ document.addEventListener('submit', async (event) => {
 
 window.imagePicker = (maxMb = 5, maxFiles = 8, initialPrimaryImageId = '') => ({
     previews: [],
+    fileInput: null,
     invalid: false,
     message: '',
     primaryIndex: '0',
@@ -343,8 +344,37 @@ window.imagePicker = (maxMb = 5, maxFiles = 8, initialPrimaryImageId = '') => ({
         this.primaryImageId = imageId ? String(imageId) : '';
     },
 
+    syncFiles() {
+        if (!this.fileInput || typeof DataTransfer === 'undefined') return;
+
+        const transfer = new DataTransfer();
+        this.previews.forEach((preview) => transfer.items.add(preview.file));
+        this.fileInput.files = transfer.files;
+    },
+
+    removePreview(index) {
+        const preview = this.previews[index];
+        if (!preview) return;
+
+        URL.revokeObjectURL(preview.url);
+        this.previews.splice(index, 1);
+        this.syncFiles();
+
+        if (this.primaryImageId !== '') return;
+
+        const currentPrimaryIndex = Number(this.primaryIndex);
+        if (!this.previews.length) {
+            this.primaryIndex = '';
+        } else if (index === currentPrimaryIndex) {
+            this.primaryIndex = String(Math.min(index, this.previews.length - 1));
+        } else if (index < currentPrimaryIndex) {
+            this.primaryIndex = String(currentPrimaryIndex - 1);
+        }
+    },
+
     select(event) {
         this.revokePreviews();
+        this.fileInput = event.target;
         const files = Array.from(event.target.files || []);
         const oversized = files.filter((file) => file.size > maxMb * 1024 * 1024);
         const validFiles = files.filter((file) => file.size <= maxMb * 1024 * 1024).slice(0, maxFiles);
@@ -364,7 +394,12 @@ window.imagePicker = (maxMb = 5, maxFiles = 8, initialPrimaryImageId = '') => ({
         if (this.primaryImageId === '' && validFiles.length > 0 && Number(this.primaryIndex) >= validFiles.length) {
             this.primaryIndex = '0';
         }
-        this.previews = validFiles.map((file) => ({ name: file.name, url: URL.createObjectURL(file) }));
+        this.previews = validFiles.map((file) => ({
+            file,
+            name: file.name,
+            url: URL.createObjectURL(file),
+        }));
+        if (!validFiles.length && this.primaryImageId === '') this.primaryIndex = '';
     },
     revokePreviews() {
         this.previews.forEach((preview) => URL.revokeObjectURL(preview.url));
