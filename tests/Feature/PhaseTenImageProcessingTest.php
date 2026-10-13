@@ -7,6 +7,7 @@ use App\Models\Brand;
 use App\Models\Listing;
 use App\Models\ListingImage;
 use App\Models\User;
+use App\Services\ImageService;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -47,6 +48,46 @@ class PhaseTenImageProcessingTest extends TestCase
         $this->assertNotSame('', $image->path);
         $this->assertTrue($image->thumbnail_path === null || Str::endsWith($image->thumbnail_path, '.webp'));
         Storage::disk('public')->assertExists($image->path);
+    }
+
+    public function test_heic_upload_is_accepted_and_saved_as_webp_by_the_image_service(): void
+    {
+        $this->app->instance(ImageService::class, new class extends ImageService
+        {
+            protected function canProcess(): bool
+            {
+                return true;
+            }
+
+            protected function hasImagick(): bool
+            {
+                return true;
+            }
+
+            protected function process(UploadedFile $file, string $path, string $thumbnailPath): void
+            {
+                Storage::disk('public')->put($path, 'webp');
+                Storage::disk('public')->put($thumbnailPath, 'thumbnail-webp');
+            }
+        });
+
+        $user = User::factory()->create();
+        $this->storeApplication($user);
+        $brand = Brand::where('name_en', 'Apple')->firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+
+        $this->actingAs($user)->post(route('listings.store'), [
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی HEIC',
+            'price' => 25000000,
+            'attributes' => $this->requiredAttributeValues($model),
+            'images' => [UploadedFile::fake()->create('phone.heic', 100, 'image/heic')],
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $image = Listing::where('title', 'آگهی HEIC')->firstOrFail()->images()->firstOrFail();
+        $this->assertTrue(Str::endsWith($image->path, '.webp'));
+        $this->assertTrue(Str::endsWith($image->thumbnail_path, '.webp'));
     }
 
     public function test_deleting_an_image_removes_original_and_thumbnail_files(): void

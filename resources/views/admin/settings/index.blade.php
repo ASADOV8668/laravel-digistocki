@@ -12,6 +12,7 @@
         $settings['listing_duplicate_cooldown_minutes'] ?? 1440,
     );
     $sessionLifetimeDays = old('session_lifetime_days', $settings['session_lifetime_days'] ?? 365);
+    $imageCompressionPercent = old('image_compression_percent', $settings['image_compression_percent'] ?? 20);
 @endphp
 <x-admin-layout title="تنظیمات سیستم">
     <x-slot name="header">
@@ -109,6 +110,15 @@
                             </div>
                             <p class="mt-2 text-[11px] text-slate-400">مقدار پیش‌فرض ۵ تصویر است و در فرم ایجاد و ویرایش
                                 آگهی اعمال می‌شود.</p>
+                        </div>
+                        <div><label class="mb-2 block text-xs font-bold text-slate-700">درصد فشرده‌سازی تصاویر</label>
+                            <div class="relative"><input name="image_compression_percent"
+                                    value="{{ $imageCompressionPercent }}" required type="number" min="0" max="80"
+                                    class="w-full rounded-xl border-slate-200 py-3 pl-20 text-sm focus:border-warning focus:ring-warning"><span
+                                    class="absolute left-3 top-3 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-500">درصد</span>
+                            </div>
+                            <p class="mt-2 text-[11px] text-slate-400">مقدار پیش‌فرض ۲۰٪ است؛ عدد بیشتر یعنی حجم کمتر و
+                                فشرده‌سازی بیشتر. خروجی همه تصاویر به WebP تبدیل می‌شود.</p>
                         </div>
                         <div><label class="mb-2 block text-xs font-bold text-slate-700">محدودیت ثبت آگهی تکراری
                                 (دقیقه)</label>

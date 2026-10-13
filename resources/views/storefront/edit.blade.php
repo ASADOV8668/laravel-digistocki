@@ -139,7 +139,7 @@
             <div class="grid gap-4 sm:grid-cols-2">
                 <div><label for="store-license" class="mb-2 block text-sm font-bold text-neutral">تصویر جواز کسب <span
                             class="text-error">*</span></label><input id="store-license" name="business_license"
-                        type="file" accept=".jpg,.jpeg,.png,.webp" @required(!$store?->business_license_path)
+                        type="file" accept=".jpg,.jpeg,.png,.webp,.heic,.heif" @required(!$store?->business_license_path)
                         @change="removeBusinessLicense = false" class="public-file">
                     @if ($store?->business_license_path)
                         <div x-show="!removeBusinessLicense" class="relative mt-3 w-fit">
@@ -154,7 +154,7 @@
                     <p class="mt-1 text-[11px] text-slate-400">حداکثر حجم طبق تنظیمات سیستم است.</p>
                 </div>
                 <div><label for="store-logo" class="mb-2 block text-sm font-bold text-neutral">لوگوی فروشگاه</label>
-                    <input id="store-logo" name="logo" type="file" accept=".jpg,.jpeg,.png,.webp"
+                    <input id="store-logo" name="logo" type="file" accept=".jpg,.jpeg,.png,.webp,.heic,.heif"
                         @change="removeLogo = false" class="public-file">
                     @if ($store?->logo_path)
                         <div x-show="!removeLogo" class="relative mt-3 w-fit">

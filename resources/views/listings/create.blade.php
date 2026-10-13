@@ -166,7 +166,7 @@
                                 class="h-6 w-6" /></span><span class="mt-3 text-sm font-black text-neutral">تصاویر
                             گوشی را انتخاب کنید</span><span class="mt-1 text-xs text-slate-400">JPG، PNG یا WEBP ·
                             حداکثر {{ $maxImageUploadMb }}MB</span><input @change="select($event)" type="file"
-                            name="images[]" multiple @if (!$clone || $clone->images->isEmpty()) required @endif accept=".jpg,.jpeg,.png,.webp" class="sr-only"></label>
+                            name="images[]" multiple @if (!$clone || $clone->images->isEmpty()) required @endif accept=".jpg,.jpeg,.png,.webp,.heic,.heif" class="sr-only"></label>
                     <div x-show="previews.length" x-cloak class="grid grid-cols-4 gap-2"><template
                             x-for="(preview, index) in previews" :key="preview.url">
                             <div role="button" tabindex="0" @click="setPrimary(index)"

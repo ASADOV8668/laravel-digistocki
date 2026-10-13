@@ -163,7 +163,7 @@
                 <div class="mt-4"><label
                         class="flex cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed border-primary/20 bg-primary-50/40 p-6 text-sm font-bold text-primary"><x-heroicon-o-photo
                             class="ml-2 h-6 w-6" />انتخاب تصاویر جدید<input @change="select($event)" type="file"
-                            name="images[]" multiple accept=".jpg,.jpeg,.png,.webp" class="sr-only"></label>
+                            name="images[]" multiple accept=".jpg,.jpeg,.png,.webp,.heic,.heif" class="sr-only"></label>
                     <div x-show="previews.length" x-cloak class="mt-3 grid grid-cols-4 gap-2"><template
                             x-for="(preview, index) in previews" :key="preview.url">
                             <div role="button" tabindex="0" @click="setPrimary(index)"

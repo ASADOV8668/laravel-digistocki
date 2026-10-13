@@ -16,6 +16,7 @@ class SystemOptions
         'title_separator' => '|',
         'max_image_upload_mb' => '5',
         'max_image_upload_count' => '5',
+        'image_compression_percent' => '20',
         'support_office_address' => '',
         'support_email' => '',
         'support_phone' => '',
@@ -99,6 +100,11 @@ class SystemOptions
     public function maxImageUploadCount(): int
     {
         return min(20, $this->int('max_image_upload_count'));
+    }
+
+    public function imageCompressionPercent(): int
+    {
+        return min(80, max(0, (int) $this->get('image_compression_percent')));
     }
 
     public function listingsEnabled(): bool

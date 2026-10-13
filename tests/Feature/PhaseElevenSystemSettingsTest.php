@@ -33,6 +33,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
             ->assertSee('تنظیمات سیستم')
             ->assertSee('ارسال پیامک و OTP')
             ->assertSee('max_image_upload_count', false)
+            ->assertSee('image_compression_percent', false)
             ->assertSee('listing_duplicate_cooldown_minutes', false)
             ->assertSee('session_lifetime_days', false);
 
@@ -42,6 +43,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
             'title_separator' => '—',
             'max_image_upload_mb' => 8,
             'max_image_upload_count' => 6,
+            'image_compression_percent' => 25,
             'listing_duplicate_cooldown_minutes' => 48,
             'support_office_address' => 'تهران، خیابان تست',
             'support_email' => 'help@example.test',
@@ -54,6 +56,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
         $this->assertDatabaseHas('options', ['key' => 'site_title', 'value' => 'بازار موبایل']);
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_mb', 'value' => '8']);
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_count', 'value' => '6']);
+        $this->assertDatabaseHas('options', ['key' => 'image_compression_percent', 'value' => '25']);
         $this->assertDatabaseHas('options', ['key' => 'listing_duplicate_cooldown_minutes', 'value' => '48']);
         $this->assertDatabaseHas('options', ['key' => 'otp_expiry_minutes', 'value' => '7']);
         $this->assertDatabaseHas('options', ['key' => 'session_lifetime_days', 'value' => '30']);
@@ -131,6 +134,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
             'title_separator' => '|',
             'max_image_upload_mb' => '۵',
             'max_image_upload_count' => '۷',
+            'image_compression_percent' => '۲۵',
             'listing_duplicate_cooldown_minutes' => '۲۴',
             'otp_expiry_minutes' => '۶',
             'session_lifetime_days' => '۳۶۵',
@@ -139,6 +143,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
 
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_mb', 'value' => '5']);
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_count', 'value' => '7']);
+        $this->assertDatabaseHas('options', ['key' => 'image_compression_percent', 'value' => '25']);
         $this->assertDatabaseHas('options', ['key' => 'listing_duplicate_cooldown_minutes', 'value' => '24']);
         $this->assertDatabaseHas('options', ['key' => 'otp_expiry_minutes', 'value' => '6']);
         $this->assertDatabaseHas('options', ['key' => 'session_lifetime_days', 'value' => '365']);

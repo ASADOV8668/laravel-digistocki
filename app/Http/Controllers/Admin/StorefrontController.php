@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\UpdateStorefrontRequest;
 use App\Models\SellerStore;
 use App\Models\User;
 use App\Notifications\StorefrontStatusNotification;
+use App\Services\ImageService;
 use App\Support\PersianDate;
 use App\Support\PersianSearch;
 use Illuminate\Database\Eloquent\Builder;
@@ -151,7 +152,7 @@ class StorefrontController extends Controller
         return back()->with('status', $message);
     }
 
-    public function update(UpdateStorefrontRequest $request, User $user): RedirectResponse
+    public function update(UpdateStorefrontRequest $request, User $user, ImageService $imageService): RedirectResponse
     {
         $store = $user->storefront;
         $previousApprovalStatus = $store?->approval_status;
@@ -160,7 +161,7 @@ class StorefrontController extends Controller
         $businessLicensePath = $store?->business_license_path;
 
         if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('stores', 'public');
+            $logoPath = $imageService->store($request->file('logo'), 'stores', false)['path'];
             if ($store?->logo_path) {
                 Storage::disk('public')->delete($store->logo_path);
             }
@@ -170,7 +171,7 @@ class StorefrontController extends Controller
         }
 
         if ($request->hasFile('business_license')) {
-            $businessLicensePath = $request->file('business_license')->store('business-licenses', 'public');
+            $businessLicensePath = $imageService->store($request->file('business_license'), 'business-licenses', false)['path'];
             if ($store?->business_license_path) {
                 Storage::disk('public')->delete($store->business_license_path);
             }

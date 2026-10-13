@@ -106,7 +106,7 @@
                         class="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-primary shadow-sm"><x-heroicon-o-photo
                             class="h-5 w-5" /></span><span class="text-xs font-bold text-slate-600">برای افزودن تصاویر
                         کلیک کنید<input @change="select($event)" type="file" name="images[]" multiple
-                            accept=".jpg,.jpeg,.png,.webp" class="sr-only"></span></label>
+                            accept=".jpg,.jpeg,.png,.webp,.heic,.heif" class="sr-only"></span></label>
                 <div x-show="previews.length" x-cloak class="mt-3 grid grid-cols-4 gap-2"><template
                         x-for="(preview, index) in previews" :key="preview.url">
                         <div role="button" tabindex="0" @click="setPrimary(index)"

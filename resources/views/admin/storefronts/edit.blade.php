@@ -130,7 +130,7 @@
             <div class="grid gap-4 sm:grid-cols-2">
                 <div><label for="admin-store-logo" class="mb-2 block text-sm font-bold text-slate-700">لوگوی
                         فروشگاه</label><input id="admin-store-logo" name="logo" type="file"
-                        accept=".jpg,.jpeg,.png,.webp" @change="removeLogo = false"
+                        accept=".jpg,.jpeg,.png,.webp,.heic,.heif" @change="removeLogo = false"
                         class="w-full rounded-xl border border-slate-200 p-2 text-sm">
                     @if ($store?->logo_path)
                         <div x-show="!removeLogo" class="relative mt-3 w-fit">
@@ -145,7 +145,7 @@
                 </div>
                 <div><label for="admin-business-license" class="mb-2 block text-sm font-bold text-slate-700">تصویر
                         جواز کسب</label><input id="admin-business-license" name="business_license" type="file"
-                        accept=".jpg,.jpeg,.png,.webp" @change="removeBusinessLicense = false"
+                        accept=".jpg,.jpeg,.png,.webp,.heic,.heif" @change="removeBusinessLicense = false"
                         class="w-full rounded-xl border border-slate-200 p-2 text-sm">
                     @if ($store?->business_license_path)
                         <div x-show="!removeBusinessLicense" class="relative mt-3 w-fit">
