@@ -7,7 +7,7 @@
                 class="rounded-full bg-white px-4 py-2 text-xs font-bold text-primary shadow-lg ring-1 ring-primary/10"
                 x-text="refreshing ? 'در حال تازه‌سازی...' : 'برای تازه‌سازی رها کنید'"></span></div>
 
-        <div x-data="homeSearch(@js(url('/locations/provinces')), @js(route('listings.search.suggestions')))" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div x-data="homeSearch(@js(url('/locations/provinces')), @js(route('listings.search.suggestions')), @js(url('/listings/models')))" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <div class="mb-4">
                 <p class="text-xs font-bold text-primary">جستجوی نزدیک‌تر</p>
                 <h2 class="mt-1 text-lg font-black text-neutral">دنبال چه چیزی هستید؟</h2>
@@ -62,6 +62,54 @@
                         class="flex min-w-28 items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-3 text-xs font-black text-neutral shadow-sm transition hover:bg-primary-50 hover:text-primary disabled:opacity-60"><x-heroicon-o-map-pin
                             class="h-5 w-5 text-primary" /><span class="max-w-28 truncate"
                             x-text="locationLoading ? 'در حال یافتن...' : locationLabel">همه ایران</span></button>
+                </div>
+                <div x-show="selectedModelId && quickAttributes().length" x-cloak
+                    class="rounded-2xl border border-primary/15 bg-primary-50/50 p-3">
+                    <div class="mb-2 flex items-center justify-between gap-2">
+                        <p class="text-xs font-black text-neutral">انتخاب سریع ویژگی‌ها</p>
+                        <span x-show="attributesLoading" class="text-[10px] text-slate-400">در حال بارگذاری...</span>
+                    </div>
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <template x-for="attribute in quickAttributes()" :key="`home-attribute-${attribute.id}`">
+                            <div x-show="isQuickAttributeVisible(attribute)">
+                                <label class="mb-1 block text-[11px] font-bold text-slate-600">
+                                    <span x-text="attribute.name"></span>
+                                    <span x-show="attribute.unit" x-text="` (${attribute.unit})`"
+                                        class="mr-1 text-[10px] font-normal text-slate-400"></span>
+                                </label>
+                                <template x-if="attribute.slug === 'color'">
+                                    <div class="flex flex-wrap gap-1.5 rounded-xl border border-slate-200 bg-white p-2">
+                                        <button type="button" @click="filters[attribute.id] = ''; attributeChanged()"
+                                            :class="filters[attribute.id] === '' ? 'border-primary bg-primary-50 ring-2 ring-primary/20' : ''"
+                                            class="rounded-lg border border-transparent px-2 py-1 text-[11px] font-bold text-neutral">
+                                            همه موارد
+                                        </button>
+                                        <template x-for="option in attributeOptions(attribute)" :key="option">
+                                            <button type="button" @click="filters[attribute.id] = option; attributeChanged()"
+                                                :class="filters[attribute.id] === option ? 'border-primary bg-primary-50 ring-2 ring-primary/20' : ''"
+                                                class="inline-flex items-center gap-1 rounded-lg border border-transparent px-2 py-1 text-[11px] font-bold text-neutral">
+                                                <span class="h-3.5 w-3.5 rounded-full border border-slate-300"
+                                                    :style="`background-color: ${window.listingColorHex?.[option] || '#94a3b8'}`"></span>
+                                                <span x-text="option"></span>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </template>
+                                <template x-if="attribute.slug !== 'color'">
+                                    <select :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]"
+                                        @change="attributeChanged()" class="public-select">
+                                        <option value="">همه موارد</option>
+                                        <template x-for="option in attributeOptions(attribute)" :key="option">
+                                            <option :value="option" x-text="option"></option>
+                                        </template>
+                                    </select>
+                                </template>
+                                <input x-show="attribute.slug === 'color'" type="hidden"
+                                    :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]">
+                            </div>
+                        </template>
+                    </div>
+                    <p class="mt-2 text-[10px] text-slate-400">ابتدا مدل، سپس حافظه و بعد رنگ‌های موجود همان مدل را انتخاب کنید.</p>
                 </div>
                 <button
                     class="mobile-button w-full bg-primary text-white hover:bg-primary-600 focus:ring-4 focus:ring-primary/30 focus:ring-offset-2"><x-heroicon-o-magnifying-glass

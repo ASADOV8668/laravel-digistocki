@@ -14,6 +14,7 @@ use App\Models\SellerStore;
 use App\Models\User;
 use App\Notifications\PendingStorefrontNotification;
 use App\Services\ImageService;
+use App\Services\ListingFilterOptionService;
 use App\Support\PersianDate;
 use App\Support\PersianSearch;
 use Illuminate\Database\Eloquent\Builder;
@@ -60,7 +61,7 @@ class StorefrontController extends Controller
         ]);
     }
 
-    public function show(Request $request, SellerStore $sellerStore): View|JsonResponse
+    public function show(Request $request, SellerStore $sellerStore, ListingFilterOptionService $filterOptions): View|JsonResponse
     {
         $sellerStore->load(['user', 'province', 'city']);
 
@@ -164,7 +165,11 @@ class StorefrontController extends Controller
             'brands' => $storeBrands,
             'storeModels' => $storeModels,
             'selectedModel' => $selectedModel,
-            'filterAttributesPayload' => $this->attributePayload($filterAttributes),
+            'filterAttributesPayload' => $filterOptions->payload(
+                $filterAttributes,
+                $attributeScope,
+                (array) $request->input('filters', []),
+            ),
             'sort' => $sort,
             'activeFilters' => $activeFilters,
             'priceFloor' => $priceFloor,
@@ -235,7 +240,7 @@ class StorefrontController extends Controller
         ])->values());
     }
 
-    public function modelAttributes(Request $request, SellerStore $sellerStore, PhoneModel $phoneModel): JsonResponse
+    public function modelAttributes(Request $request, SellerStore $sellerStore, PhoneModel $phoneModel, ListingFilterOptionService $filterOptions): JsonResponse
     {
         abort_unless($sellerStore->isPubliclyEnabled(), 404);
         $activeOnly = $request->input('active_only', '1') !== '0';
@@ -246,7 +251,14 @@ class StorefrontController extends Controller
             ->when(! $request->boolean('all'), fn (Builder $query) => $query->where('is_filterable', true))
             ->orderBy('sort_order')->get();
 
-        return response()->json($this->attributePayload($attributes));
+        $scope = $this->storeListingQuery($sellerStore, $activeOnly)->where('phone_model_id', $phoneModel->id);
+
+        return response()->json($filterOptions->payload(
+            $attributes,
+            $scope,
+            (array) $request->input('filters', []),
+            ! $request->boolean('all'),
+        ));
     }
 
     private function storeListingQuery(SellerStore $store, bool $activeOnly = true): Builder

@@ -72,6 +72,28 @@ class PhaseTwoHundredFiftyStorefrontFiltersTest extends TestCase
         $response->assertOk()->assertJsonFragment(['id' => $storeAttribute->id, 'name' => $storeAttribute->name])->assertJsonMissing(['id' => $outsideAttribute->id]);
     }
 
+    public function test_storefront_attribute_values_follow_the_selected_storage(): void
+    {
+        [$store, $brand, $model] = $this->storeContext('chained-attributes-store');
+        $storage = Attribute::where('slug', 'storage')->firstOrFail();
+        $color = Attribute::where('slug', 'color')->firstOrFail();
+        $first = $this->listing($store->user, $brand, $model, 'حافظه ۶۴', 16000000);
+        $second = $this->listing($store->user, $brand, $model, 'حافظه ۱۲۸', 18000000);
+        ListingAttributeValue::create(['listing_id' => $first->id, 'attribute_id' => $storage->id, 'value_integer' => 64]);
+        ListingAttributeValue::create(['listing_id' => $first->id, 'attribute_id' => $color->id, 'value_string' => 'آبی']);
+        ListingAttributeValue::create(['listing_id' => $second->id, 'attribute_id' => $storage->id, 'value_integer' => 128]);
+        ListingAttributeValue::create(['listing_id' => $second->id, 'attribute_id' => $color->id, 'value_string' => 'قرمز']);
+
+        $this->getJson(route('storefront.models.attributes', [$store, $model]))
+            ->assertOk()
+            ->assertJsonFragment(['slug' => 'storage', 'values' => [64, 128]])
+            ->assertJsonFragment(['slug' => 'color', 'values' => ['آبی', 'قرمز']]);
+
+        $this->getJson(route('storefront.models.attributes', [$store, $model], false).'?filters['.$storage->id.']=64')
+            ->assertOk()
+            ->assertJsonFragment(['slug' => 'color', 'values' => ['آبی']]);
+    }
+
     public function test_storefront_filters_results_by_model_and_price_without_leaking_other_store_listings(): void
     {
         [$store, $brand, $model] = $this->storeContext('query-store');

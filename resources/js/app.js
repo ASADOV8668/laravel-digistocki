@@ -175,9 +175,10 @@ const initOtpAutofill = () => {
 
 window.addEventListener('DOMContentLoaded', initOtpAutofill);
 
-window.homeSearch = (citiesEndpoint, suggestionsEndpoint) => ({
+window.homeSearch = (citiesEndpoint, suggestionsEndpoint, attributesEndpoint = '/listings/models') => ({
     citiesEndpoint,
     suggestionsEndpoint,
+    attributesEndpoint,
     provinceId: '',
     cityId: '',
     cityIds: [],
@@ -191,6 +192,10 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint) => ({
     selectedBrandId: '',
     selectedModelId: '',
     suggestions: { brands: [], models: [] },
+    attributes: [],
+    filters: {},
+    attributesLoading: false,
+    attributesController: null,
     loading: false,
     open: false,
     searchTimer: null,
@@ -311,6 +316,8 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint) => ({
         const query = this.query.trim();
         this.selectedBrandId = '';
         this.selectedModelId = '';
+        this.attributes = [];
+        this.filters = {};
 
         if (query.length < 2) {
             this.requestController?.abort();
@@ -348,18 +355,88 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint) => ({
         }
     },
 
-    selectBrand(brand) {
+    async selectBrand(brand) {
         this.selectedBrandId = brand.id;
         this.selectedModelId = '';
+        this.attributes = [];
+        this.filters = {};
         this.query = brand.label;
-        this.open = false;
+        this.loading = true;
+        this.open = true;
+        try {
+            const response = await fetch(`${this.attributesEndpoint}?brand_id=${encodeURIComponent(brand.id)}&scope=search&active_only=1`, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            if (!response.ok) throw new Error('Model request failed');
+            this.suggestions = { brands: [], models: await response.json() };
+        } catch {
+            this.suggestions = { brands: [], models: [] };
+        } finally {
+            this.loading = false;
+        }
     },
 
-    selectModel(model) {
+    async selectModel(model) {
         this.selectedBrandId = model.brand_id;
         this.selectedModelId = model.id;
         this.query = model.label;
         this.open = false;
+        this.filters = {};
+        await this.loadAttributes();
+    },
+
+    async loadAttributes() {
+        this.attributesController?.abort();
+
+        if (!this.selectedModelId) {
+            this.attributes = [];
+            return;
+        }
+
+        const controller = new AbortController();
+        this.attributesController = controller;
+        this.attributesLoading = true;
+        const params = new URLSearchParams({ active_only: '1' });
+        Object.entries(this.filters || {}).forEach(([attributeId, value]) => {
+            if (Array.isArray(value)) value.forEach((item) => item && params.append(`filters[${attributeId}][]`, item));
+            else if (value !== null && value !== '') params.set(`filters[${attributeId}]`, value);
+        });
+
+        try {
+            const response = await fetch(`${this.attributesEndpoint}/${this.selectedModelId}/attributes?${params.toString()}`, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: controller.signal,
+            });
+            if (!response.ok) throw new Error('Attribute request failed');
+            this.attributes = await response.json();
+        } catch (error) {
+            if (error.name !== 'AbortError') this.attributes = [];
+        } finally {
+            if (this.attributesController === controller) {
+                this.attributesController = null;
+                this.attributesLoading = false;
+            }
+        }
+    },
+
+    attributeOptions(attribute) {
+        return Array.isArray(attribute.values)
+            ? attribute.values
+            : (Array.isArray(attribute.options) ? attribute.options : []);
+    },
+
+    quickAttributes() {
+        return this.attributes.filter((attribute) => ['storage', 'color'].includes(attribute.slug));
+    },
+
+    isQuickAttributeVisible(attribute) {
+        if (attribute.slug !== 'color') return true;
+        const storage = this.attributes.find((item) => item.slug === 'storage');
+        return !storage || Boolean(this.filters[storage.id]);
+    },
+
+    async attributeChanged() {
+        await this.loadAttributes();
     },
 });
 
@@ -818,6 +895,18 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         return window.listingColorHex?.[value] || '#94a3b8';
     },
 
+    attributeOptions(attribute) {
+        return Array.isArray(attribute.values)
+            ? attribute.values
+            : (Array.isArray(attribute.options) ? attribute.options : []);
+    },
+
+    isQuickAttributeVisible(attribute) {
+        if (attribute.slug !== 'color') return true;
+        const storage = this.attributes.find((item) => item.slug === 'storage');
+        return !storage || Boolean(this.filters[storage.id]);
+    },
+
     activeFilterCount() {
         const dynamic = Object.values(this.filters || {}).filter((value) => Array.isArray(value)
             ? value.some((item) => item !== null && item !== '')
@@ -1009,7 +1098,12 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.attributesLoading = true;
 
         try {
-            const response = await fetch(`${this.attributesEndpoint}/${this.selectedModelId}/attributes`, {
+            const params = new URLSearchParams({ active_only: this.activeOnly ? '1' : '0' });
+            Object.entries(this.filters || {}).forEach(([attributeId, value]) => {
+                if (Array.isArray(value)) value.forEach((item) => item && params.append(`filters[${attributeId}][]`, item));
+                else if (value !== null && value !== '') params.set(`filters[${attributeId}]`, value);
+            });
+            const response = await fetch(`${this.attributesEndpoint}/${this.selectedModelId}/attributes?${params.toString()}`, {
                 headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 signal: controller.signal,
             });
@@ -1030,6 +1124,10 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
         this.attributesController?.abort();
         this.attributesController = null;
         this.attributesLoading = false;
+    },
+
+    async attributeChanged() {
+        await this.loadAttributes();
     },
 
     reset() {

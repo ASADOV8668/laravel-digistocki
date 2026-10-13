@@ -17,6 +17,7 @@ use App\Notifications\PendingListingNotification;
 use App\Services\ContactOtpService;
 use App\Services\ImageService;
 use App\Services\ListingAttributeOptionRegistrar;
+use App\Services\ListingFilterOptionService;
 use App\Services\ListingRules;
 use App\Services\LocationResolver;
 use App\Services\SystemOptions;
@@ -128,7 +129,7 @@ class ListingController extends Controller
         ]);
     }
 
-    public function modelAttributes(Request $request, PhoneModel $phoneModel)
+    public function modelAttributes(Request $request, PhoneModel $phoneModel, ListingFilterOptionService $filterOptions)
     {
         abort_unless($phoneModel->is_active, 404);
 
@@ -138,17 +139,21 @@ class ListingController extends Controller
             ->orderBy('attributes.sort_order')
             ->get();
 
-        return response()->json($attributes->map(fn (Attribute $attribute) => [
-            'id' => $attribute->id,
-            'name' => $attribute->name,
-            'slug' => $attribute->slug,
-            'type' => $attribute->type->value,
-            'unit' => $attribute->unit,
-            'options' => $attribute->options ?? [],
-            'is_filterable' => $attribute->is_filterable,
-            'is_required' => (bool) $attribute->pivot->is_required,
-            'sort_order' => $attribute->sort_order,
-        ])->values());
+        $activeOnly = $request->input('active_only', '1') !== '0';
+        $scope = Listing::query()
+            ->approved()
+            ->where('phone_model_id', $phoneModel->id)
+            ->where(function (Builder $query): void {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->when($activeOnly, fn (Builder $query) => $query->where('is_user_disabled', false));
+
+        return response()->json($filterOptions->payload(
+            $attributes,
+            $scope,
+            (array) $request->input('filters', []),
+            ! $request->boolean('all'),
+        ));
     }
 
     public function models(Request $request)
@@ -344,14 +349,18 @@ class ListingController extends Controller
             $activeFilters[] = ['label' => 'مرتب‌سازی: '.$sortLabels[$sort], 'url' => $without(['sort'])];
         }
 
-        $filterAttributesPayload = $filterAttributes->map(fn (Attribute $attribute) => [
-            'id' => $attribute->id,
-            'name' => $attribute->name,
-            'slug' => $attribute->slug,
-            'type' => $attribute->type->value,
-            'unit' => $attribute->unit,
-            'options' => $attribute->options ?? [],
-        ])->values()->all();
+        $filterOptionScope = Listing::query()
+            ->approved()
+            ->where(function (Builder $scopeQuery): void {
+                $scopeQuery->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->when($activeOnly, fn (Builder $scopeQuery) => $scopeQuery->where('is_user_disabled', false))
+            ->when($selectedModelId, fn (Builder $scopeQuery) => $scopeQuery->where('phone_model_id', $selectedModelId));
+        $filterAttributesPayload = app(ListingFilterOptionService::class)->payload(
+            $filterAttributes,
+            $filterOptionScope,
+            (array) $request->input('filters', []),
+        );
 
         $listings = $query->paginate(12)->withQueryString();
         $pricedListings = Listing::query()

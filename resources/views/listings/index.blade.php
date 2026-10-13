@@ -241,7 +241,7 @@
                                 از پیشنهادها انتخاب کنید تا ویژگی‌های همان مدل نمایش داده شود.</p>
                             <div x-show="selectedModelId && !attributesLoading" class="space-y-3">
                                 <template x-for="attribute in attributes" :key="attribute.id">
-                                    <label class="block text-xs font-bold text-slate-600">
+                                    <label x-show="isQuickAttributeVisible(attribute)" class="block text-xs font-bold text-slate-600">
                                         <span class="mb-1 block"><span x-text="attribute.name"></span><span
                                                 x-show="attribute.unit" x-text="` (${attribute.unit})`"
                                                 class="mr-1 text-[10px] font-normal text-slate-400"></span></span>
@@ -262,7 +262,7 @@
                                                         class="rounded-md border border-transparent px-2 py-1 text-[11px] font-bold text-neutral hover:border-primary/30">
                                                         همه موارد
                                                     </button>
-                                                    <template x-for="option in attribute.options"
+                                                    <template x-for="option in attributeOptions(attribute)"
                                                         :key="option">
                                                         <button type="button" @click="filters[attribute.id] = option"
                                                             :title="option" :aria-label="`فیلتر رنگ ${option}`"
@@ -280,20 +280,20 @@
                                             </div>
                                         </template>
                                         <template x-if="attribute.type === 'select' && attribute.slug !== 'color'">
-                                            <select :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]"
+                                            <select :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]" @change="attributeChanged()"
                                                 class="public-select font-normal">
                                                 <option value="">همه موارد</option>
-                                                <template x-for="option in attribute.options" :key="option">
+                                                <template x-for="option in attributeOptions(attribute)" :key="option">
                                                     <option :value="option" x-text="option"></option>
                                                 </template>
                                             </select>
                                         </template>
                                         <template x-if="attribute.type === 'multi_select'">
-                                            <select multiple :name="`filters[${attribute.id}][]`"
+                                            <select multiple :name="`filters[${attribute.id}][]`" @change="attributeChanged()"
                                                 x-model="filters[attribute.id]" x-init="filters[attribute.id] = Array.isArray(filters[attribute.id]) ? filters[attribute.id] : (filters[attribute.id] ? [filters[attribute.id]] : [])"
                                                 class="public-select min-h-28 font-normal">
                                                 <option value="">همه موارد</option>
-                                                <template x-for="option in attribute.options" :key="option">
+                                                <template x-for="option in attributeOptions(attribute)" :key="option">
                                                     <option :value="option" x-text="option"></option>
                                                 </template>
                                             </select>
@@ -301,10 +301,10 @@
                                                 کلید Ctrl یا لمس چندگانه را استفاده کنید.</p>
                                         </template>
                                         <template x-if="(attribute.type === 'integer' || attribute.type === 'decimal') && attribute.options && attribute.options.length">
-                                            <select :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]"
+                                            <select :name="`filters[${attribute.id}]`" x-model="filters[attribute.id]" @change="attributeChanged()"
                                                 class="public-select font-normal">
                                                 <option value="">همه موارد</option>
-                                                <template x-for="option in attribute.options" :key="option">
+                                                <template x-for="option in attributeOptions(attribute)" :key="option">
                                                     <option :value="option" x-text="option"></option>
                                                 </template>
                                             </select>
