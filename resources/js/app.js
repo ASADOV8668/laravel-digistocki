@@ -391,9 +391,9 @@ window.homeSearch = (citiesEndpoint, suggestionsEndpoint, attributesEndpoint = '
         this.selectedModelLabel = model.label;
         this.query = model.label;
         this.searchQuery = model.label;
-        this.open = false;
         this.filters = {};
         this.quickStep = 'storage';
+        this.open = true;
         await this.loadAttributes();
     },
 

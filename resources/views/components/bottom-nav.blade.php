@@ -1,7 +1,7 @@
 <nav id="public-bottom-navigation"
-    class="fixed bottom-0 left-1/2 z-30 h-16 w-full max-w-md -translate-x-1/2 border-t border-slate-200 bg-white/95 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 shadow-sm backdrop-blur"
+    class="fixed bottom-0 left-1/2 z-30 h-16 w-full max-w-md -translate-x-1/2 border-t border-slate-200 bg-white/95 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 shadow-sm backdrop-blur lg:max-w-6xl"
     aria-label="ناوبری پایین">
-    <div class="mx-auto grid h-full max-w-lg grid-cols-5 font-medium">
+    <div class="mx-auto grid h-full max-w-lg grid-cols-5 font-medium lg:max-w-6xl">
         <a href="{{ url('/') }}" @class([
             'group inline-flex flex-col items-center justify-center rounded-lg px-2 text-xs transition focus:outline-none focus:ring-4 focus:ring-primary/20',
             'bg-primary-50 text-primary' => request()->routeIs('home'),
