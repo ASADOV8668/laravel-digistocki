@@ -266,15 +266,26 @@ class ListingController extends Controller
     private function storeImages(Listing $listing, array $images, ImageService $imageService, array &$storedFiles, ?int $primaryImageIndex = null, ?int $primaryImageId = null): void
     {
         $uploads = array_values(array_filter($images, fn ($image) => $image instanceof UploadedFile));
+        $primaryImageId = filled($primaryImageId) ? (int) $primaryImageId : null;
+        $primaryImageIndex = filled($primaryImageIndex) ? (int) $primaryImageIndex : null;
         $selectedPrimary = $primaryImageId !== null
             ? $listing->images()->whereKey($primaryImageId)->first()
             : null;
 
-        if ($selectedPrimary) {
+        if ($uploads === []) {
+            if ($selectedPrimary) {
+                $listing->images()->update(['is_primary' => false]);
+                $selectedPrimary->update(['is_primary' => true]);
+            } elseif (! $listing->images()->where('is_primary', true)->exists()) {
+                $listing->images()->orderBy('sort_order')->orderBy('id')->first()?->update(['is_primary' => true]);
+            }
+
+            return;
+        }
+
+        if ($selectedPrimary || $primaryImageIndex !== null) {
             $listing->images()->update(['is_primary' => false]);
-            $selectedPrimary->update(['is_primary' => true]);
-        } elseif ($primaryImageIndex !== null) {
-            $listing->images()->update(['is_primary' => false]);
+            $selectedPrimary?->update(['is_primary' => true]);
         }
 
         $hasPrimary = $selectedPrimary !== null || $listing->images()->where('is_primary', true)->exists();

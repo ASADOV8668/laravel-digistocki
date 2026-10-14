@@ -831,7 +831,13 @@ class ListingController extends Controller
             ->first()
             ?? $listing->images()->orderBy('sort_order')->orderBy('id')->first();
 
+        if ($wasPrimary) {
+            $listing->images()->update(['is_primary' => false]);
+        }
+
         if ($wasPrimary && $replacement) {
+            $replacement->update(['is_primary' => true]);
+        } elseif (! $listing->images()->where('is_primary', true)->exists() && $replacement) {
             $replacement->update(['is_primary' => true]);
         }
 
@@ -884,19 +890,29 @@ class ListingController extends Controller
     private function storeImages(Listing $listing, array $images, ImageService $imageService, array &$storedFiles = [], ?int $primaryImageIndex = null, ?int $primaryImageId = null): void
     {
         $uploads = array_values(array_filter($images, fn ($image) => $image instanceof UploadedFile));
+        $primaryImageId = filled($primaryImageId) ? (int) $primaryImageId : null;
+        $primaryImageIndex = filled($primaryImageIndex) ? (int) $primaryImageIndex : null;
         $selectedPrimary = $primaryImageId !== null
             ? $listing->images()->whereKey($primaryImageId)->first()
             : null;
 
-        if ($selectedPrimary) {
-            $listing->images()->update(['is_primary' => false]);
-            $selectedPrimary->update(['is_primary' => true]);
-        } elseif ($primaryImageIndex !== null) {
-            $listing->images()->update(['is_primary' => false]);
+        if ($uploads === []) {
+            // The index belongs only to newly selected files. Never clear an
+            // existing primary image just because the edit form submitted its
+            // default index while no new file was selected.
+            if ($selectedPrimary) {
+                $listing->images()->update(['is_primary' => false]);
+                $selectedPrimary->update(['is_primary' => true]);
+            } elseif (! $listing->images()->where('is_primary', true)->exists()) {
+                $listing->images()->orderBy('sort_order')->orderBy('id')->first()?->update(['is_primary' => true]);
+            }
+
+            return;
         }
 
-        if ($uploads === []) {
-            return;
+        if ($selectedPrimary || $primaryImageIndex !== null) {
+            $listing->images()->update(['is_primary' => false]);
+            $selectedPrimary?->update(['is_primary' => true]);
         }
 
         $hasPrimary = $selectedPrimary !== null || $listing->images()->where('is_primary', true)->exists();
