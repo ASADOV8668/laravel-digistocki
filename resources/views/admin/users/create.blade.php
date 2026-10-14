@@ -55,7 +55,7 @@
                         </div>
                     </div>
                     <div class="relative">
-                        <input id="admin-user-password" x-model="password" x-bind:type="visible ? 'text' : 'password'" name="password" autocomplete="off" required
+                        <input id="admin-user-password" dir="ltr" x-model="password" x-bind:type="visible ? 'text' : 'password'" name="password" autocomplete="off" required
                             class="w-full rounded-xl border-slate-200 pl-11 text-sm focus:border-info focus:ring-info">
                         <button type="button" @click="visible = !visible" class="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 hover:bg-slate-100" aria-label="نمایش یا مخفی کردن رمز">
                             <x-heroicon-o-eye class="h-5 w-5" x-show="!visible" />
@@ -64,7 +64,7 @@
                     </div>
                     <p class="mt-1 text-[11px] text-slate-400">رمز ایجادشده ۱۶ کاراکتر است و در هر دو فیلد قرار می‌گیرد.</p>
                     <label for="admin-user-password-confirmation" class="mt-4 mb-2 block text-sm font-bold text-slate-700">تکرار رمز عبور</label>
-                    <input id="admin-user-password-confirmation" x-model="confirmation" x-bind:type="visible ? 'text' : 'password'" name="password_confirmation" autocomplete="off" required
+                    <input id="admin-user-password-confirmation" dir="ltr" x-model="confirmation" x-bind:type="visible ? 'text' : 'password'" name="password_confirmation" autocomplete="off" required
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info">
                 </div>
             </div>
