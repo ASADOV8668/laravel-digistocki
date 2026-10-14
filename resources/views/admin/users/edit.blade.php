@@ -23,7 +23,7 @@
                 </ul>
             </div>
         @endif
-        <form method="POST" action="{{ route('admin.users.update', $user) }}" class="admin-card space-y-6 p-6">@csrf
+        <form method="POST" action="{{ route('admin.users.update', $user) }}" autocomplete="off" class="admin-card space-y-6 p-6">@csrf
             @method('PUT')
             <div>
                 <h2 class="text-base font-black text-slate-900">اطلاعات حساب</h2>
@@ -32,37 +32,56 @@
             </div>
             <div class="grid gap-4 md:grid-cols-2">
                 <div><label class="mb-2 block text-sm font-bold text-slate-700">نام و نام خانوادگی</label><input
-                        name="name" value="{{ old('name', $user->name) }}" required
+                        name="name" value="{{ old('name', $user->name) }}" autocomplete="off" required
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info"></div>
                 <div><label class="mb-2 block text-sm font-bold text-slate-700">شماره موبایل</label><input
-                        name="mobile" value="{{ old('mobile', $user->mobile) }}" required
+                        name="mobile" value="{{ old('mobile', $user->mobile) }}" autocomplete="off" required
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info"></div>
                 <div><label class="mb-2 block text-sm font-bold text-slate-700">کد ملی</label><input name="national_id"
-                        value="{{ old('national_id', $user->national_id) }}" maxlength="10"
+                        value="{{ old('national_id', $user->national_id) }}" autocomplete="off" maxlength="10"
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info"></div>
                 <div><label class="mb-2 block text-sm font-bold text-slate-700">ایمیل</label><input type="email"
-                        name="email" value="{{ old('email', $user->email) }}"
+                        name="email" value="{{ old('email', $user->email) }}" autocomplete="off"
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info"></div>
-                <div><label class="mb-2 block text-sm font-bold text-slate-700">رمز عبور جدید</label><input
-                        type="password" name="password"
-                        class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info"></div>
-                <div><label class="mb-2 block text-sm font-bold text-slate-700">تکرار رمز عبور</label><input
-                        type="password" name="password_confirmation"
-                        class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info"></div>
+                <div x-data="adminPasswordGenerator(@js(old('password')), @js(old('password_confirmation')))" class="md:col-span-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <label for="admin-user-password" class="mb-2 block text-sm font-bold text-slate-700">رمز عبور جدید</label>
+                        <div class="mb-2 flex gap-2">
+                            <button type="button" @click="generate()" class="inline-flex items-center gap-1 rounded-lg bg-info/10 px-3 py-2 text-xs font-bold text-info">
+                                <x-heroicon-o-sparkles class="h-4 w-4" />ایجاد رمز سخت
+                            </button>
+                            <button type="button" @click="copy()" class="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600">
+                                <x-heroicon-o-clipboard-document class="h-4 w-4" />کپی رمز
+                            </button>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <input id="admin-user-password" x-model="password" x-bind:type="visible ? 'text' : 'password'" name="password" autocomplete="off"
+                            class="w-full rounded-xl border-slate-200 pl-11 text-sm focus:border-info focus:ring-info">
+                        <button type="button" @click="visible = !visible" class="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 hover:bg-slate-100" aria-label="نمایش یا مخفی کردن رمز">
+                            <x-heroicon-o-eye class="h-5 w-5" x-show="!visible" />
+                            <x-heroicon-o-eye-slash class="h-5 w-5" x-show="visible" x-cloak />
+                        </button>
+                    </div>
+                    <p class="mt-1 text-[11px] text-slate-400">برای نگه‌داشتن رمز فعلی، فیلد را خالی بگذارید. با ایجاد رمز جدید، هر دو فیلد پر می‌شوند.</p>
+                    <label for="admin-user-password-confirmation" class="mt-4 mb-2 block text-sm font-bold text-slate-700">تکرار رمز عبور</label>
+                    <input id="admin-user-password-confirmation" x-model="confirmation" x-bind:type="visible ? 'text' : 'password'" name="password_confirmation" autocomplete="off"
+                        class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info">
+                </div>
             </div>
             <div class="border-t border-slate-100 pt-5">
                 <h2 class="text-base font-black text-slate-900">دسترسی‌ها</h2>
                 <div class="mt-4 grid gap-4 md:grid-cols-3">
-                    <div><label class="mb-2 block text-sm font-bold text-slate-700">نقش</label><select name="role"
+                    <div><label class="mb-2 block text-sm font-bold text-slate-700">نقش</label><select name="role" autocomplete="off"
                             class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info">
                             <option value="user" @selected(old('role', $user->role) === 'user')>کاربر عادی</option>
                             <option value="admin" @selected(old('role', $user->role) === 'admin')>مدیر سیستم</option>
                         </select></div><label
                         class="flex items-center gap-2 self-end rounded-xl bg-slate-50 p-3 text-sm font-bold text-slate-700"><input
-                            type="checkbox" name="is_active" value="1" @checked(old('is_active', $user->is_active))
+                            type="checkbox" name="is_active" value="1" autocomplete="off" @checked(old('is_active', $user->is_active))
                             class="rounded border-slate-300 text-info focus:ring-info"> حساب فعال</label><label
                         class="flex items-center gap-2 self-end rounded-xl bg-slate-50 p-3 text-sm font-bold text-slate-700"><input
-                            type="checkbox" name="can_post_listings" value="1" @checked(old('can_post_listings', $user->can_post_listings))
+                            type="checkbox" name="can_post_listings" value="1" autocomplete="off" @checked(old('can_post_listings', $user->can_post_listings))
                             class="rounded border-slate-300 text-info focus:ring-info"> اجازه ثبت آگهی</label>
                 </div>
             </div>

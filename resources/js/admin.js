@@ -55,6 +55,49 @@ window.moneyInput = (initial = '') => ({
     },
 });
 
+window.adminPasswordGenerator = (initialPassword = '', initialConfirmation = '') => ({
+    password: initialPassword || '',
+    confirmation: initialConfirmation || '',
+    visible: false,
+
+    generate() {
+        const groups = [
+            'ABCDEFGHJKLMNPQRSTUVWXYZ',
+            'abcdefghijkmnopqrstuvwxyz',
+            '23456789',
+            '!@#$%^&*_-+=',
+        ];
+        const all = groups.join('');
+        const random = (max) => {
+            if (window.crypto?.getRandomValues) {
+                const values = new Uint32Array(1);
+                window.crypto.getRandomValues(values);
+                return values[0] % max;
+            }
+            return Math.floor(Math.random() * max);
+        };
+        const characters = groups.map((group) => group[random(group.length)]);
+        while (characters.length < 16) characters.push(all[random(all.length)]);
+        for (let index = characters.length - 1; index > 0; index--) {
+            const swap = random(index + 1);
+            [characters[index], characters[swap]] = [characters[swap], characters[index]];
+        }
+        this.password = characters.join('');
+        this.confirmation = this.password;
+        this.visible = true;
+    },
+
+    async copy() {
+        if (!this.password) this.generate();
+        try {
+            await navigator.clipboard.writeText(this.password);
+            window.dispatchEvent(new CustomEvent('admin-notification', { detail: { title: 'رمز عبور کپی شد', message: 'رمز عبور در کلیپ‌بورد قرار گرفت.' } }));
+        } catch {
+            window.dispatchEvent(new CustomEvent('admin-notification', { detail: { title: 'کپی انجام نشد', message: 'رمز را به‌صورت دستی انتخاب و کپی کنید.' } }));
+        }
+    },
+});
+
 const adminStatusClasses = {
     approved: 'bg-success/10 text-success',
     rejected: 'bg-error/10 text-error',

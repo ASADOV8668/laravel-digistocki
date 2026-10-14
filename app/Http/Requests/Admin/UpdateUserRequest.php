@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Support\MobileNumber;
+use App\Support\PersianDigits;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,6 +18,7 @@ class UpdateUserRequest extends FormRequest
     {
         $this->merge([
             'mobile' => MobileNumber::normalize($this->input('mobile')),
+            'national_id' => PersianDigits::toEnglish($this->input('national_id')),
             'is_active' => $this->boolean('is_active'),
             'can_post_listings' => $this->boolean('can_post_listings'),
         ]);
