@@ -1653,8 +1653,13 @@ document.addEventListener('submit', async (event) => {
             }
 
             if (data.action === 'price' || data.action === 'contact_price') {
-                const priceNode = card.querySelector('p.mt-2.text-xs.font-black.text-primary');
-                if (priceNode) priceNode.textContent = data.action === 'contact_price' ? 'تماس بگیرید' : formatDashboardPrice(data.price) + ' تومان';
+                const priceNode = card.querySelector('[data-listing-price]');
+                const priceState = data.prices?.[id];
+                if (priceNode) {
+                    priceNode.textContent = data.action === 'contact_price' || priceState?.price_on_request
+                        ? 'تماس بگیرید'
+                        : formatDashboardPrice(priceState?.price ?? data.price) + ' تومان';
+                }
             }
 
             if (data.action === 'disable' || data.action === 'enable') {
@@ -1710,6 +1715,11 @@ window.dashboardBulkActions = (visibleIds = [], matchingIds = []) => ({
     clearSelection() {
         this.allMatching = false;
         this.selectedIds = [];
+    },
+
+    selectForPrice(id) {
+        this.allMatching = false;
+        this.selectedIds = [String(id)];
     },
 
     isVisibleSelected() {

@@ -203,8 +203,8 @@
                                 {{ $listing->price_on_request ? 'تماس بگیرید' : \App\Support\PersianNumber::format($listing->price) . ' تومان' }}
                             </p>
                             <div class="mt-3 flex flex-wrap gap-2"><button type="button"
-                                    data-modal-target="listing-price-modal-{{ $listing->id }}"
-                                    data-modal-toggle="listing-price-modal-{{ $listing->id }}"
+                                    @click="selectForPrice('{{ $listing->id }}')"
+                                    data-modal-target="bulk-price-modal" data-modal-toggle="bulk-price-modal"
                                     class="rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary">تغییر
                                     قیمت</button>
                                 <form method="POST" action="{{ route('listings.toggle-disabled', $listing) }}">@csrf
@@ -246,40 +246,6 @@
                             </form>
                     </div>
                 </article>
-                <x-modal name="listing-price-modal-{{ $listing->id }}" maxWidth="md">
-                    <div class="p-6">
-                        <p class="text-xs font-bold text-primary">ویرایش سریع آگهی</p>
-                        <h3 class="mt-1 text-lg font-black text-neutral">{{ $listing->title }}</h3>
-                        <form method="POST" action="{{ route('listings.quick-update', $listing) }}"
-                            data-quick-update-listing="{{ $listing->id }}"
-                            class="mt-5 space-y-4">@csrf @method('PATCH')<div
-                                x-data="{ priceOnRequest: @js((bool) old('price_on_request', $listing->price_on_request)) }"><label
-                                    for="quick-price-{{ $listing->id }}"
-                                    class="mb-2 block text-sm font-bold text-neutral">قیمت (تومان)</label>
-                                <div x-data="moneyInput(@js(old('price', $listing->price ?? '')))"
-                                    <input id="quick-price-{{ $listing->id }}" x-model="display"
-                                        @input="formatInput($event)" :required="!priceOnRequest" type="text"
-                                        inputmode="numeric" autocomplete="off" dir="ltr"
-                                        placeholder="مثلاً ۳۲٬۰۰۰٬۰۰۰"
-                                        class="w-full rounded-lg border-slate-200 text-left text-sm focus:border-primary focus:ring-primary/30">
-                                    <input type="hidden" name="price" :value="raw">
-                                </div>
-                            </div>
-                            @if ($allowContactPrice)
-                                <label class="flex items-center gap-2 text-sm font-bold text-neutral"><input
-                                        type="checkbox" name="price_on_request" value="1"
-                                        x-model="priceOnRequest" @checked($listing->price_on_request)
-                                        class="public-check"> قیمت نمایش داده نشود؛ تماس
-                                    بگیرید</label>
-                            @endif
-                            <div class="flex justify-end gap-2"><button type="button"
-                                    data-modal-hide="listing-price-modal-{{ $listing->id }}"
-                                    class="rounded-lg bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-600">انصراف</button><button
-                                    type="submit" class="rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white">ذخیره
-                                    قیمت</button></div>
-                        </form>
-                    </div>
-                </x-modal>
             @empty
                 <div class="rounded-lg border border-dashed border-slate-200 bg-white p-10 text-center shadow-sm">
                     <x-heroicon-o-rectangle-stack class="mx-auto h-12 w-12 text-primary/30" />

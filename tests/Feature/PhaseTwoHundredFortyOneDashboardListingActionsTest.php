@@ -40,7 +40,7 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
         $this->assertTrue($listing->is_user_disabled);
     }
 
-    public function test_dashboard_quick_price_forms_group_digits_and_submit_a_raw_price(): void
+    public function test_dashboard_single_price_action_reuses_the_bulk_price_modal(): void
     {
         $user = User::factory()->create();
         $brand = Brand::firstOrFail();
@@ -56,12 +56,12 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
 
         $this->actingAs($user)->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('x-data="moneyInput(', false)
-            ->assertSee('x-model="display"', false)
-            ->assertSee('type="hidden" name="price"', false)
+            ->assertSee('selectForPrice(\''.$listing->id.'\')', false)
+            ->assertSee('data-modal-target="bulk-price-modal"', false)
+            ->assertSee('name="bulk_price_mode"', false)
             ->assertSee('data-listing-price', false)
             ->assertSee('data-listing-card="'.$listing->id.'"', false)
-            ->assertSee('data-quick-update-listing="'.$listing->id.'"', false)
+            ->assertDontSee('listing-price-modal-', false)
             ->assertSee('type="hidden" name="bulk_price"', false);
     }
 
