@@ -61,6 +61,36 @@ class StorefrontController extends Controller
         return view('admin.storefronts.index', compact('stores', 'storeStats', 'perPageOptions'));
     }
 
+    public function create(Request $request): View|RedirectResponse
+    {
+        $query = trim((string) $request->input('q'));
+        $users = User::query()
+            ->whereDoesntHave('storefront')
+            ->when($query !== '', function (Builder $builder) use ($query): void {
+                $like = '%'.$query.'%';
+                $builder->where(fn (Builder $search) => $search
+                    ->where('name', 'like', $like)
+                    ->orWhere('mobile', 'like', $like)
+                    ->orWhere('email', 'like', $like));
+            })
+            ->orderBy('name')
+            ->limit(300)
+            ->get(['id', 'name', 'mobile', 'email']);
+
+        if ($request->filled('user_id')) {
+            $validated = $request->validate(['user_id' => ['required', 'integer', 'exists:users,id']]);
+            $user = User::query()->findOrFail($validated['user_id']);
+
+            if ($user->storefront()->exists()) {
+                return back()->withErrors(['user_id' => 'این کاربر قبلاً یک فروشگاه دارد.']);
+            }
+
+            return redirect()->route('admin.storefronts.edit', $user);
+        }
+
+        return view('admin.storefronts.create', compact('users', 'query'));
+    }
+
     public function show(SellerStore $sellerStore): View
     {
         $sellerStore->load(['user', 'province', 'city']);

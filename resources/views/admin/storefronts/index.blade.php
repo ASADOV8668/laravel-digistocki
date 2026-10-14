@@ -10,9 +10,9 @@
                     <p class="mt-1 text-xs text-slate-400">درخواست فروشگاه کاربران را بررسی و مدیریت کنید.</p>
                 </div>
             </div>
-            <a href="{{ route('admin.users.index') }}"
+            <a href="{{ route('admin.storefronts.create') }}"
                 class="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-black text-white transition hover:bg-primary"><x-heroicon-o-users
-                    class="h-5 w-5" />انتخاب از کاربران</a>
+                    class="h-5 w-5" />ایجاد فروشگاه برای کاربر</a>
         </div>
     </x-slot>
 
