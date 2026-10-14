@@ -22,7 +22,7 @@ class PhaseOneHundredSeventyOneListingStorefrontLinksTest extends TestCase
         $this->seed(CatalogSeeder::class);
     }
 
-    public function test_listing_cards_link_to_an_enabled_seller_storefront(): void
+    public function test_listing_cards_show_an_enabled_seller_store_name_without_a_link(): void
     {
         $seller = User::factory()->create();
         $store = SellerStore::create(['user_id' => $seller->id, 'slug' => 'card-store', 'name' => 'فروشگاه کارت', 'is_enabled' => true, 'approval_status' => 'approved']);
@@ -30,8 +30,9 @@ class PhaseOneHundredSeventyOneListingStorefrontLinksTest extends TestCase
 
         $response = $this->get(route('listings.index'))
             ->assertOk()
-            ->assertSee('فروشگاه فروشنده')
-            ->assertSee(route('storefront.show', $store), false);
+            ->assertSee($store->name)
+            ->assertDontSee('فروشگاه فروشنده')
+            ->assertDontSee('href="'.route('storefront.show', $store).'"', false);
 
         $feedListing = $response->viewData('listings')->getCollection()->firstWhere('id', $listing->id);
         $this->assertNotNull($feedListing);
