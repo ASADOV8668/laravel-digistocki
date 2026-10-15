@@ -37,17 +37,17 @@
         <a href="{{ route('listings.show', $listing) }}" class="{{ $isList ? 'flex h-full w-full items-center justify-center' : 'block' }}">
             <img src="{{ $image ? asset('storage/' . ($isList ? $image->path : ($image->thumbnail_path ?: $image->path))) : asset('images/listing-placeholder.svg') }}"
                 alt="{{ $image ? $listing->title : 'تصویر پیش‌فرض آگهی موبایل' }}"
-                class="h-full w-full {{ $isList ? 'rounded-xl object-contain' : 'object-cover transition duration-500 group-hover:scale-105' }}" loading="lazy"
+                class="h-full w-full rounded-2xl {{ $isList ? 'object-contain' : 'object-cover transition duration-500 group-hover:scale-105' }}" loading="lazy"
                 decoding="async">
         </a>
         <button type="button" @click.stop.prevent="toggle" :aria-pressed="favorited.toString()"
             :aria-label="favorited ? 'حذف آگهی از علاقه‌مندی‌ها' : 'افزودن آگهی به علاقه‌مندی‌ها'"
-            class="absolute left-2 top-2 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/95 shadow-sm transition hover:text-red-600 focus:outline-none focus:ring-4 focus:ring-primary/20"
+            class="absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white/95 shadow-sm transition hover:text-red-600 focus:outline-none focus:ring-4 focus:ring-primary/20"
             :class="favorited ? 'text-error' : 'text-slate-300'"><x-heroicon-o-heart x-show="!favorited"
-                class="h-5 w-5" /><x-heroicon-s-heart x-show="favorited" x-cloak
-                class="h-5 w-5 fill-current" /></button>
+                class="h-4 w-4" /><x-heroicon-s-heart x-show="favorited" x-cloak
+                class="h-4 w-4 fill-current" /></button>
         <span
-            class="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-neutral/90 px-2.5 py-1.5 text-[10px] font-black text-white shadow-sm"
+            class="absolute right-2 top-2 inline-flex h-8 min-w-8 items-center justify-center gap-1 rounded-full bg-neutral/90 px-2 text-[10px] font-black text-white shadow-sm"
             aria-label="{{ \App\Support\PersianNumber::digits($listing->images->count()) }} تصویر"><x-heroicon-o-camera
                 class="h-3.5 w-3.5" /><span>{{ \App\Support\PersianNumber::digits($listing->images->count()) }}</span></span>
     </div>
