@@ -31,6 +31,18 @@ class PasswordUpdateTest extends TestCase
             ->assertDontSee('شما هنوز رمز عبوری انتخاب نکرده‌اید', false);
     }
 
+    public function test_registration_session_flag_hides_current_password_even_if_legacy_timestamp_exists(): void
+    {
+        $user = User::factory()->create(['password_set_at' => now()]);
+
+        $this->actingAs($user)
+            ->withSession(['password_setup_available' => true])
+            ->get('/profile')
+            ->assertOk()
+            ->assertSee('شما هنوز رمز عبوری انتخاب نکرده‌اید؛ رمز عبور جدید خود را وارد کنید.')
+            ->assertDontSee('name="current_password"', false);
+    }
+
     public function test_profile_password_requires_uppercase_lowercase_and_number(): void
     {
         $user = User::factory()->create();

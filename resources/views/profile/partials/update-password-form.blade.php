@@ -1,4 +1,5 @@
 <section>
+    @php($needsPasswordSetup = session('password_setup_available') === true || ! $user->hasSetPassword())
     <header>
         <div class="flex items-center gap-2"><x-heroicon-o-lock-closed class="h-5 w-5 text-info" />
             <h2 class="text-lg font-black text-neutral">امنیت حساب</h2>
@@ -6,7 +7,7 @@
         <p class="mt-1 text-xs leading-6 text-slate-500">رمز عبور باید حداقل ۸ کاراکتر و شامل ترکیبی از حروف بزرگ و کوچک انگلیسی و اعداد باشد.</p>
     </header>
     <form method="post" action="{{ route('password.update') }}" class="mt-5 space-y-4">@csrf @method('put')
-        @unless ($user->hasSetPassword())
+        @if ($needsPasswordSetup)
             <div class="rounded-lg border border-info/20 bg-info/5 px-4 py-3 text-sm leading-7 text-info">
                 شما هنوز رمز عبوری انتخاب نکرده‌اید؛ رمز عبور جدید خود را وارد کنید.
             </div>
@@ -17,7 +18,7 @@
                     class="mt-2 block w-full" autocomplete="current-password" />
                 <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2" />
             </div>
-        @endunless
+        @endif
         <div>
             <x-input-label for="update_password_password" value="رمز عبور جدید" />
             <x-text-input id="update_password_password" name="password" type="password" class="mt-2 block w-full"
