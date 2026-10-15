@@ -85,6 +85,7 @@
                     <thead class="border-b border-slate-100 bg-slate-50 text-xs font-black text-slate-500">
                         <tr>
                             <th class="px-5 py-4">کاربر</th>
+                            <th class="px-5 py-4">تاریخ ثبت‌نام</th>
                             <th class="px-5 py-4">نقش و وضعیت</th>
                             <th class="px-5 py-4">آگهی‌ها</th>
                             <th class="px-5 py-4 text-left">عملیات</th>
@@ -104,6 +105,10 @@
                                                 {{ $user->mobile ?: $user->email ?: 'بدون اطلاعات تماس' }}</p>
                                         </div>
                                     </div>
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4">
+                                    <p class="font-bold text-slate-700">{{ \App\Support\PersianNumber::digits(\App\Support\PersianDate::format($user->created_at)) }}</p>
+                                    <p class="mt-1 text-[11px] text-slate-400">{{ \App\Support\PersianNumber::digits(\App\Support\PersianDate::human($user->created_at)) }}</p>
                                 </td>
                                 <td class="px-5 py-4">
                                     <div class="flex max-w-[190px] flex-wrap gap-1.5"><span
@@ -155,7 +160,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-5 py-14 text-center text-sm text-slate-400">کاربری پیدا
+                                <td colspan="5" class="px-5 py-14 text-center text-sm text-slate-400">کاربری پیدا
                                     نشد.</td>
                             </tr>
                         @endforelse
