@@ -3,6 +3,7 @@
     $listingView = in_array(request()->input('view', request()->cookie('listing_view', 'list')), ['list', 'grid'], true)
         ? request()->input('view', request()->cookie('listing_view', 'list'))
         : 'list';
+    $isList = $listingView === 'list';
     $image = $listing->primaryImage ?? $listing->images->first();
     $isFavorited = filter_var($listing->is_favorited ?? false, FILTER_VALIDATE_BOOLEAN);
     $allCardAttributes = collect($listing->attributeValues ?? [])
@@ -29,12 +30,12 @@
 @endphp
 <article x-data="favoriteToggle('{{ route('listings.favorite.toggle', $listing) }}', {{ $isFavorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }})"
     dir="rtl"
-    class="group {{ $listingView === 'list' ? 'listing-card--list flex flex-row' : 'listing-card--grid' }} overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/5">
-    <div class="relative shrink-0 overflow-hidden bg-slate-100 {{ $listingView === 'list' ? 'h-36 w-36 sm:h-44 sm:w-52' : 'h-40 w-full' }}">
+    class="group {{ $isList ? 'listing-card--list flex flex-row' : 'listing-card--grid' }} overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/5">
+    <div class="relative shrink-0 overflow-hidden bg-slate-100 {{ $isList ? 'flex h-32 w-32 items-center justify-center p-2 sm:h-36 sm:w-44' : 'h-40 w-full' }}">
         <a href="{{ route('listings.show', $listing) }}" class="block">
-            <img src="{{ $image ? asset('storage/' . ($image->thumbnail_path ?: $image->path)) : asset('images/listing-placeholder.svg') }}"
+            <img src="{{ $image ? asset('storage/' . ($isList ? $image->path : ($image->thumbnail_path ?: $image->path))) : asset('images/listing-placeholder.svg') }}"
                 alt="{{ $image ? $listing->title : 'تصویر پیش‌فرض آگهی موبایل' }}"
-                class="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy"
+                class="h-full w-full {{ $isList ? 'object-contain' : 'object-cover transition duration-500 group-hover:scale-105' }}" loading="lazy"
                 decoding="async">
         </a>
         <button type="button" @click.stop.prevent="toggle" :aria-pressed="favorited.toString()"
@@ -49,12 +50,12 @@
                 class="h-3.5 w-3.5" /><span>{{ \App\Support\PersianNumber::digits($listing->images->count()) }}</span></span>
     </div>
     <div class="min-w-0 flex-1">
-    <a href="{{ route('listings.show', $listing) }}" class="block p-3.5">
-        <h3 class="line-clamp-2 min-h-10 text-sm font-black leading-5 text-neutral">{{ $listing->title }}</h3>
-        <p class="mt-2 truncate text-[11px] text-slate-500">{{ $listing->brand->name }} ·
+    <a href="{{ route('listings.show', $listing) }}" class="block {{ $isList ? 'p-2.5 sm:p-3' : 'p-3.5' }}">
+        <h3 class="line-clamp-2 {{ $isList ? 'min-h-9 text-[13px] leading-5' : 'min-h-10 text-sm leading-5' }} font-black text-neutral">{{ $listing->title }}</h3>
+        <p class="{{ $isList ? 'mt-1' : 'mt-2' }} truncate text-[11px] text-slate-500">{{ $listing->brand->name }} ·
             {{ $listing->phoneModel->name_fa ?: $listing->phoneModel->name }}</p>
         @if ($cardAttributes->isNotEmpty())
-            <div class="mt-2 space-y-1.5 text-[11px] text-slate-500">
+            <div class="{{ $isList ? 'mt-1 space-y-1' : 'mt-2 space-y-1.5' }} text-[11px] text-slate-500">
                 @foreach ($cardAttributes as $attribute)
                     <p class="flex items-center gap-1.5 truncate"><span
                             class="h-3 w-3 shrink-0 rounded-full border border-slate-300"
@@ -64,18 +65,18 @@
                 @endforeach
             </div>
         @endif
-        <div class="mt-3 border-t border-slate-100 pt-3">
+        <div class="{{ $isList ? 'mt-2 pt-2' : 'mt-3 pt-3' }} border-t border-slate-100">
             <div class="flex items-center justify-between gap-2 text-[10px] font-medium text-slate-400"><span
                     class="inline-flex min-w-0 items-center gap-1 truncate"><x-heroicon-o-map-pin
                         class="h-3.5 w-3.5 shrink-0" />{{ $listing->province?->name ?: 'استان ثبت نشده' }}{{ $listing->city?->name ? '، ' . $listing->city->name : '' }}</span><span
                     class="shrink-0">{{ \App\Support\PersianDate::human($listing->published_at ?? $listing->created_at) }}</span>
             </div>
-            <p class="mt-2 text-sm font-black text-primary">
+            <p class="{{ $isList ? 'mt-1 text-[13px]' : 'mt-2 text-sm' }} font-black text-primary">
                 {{ $listing->price_on_request ? 'تماس بگیرید' : \App\Support\PersianNumber::format($listing->price) . ' تومان' }}
             </p>
         </div>
     </a>
-    @if ($listing->user?->storefront?->isPubliclyEnabled())
+    @if (! $isList && $listing->user?->storefront?->isPubliclyEnabled())
         <div class="border-t border-slate-100 px-3.5 py-2.5">
             <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400">
                 <x-heroicon-o-building-storefront class="h-4 w-4" />
