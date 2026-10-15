@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Enums\ListingStatus;
+use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Listing;
+use App\Models\ListingAttributeValue;
 use App\Models\SellerStore;
 use App\Models\User;
 use App\Services\SystemOptions;
@@ -101,5 +103,89 @@ class PhaseTwoHundredFiftyOnePublicListingPaginationTest extends TestCase
         $this->get(route('listings.index'))->assertSee('data-pagination-mode="infinite"', false)->assertSee('data-infinite-skeleton', false);
         $this->get(route('storefront.show', $store))->assertSee('data-pagination-mode="infinite"', false)->assertSee('data-infinite-skeleton', false);
         $this->get(route('home'))->assertSee('data-pagination-mode="infinite"', false)->assertSee('data-infinite-skeleton', false);
+    }
+
+    public function test_infinite_scroll_preserves_search_and_attribute_filters_for_search_and_storefront_pages(): void
+    {
+        $seller = User::factory()->create();
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+        $store = SellerStore::create([
+            'user_id' => $seller->id,
+            'slug' => 'filtered-infinite-shop',
+            'name' => 'فروشگاه فیلتر اسکرولی',
+            'is_enabled' => true,
+            'approval_status' => 'approved',
+        ]);
+        $storage = Attribute::query()->where('slug', 'storage')->firstOrFail();
+
+        foreach (range(1, 2) as $number) {
+            $listing = Listing::create([
+                'user_id' => $seller->id,
+                'brand_id' => $brand->id,
+                'phone_model_id' => $model->id,
+                'title' => "آیفون فیلتر اسکرول {$number}",
+                'slug' => Str::uuid(),
+                'price' => 20000000 + ($number * 1000000),
+                'status' => ListingStatus::Approved,
+                'published_at' => now()->subMinutes($number),
+            ]);
+
+            ListingAttributeValue::create([
+                'listing_id' => $listing->id,
+                'attribute_id' => $storage->id,
+                'value_integer' => 256,
+            ]);
+        }
+
+        app(SystemOptions::class)->setMany([
+            'search_listings_per_page' => [1, 'integer'],
+            'storefront_listings_per_page' => [1, 'integer'],
+            'listings_pagination_type' => ['infinite', 'string'],
+        ]);
+
+        $filters = [
+            'q' => 'آیفون',
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'filters' => [$storage->id => ['256']],
+            'min_price' => 20000000,
+            'max_price' => 23000000,
+            'sort' => 'price_asc',
+            'active_only' => '1',
+        ];
+
+        foreach ([
+            route('listings.index', $filters),
+            route('storefront.show', ['sellerStore' => $store->slug] + $filters),
+        ] as $url) {
+            $firstPage = $this->getJson($url)->assertOk()->assertJsonPath('has_more', true);
+            $nextPageUrl = $firstPage->json('next_page_url');
+
+            $this->assertNotEmpty($nextPageUrl);
+            $nextQuery = $this->queryParameters($nextPageUrl);
+            $this->assertSame('2', (string) ($nextQuery['page'] ?? null));
+            $this->assertSame('آیفون', $nextQuery['q'] ?? null);
+            $this->assertSame((string) $brand->id, (string) ($nextQuery['brand_id'] ?? null));
+            $this->assertSame((string) $model->id, (string) ($nextQuery['phone_model_id'] ?? null));
+            $this->assertSame(['256'], $nextQuery['filters'][$storage->id] ?? null);
+            $this->assertSame('20000000', (string) ($nextQuery['min_price'] ?? null));
+            $this->assertSame('23000000', (string) ($nextQuery['max_price'] ?? null));
+            $this->assertSame('price_asc', $nextQuery['sort'] ?? null);
+            $this->assertSame('1', (string) ($nextQuery['active_only'] ?? null));
+
+            $secondPage = $this->getJson($nextPageUrl.'&infinite=1')->assertOk();
+            $secondPageHtml = (string) $secondPage->json('html');
+            $this->assertStringContainsString('آیفون فیلتر اسکرول 2', $secondPageHtml);
+            $this->assertStringNotContainsString('آیفون فیلتر اسکرول 1', $secondPageHtml);
+        }
+    }
+
+    /** @return array<string, mixed> */
+    private function queryParameters(string $url): array
+    {
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $parameters);
+
+        return $parameters;
     }
 }
