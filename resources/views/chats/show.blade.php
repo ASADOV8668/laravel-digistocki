@@ -86,7 +86,8 @@
         data-chat-send-url="{{ route('chats.messages.store', $conversation) }}">
         @php
             $listing = $conversation->listing;
-            $image = $listing?->primaryImage?->thumbnail_path ?: $listing?->primaryImage?->path;
+            $imageRecord = $listing?->primaryImage ?: $listing?->images?->first();
+            $image = $imageRecord?->thumbnail_path ?: $imageRecord?->path;
             $seller = $conversation->seller;
         @endphp
         <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -124,8 +125,8 @@
                     </label>
                     <div class="min-w-0 flex-1">
                         <label for="chat-body" class="sr-only">متن پیام</label>
-                        <textarea id="chat-body" name="body" rows="1" maxlength="5000" placeholder="پیام خود را بنویسید..."
-                            class="block max-h-32 min-h-11 w-full resize-none rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-800 focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        <textarea id="chat-body" name="body" rows="2" maxlength="5000" placeholder="پیام خود را بنویسید..."
+                            class="block max-h-40 min-h-20 w-full resize-y overflow-y-auto rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-800 focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                             dir="rtl"></textarea>
                         <p id="chat-image-name" class="mt-1 hidden text-[10px] text-slate-400"></p>
                     </div>

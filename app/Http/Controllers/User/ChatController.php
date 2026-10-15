@@ -21,6 +21,7 @@ class ChatController extends Controller
             ->where(fn ($query) => $query->where('buyer_id', $userId)->orWhere('seller_id', $userId))
             ->with([
                 'listing.primaryImage',
+                'listing.images',
                 'listing.user.storefront',
                 'buyer.storefront',
                 'seller.storefront',
@@ -53,6 +54,7 @@ class ChatController extends Controller
         $this->authorize('view', $conversation);
         $conversation->load([
             'listing.primaryImage',
+            'listing.images',
             'listing.user.storefront',
             'buyer.storefront',
             'seller.storefront',

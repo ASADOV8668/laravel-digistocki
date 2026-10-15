@@ -7,6 +7,7 @@ use App\Models\Brand;
 use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use App\Models\Listing;
+use App\Models\ListingImage;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,6 +30,13 @@ class ChatSystemTest extends TestCase
     {
         Storage::fake('public');
         [$seller, $buyer, $listing] = $this->listingPair();
+        ListingImage::create([
+            'listing_id' => $listing->id,
+            'path' => 'listings/chat-test/phone.webp',
+            'thumbnail_path' => 'listings/chat-test/thumb.webp',
+            'is_primary' => true,
+            'sort_order' => 0,
+        ]);
 
         $response = $this->actingAs($buyer)->post(route('chats.from-listing', $listing));
         $conversation = ChatConversation::firstOrFail();
@@ -46,6 +54,7 @@ class ChatSystemTest extends TestCase
             ->get(route('chats.index'))
             ->assertOk()
             ->assertSee($listing->title)
+            ->assertSee('storage/listings/chat-test/thumb.webp')
             ->assertSee('سلام، این آگهی هنوز موجود است؟');
 
         $this->assertSame(1, ChatMessage::unreadCountForUser($seller->id));
@@ -54,6 +63,7 @@ class ChatSystemTest extends TestCase
             ->get(route('chats.show', $conversation))
             ->assertOk()
             ->assertSee('سلام، این آگهی هنوز موجود است؟')
+            ->assertSee('storage/listings/chat-test/thumb.webp')
             ->assertSee('data-chat-room')
             ->assertSee('setInterval(refresh, 1000)')
             ->assertDontSee('حذف چت');
