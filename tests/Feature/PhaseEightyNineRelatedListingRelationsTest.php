@@ -34,6 +34,25 @@ class PhaseEightyNineRelatedListingRelationsTest extends TestCase
                 && $listings->firstWhere('id', $related->id)->relationLoaded('attributeValues'));
     }
 
+    public function test_related_listings_follow_the_saved_view_mode(): void
+    {
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+        $main = $this->listing('آگهی اصلی حالت نمایش', $brand->id, $model->id);
+        $this->listing('آگهی مرتبط حالت نمایش', $brand->id, $model->id);
+
+        $this->withCookie('listing_view', 'list')
+            ->get(route('listings.show', $main))
+            ->assertOk()
+            ->assertSee('grid grid-cols-1 gap-3', false)
+            ->assertDontSee('grid grid-cols-2 gap-3', false);
+
+        $this->withCookie('listing_view', 'grid')
+            ->get(route('listings.show', $main))
+            ->assertOk()
+            ->assertSee('grid grid-cols-2 gap-3', false);
+    }
+
     private function listing(string $title, int $brandId, int $modelId): Listing
     {
         return Listing::create([

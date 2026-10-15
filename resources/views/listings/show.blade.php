@@ -374,6 +374,11 @@
         @endauth
 
         @if ($relatedListings->isNotEmpty())
+            @php
+                $relatedListingView = in_array(request()->input('view', request()->cookie('listing_view', 'list')), ['list', 'grid'], true)
+                    ? request()->input('view', request()->cookie('listing_view', 'list'))
+                    : 'list';
+            @endphp
             <div>
                 <div class="mb-3 flex items-center justify-between">
                     <div>
@@ -383,7 +388,7 @@
                         href="{{ route('listings.index', ['brand_id' => $listing->brand_id, 'phone_model_id' => $listing->phone_model_id]) }}"
                         class="text-xs font-bold text-primary">مشاهده همه</a>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid {{ $relatedListingView === 'list' ? 'grid-cols-1' : 'grid-cols-2' }} gap-3">
                     @foreach ($relatedListings as $related)
                         <x-listing-card :listing="$related" />
                     @endforeach
