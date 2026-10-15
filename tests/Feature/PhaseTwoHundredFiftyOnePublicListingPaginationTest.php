@@ -219,6 +219,10 @@ class PhaseTwoHundredFiftyOnePublicListingPaginationTest extends TestCase
             ->assertSee('listing-card--grid', false)
             ->assertSee('grid-cols-2', false);
 
+        $this->get(route('listings.index', ['view' => 'grid']))
+            ->assertOk()
+            ->assertCookie('listing_view', 'grid');
+
         $this->withCookie('listing_view', 'grid')
             ->get(route('storefront.show', $store))
             ->assertOk()

@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\ApplySystemSessionLifetime;
 use App\Http\Middleware\NormalizePersianDigits;
+use App\Http\Middleware\RememberListingView;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -22,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->web(
             prepend: [NormalizePersianDigits::class, ApplySystemSessionLifetime::class],
-            append: [SecurityHeaders::class],
+            append: [SecurityHeaders::class, RememberListingView::class],
         );
     })
     ->withExceptions(function (Exceptions $exceptions) {
