@@ -33,6 +33,37 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
         $this->assertDatabaseMissing('seller_stores', ['user_id' => $user->id]);
     }
 
+    public function test_duplicate_user_national_id_is_reported_before_store_creation(): void
+    {
+        $existingUser = User::factory()->create([
+            'mobile' => '09120001071',
+            'national_id' => '0067123457',
+        ]);
+        $user = User::factory()->create(['mobile' => '09120001072']);
+        [$province, $city] = $this->location('استان کد ملی', 'شهر کد ملی');
+
+        $this->actingAs($user)->put(route('storefront.update'), [
+            'first_name' => 'کاربر',
+            'last_name' => 'تکراری',
+            'national_id' => '0067123457',
+            'name' => 'فروشگاه تکراری',
+            'slug' => 'duplicate-national-id-store',
+            'contact_phone' => $user->mobile,
+            'business_license_number' => 'LIC-DUPLICATE',
+            'business_license_expires_at_year' => (int) PersianDate::format(now(), 'Y'),
+            'business_license_expires_at_month' => (int) PersianDate::format(now(), 'm'),
+            'business_license_expires_at_day' => (int) PersianDate::format(now(), 'd'),
+            'province_id' => $province->id,
+            'city_id' => $city->id,
+            'address' => 'آدرس تکراری',
+            'logo' => UploadedFile::fake()->create('duplicate-logo.jpg', 10, 'image/jpeg'),
+            'business_license' => UploadedFile::fake()->create('duplicate-license.jpg', 10, 'image/jpeg'),
+        ])->assertSessionHasErrors(['national_id']);
+
+        $this->assertDatabaseMissing('seller_stores', ['user_id' => $user->id]);
+        $this->assertSame('0067123457', $existingUser->fresh()->national_id);
+    }
+
     public function test_store_application_requires_a_logo_and_rejects_past_expiry_dates(): void
     {
         $user = User::factory()->create(['mobile' => '09120001222']);
