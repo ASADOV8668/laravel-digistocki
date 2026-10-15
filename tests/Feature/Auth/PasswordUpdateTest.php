@@ -11,6 +11,41 @@ class PasswordUpdateTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_profile_hides_current_password_before_the_user_sets_a_password(): void
+    {
+        $user = User::factory()->create(['password_set_at' => null]);
+
+        $this->actingAs($user)->get('/profile')
+            ->assertOk()
+            ->assertSee('شما هنوز رمز عبوری انتخاب نکرده‌اید؛ رمز عبور جدید خود را وارد کنید.')
+            ->assertDontSee('name="current_password"', false);
+    }
+
+    public function test_profile_shows_current_password_after_the_user_sets_a_password(): void
+    {
+        $user = User::factory()->create(['password_set_at' => now()]);
+
+        $this->actingAs($user)->get('/profile')
+            ->assertOk()
+            ->assertSee('name="current_password"', false)
+            ->assertDontSee('شما هنوز رمز عبوری انتخاب نکرده‌اید', false);
+    }
+
+    public function test_profile_password_requires_uppercase_lowercase_and_number(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->from('/profile')
+            ->put('/password', [
+                'current_password' => 'password',
+                'password' => 'passwordonly',
+                'password_confirmation' => 'passwordonly',
+            ])
+            ->assertSessionHasErrorsIn('updatePassword', 'password')
+            ->assertRedirect('/profile');
+    }
+
     public function test_password_can_be_updated(): void
     {
         $user = User::factory()->create();
@@ -20,15 +55,15 @@ class PasswordUpdateTest extends TestCase
             ->from('/profile')
             ->put('/password', [
                 'current_password' => 'password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewPassword1',
+                'password_confirmation' => 'NewPassword1',
             ]);
 
         $response
             ->assertSessionHasNoErrors()
             ->assertRedirect('/profile');
 
-        $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+        $this->assertTrue(Hash::check('NewPassword1', $user->refresh()->password));
     }
 
     public function test_correct_password_must_be_provided_to_update_password(): void
@@ -40,8 +75,8 @@ class PasswordUpdateTest extends TestCase
             ->from('/profile')
             ->put('/password', [
                 'current_password' => 'wrong-password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewPassword1',
+                'password_confirmation' => 'NewPassword1',
             ]);
 
         $response
@@ -58,15 +93,15 @@ class PasswordUpdateTest extends TestCase
             ->withSession(['password_setup_available' => true])
             ->from('/profile')
             ->put('/password', [
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewPassword1',
+                'password_confirmation' => 'NewPassword1',
             ]);
 
         $response
             ->assertSessionHasNoErrors()
             ->assertRedirect('/profile');
 
-        $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+        $this->assertTrue(Hash::check('NewPassword1', $user->refresh()->password));
         $this->assertFalse(session()->has('password_setup_available'));
     }
 }

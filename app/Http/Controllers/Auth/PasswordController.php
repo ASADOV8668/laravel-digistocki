@@ -16,14 +16,21 @@ class PasswordController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $firstPasswordSetup = $request->boolean('password_setup_available')
-            || $request->session()->get('password_setup_available', false) === true;
+            || $request->session()->get('password_setup_available', false) === true
+            || ! $request->user()->hasSetPassword();
         $validated = $request->validateWithBag('updatePassword', [
             'current_password' => $firstPasswordSetup ? ['nullable'] : ['required', 'current_password'],
-            'password' => ['required', Password::defaults(), 'confirmed'],
+            'password' => ['required', Password::min(8)->mixedCase()->numbers(), 'confirmed'],
+        ], [
+            'password.min' => 'رمز عبور باید حداقل ۸ کاراکتر باشد.',
+            'password.mixed' => 'رمز عبور باید شامل حروف بزرگ و کوچک انگلیسی باشد.',
+            'password.numbers' => 'رمز عبور باید حداقل شامل یک عدد باشد.',
+            'password.confirmed' => 'تکرار رمز عبور صحیح نیست.',
         ]);
 
         $request->user()->update([
             'password' => Hash::make($validated['password']),
+            'password_set_at' => now(),
         ]);
         $request->session()->forget('password_setup_available');
 

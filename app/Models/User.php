@@ -30,6 +30,7 @@ class User extends Authenticatable
         'national_id',
         'email',
         'password',
+        'password_set_at',
         'can_post_listings',
     ];
 
@@ -91,6 +92,12 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'can_post_listings' => 'boolean',
             'password' => 'hashed',
+            'password_set_at' => 'datetime',
         ];
+    }
+
+    public function hasSetPassword(): bool
+    {
+        return $this->password_set_at !== null;
     }
 }

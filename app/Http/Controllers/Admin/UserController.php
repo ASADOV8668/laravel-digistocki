@@ -30,6 +30,7 @@ class UserController extends Controller
         $data = collect($validated)->except(['password', 'role', 'is_active', 'can_post_listings'])->all();
         if (! empty($validated['password'])) {
             $data['password'] = $validated['password'];
+            $data['password_set_at'] = now();
         }
         $user->update($data);
         $user->forceFill(['role' => $validated['role'], 'is_active' => (bool) ($validated['is_active'] ?? false), 'can_post_listings' => (bool) ($validated['can_post_listings'] ?? false)])->save();
@@ -51,6 +52,7 @@ class UserController extends Controller
             'national_id' => $validated['national_id'] ?? null,
             'email' => $validated['email'] ?? null,
             'password' => $validated['password'],
+            'password_set_at' => now(),
         ]);
         $user->forceFill([
             'role' => $validated['role'],

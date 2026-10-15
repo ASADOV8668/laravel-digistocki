@@ -62,6 +62,7 @@ class RegisteredUserController extends Controller
             'mobile' => $mobile,
             'national_id' => $validated['national_id'] ?? null,
             'password' => Hash::make(Str::random(40)),
+            'password_set_at' => null,
             'mobile_verified_at' => now(),
         ]);
 
