@@ -40,9 +40,11 @@
             class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-home
                 class="h-5 w-5" /> خانه</a>
         @auth
-            <a href="{{ url('/dashboard') }}"
-                class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-rectangle-stack
-                    class="h-5 w-5" /> آگهی‌های من</a>
+            @if (auth()->user()->storefront?->isPubliclyEnabled())
+                <a href="{{ url('/dashboard') }}"
+                    class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-rectangle-stack
+                        class="h-5 w-5" /> آگهی‌های من</a>
+            @endif
             <a href="{{ route('notifications.index') }}"
                 class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-bell
                     class="h-5 w-5" /> اعلان‌ها @if ($unreadNotifications)
