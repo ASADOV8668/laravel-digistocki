@@ -1,4 +1,4 @@
-@props(['unreadNotifications' => 0])
+@props(['unreadNotifications' => 0, 'unreadChats' => 0])
 @php($siteTitle = app(\App\Services\SystemOptions::class)->get('site_title'))
 
 <aside id="public-sidebar" data-drawer-backdrop="true" data-drawer-placement="left" role="dialog" aria-modal="true"
@@ -51,6 +51,17 @@
                     <span data-unread-notifications-badge
                         class="mr-auto rounded-full bg-primary px-2 py-0.5 text-[10px] font-black text-white">{{ $unreadNotifications }}</span>
                 @endif
+            </a>
+            <a href="{{ route('chats.index') }}"
+                class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10">
+                <span class="relative"><x-heroicon-o-chat-bubble-left-right class="h-5 w-5" />
+                    @if ($unreadChats)
+                        <span class="absolute -right-3 -top-3 min-w-5 rounded-full bg-error px-1.5 py-0.5 text-center text-[9px] font-black text-white">
+                            {{ \App\Support\PersianNumber::digits($unreadChats > 99 ? '+99' : $unreadChats) }}
+                        </span>
+                    @endif
+                </span>
+                چت‌ها
             </a>
             <a href="{{ route('reports.index') }}"
                 class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10"><x-heroicon-o-flag

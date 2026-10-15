@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 Schedule::command('listings:expire')->dailyAt('00:15')->withoutOverlapping();
 Schedule::command('contact-otps:prune')->dailyAt('00:30')->withoutOverlapping();
 Schedule::command('mobile-otps:prune')->dailyAt('00:35')->withoutOverlapping();
+Schedule::command('chats:prune')->dailyAt('00:45')->withoutOverlapping();

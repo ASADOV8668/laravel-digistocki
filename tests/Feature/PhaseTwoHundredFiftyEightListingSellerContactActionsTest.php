@@ -37,7 +37,8 @@ class PhaseTwoHundredFiftyEightListingSellerContactActionsTest extends TestCase
             ->assertSee('09120000000')
             ->assertSee('tel:09120000000', false)
             ->assertSee('sms:09120000000?body=' . rawurlencode($message), false)
-            ->assertSee('به‌زودی');
+            ->assertDontSee('به‌زودی')
+            ->assertSee('action="'.route('chats.from-listing', $listing).'"', false);
     }
 
     public function test_guest_does_not_receive_seller_contact_action_links(): void

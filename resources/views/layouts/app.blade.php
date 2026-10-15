@@ -1,5 +1,6 @@
 @php($systemOptions = app(\App\Services\SystemOptions::class))
 @php($unreadNotifications = auth()->check() ? auth()->user()->unreadNotifications()->count() : 0)
+@php($unreadChats = auth()->check() ? \App\Models\ChatMessage::unreadCountForUser(auth()->id()) : 0)
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 
@@ -78,7 +79,7 @@
                         class="h-4 w-4" /></button>
             </div>
         </div>
-        <x-sidebar :unread-notifications="$unreadNotifications" />
+        <x-sidebar :unread-notifications="$unreadNotifications" :unread-chats="$unreadChats" />
         <x-top-bar :unread-notifications="$unreadNotifications" :show-back="!request()->routeIs('home')" />
         <div x-data="pwaInstallPrompt()" x-init="init()" x-cloak
             x-show="(canInstall || isIos) && !installed && !dismissed"
@@ -112,7 +113,7 @@
             <div class="px-4 pt-5">{{ $header }}</div>
         @endisset
         <main id="main-content" tabindex="-1" aria-label="محتوای اصلی">{{ $slot }}</main>
-        <x-bottom-nav />
+        <x-bottom-nav :unread-chats="$unreadChats" />
     </div>
     <script>
         if ('serviceWorker' in navigator) {
@@ -123,6 +124,7 @@
             });
         }
     </script>
+    @stack('scripts')
 </body>
 
 </html>

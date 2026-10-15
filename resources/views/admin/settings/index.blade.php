@@ -17,6 +17,7 @@
     $searchListingsPerPage = old('search_listings_per_page', $settings['search_listings_per_page'] ?? 100);
     $storefrontListingsPerPage = old('storefront_listings_per_page', $settings['storefront_listings_per_page'] ?? 100);
     $listingsPaginationType = old('listings_pagination_type', $settings['listings_pagination_type'] ?? 'pagination');
+    $chatArchiveDays = old('chat_archive_days', $settings['chat_archive_days'] ?? 120);
 @endphp
 <x-admin-layout title="تنظیمات سیستم">
     <x-slot name="header">
@@ -321,6 +322,18 @@
                         class="w-full rounded-xl border-slate-200 py-3 pl-12 text-sm focus:border-primary focus:ring-primary">
                     <span
                         class="absolute left-3 top-3 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-500">روز</span>
+                </div>
+            </div>
+            <div class="admin-card flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <label for="chat_archive_days" class="block text-sm font-black text-slate-800">آرشیو چت‌ها</label>
+                    <p class="mt-1 text-[11px] leading-6 text-slate-400">گفت‌وگوهایی که از شروعشان این تعداد روز گذشته باشد، هر شب همراه با تصاویرشان حذف می‌شوند.</p>
+                </div>
+                <div class="relative w-full sm:w-40">
+                    <input id="chat_archive_days" name="chat_archive_days" type="number" min="1" max="3650" required
+                        value="{{ $chatArchiveDays }}"
+                        class="w-full rounded-xl border-slate-200 py-3 pl-12 text-sm focus:border-primary focus:ring-primary">
+                    <span class="absolute left-3 top-3 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-500">روز</span>
                 </div>
             </div>
             <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">

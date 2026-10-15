@@ -34,6 +34,7 @@ class SystemOptions
         'search_listings_per_page' => '100',
         'storefront_listings_per_page' => '100',
         'listings_pagination_type' => 'pagination',
+        'chat_archive_days' => '120',
     ];
 
     private ?Collection $values = null;
@@ -181,6 +182,11 @@ class SystemOptions
         $type = (string) $this->get('listings_pagination_type', 'pagination');
 
         return in_array($type, ['pagination', 'infinite'], true) ? $type : 'pagination';
+    }
+
+    public function chatArchiveDays(): int
+    {
+        return min(3650, max(1, (int) $this->get('chat_archive_days', 120)));
     }
 
     public function pageTitle(?string $page = null): string

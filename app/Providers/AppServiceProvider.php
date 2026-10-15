@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\ChatConversation;
 use App\Models\Listing;
+use App\Policies\ChatConversationPolicy;
 use App\Policies\ListingPolicy;
 use App\Services\SystemOptions;
 use Illuminate\Support\Facades\Gate;
@@ -25,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Listing::class, ListingPolicy::class);
+        Gate::policy(ChatConversation::class, ChatConversationPolicy::class);
 
         // Apache serves the local project from /app while Laravel's front
         // controller lives in /app/public. Preserve that base path in route

@@ -355,12 +355,16 @@
                             <x-heroicon-o-chat-bubble-left-right class="h-5 w-5 shrink-0" />
                             <span>پیامک</span>
                         </a>
-                        <button type="button" disabled aria-disabled="true"
-                            class="flex min-h-14 cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-3 text-sm font-black text-white/50">
-                            <x-heroicon-o-chat-bubble-left-right class="h-5 w-5 shrink-0" />
-                            <span>چت با فروشنده</span>
-                            <span class="text-[10px] font-bold text-white/40">به‌زودی</span>
-                        </button>
+                        @if (! $listing->isOwnedBy(auth()->user()))
+                            <form method="POST" action="{{ route('chats.from-listing', $listing) }}">
+                                @csrf
+                                <button type="submit"
+                                    class="flex min-h-14 w-full items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-3 text-sm font-black text-white transition hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-white/20">
+                                    <x-heroicon-o-chat-bubble-left-right class="h-5 w-5 shrink-0" />
+                                    <span>چت با فروشنده</span>
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 @elseif (auth()->check())
                     <p class="mb-3 text-xs leading-6 text-white/60">برای حفظ امنیت، شماره تماس بعد از تأیید شماره

@@ -40,6 +40,7 @@ class SettingsController extends Controller
             'search_listings_per_page' => ['nullable', 'integer', 'min:1', 'max:500'],
             'storefront_listings_per_page' => ['nullable', 'integer', 'min:1', 'max:500'],
             'listings_pagination_type' => ['nullable', 'in:pagination,infinite'],
+            'chat_archive_days' => ['nullable', 'integer', 'min:1', 'max:3650'],
         ]);
 
         $pageTitleSuffix = array_key_exists('page_title_suffix', $validated)
@@ -69,6 +70,7 @@ class SettingsController extends Controller
             'search_listings_per_page' => [(int) ($validated['search_listings_per_page'] ?? $options->searchListingsPerPage()), 'integer'],
             'storefront_listings_per_page' => [(int) ($validated['storefront_listings_per_page'] ?? $options->storefrontListingsPerPage()), 'integer'],
             'listings_pagination_type' => [$validated['listings_pagination_type'] ?? $options->listingsPaginationType(), 'string'],
+            'chat_archive_days' => [(int) ($validated['chat_archive_days'] ?? $options->chatArchiveDays()), 'integer'],
         ]);
 
         $message = 'تنظیمات سیستم ذخیره شد.';
