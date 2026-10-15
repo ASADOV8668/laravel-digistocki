@@ -33,7 +33,7 @@
 <article x-data="favoriteToggle('{{ route('listings.favorite.toggle', $listing) }}', {{ $isFavorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }})"
     dir="rtl"
     class="group {{ $isList ? 'listing-card--list flex flex-row' : 'listing-card--grid' }} overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/5">
-    <div class="relative shrink-0 overflow-hidden {{ $isList ? 'flex h-40 w-[30%] basis-[30%] items-center justify-center bg-white p-1 sm:h-44' : 'h-40 w-full bg-slate-100' }}">
+    <div class="relative shrink-0 overflow-hidden {{ $isList ? 'flex h-40 w-[40%] basis-[40%] items-center justify-center bg-white p-1 sm:h-44' : 'h-40 w-full bg-slate-100' }}">
         <a href="{{ route('listings.show', $listing) }}" class="{{ $isList ? 'flex h-full w-full items-center justify-center' : 'block' }}">
             <img src="{{ $image ? asset('storage/' . ($isList ? $image->path : ($image->thumbnail_path ?: $image->path))) : asset('images/listing-placeholder.svg') }}"
                 alt="{{ $image ? $listing->title : 'تصویر پیش‌فرض آگهی موبایل' }}"
@@ -51,7 +51,7 @@
             aria-label="{{ \App\Support\PersianNumber::digits($listing->images->count()) }} تصویر"><x-heroicon-o-camera
                 class="h-3.5 w-3.5" /><span>{{ \App\Support\PersianNumber::digits($listing->images->count()) }}</span></span>
     </div>
-    <div class="{{ $isList ? 'w-[70%] basis-[70%] flex-none' : 'min-w-0 flex-1' }}">
+    <div class="{{ $isList ? 'w-[60%] basis-[60%] flex-none' : 'min-w-0 flex-1' }}">
     <a href="{{ route('listings.show', $listing) }}" class="block {{ $isList ? 'p-2.5 sm:p-3' : 'p-3.5' }}">
         <h3 class="line-clamp-2 {{ $isList ? 'min-h-9 text-[13px] leading-5' : 'min-h-10 text-sm leading-5' }} font-black text-neutral">{{ $listing->title }}</h3>
         <p class="{{ $isList ? 'mt-1' : 'mt-2' }} truncate text-[11px] text-slate-500">{{ $listing->brand->name }} ·
