@@ -19,7 +19,7 @@
             </div>
         </div><a href="{{ route('storefront.edit') }}"
             class="flex items-center justify-between rounded-lg bg-primary p-5 text-white shadow-sm"><span><strong
-                    class="block font-black">فروشگاه شما</strong><small class="mt-1 block text-xs text-white/75">اطلاعات
+                    class="block font-black">{{ auth()->user()->storefront?->isApproved() ? 'فروشگاه من' : 'درخواست پنل فروشگاهی' }}</strong><small class="mt-1 block text-xs text-white/75">اطلاعات
                     فروشگاه و آگهی‌هایتان را مدیریت کنید.</small></span><x-heroicon-o-building-storefront
                 class="h-7 w-7" /></a>
         <div class="rounded-lg bg-white p-5 shadow-sm border border-slate-200">@include('profile.partials.update-profile-information-form')</div>

@@ -55,7 +55,8 @@
                     class="h-5 w-5" /> گزارش‌های من</a>
             <a href="{{ route('storefront.edit') }}"
                 class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-building-storefront
-                    class="h-5 w-5" /> فروشگاه شما</a>
+                    class="h-5 w-5" />
+                {{ auth()->user()->storefront?->isApproved() ? 'فروشگاه من' : 'درخواست پنل فروشگاهی' }}</a>
         @endauth
         <a href="{{ auth()->check() ? route('favorites.index') : route('login') }}"
             class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-heart

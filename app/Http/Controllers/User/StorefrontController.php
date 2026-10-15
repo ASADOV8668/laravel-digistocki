@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Notifications\PendingStorefrontNotification;
 use App\Services\ImageService;
 use App\Services\ListingFilterOptionService;
+use App\Services\SystemOptions;
 use App\Support\PersianDate;
 use App\Support\PersianSearch;
 use Illuminate\Database\Eloquent\Builder;
@@ -351,11 +352,12 @@ class StorefrontController extends Controller
         return $filters;
     }
 
-    public function edit(Request $request): View
+    public function edit(Request $request, SystemOptions $options): View
     {
         return view('storefront.edit', [
             'store' => $request->user()->storefront,
             'provinces' => Province::query()->orderBy('name')->get(['id', 'name']),
+            'maxImageUploadMb' => $options->maxImageUploadMb(),
         ]);
     }
 

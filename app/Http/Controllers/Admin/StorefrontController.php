@@ -8,6 +8,7 @@ use App\Models\SellerStore;
 use App\Models\User;
 use App\Notifications\StorefrontStatusNotification;
 use App\Services\ImageService;
+use App\Services\SystemOptions;
 use App\Support\PersianDate;
 use App\Support\PersianSearch;
 use Illuminate\Database\Eloquent\Builder;
@@ -101,12 +102,13 @@ class StorefrontController extends Controller
         ]);
     }
 
-    public function edit(User $user): View
+    public function edit(User $user, SystemOptions $options): View
     {
         return view('admin.storefronts.edit', [
             'user' => $user,
             'store' => $user->storefront,
             'provinces' => Province::query()->orderBy('name')->get(['id', 'name']),
+            'maxImageUploadMb' => $options->maxImageUploadMb(),
         ]);
     }
 

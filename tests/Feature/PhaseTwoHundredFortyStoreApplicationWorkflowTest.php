@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\SellerStore;
 use App\Models\User;
+use App\Services\SystemOptions;
 use App\Support\PersianDate;
+use App\Support\PersianNumber;
 use App\Support\SocialHandle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -320,6 +322,50 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
             ->assertSee(asset('storage/'.$store->business_license_path), false)
             ->assertSee('name="remove_logo"', false)
             ->assertSee('name="remove_business_license"', false);
+    }
+
+    public function test_storefront_forms_show_contextual_guidance_and_configured_image_size(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create(['mobile' => '09120001050']);
+        $maxSize = PersianNumber::digits(app(SystemOptions::class)->maxImageUploadMb());
+
+        $this->actingAs($user)->get(route('storefront.edit'))
+            ->assertOk()
+            ->assertSee('نام و نام خانوادگی، کد ملی و شماره تماس درخواست‌کننده باید با مدارک جواز کسب مطابقت داشته باشند.')
+            ->assertSee('حداکثر حجم تصویر '.$maxSize.' مگابایت.')
+            ->assertSee('شماره صنفی باید مطابق جواز کسب درخواست‌کننده باشد.')
+            ->assertDontSee('حداکثر حجم طبق تنظیمات سیستم است');
+
+        $this->actingAs($admin)->get(route('admin.storefronts.edit', $user))
+            ->assertOk()
+            ->assertSee('نام و نام خانوادگی، کد ملی و شماره تماس درخواست‌کننده باید با مدارک جواز کسب مطابقت داشته باشند.')
+            ->assertSee('حداکثر حجم تصویر '.$maxSize.' مگابایت.')
+            ->assertSee('شماره صنفی باید مطابق جواز کسب درخواست‌کننده باشد.');
+    }
+
+    public function test_sidebar_store_label_changes_after_storefront_approval(): void
+    {
+        $user = User::factory()->create(['mobile' => '09120001060']);
+
+        $this->actingAs($user)->get(route('profile.edit'))
+            ->assertOk()
+            ->assertSee('درخواست پنل فروشگاهی')
+            ->assertDontSee('فروشگاه من');
+
+        SellerStore::create([
+            'user_id' => $user->id,
+            'slug' => 'approved-sidebar-store',
+            'name' => 'فروشگاه من',
+            'approval_status' => 'approved',
+            'is_enabled' => true,
+        ]);
+
+        $user = $user->fresh();
+        $this->actingAs($user)->get(route('profile.edit'))
+            ->assertOk()
+            ->assertSee('فروشگاه من')
+            ->assertDontSee('درخواست پنل فروشگاهی');
     }
 
     public function test_storefront_image_controls_can_remove_existing_files(): void

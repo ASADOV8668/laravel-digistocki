@@ -38,16 +38,9 @@
         <div class="rounded-2xl border border-primary/20 bg-primary-50 p-4 text-sm text-slate-700" role="note">
             <div class="flex items-center gap-2 font-black text-primary">
                 <x-heroicon-o-information-circle class="h-5 w-5" />
-                <span>راهنمای بررسی درخواست فروشگاه</span>
+                <span>تطابق اطلاعات درخواست‌کننده</span>
             </div>
-            <ul class="mt-3 grid gap-2 text-xs leading-6 sm:grid-cols-2">
-                <li><strong>درخواست‌کننده:</strong> نام و نام خانوادگی باید با کد ملی و مدارک جواز کسب مطابقت داشته باشد.</li>
-                <li><strong>کد ملی:</strong> کد ملی معتبر ایرانی و دقیقاً ۱۰ رقمی است.</li>
-                <li><strong>شماره تماس:</strong> شماره موبایل درخواست‌کننده دقیقاً ۱۱ رقم و با ۰۹ شروع می‌شود.</li>
-                <li><strong>شماره صنفی:</strong> باید مطابق جواز کسب درخواست‌کننده وارد شود.</li>
-                <li><strong>تاریخ اتمام جواز:</strong> تاریخ انتخابی باید از امروز به بعد باشد.</li>
-                <li><strong>تصاویر:</strong> لوگوی فروشگاه و تصویر جواز کسب برای ثبت فروشگاه الزامی هستند.</li>
-            </ul>
+            <p class="mt-2 text-xs leading-6">نام و نام خانوادگی، کد ملی و شماره تماس درخواست‌کننده باید با مدارک جواز کسب مطابقت داشته باشند.</p>
         </div>
         <form method="POST" action="{{ route('admin.storefronts.update', $user) }}" enctype="multipart/form-data"
             x-data="{ removeLogo: false, removeBusinessLicense: false }"
@@ -68,25 +61,29 @@
                         value="{{ old('national_id', $store?->national_id ?? $user->national_id) }}" inputmode="numeric"
                         maxlength="10" dir="ltr"
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">
+                    <p class="mt-1 text-[11px] text-slate-400">کد ملی معتبر ایرانی و دقیقاً ۱۰ رقمی وارد کنید.</p>
                 </div>
                 <div><label for="admin-store-phone" class="mb-2 block text-sm font-bold text-slate-700">تلفن
                         تماس</label><input id="admin-store-phone" name="contact_phone"
                         value="{{ old('contact_phone', $store?->contact_phone ?? $user->mobile) }}" inputmode="numeric"
                         dir="ltr"
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary"
-                        placeholder="09120000000"></div>
+                        placeholder="09120000000">
+                    <p class="mt-1 text-[11px] text-slate-400">شماره موبایل باید دقیقاً ۱۱ رقم و با ۰۹ شروع شود.</p>
+                </div>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
                 <div><label for="admin-license-number" class="mb-2 block text-sm font-bold text-slate-700">شماره
                         صنفی</label><input id="admin-license-number" name="business_license_number"
                         value="{{ old('business_license_number', $store?->business_license_number) }}"
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">
+                    <p class="mt-1 text-[11px] text-slate-400">شماره صنفی باید مطابق جواز کسب درخواست‌کننده باشد.</p>
                 </div>
                 <div>
                     <p class="mb-2 block text-sm font-bold text-slate-700">تاریخ اتمام اعتبار جواز کسب</p>
                     <x-persian-date-select name="business_license_expires_at" :value="old('business_license_expires_at', $storeExpiry)"
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary" />
-                    <p class="mt-1 text-[11px] text-slate-400">روز، ماه و سال شمسی را انتخاب کنید.</p>
+                    <p class="mt-1 text-[11px] text-slate-400">تاریخ اتمام جواز باید از امروز به بعد و مطابق مدرک جواز کسب باشد.</p>
                 </div>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
@@ -156,6 +153,7 @@
                         </div>
                     @endif
                     <input type="hidden" name="remove_logo" value="1" x-bind:disabled="!removeLogo">
+                    <p class="mt-1 text-[11px] text-slate-400">حداکثر حجم تصویر {{ \App\Support\PersianNumber::digits($maxImageUploadMb) }} مگابایت.</p>
                 </div>
                 <div><label for="admin-business-license" class="mb-2 block text-sm font-bold text-slate-700">تصویر
                         جواز کسب <span class="text-error">*</span></label><input id="admin-business-license" name="business_license" type="file"
@@ -171,6 +169,7 @@
                         </div>
                     @endif
                     <input type="hidden" name="remove_business_license" value="1" x-bind:disabled="!removeBusinessLicense">
+                    <p class="mt-1 text-[11px] text-slate-400">حداکثر حجم تصویر {{ \App\Support\PersianNumber::digits($maxImageUploadMb) }} مگابایت.</p>
                 </div>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
