@@ -214,13 +214,10 @@
                     <p class="mt-1 text-xs text-slate-400">تازه‌ترین فرصت‌های خرید موبایل</p>
                 </div><a href="{{ route('listings.index') }}" class="text-xs font-bold text-primary">مشاهده همه</a>
             </div>
-            <div class="grid grid-cols-2 gap-3">
-                @forelse ($latestListings as $listing)
-                <x-listing-card :listing="$listing" />@empty<div
-                        class="col-span-2 rounded-lg bg-white p-6 text-center text-sm text-slate-500">هنوز آگهی
-                        تأییدشده‌ای ثبت نشده است.</div>
-                @endforelse
-            </div>
+            @include('home.partials.latest-listings', [
+                'latestListings' => $latestListings,
+                'paginationMode' => $paginationMode,
+            ])
         </div>
         <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <div class="flex items-center gap-3">

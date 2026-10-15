@@ -35,7 +35,11 @@ class PhaseElevenSystemSettingsTest extends TestCase
             ->assertSee('max_image_upload_count', false)
             ->assertSee('image_compression_percent', false)
             ->assertSee('listing_duplicate_cooldown_minutes', false)
-            ->assertSee('session_lifetime_days', false);
+            ->assertSee('session_lifetime_days', false)
+            ->assertSee('home_listings_per_page', false)
+            ->assertSee('search_listings_per_page', false)
+            ->assertSee('storefront_listings_per_page', false)
+            ->assertSee('listings_pagination_type', false);
 
         $this->actingAs($this->admin)->put(route('admin.settings.update'), [
             'site_title' => 'بازار موبایل',
@@ -51,6 +55,10 @@ class PhaseElevenSystemSettingsTest extends TestCase
             'listings_enabled' => 1,
             'otp_expiry_minutes' => 7,
             'session_lifetime_days' => 30,
+            'home_listings_per_page' => 25,
+            'search_listings_per_page' => 30,
+            'storefront_listings_per_page' => 35,
+            'listings_pagination_type' => 'infinite',
         ])->assertRedirect()->assertSessionHas('status', 'تنظیمات سیستم ذخیره شد.');
 
         $this->assertDatabaseHas('options', ['key' => 'site_title', 'value' => 'بازار موبایل']);
@@ -60,6 +68,10 @@ class PhaseElevenSystemSettingsTest extends TestCase
         $this->assertDatabaseHas('options', ['key' => 'listing_duplicate_cooldown_minutes', 'value' => '48']);
         $this->assertDatabaseHas('options', ['key' => 'otp_expiry_minutes', 'value' => '7']);
         $this->assertDatabaseHas('options', ['key' => 'session_lifetime_days', 'value' => '30']);
+        $this->assertDatabaseHas('options', ['key' => 'home_listings_per_page', 'value' => '25']);
+        $this->assertDatabaseHas('options', ['key' => 'search_listings_per_page', 'value' => '30']);
+        $this->assertDatabaseHas('options', ['key' => 'storefront_listings_per_page', 'value' => '35']);
+        $this->assertDatabaseHas('options', ['key' => 'listings_pagination_type', 'value' => 'infinite']);
         $this->assertDatabaseHas('options', ['key' => 'registration_mode', 'value' => 'mobile']);
         $this->get(route('home'))->assertOk()->assertSee('<title>بازار — خانه</title>', false);
         $this->get(route('support.index'))->assertOk()->assertSee('<title>بازار — ارتباط با پشتیبانی</title>', false)->assertSee('help@example.test')->assertSee('تهران، خیابان تست');

@@ -34,6 +34,10 @@ class SettingsController extends Controller
             'otp_expiry_minutes' => ['nullable', 'integer', 'min:1', 'max:30'],
             'listing_duplicate_cooldown_minutes' => ['nullable', 'integer', 'min:0', 'max:43200'],
             'session_lifetime_days' => ['nullable', 'integer', 'min:1', 'max:3650'],
+            'home_listings_per_page' => ['nullable', 'integer', 'min:1', 'max:500'],
+            'search_listings_per_page' => ['nullable', 'integer', 'min:1', 'max:500'],
+            'storefront_listings_per_page' => ['nullable', 'integer', 'min:1', 'max:500'],
+            'listings_pagination_type' => ['nullable', 'in:pagination,infinite'],
         ]);
 
         $options->setMany([
@@ -53,6 +57,10 @@ class SettingsController extends Controller
             'otp_expiry_minutes' => [(int) ($validated['otp_expiry_minutes'] ?? $options->otpExpiryMinutes()), 'integer'],
             'listing_duplicate_cooldown_minutes' => [(int) ($validated['listing_duplicate_cooldown_minutes'] ?? $options->listingDuplicateCooldownMinutes()), 'integer'],
             'session_lifetime_days' => [(int) ($validated['session_lifetime_days'] ?? $options->sessionLifetimeDays()), 'integer'],
+            'home_listings_per_page' => [(int) ($validated['home_listings_per_page'] ?? $options->homeListingsPerPage()), 'integer'],
+            'search_listings_per_page' => [(int) ($validated['search_listings_per_page'] ?? $options->searchListingsPerPage()), 'integer'],
+            'storefront_listings_per_page' => [(int) ($validated['storefront_listings_per_page'] ?? $options->storefrontListingsPerPage()), 'integer'],
+            'listings_pagination_type' => [$validated['listings_pagination_type'] ?? $options->listingsPaginationType(), 'string'],
         ]);
 
         $message = 'تنظیمات سیستم ذخیره شد.';

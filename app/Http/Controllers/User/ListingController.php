@@ -371,7 +371,9 @@ class ListingController extends Controller
             (array) $request->input('filters', []),
         );
 
-        $listings = $query->paginate(12)->withQueryString();
+        $options = app(SystemOptions::class);
+        $paginationMode = $options->listingsPaginationType();
+        $listings = $query->paginate($options->searchListingsPerPage())->withQueryString();
         $pricedListings = Listing::query()
             ->approved()
             ->where(function (Builder $query): void {
@@ -390,7 +392,14 @@ class ListingController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'html' => view('listings.partials.results', compact('listings', 'sort', 'activeFilters'))->render(),
+                'html' => view(
+                    $request->boolean('infinite') ? 'listings.partials.cards' : 'listings.partials.results',
+                    $request->boolean('infinite')
+                        ? compact('listings')
+                        : compact('listings', 'sort', 'activeFilters', 'paginationMode'),
+                )->render(),
+                'next_page_url' => $listings->nextPageUrl(),
+                'has_more' => $listings->hasMorePages(),
             ]);
         }
 
@@ -407,6 +416,7 @@ class ListingController extends Controller
             'activeOnly' => $activeOnly,
             'priceCeiling' => $priceCeiling,
             'selectedCityIds' => $cityIds->all(),
+            'paginationMode' => $paginationMode,
         ]);
     }
 

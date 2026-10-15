@@ -344,6 +344,7 @@
                         'listings' => $listings,
                         'sort' => $sort,
                         'activeFilters' => $activeFilters,
+                        'paginationMode' => $paginationMode,
                     ])
                 </div>
                 <div x-show="resultsLoading" x-cloak

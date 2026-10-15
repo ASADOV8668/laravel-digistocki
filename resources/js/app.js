@@ -996,6 +996,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
             if (container && data.html) {
                 container.innerHTML = data.html;
                 window.refreshFlowbiteTooltips?.();
+                window.initInfiniteListingFeeds?.(container);
             }
             if (historyMode === 'push') window.history.pushState({}, '', url);
             if (historyMode === 'replace') window.history.replaceState({}, '', url);
@@ -1810,4 +1811,64 @@ document.addEventListener('submit', async (event) => {
     }
 });
 
+window.initInfiniteListingFeeds = (root = document) => {
+    root.querySelectorAll('[data-listing-feed][data-pagination-mode="infinite"]').forEach((feed) => {
+        if (feed.dataset.infiniteReady === 'true') return;
+
+        const sentinel = feed.querySelector('[data-infinite-sentinel]');
+        const skeleton = feed.querySelector('[data-infinite-skeleton]');
+        const items = feed.querySelector('[data-listing-items]');
+        if (!sentinel || !items) return;
+
+        let loading = false;
+        const loadMore = async () => {
+            const nextPageUrl = feed.dataset.nextPageUrl;
+            if (loading || !nextPageUrl) return;
+
+            loading = true;
+            feed.dataset.loading = 'true';
+            if (skeleton) skeleton.hidden = false;
+
+            try {
+                const url = new URL(nextPageUrl, window.location.href);
+                url.searchParams.set('infinite', '1');
+                const response = await fetch(url.toString(), {
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                if (!response.ok) throw new Error('Infinite listing request failed');
+                const data = await response.json();
+
+                if (data.html) items.insertAdjacentHTML('beforeend', data.html);
+                feed.dataset.nextPageUrl = data.next_page_url || '';
+                if (!data.next_page_url) {
+                    observer.disconnect();
+                    sentinel.remove();
+                }
+                window.refreshFlowbiteTooltips?.();
+            } catch (error) {
+                window.dispatchEvent(new CustomEvent('show-notification', {
+                    detail: {
+                        title: 'خطا در بارگذاری آگهی‌ها',
+                        message: 'بارگذاری ادامه آگهی‌ها انجام نشد؛ دوباره تلاش کنید.',
+                        tone: 'error',
+                    },
+                }));
+            } finally {
+                loading = false;
+                feed.dataset.loading = 'false';
+                if (skeleton) skeleton.hidden = true;
+            }
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            if (entries.some((entry) => entry.isIntersecting)) loadMore();
+        }, { rootMargin: '500px 0px' });
+
+        if (feed.dataset.nextPageUrl) observer.observe(sentinel);
+        else sentinel.remove();
+        feed.dataset.infiniteReady = 'true';
+    });
+};
+
 Alpine.start();
+window.initInfiniteListingFeeds();

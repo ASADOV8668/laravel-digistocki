@@ -28,6 +28,10 @@ class SystemOptions
         // 24 hours expressed in minutes. Zero means no duplicate-listing limit.
         'listing_duplicate_cooldown_minutes' => '1440',
         'session_lifetime_days' => '365',
+        'home_listings_per_page' => '100',
+        'search_listings_per_page' => '100',
+        'storefront_listings_per_page' => '100',
+        'listings_pagination_type' => 'pagination',
     ];
 
     private ?Collection $values = null;
@@ -149,6 +153,28 @@ class SystemOptions
         return $this->sessionLifetimeDays() * 1440;
     }
 
+    public function homeListingsPerPage(): int
+    {
+        return $this->listingsPerPage('home_listings_per_page');
+    }
+
+    public function searchListingsPerPage(): int
+    {
+        return $this->listingsPerPage('search_listings_per_page');
+    }
+
+    public function storefrontListingsPerPage(): int
+    {
+        return $this->listingsPerPage('storefront_listings_per_page');
+    }
+
+    public function listingsPaginationType(): string
+    {
+        $type = (string) $this->get('listings_pagination_type', 'pagination');
+
+        return in_array($type, ['pagination', 'infinite'], true) ? $type : 'pagination';
+    }
+
     public function pageTitle(?string $page = null): string
     {
         $siteTitle = trim((string) $this->get('site_title')) ?: self::DEFAULTS['site_title'];
@@ -184,5 +210,10 @@ class SystemOptions
     private function stringify(mixed $value): string
     {
         return is_bool($value) ? ($value ? '1' : '0') : (string) $value;
+    }
+
+    private function listingsPerPage(string $key): int
+    {
+        return min(500, max(1, (int) $this->get($key, 100)));
     }
 }

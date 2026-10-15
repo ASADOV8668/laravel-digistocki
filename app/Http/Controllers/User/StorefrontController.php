@@ -150,14 +150,25 @@ class StorefrontController extends Controller
         }
 
         $activeFilters = $this->activeFilters($request, $sellerStore, $searchLikes, $selectedBrand, $selectedModel, $sort);
+        $options = app(SystemOptions::class);
+        $paginationMode = $options->listingsPaginationType();
         $listings = $query
             ->with(['brand', 'phoneModel', 'province', 'city', 'primaryImage', 'attributeValues.attribute', 'user.storefront'])
             ->withViewerFavorite($request->user()?->id)
-            ->paginate(12)
+            ->paginate($options->storefrontListingsPerPage())
             ->withQueryString();
 
         if ($request->expectsJson()) {
-            return response()->json(['html' => view('storefront.partials.results', compact('listings', 'sort', 'activeFilters', 'sellerStore'))->render()]);
+            return response()->json([
+                'html' => view(
+                    $request->boolean('infinite') ? 'listings.partials.cards' : 'storefront.partials.results',
+                    $request->boolean('infinite')
+                        ? compact('listings')
+                        : ['listings' => $listings, 'sort' => $sort, 'activeFilters' => $activeFilters, 'store' => $sellerStore, 'paginationMode' => $paginationMode],
+                )->render(),
+                'next_page_url' => $listings->nextPageUrl(),
+                'has_more' => $listings->hasMorePages(),
+            ]);
         }
 
         return view('storefront.show', [
@@ -177,6 +188,7 @@ class StorefrontController extends Controller
             'priceCeiling' => $priceCeiling,
             'hasPricedListings' => $hasPricedListings,
             'hasPriceRange' => $hasPriceRange,
+            'paginationMode' => $paginationMode,
             'activeOnly' => $activeOnly,
         ]);
     }

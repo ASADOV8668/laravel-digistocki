@@ -13,6 +13,10 @@
     );
     $sessionLifetimeDays = old('session_lifetime_days', $settings['session_lifetime_days'] ?? 365);
     $imageCompressionPercent = old('image_compression_percent', $settings['image_compression_percent'] ?? 20);
+    $homeListingsPerPage = old('home_listings_per_page', $settings['home_listings_per_page'] ?? 100);
+    $searchListingsPerPage = old('search_listings_per_page', $settings['search_listings_per_page'] ?? 100);
+    $storefrontListingsPerPage = old('storefront_listings_per_page', $settings['storefront_listings_per_page'] ?? 100);
+    $listingsPaginationType = old('listings_pagination_type', $settings['listings_pagination_type'] ?? 'pagination');
 @endphp
 <x-admin-layout title="تنظیمات سیستم">
     <x-slot name="header">
@@ -141,6 +145,50 @@
                                 name="listings_enabled" value="1" type="checkbox" @checked($listingsEnabled)
                                 class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary"></label>
                     </div>
+                </div>
+            </div>
+
+            <div class="admin-card overflow-hidden">
+                <div class="flex items-center gap-3 border-b border-slate-100 p-5">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <x-heroicon-o-rectangle-stack class="h-5 w-5" />
+                    </span>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-900">صفحه‌بندی آگهی‌ها</h3>
+                        <p class="mt-1 text-[11px] text-slate-400">تعداد نتایج و روش بارگذاری را برای سه فهرست عمومی کنترل کنید.</p>
+                    </div>
+                </div>
+                <div class="grid gap-4 p-5 md:grid-cols-3">
+                    <div>
+                        <label for="home_listings_per_page" class="mb-2 block text-xs font-bold text-slate-700">تعداد آگهی صفحه اصلی</label>
+                        <input id="home_listings_per_page" name="home_listings_per_page" type="number" min="1" max="500"
+                            value="{{ $homeListingsPerPage }}" required
+                            class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary">
+                        <p class="mt-2 text-[11px] text-slate-400">پیش‌فرض: ۱۰۰ آگهی</p>
+                    </div>
+                    <div>
+                        <label for="search_listings_per_page" class="mb-2 block text-xs font-bold text-slate-700">تعداد آگهی صفحه جستجو</label>
+                        <input id="search_listings_per_page" name="search_listings_per_page" type="number" min="1" max="500"
+                            value="{{ $searchListingsPerPage }}" required
+                            class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary">
+                        <p class="mt-2 text-[11px] text-slate-400">پیش‌فرض: ۱۰۰ آگهی</p>
+                    </div>
+                    <div>
+                        <label for="storefront_listings_per_page" class="mb-2 block text-xs font-bold text-slate-700">تعداد آگهی صفحه فروشگاه</label>
+                        <input id="storefront_listings_per_page" name="storefront_listings_per_page" type="number" min="1" max="500"
+                            value="{{ $storefrontListingsPerPage }}" required
+                            class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary">
+                        <p class="mt-2 text-[11px] text-slate-400">پیش‌فرض: ۱۰۰ آگهی</p>
+                    </div>
+                </div>
+                <div class="border-t border-slate-100 p-5">
+                    <label for="listings_pagination_type" class="mb-2 block text-xs font-bold text-slate-700">نوع صفحه‌بندی</label>
+                    <select id="listings_pagination_type" name="listings_pagination_type"
+                        class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary">
+                        <option value="pagination" @selected($listingsPaginationType === 'pagination')>دکمه‌های صفحه‌بندی</option>
+                        <option value="infinite" @selected($listingsPaginationType === 'infinite')>اسکرول بی‌نهایت با بارگذاری خودکار</option>
+                    </select>
+                    <p class="mt-2 text-[11px] text-slate-400">این انتخاب همزمان روی صفحه اصلی، صفحه جستجو و صفحه آگهی‌های فروشگاه اعمال می‌شود.</p>
                 </div>
             </div>
 
