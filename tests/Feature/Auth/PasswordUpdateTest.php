@@ -108,6 +108,11 @@ class PasswordUpdateTest extends TestCase
         $response
             ->assertSessionHasErrorsIn('updatePassword', 'current_password')
             ->assertRedirect('/profile');
+
+        $this->assertSame(
+            'رمز عبور فعلی صحیح نیست.',
+            $response->getSession()->get('errors')->getBag('updatePassword')->first('current_password'),
+        );
     }
 
     public function test_first_password_setup_uses_the_session_flag_without_current_password(): void
