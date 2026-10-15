@@ -17,7 +17,7 @@ class PhaseTwoHundredFortyNineAdminSettingsAjaxTest extends TestCase
         $this->actingAs($admin)
             ->putJson(route('admin.settings.update'), [
                 'site_title' => 'دیجی استوکی جدید',
-                'page_title_prefix' => 'دیجی استوکی جدید',
+                'page_title_suffix' => 'دیجی استوکی جدید',
                 'title_separator' => '—',
                 'max_image_upload_mb' => 8,
                 'max_image_upload_count' => 7,

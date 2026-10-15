@@ -43,7 +43,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
 
         $this->actingAs($this->admin)->put(route('admin.settings.update'), [
             'site_title' => 'بازار موبایل',
-            'page_title_prefix' => 'بازار',
+            'page_title_suffix' => 'بازار',
             'title_separator' => '—',
             'max_image_upload_mb' => 8,
             'max_image_upload_count' => 6,
@@ -73,8 +73,8 @@ class PhaseElevenSystemSettingsTest extends TestCase
         $this->assertDatabaseHas('options', ['key' => 'storefront_listings_per_page', 'value' => '35']);
         $this->assertDatabaseHas('options', ['key' => 'listings_pagination_type', 'value' => 'infinite']);
         $this->assertDatabaseHas('options', ['key' => 'registration_mode', 'value' => 'mobile']);
-        $this->get(route('home'))->assertOk()->assertSee('<title>بازار — خانه</title>', false);
-        $this->get(route('support.index'))->assertOk()->assertSee('<title>بازار — ارتباط با پشتیبانی</title>', false)->assertSee('help@example.test')->assertSee('تهران، خیابان تست');
+        $this->get(route('home'))->assertOk()->assertSee('<title>خانه — بازار</title>', false);
+        $this->get(route('support.index'))->assertOk()->assertSee('<title>ارتباط با پشتیبانی — بازار</title>', false)->assertSee('help@example.test')->assertSee('تهران، خیابان تست');
     }
 
     public function test_web_session_lifetime_uses_system_option_and_defaults_to_one_year(): void
@@ -103,7 +103,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
     {
         $this->actingAs($this->admin)->put(route('admin.settings.update'), [
             'site_title' => 'دیجی استوک',
-            'page_title_prefix' => 'دیجی استوک',
+            'page_title_suffix' => 'دیجی استوک',
             'title_separator' => '|',
             'max_image_upload_mb' => 5,
             'listings_enabled' => 0,
@@ -118,7 +118,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
     {
         $this->actingAs($this->admin)->put(route('admin.settings.update'), [
             'site_title' => 'دیجی استوک',
-            'page_title_prefix' => 'دیجی استوک',
+            'page_title_suffix' => 'دیجی استوک',
             'title_separator' => '|',
             'max_image_upload_mb' => 1,
             'listings_enabled' => 1,
@@ -142,7 +142,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
     {
         $this->actingAs($this->admin)->put(route('admin.settings.update'), [
             'site_title' => 'دیجی استوکی',
-            'page_title_prefix' => 'دیجی استوکی',
+            'page_title_suffix' => 'دیجی استوکی',
             'title_separator' => '|',
             'max_image_upload_mb' => '۵',
             'max_image_upload_count' => '۷',
@@ -165,7 +165,7 @@ class PhaseElevenSystemSettingsTest extends TestCase
     {
         $this->actingAs($this->admin)->put(route('admin.settings.update'), [
             'site_title' => 'دیجی استوکی',
-            'page_title_prefix' => 'دیجی استوکی',
+            'page_title_suffix' => 'دیجی استوکی',
             'title_separator' => '|',
             'max_image_upload_mb' => 5,
             'listing_duplicate_cooldown_minutes' => 0,

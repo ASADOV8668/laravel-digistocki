@@ -65,9 +65,9 @@
                             <p class="mt-2 text-[11px] text-slate-400">مثال: دیجی استوکی</p>
                         </div>
                         <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_100px]">
-                            <div><label class="mb-2 block text-xs font-bold text-slate-700">پیشوند عنوان
-                                    صفحات</label><input name="page_title_prefix"
-                                    value="{{ old('page_title_prefix', $settings['page_title_prefix']) }}"
+                            <div><label class="mb-2 block text-xs font-bold text-slate-700">پسوند عنوان
+                                    صفحات</label><input name="page_title_suffix"
+                                    value="{{ old('page_title_suffix', $settings['page_title_suffix']) }}"
                                     placeholder="مثلاً دیجی استوکی"
                                     class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-primary focus:ring-primary">
                             </div>
@@ -78,8 +78,8 @@
                             </div>
                         </div>
                         <div class="rounded-xl bg-slate-50 p-3 text-xs text-slate-500">نمونه عنوان: <strong
-                                class="text-slate-800">{{ $settings['page_title_prefix'] ?: $settings['site_title'] }}
-                                {{ $settings['title_separator'] }} خانه</strong></div>
+                                class="text-slate-800">خانه {{ $settings['title_separator'] }}
+                                {{ $settings['page_title_suffix'] ?: $settings['site_title'] }}</strong></div>
                     </div>
                 </div>
 

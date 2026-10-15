@@ -12,6 +12,8 @@ class SystemOptions
 
     public const DEFAULTS = [
         'site_title' => 'دیجی استوکی',
+        'page_title_suffix' => 'دیجی استوکی',
+        // Kept as a compatibility alias for older integrations and stored rows.
         'page_title_prefix' => 'دیجی استوکی',
         'title_separator' => '|',
         'max_image_upload_mb' => '5',
@@ -39,6 +41,12 @@ class SystemOptions
     public function get(string $key, mixed $default = null): mixed
     {
         $this->load();
+
+        // Older installations stored this setting as page_title_prefix. Read it
+        // transparently until the administrator saves the renamed setting.
+        if ($key === 'page_title_suffix' && ! $this->values->has('page_title_suffix')) {
+            return $this->values->get('page_title_prefix', $default ?? self::DEFAULTS[$key] ?? null);
+        }
 
         return $this->values->get($key, $default ?? (self::DEFAULTS[$key] ?? null));
     }
@@ -178,14 +186,18 @@ class SystemOptions
     public function pageTitle(?string $page = null): string
     {
         $siteTitle = trim((string) $this->get('site_title')) ?: self::DEFAULTS['site_title'];
-        $prefix = trim((string) $this->get('page_title_prefix'));
+        $suffix = trim((string) $this->get('page_title_suffix'));
         $separator = trim((string) $this->get('title_separator')) ?: '|';
 
         if (! $page) {
             return $siteTitle;
         }
 
-        return trim($prefix ?: $siteTitle).' '.$separator.' '.trim($page);
+        if (! $this->values->has('page_title_suffix') && ! $this->values->has('page_title_prefix')) {
+            $suffix = $siteTitle;
+        }
+
+        return trim($page).' '.$separator.' '.($suffix ?: $siteTitle);
     }
 
     public function siteDescription(): string

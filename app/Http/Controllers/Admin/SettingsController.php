@@ -19,6 +19,8 @@ class SettingsController extends Controller
     {
         $validated = $request->validate([
             'site_title' => ['required', 'string', 'max:100'],
+            'page_title_suffix' => ['nullable', 'string', 'max:100'],
+            // Accept the old field name for backward compatibility with older clients.
             'page_title_prefix' => ['nullable', 'string', 'max:100'],
             'title_separator' => ['required', 'string', 'max:10'],
             'max_image_upload_mb' => ['required', 'integer', 'min:1', 'max:50'],
@@ -40,9 +42,15 @@ class SettingsController extends Controller
             'listings_pagination_type' => ['nullable', 'in:pagination,infinite'],
         ]);
 
+        $pageTitleSuffix = array_key_exists('page_title_suffix', $validated)
+            ? ($validated['page_title_suffix'] ?? '')
+            : ($validated['page_title_prefix'] ?? '');
+
         $options->setMany([
             'site_title' => [$validated['site_title'], 'string'],
-            'page_title_prefix' => [$validated['page_title_prefix'] ?? '', 'string'],
+            'page_title_suffix' => [$pageTitleSuffix, 'string'],
+            // Keep the legacy key synchronized so existing integrations remain compatible.
+            'page_title_prefix' => [$pageTitleSuffix, 'string'],
             'title_separator' => [$validated['title_separator'], 'string'],
             'max_image_upload_mb' => [(int) $validated['max_image_upload_mb'], 'integer'],
             'max_image_upload_count' => [(int) ($validated['max_image_upload_count'] ?? $options->maxImageUploadCount()), 'integer'],
