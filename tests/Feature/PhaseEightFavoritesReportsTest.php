@@ -59,6 +59,29 @@ class PhaseEightFavoritesReportsTest extends TestCase
             ->assertDontSee($pendingListing->title);
     }
 
+    public function test_favorites_cards_follow_the_saved_view_mode_cookie_and_explicit_view(): void
+    {
+        $user = User::factory()->create();
+        $listing = $this->listing('آگهی حالت نمایش علاقه‌مندی');
+
+        Favorite::create(['user_id' => $user->id, 'listing_id' => $listing->id]);
+
+        $this->actingAs($user)
+            ->withCookie('listing_view', 'list')
+            ->get(route('favorites.index'))
+            ->assertOk()
+            ->assertSee('class="space-y-3"', false)
+            ->assertSee('listing-card--list', false)
+            ->assertDontSee('class="grid grid-cols-2 gap-4"', false);
+
+        $this->actingAs($user)
+            ->withCookie('listing_view', 'list')
+            ->get(route('favorites.index', ['view' => 'grid']))
+            ->assertOk()
+            ->assertSee('class="grid grid-cols-2 gap-4"', false)
+            ->assertSee('listing-card--grid', false);
+    }
+
     public function test_user_can_delete_all_of_their_favorites_without_affecting_other_users(): void
     {
         $user = User::factory()->create();

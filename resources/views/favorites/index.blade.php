@@ -26,13 +26,21 @@
     <section class="space-y-5 px-4 py-6">
         @if (session('status'))
             <x-flowbite-alert type="success">{{ session('status') }}</x-flowbite-alert>
-            @endif @if ($favorites->count())
-                <div class="grid grid-cols-2 gap-4">
+            @endif
+            @php
+                $favoritesListingView = request()->input('view', request()->cookie('listing_view', 'list'));
+                $favoritesListingView = in_array($favoritesListingView, ['list', 'grid'], true) ? $favoritesListingView : 'list';
+            @endphp
+            @if ($favorites->count())
+                <div data-listing-items
+                    class="{{ $favoritesListingView === 'list' ? 'space-y-3' : 'grid grid-cols-2 gap-4' }}">
                     @foreach ($favorites as $favorite)
                         <x-listing-card :listing="$favorite->listing" />
                     @endforeach
                 </div>
-            <div>{{ $favorites->links('vendor.pagination.flowbite') }}</div>@else<div
+                <div>{{ $favorites->links('vendor.pagination.flowbite') }}</div>
+            @else
+                <div
                     class="rounded-lg border border-dashed border-slate-200 bg-white p-10 text-center shadow-sm"><span
                         class="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-primary-50 text-primary"><x-heroicon-o-heart
                             class="h-7 w-7" /></span>
