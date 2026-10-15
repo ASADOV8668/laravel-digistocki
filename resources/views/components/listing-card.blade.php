@@ -47,9 +47,9 @@
                 class="h-4 w-4" /><x-heroicon-s-heart x-show="favorited" x-cloak
                 class="h-4 w-4 fill-current" /></button>
         <span
-            class="absolute right-2 top-2 inline-flex h-7 min-w-7 items-center justify-center gap-0.5 rounded-lg bg-neutral/90 px-1.5 text-[9px] font-black text-white shadow-sm"
+            class="absolute right-2 top-2 inline-flex h-6 min-w-6 items-center justify-center gap-0.5 rounded-md bg-neutral/90 px-1 text-[8px] font-black text-white shadow-sm"
             aria-label="{{ \App\Support\PersianNumber::digits($listing->images->count()) }} تصویر"><x-heroicon-o-camera
-                class="h-3 w-3" /><span>{{ \App\Support\PersianNumber::digits($listing->images->count()) }}</span></span>
+                class="h-2.5 w-2.5" /><span>{{ \App\Support\PersianNumber::digits($listing->images->count()) }}</span></span>
     </div>
     <div class="{{ $isList ? 'w-[60%] basis-[60%] flex-none' : 'min-w-0 flex-1' }}">
     <a href="{{ route('listings.show', $listing) }}" class="block {{ $isList ? 'p-2.5 sm:p-3' : 'p-3.5' }}">
