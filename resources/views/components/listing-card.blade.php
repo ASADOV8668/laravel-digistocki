@@ -34,7 +34,7 @@
     dir="rtl"
     class="group {{ $isList ? 'listing-card--list flex flex-row' : 'listing-card--grid' }} overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/5">
     <div class="relative shrink-0 overflow-hidden {{ $isList ? 'flex h-40 w-[40%] basis-[40%] items-center justify-center bg-white p-1 sm:h-44' : 'h-40 w-full bg-slate-100' }}">
-        <a href="{{ route('listings.show', $listing) }}" class="{{ $isList ? 'flex h-full w-full items-center justify-center' : 'block' }}">
+        <a href="{{ route('listings.show', $listing) }}" class="{{ $isList ? 'flex h-full w-full items-center justify-center overflow-hidden rounded-2xl ring-1 ring-slate-200' : 'block overflow-hidden rounded-2xl' }}">
             <img src="{{ $image ? asset('storage/' . ($isList ? $image->path : ($image->thumbnail_path ?: $image->path))) : asset('images/listing-placeholder.svg') }}"
                 alt="{{ $image ? $listing->title : 'تصویر پیش‌فرض آگهی موبایل' }}"
                 class="h-full w-full rounded-2xl {{ $isList ? 'object-contain' : 'object-cover transition duration-500 group-hover:scale-105' }}" loading="lazy"
