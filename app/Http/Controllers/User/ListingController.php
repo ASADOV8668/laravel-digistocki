@@ -456,7 +456,7 @@ class ListingController extends Controller
             ->values();
 
         $revealedContactIds = request()->session()->get('revealed_contact_listings', []);
-        $contactRevealed = in_array($listing->id, $revealedContactIds, true);
+        $contactRevealed = auth()->check() || in_array($listing->id, $revealedContactIds, true);
         $isFavorited = auth()->check() && $listing->favorites()->where('user_id', auth()->id())->exists();
 
         return view('listings.show', compact('listing', 'relatedListings', 'contactRevealed', 'isFavorited'));
