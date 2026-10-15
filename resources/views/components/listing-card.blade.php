@@ -5,6 +5,8 @@
         : 'list';
     $isList = $listingView === 'list';
     $image = $listing->primaryImage ?? $listing->images->first();
+    $storefront = $listing->user?->storefront;
+    $showListStorefront = $isList && $storefront?->isPubliclyEnabled();
     $isFavorited = filter_var($listing->is_favorited ?? false, FILTER_VALIDATE_BOOLEAN);
     $allCardAttributes = collect($listing->attributeValues ?? [])
         ->map(function ($value) {
@@ -32,10 +34,10 @@
     dir="rtl"
     class="group {{ $isList ? 'listing-card--list flex flex-row' : 'listing-card--grid' }} overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/5">
     <div class="relative shrink-0 overflow-hidden bg-slate-100 {{ $isList ? 'flex h-32 w-32 items-center justify-center p-2 sm:h-36 sm:w-44' : 'h-40 w-full' }}">
-        <a href="{{ route('listings.show', $listing) }}" class="block">
+        <a href="{{ route('listings.show', $listing) }}" class="{{ $isList ? 'flex h-full w-full items-center justify-center' : 'block' }}">
             <img src="{{ $image ? asset('storage/' . ($isList ? $image->path : ($image->thumbnail_path ?: $image->path))) : asset('images/listing-placeholder.svg') }}"
                 alt="{{ $image ? $listing->title : 'تصویر پیش‌فرض آگهی موبایل' }}"
-                class="h-full w-full {{ $isList ? 'object-contain' : 'object-cover transition duration-500 group-hover:scale-105' }}" loading="lazy"
+                class="h-full w-full {{ $isList ? 'rounded-xl object-contain' : 'object-cover transition duration-500 group-hover:scale-105' }}" loading="lazy"
                 decoding="async">
         </a>
         <button type="button" @click.stop.prevent="toggle" :aria-pressed="favorited.toString()"
@@ -68,7 +70,7 @@
         <div class="{{ $isList ? 'mt-2 pt-2' : 'mt-3 pt-3' }} border-t border-slate-100">
             <div class="flex items-center justify-between gap-2 text-[10px] font-medium text-slate-400"><span
                     class="inline-flex min-w-0 items-center gap-1 truncate"><x-heroicon-o-map-pin
-                        class="h-3.5 w-3.5 shrink-0" />{{ $listing->province?->name ?: 'استان ثبت نشده' }}{{ $listing->city?->name ? '، ' . $listing->city->name : '' }}</span><span
+                        class="h-3.5 w-3.5 shrink-0" />{{ $listing->province?->name ?: 'استان ثبت نشده' }}{{ $listing->city?->name ? '، ' . $listing->city->name : '' }}@if ($showListStorefront)<span class="text-slate-400"> ({{ $storefront->name }})</span>@endif</span><span
                     class="shrink-0">{{ \App\Support\PersianDate::human($listing->published_at ?? $listing->created_at) }}</span>
             </div>
             <p class="{{ $isList ? 'mt-1 text-[13px]' : 'mt-2 text-sm' }} font-black text-primary">
@@ -76,11 +78,11 @@
             </p>
         </div>
     </a>
-    @if (! $isList && $listing->user?->storefront?->isPubliclyEnabled())
+    @if (! $isList && $storefront?->isPubliclyEnabled())
         <div class="border-t border-slate-100 px-3.5 py-2.5">
             <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400">
                 <x-heroicon-o-building-storefront class="h-4 w-4" />
-                <span class="truncate">{{ $listing->user->storefront->name }}</span>
+                <span class="truncate">{{ $storefront->name }}</span>
             </span>
         </div>
     @endif
