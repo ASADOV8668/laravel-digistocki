@@ -33,6 +33,10 @@ class AuthenticatedSessionController extends Controller
         $mobile = $request->validated()['mobile'];
 
         if (! $request->filled('password')) {
+            if ($request->session()->get('login_identified_mobile') === $mobile) {
+                return back()->withErrors(['password' => 'رمز عبور را وارد کنید یا از ورود یکبار مصرف استفاده کنید.']);
+            }
+
             $user = User::query()->where('mobile', $mobile)->first();
             if (! $user) {
                 $otp = $otpService->issue($mobile, 'register');

@@ -24,6 +24,28 @@ class PhaseFifteenMobileAuthTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
+    public function test_empty_password_never_authenticates_a_user_who_has_not_set_a_password(): void
+    {
+        $user = User::factory()->create([
+            'mobile' => '09120009999',
+            'password_set_at' => null,
+        ]);
+
+        $this->post(route('login'), [
+            'mobile' => $user->mobile,
+            'password' => '',
+        ])->assertRedirect(route('login'));
+
+        $this->assertGuest();
+
+        $this->post(route('login'), [
+            'mobile' => $user->mobile,
+            'password' => '',
+        ])->assertSessionHasErrors('password');
+
+        $this->assertGuest();
+    }
+
     public function test_inactive_user_cannot_login_with_mobile(): void
     {
         User::factory()->create(['mobile' => '09129876543', 'is_active' => false]);
