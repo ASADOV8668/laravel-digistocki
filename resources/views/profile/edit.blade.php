@@ -9,11 +9,6 @@
             </div>
         </div>
     </x-slot>
-    @if (session('status') === 'password-updated')
-        <div x-data
-            x-init="window.dispatchEvent(new CustomEvent('show-notification', { detail: { title: 'رمز عبور تغییر کرد', message: 'رمز عبور شما با موفقیت ذخیره شد.', tone: 'success' } }))"
-            class="hidden" aria-hidden="true"></div>
-    @endif
     <section class="space-y-5 px-4 py-6">
         <div class="flex items-center gap-3 rounded-lg bg-slate-900 p-5 text-white"><span
                 class="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-xl font-black">{{ mb_substr(auth()->user()->name, 0, 1) }}</span>

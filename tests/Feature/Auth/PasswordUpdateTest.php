@@ -41,8 +41,8 @@ class PasswordUpdateTest extends TestCase
             ->assertOk()
             ->assertSee('رمز عبور تغییر کرد')
             ->assertSee('رمز عبور شما با موفقیت ذخیره شد.')
-            ->assertSee('show-notification', false)
-            ->assertDontSee('ذخیره شد.</span>', false);
+            ->assertSee('x-init="show(', false)
+            ->assertDontSee('show-notification.window', false);
     }
 
     public function test_registration_session_flag_hides_current_password_even_if_legacy_timestamp_exists(): void

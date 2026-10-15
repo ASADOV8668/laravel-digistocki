@@ -39,7 +39,9 @@
             <x-heroicon-o-signal-slash class="h-5 w-5 shrink-0" />
             <span>اتصال اینترنت قطع است؛ بعضی اطلاعات ممکن است به‌روز نباشند.</span>
         </div>
-        <div id="public-toast" x-data="toastNotifications()" @show-notification.window="show($event.detail)" x-cloak
+        <div id="public-toast" x-data="toastNotifications()" @show-notification.window="show($event.detail)"
+            @if (session('status') === 'password-updated') x-init="show({ title: 'رمز عبور تغییر کرد', message: 'رمز عبور شما با موفقیت ذخیره شد.', tone: 'success' })" @endif
+            x-cloak
             x-show="visible" x-transition
             class="fixed inset-x-4 top-20 z-[70] mx-auto flex max-w-md items-center rounded-lg border border-slate-200 bg-white p-4 text-slate-500 shadow-lg"
             role="status" aria-live="polite">
