@@ -58,7 +58,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->forget('login_identified_mobile');
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->route('home');
     }
 
     public function requestOtp(Request $request, MobileOtpService $otpService): RedirectResponse
@@ -110,7 +110,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->forget(['login_otp_mobile', 'login_otp_expires_at']);
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->route('home');
     }
 
     public function destroy(Request $request): RedirectResponse

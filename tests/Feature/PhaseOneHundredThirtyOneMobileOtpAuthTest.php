@@ -38,7 +38,7 @@ class PhaseOneHundredThirtyOneMobileOtpAuthTest extends TestCase
         $otp = MobileOtp::where('purpose', 'login')->latest()->firstOrFail();
         $otp->update(['code_hash' => Hash::make('654321')]);
 
-        $this->post(route('login.otp.verify'), ['mobile' => '09123334444', 'otp' => '654321'])->assertRedirect(route('dashboard', absolute: false));
+        $this->post(route('login.otp.verify'), ['mobile' => '09123334444', 'otp' => '654321'])->assertRedirect(route('home'));
         $this->assertAuthenticatedAs($user);
     }
 }

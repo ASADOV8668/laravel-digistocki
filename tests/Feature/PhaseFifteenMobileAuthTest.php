@@ -19,7 +19,7 @@ class PhaseFifteenMobileAuthTest extends TestCase
         $this->post(route('login'), [
             'login' => '۰۹۱۲۱۲۳۴۵۶۷',
             'password' => 'password',
-        ])->assertRedirect(route('dashboard', absolute: false));
+        ])->assertRedirect(route('home'));
 
         $this->assertAuthenticatedAs($user);
     }
