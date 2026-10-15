@@ -158,7 +158,7 @@
             <div x-data="shareLink(@js(url()->current()))" class="space-y-4">
                 <div class="flex items-center justify-end gap-2">
                     <button type="button" @click="share()"
-                        class="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20">
+                        class="inline-flex h-11 items-center gap-2 rounded-lg bg-slate-100 px-3 text-xs font-bold text-slate-700 transition hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20">
                         <x-heroicon-o-share class="h-5 w-5" />
                         <span x-text="copied ? 'لینک کپی شد' : 'اشتراک‌گذاری'">اشتراک‌گذاری</span>
                     </button>
@@ -167,18 +167,18 @@
                             @csrf
                             <button type="submit"
                                 title="{{ $isFavorited ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها' }}"
-                                class="rounded-lg {{ $isFavorited ? 'border border-red-200 bg-red-50 text-red-600' : 'bg-primary-50 text-primary' }} p-3 transition hover:scale-105">
+                                class="inline-flex h-11 w-11 items-center justify-center rounded-lg {{ $isFavorited ? 'border border-red-200 bg-red-50 text-red-600' : 'bg-primary-50 text-primary' }} p-0 transition hover:scale-105">
                                 @if ($isFavorited)
-                                    <x-heroicon-s-heart class="h-6 w-6 fill-current" />
+                                    <x-heroicon-s-heart class="h-5 w-5 fill-current" />
                                 @else
-                                    <x-heroicon-o-heart class="h-6 w-6" />
+                                    <x-heroicon-o-heart class="h-5 w-5" />
                                 @endif
                             </button>
                         </form>
                     @else
                         <a href="{{ route('login') }}" title="ورود برای ذخیره آگهی"
-                            class="rounded-lg bg-primary-50 p-3 text-primary transition hover:scale-105">
-                            <x-heroicon-o-heart class="h-6 w-6" />
+                            class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary-50 p-0 text-primary transition hover:scale-105">
+                            <x-heroicon-o-heart class="h-5 w-5" />
                         </a>
                     @endauth
                 </div>
