@@ -10,6 +10,7 @@ use App\Models\Report;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -48,6 +49,53 @@ class AdminPanelTest extends TestCase
         $this->actingAs($this->admin)->patch(route('admin.users.toggle-role', $user))->assertRedirect();
         $this->assertTrue($user->refresh()->isAdmin());
         $this->actingAs($this->admin)->patch(route('admin.users.toggle-active', $this->admin))->assertStatus(422);
+    }
+
+    public function test_admin_can_delete_a_user_without_listings_and_cleans_store_files(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $store = $user->storefront()->create([
+            'slug' => 'store-without-listings',
+            'name' => 'فروشگاه بدون آگهی',
+            'logo_path' => 'stores/logo.webp',
+            'business_license_path' => 'stores/license.webp',
+        ]);
+        Storage::disk('public')->put($store->logo_path, 'logo');
+        Storage::disk('public')->put($store->business_license_path, 'license');
+
+        $this->actingAs($this->admin)
+            ->delete(route('admin.users.destroy', $user))
+            ->assertRedirect(route('admin.users.index'))
+            ->assertSessionHas('status', 'کاربر بدون آگهی با موفقیت حذف شد.');
+
+        $this->assertDatabaseMissing('users', ['id' => $user->id]);
+        $this->assertDatabaseMissing('seller_stores', ['id' => $store->id]);
+        Storage::disk('public')->assertMissing('stores/logo.webp');
+        Storage::disk('public')->assertMissing('stores/license.webp');
+    }
+
+    public function test_admin_cannot_delete_a_user_who_has_listings(): void
+    {
+        $user = User::factory()->create();
+        $brand = Brand::firstOrFail();
+        $listing = Listing::create([
+            'user_id' => $user->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $brand->phoneModels()->firstOrFail()->id,
+            'title' => 'آگهی حذف‌نشدنی',
+            'slug' => Str::uuid(),
+            'price' => 1000000,
+            'status' => ListingStatus::Approved,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->delete(route('admin.users.destroy', $user))
+            ->assertStatus(422)
+            ->assertSee('این کاربر آگهی دارد');
+
+        $this->assertDatabaseHas('users', ['id' => $user->id]);
+        $this->assertDatabaseHas('listings', ['id' => $listing->id]);
     }
 
     public function test_admin_can_manage_catalog_and_dynamic_attributes(): void

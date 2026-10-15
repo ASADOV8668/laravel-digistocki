@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
+use App\Services\ImageService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -36,6 +38,28 @@ class UserController extends Controller
         $user->forceFill(['role' => $validated['role'], 'is_active' => (bool) ($validated['is_active'] ?? false), 'can_post_listings' => (bool) ($validated['can_post_listings'] ?? false)])->save();
 
         return redirect()->route('admin.users.index')->with('status', 'اطلاعات کاربر به‌روزرسانی شد.');
+    }
+
+    public function destroy(Request $request, User $user, ImageService $imageService): RedirectResponse|JsonResponse
+    {
+        abort_if($request->user()->is($user), 422, 'حساب کاربری خودتان را نمی‌توانید حذف کنید.');
+        abort_if($user->listings()->exists(), 422, 'این کاربر آگهی دارد و تا زمان حذف آگهی‌ها قابل حذف نیست.');
+        abort_if($user->isAdmin() && User::query()->where('role', 'admin')->count() <= 1, 422, 'آخرین مدیر سیستم قابل حذف نیست.');
+
+        DB::transaction(function () use ($user): void {
+            // حذف از مسیر مدل باعث اجرای پاک‌سازی فایل‌های لوگو و مجوز فروشگاه می‌شود.
+            $user->storefront?->delete();
+            $user->notifications()->delete();
+            $user->delete();
+        });
+
+        $message = 'کاربر بدون آگهی با موفقیت حذف شد.';
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message]);
+        }
+
+        return redirect()->route('admin.users.index')->with('status', $message);
     }
 
     public function create()

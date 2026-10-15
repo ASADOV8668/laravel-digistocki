@@ -132,6 +132,24 @@
                                             @csrf @method('PATCH')<button
                                                 class="rounded-lg bg-accent/10 px-3 py-2 text-xs font-bold text-accent transition hover:bg-accent/20">{{ $user->isAdmin() ? 'تبدیل به کاربر' : 'ارتقا به مدیر' }}</button>
                                         </form>
+                                        @if ($user->listings_count === 0 && ! auth()->user()->is($user))
+                                            <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
+                                                onsubmit="return confirm('این کاربر بدون آگهی به‌طور کامل حذف شود؟')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button
+                                                    class="rounded-lg bg-error/10 px-3 py-2 text-xs font-bold text-error transition hover:bg-error/20">
+                                                    <x-heroicon-o-trash class="inline-block h-4 w-4 align-text-bottom" />
+                                                    حذف کاربر
+                                                </button>
+                                            </form>
+                                        @elseif ($user->listings_count > 0)
+                                            <span class="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-400"
+                                                title="کاربر دارای آگهی است">
+                                                <x-heroicon-o-lock-closed class="h-4 w-4" />
+                                                دارای آگهی
+                                            </span>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
