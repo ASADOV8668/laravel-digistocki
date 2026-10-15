@@ -1,4 +1,32 @@
 @php
+    $store = $listing->user->storefront;
+    $storeName = $store?->isPubliclyEnabled() ? $store->name : $listing->user->name;
+    $storeAddress = collect([
+        $store?->address,
+        $store?->province?->name,
+        $store?->city?->name,
+    ])->filter(fn ($part) => filled($part))->implode('، ');
+    $attributeSummary = $listing->attributeValues->map(function ($value) {
+        $rawValue = filled($value->value_json)
+            ? collect($value->value_json)->filter(fn ($item) => filled($item))->implode('، ')
+            : ($value->value_string
+                ?? ($value->value_integer
+                    ?? ($value->value_decimal ?? ($value->value_boolean ? 'بله' : 'خیر'))));
+        $displayValue = \App\Support\PersianNumber::digits($rawValue);
+        $unit = filled($value->attribute->unit) ? ' '.$value->attribute->unit : '';
+
+        return $value->attribute->name.': '.$displayValue.$unit;
+    })->filter()->implode('، ');
+    $metaDescription = collect([
+        $listing->title,
+        $attributeSummary,
+        $storeName,
+        $storeAddress,
+    ])->filter(fn ($part) => filled($part))->implode(' | ');
+    $primaryImage = $listing->images->firstWhere('is_primary', true) ?? $listing->images->first();
+    $metaImage = $primaryImage
+        ? asset('storage/'.$primaryImage->path)
+        : asset('images/listing-placeholder.svg');
     $listingSchema = [
         '@context' => 'https://schema.org',
         '@type' => 'Product',
@@ -31,7 +59,7 @@
     <script type="application/ld+json">{!! json_encode($listingSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
     <script type="application/ld+json">{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 @endpush
-<x-app-layout :title="$listing->title">
+<x-app-layout :title="$listing->title" :meta-description="$metaDescription" :meta-image="$metaImage" meta-type="product">
     <x-slot name="header">
         <div class="flex min-w-0 items-center justify-between gap-3">
             <div class="flex min-w-0 flex-1 items-center gap-2">

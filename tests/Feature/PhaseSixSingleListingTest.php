@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Enums\ListingStatus;
+use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Listing;
+use App\Models\ListingAttributeValue;
 use App\Models\SellerStore;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
@@ -70,6 +72,34 @@ class PhaseSixSingleListingTest extends TestCase
             ->assertSee($store->name)
             ->assertSee(asset('storage/'.$store->logo_path), false)
             ->assertDontSee('نام شخصی فروشنده');
+    }
+
+    public function test_single_listing_exposes_listing_metadata_for_search_and_social_sharing(): void
+    {
+        $seller = User::factory()->create();
+        $store = SellerStore::create([
+            'user_id' => $seller->id,
+            'slug' => 'metadata-store',
+            'name' => 'فروشگاه متا',
+            'address' => 'خیابان اصلی تهران',
+            'is_enabled' => true,
+            'approval_status' => 'approved',
+        ]);
+        $listing = $this->listing($seller, 'آگهی متادیتا');
+        $attribute = Attribute::query()->where('slug', 'storage')->firstOrFail();
+        ListingAttributeValue::create([
+            'listing_id' => $listing->id,
+            'attribute_id' => $attribute->id,
+            'value_integer' => 128,
+        ]);
+
+        $this->get(route('listings.show', $listing))
+            ->assertOk()
+            ->assertSee('name="description" content="آگهی متادیتا | حافظه داخلی: ۱۲۸ GB | فروشگاه متا | خیابان اصلی تهران"', false)
+            ->assertSee('<meta property="og:type" content="product">', false)
+            ->assertSee('<meta property="og:image"', false)
+            ->assertSee('<meta name="twitter:card" content="summary_large_image">', false)
+            ->assertSee('<meta name="twitter:image"', false);
     }
 
     private function listing(User $seller, string $title): Listing

@@ -10,14 +10,22 @@
 
     @php($seoTitle = $systemOptions->pageTitle($title ?? null))
     @php($seoDescription = $metaDescription ?? $systemOptions->siteDescription())
+    @php($seoImage = $metaImage ?? asset('images/logo-192.png'))
     <title>{{ $seoTitle }}</title>
     <meta name="description" content="{{ $seoDescription }}">
     <link rel="canonical" href="{{ url()->current() }}">
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="{{ $metaType }}">
     <meta property="og:title" content="{{ $seoTitle }}">
     <meta property="og:description" content="{{ $seoDescription }}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:site_name" content="{{ $systemOptions->get('site_title') }}">
+    <meta property="og:locale" content="fa_IR">
+    <meta property="og:image" content="{{ $seoImage }}">
+    <meta property="og:image:alt" content="{{ $seoTitle }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $seoTitle }}">
+    <meta name="twitter:description" content="{{ $seoDescription }}">
+    <meta name="twitter:image" content="{{ $seoImage }}">
     <meta name="theme-color" content="#eb073f">
     <link rel="manifest" href="{{ asset('manifest.json') }}">
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
