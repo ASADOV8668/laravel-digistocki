@@ -85,7 +85,7 @@
                                 </p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
                             <span
                                 class="rounded-full px-3 py-1.5 text-[10px] font-black {{ $store->is_admin_disabled ? 'bg-error/10 text-error' : ($store->isPending() ? 'bg-warning/10 text-warning' : ($store->isRejected() ? 'bg-error/10 text-error' : ($store->is_enabled ? 'bg-success/10 text-success' : 'bg-slate-100 text-slate-500'))) }}">{{ $store->is_admin_disabled ? 'مسدود توسط مدیریت' : ($store->isPending() ? 'در انتظار بررسی' : ($store->isRejected() ? 'ردشده' : ($store->is_enabled ? 'فعال' : 'غیرفعال'))) }}</span>
                             @if ($store->isPending())
@@ -108,6 +108,22 @@
                             @if ($store->isPubliclyEnabled())
                                 <a href="{{ route('storefront.show', $store) }}" target="_blank"
                                     class="rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600">نمایش</a>
+                            @endif
+                            @if ($store->isRejected())
+                                @if (($store->user->listings_count ?? 0) === 0)
+                                    <form method="POST" action="{{ route('admin.storefronts.destroy', $store) }}"
+                                        onsubmit="return confirm('فروشگاه ردشده و تصاویر آن به‌طور کامل حذف شود؟')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button
+                                            class="inline-flex items-center gap-1 rounded-xl bg-error/10 px-3 py-2 text-xs font-bold text-error">
+                                            <x-heroicon-o-trash class="h-4 w-4" />حذف کامل
+                                        </button>
+                                    </form>
+                                @else
+                                    <span class="rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-400"
+                                        title="این فروشگاه آگهی دارد و قابل حذف نیست">دارای آگهی؛ حذف نمی‌شود</span>
+                                @endif
                             @endif
                             <form method="POST" action="{{ route('admin.storefronts.toggle', $store) }}">@csrf
                                 @method('PATCH')<button

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateStorefrontRequest;
+use App\Models\Listing;
 use App\Models\SellerStore;
 use App\Models\User;
 use App\Notifications\StorefrontStatusNotification;
@@ -40,7 +41,11 @@ class StorefrontController extends Controller
         ];
 
         $stores = SellerStore::query()
-            ->with(['user', 'province', 'city'])
+            ->with([
+                'user' => fn ($query) => $query->withCount('listings'),
+                'province',
+                'city',
+            ])
             ->when($status === 'active', fn (Builder $query) => $query->where('is_enabled', true)->where('is_admin_disabled', false))
             ->when($status === 'disabled', fn (Builder $query) => $query->where('is_enabled', false)->where('is_admin_disabled', false))
             ->when($status === 'blocked', fn (Builder $query) => $query->where('is_admin_disabled', true))
@@ -100,6 +105,35 @@ class StorefrontController extends Controller
             'store' => $sellerStore,
             'user' => $sellerStore->user,
         ]);
+    }
+
+    public function destroy(Request $request, SellerStore $sellerStore): RedirectResponse|JsonResponse
+    {
+        if (! $sellerStore->isRejected()) {
+            return $this->deleteFailureResponse($request, 'فقط فروشگاه‌های ردشده قابل حذف کامل هستند.');
+        }
+
+        if (Listing::query()->where('user_id', $sellerStore->user_id)->exists()) {
+            return $this->deleteFailureResponse($request, 'این فروشگاه به آگهی متصل است و تا حذف آگهی‌ها قابل حذف نیست.');
+        }
+
+        $sellerStore->delete();
+        $message = 'فروشگاه ردشده با موفقیت حذف شد و تصاویر آن نیز از هاست پاک شدند.';
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message]);
+        }
+
+        return redirect()->route('admin.storefronts.index')->with('status', $message);
+    }
+
+    private function deleteFailureResponse(Request $request, string $message): RedirectResponse|JsonResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message], 422);
+        }
+
+        return back()->withErrors(['storefront' => $message]);
     }
 
     public function edit(User $user, SystemOptions $options): View

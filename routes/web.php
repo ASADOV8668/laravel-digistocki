@@ -89,6 +89,7 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::get('/storefronts', [AdminStorefrontController::class, 'index'])->name('admin.storefronts.index');
     Route::get('/storefronts/create', [AdminStorefrontController::class, 'create'])->name('admin.storefronts.create');
     Route::get('/storefronts/{sellerStore}', [AdminStorefrontController::class, 'show'])->name('admin.storefronts.show');
+    Route::delete('/storefronts/{sellerStore}', [AdminStorefrontController::class, 'destroy'])->name('admin.storefronts.destroy');
     Route::patch('/storefronts/{sellerStore}/toggle', [AdminStorefrontController::class, 'toggle'])->name('admin.storefronts.toggle');
     Route::patch('/storefronts/{sellerStore}/approve', [AdminStorefrontController::class, 'approve'])->name('admin.storefronts.approve');
     Route::patch('/storefronts/{sellerStore}/reject', [AdminStorefrontController::class, 'reject'])->name('admin.storefronts.reject');

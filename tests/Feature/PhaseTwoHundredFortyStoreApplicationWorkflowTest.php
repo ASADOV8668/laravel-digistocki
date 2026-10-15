@@ -3,6 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\SellerStore;
+use App\Models\Brand;
+use App\Models\Listing;
+use App\Models\PhoneModel;
 use App\Models\User;
 use App\Services\SystemOptions;
 use App\Support\PersianDate;
@@ -468,6 +471,77 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
 
         Storage::disk('public')->assertMissing('stores/deleted-logo.webp');
         Storage::disk('public')->assertMissing('business-licenses/deleted-license.webp');
+    }
+
+    public function test_admin_can_delete_a_rejected_store_without_listings_and_its_images(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('stores/rejected-logo.webp', 'logo');
+        Storage::disk('public')->put('business-licenses/rejected-license.webp', 'license');
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $owner = User::factory()->create();
+        $store = SellerStore::create([
+            'user_id' => $owner->id,
+            'slug' => 'rejected-without-listings',
+            'name' => 'فروشگاه قابل حذف',
+            'approval_status' => 'rejected',
+            'is_enabled' => false,
+            'logo_path' => 'stores/rejected-logo.webp',
+            'business_license_path' => 'business-licenses/rejected-license.webp',
+        ]);
+
+        $this->actingAs($admin)->delete(route('admin.storefronts.destroy', $store))
+            ->assertRedirect(route('admin.storefronts.index'))
+            ->assertSessionHas('status', 'فروشگاه ردشده با موفقیت حذف شد و تصاویر آن نیز از هاست پاک شدند.');
+
+        $this->assertDatabaseMissing('seller_stores', ['id' => $store->id]);
+        Storage::disk('public')->assertMissing('stores/rejected-logo.webp');
+        Storage::disk('public')->assertMissing('business-licenses/rejected-license.webp');
+    }
+
+    public function test_admin_cannot_delete_a_non_rejected_store_or_a_rejected_store_with_listings(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $pendingOwner = User::factory()->create();
+        $pendingStore = SellerStore::create([
+            'user_id' => $pendingOwner->id,
+            'slug' => 'pending-store-delete-blocked',
+            'name' => 'فروشگاه در انتظار',
+            'approval_status' => 'pending',
+        ]);
+
+        $this->actingAs($admin)->delete(route('admin.storefronts.destroy', $pendingStore))
+            ->assertSessionHasErrors('storefront');
+        $this->assertDatabaseHas('seller_stores', ['id' => $pendingStore->id]);
+
+        $owner = User::factory()->create();
+        $store = SellerStore::create([
+            'user_id' => $owner->id,
+            'slug' => 'rejected-store-with-listing',
+            'name' => 'فروشگاه دارای آگهی',
+            'approval_status' => 'rejected',
+            'is_enabled' => false,
+        ]);
+        $brand = Brand::create(['name' => 'برند تست حذف', 'slug' => 'delete-test-brand']);
+        $model = PhoneModel::create([
+            'brand_id' => $brand->id,
+            'name' => 'مدل تست حذف',
+            'slug' => 'delete-test-model',
+        ]);
+        Listing::create([
+            'user_id' => $owner->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی مانع حذف فروشگاه',
+            'slug' => 'listing-blocking-store-delete',
+            'price' => 1000000,
+            'status' => 'rejected',
+        ]);
+
+        $this->actingAs($admin)->delete(route('admin.storefronts.destroy', $store))
+            ->assertSessionHasErrors('storefront');
+        $this->assertDatabaseHas('seller_stores', ['id' => $store->id]);
     }
 
     private function assertSeeDateSelectOn($response): void
