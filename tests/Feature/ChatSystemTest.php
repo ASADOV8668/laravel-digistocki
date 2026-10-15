@@ -62,11 +62,17 @@ class ChatSystemTest extends TestCase
         $this->actingAs($seller)
             ->get(route('chats.show', $conversation))
             ->assertOk()
+            ->assertSee($buyer->name)
             ->assertSee('سلام، این آگهی هنوز موجود است؟')
             ->assertSee('storage/listings/chat-test/thumb.webp')
             ->assertSee('data-chat-room')
             ->assertSee('setInterval(refresh, 1000)')
             ->assertDontSee('حذف چت');
+
+        $this->actingAs($buyer)
+            ->get(route('chats.show', $conversation))
+            ->assertOk()
+            ->assertSee($seller->name);
 
         $this->assertSame(0, ChatMessage::unreadCountForUser($seller->id));
     }
@@ -103,8 +109,8 @@ class ChatSystemTest extends TestCase
 
     private function listingPair(): array
     {
-        $seller = User::factory()->create(['mobile' => '09120000000']);
-        $buyer = User::factory()->create(['mobile' => '09121111111']);
+        $seller = User::factory()->create(['name' => 'فروشنده تست', 'mobile' => '09120000000']);
+        $buyer = User::factory()->create(['name' => 'خریدار تست', 'mobile' => '09121111111']);
         $brand = Brand::firstOrFail();
         $listing = Listing::create([
             'user_id' => $seller->id,

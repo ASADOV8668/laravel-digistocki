@@ -88,7 +88,9 @@
             $listing = $conversation->listing;
             $imageRecord = $listing?->primaryImage ?: $listing?->images?->first();
             $image = $imageRecord?->thumbnail_path ?: $imageRecord?->path;
-            $seller = $conversation->seller;
+            $otherUser = (int) $currentUserId === (int) $conversation->buyer_id
+                ? $conversation->seller
+                : $conversation->buyer;
         @endphp
         <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div class="flex items-center gap-3 border-b border-slate-100 p-4 dark:border-slate-800">
@@ -101,7 +103,7 @@
                     <div class="min-w-0">
                         <p class="text-[11px] font-bold text-primary">موضوع گفت‌وگو</p>
                         <h1 class="truncate text-base font-black text-neutral dark:text-white">{{ $listing?->title ?? 'آگهی حذف‌شده' }}</h1>
-                        <p class="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">{{ $seller?->storefront?->name ?: ($seller?->name ?: 'فروشنده') }}</p>
+                        <p class="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">{{ $otherUser?->storefront?->name ?: ($otherUser?->name ?: 'کاربر') }}</p>
                     </div>
                 </a>
                 <a href="{{ route('chats.index') }}" aria-label="بازگشت به چت‌ها"
