@@ -72,6 +72,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::delete('/notifications', [NotificationController::class, 'destroyAll'])->name('notifications.destroy-all');
     Route::get('/reports', [UserReportController::class, 'index'])->name('reports.index');
+    Route::delete('/reports/{report}', [UserReportController::class, 'destroy'])->name('reports.destroy');
 });
 
 Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function () {

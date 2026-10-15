@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Listing;
 use App\Models\Report;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -20,6 +21,15 @@ class ReportController extends Controller
             ->withQueryString();
 
         return view('reports.index', compact('reports'));
+    }
+
+    public function destroy(Request $request, Report $report): RedirectResponse
+    {
+        abort_unless($report->user_id === $request->user()->id, 404);
+
+        $report->delete();
+
+        return redirect()->route('reports.index')->with('status', 'گزارش حذف شد.');
     }
 
     public function store(Request $request, Listing $listing)
