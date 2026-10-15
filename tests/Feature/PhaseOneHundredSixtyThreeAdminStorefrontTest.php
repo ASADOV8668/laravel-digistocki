@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\SellerStore;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class PhaseOneHundredSixtyThreeAdminStorefrontTest extends TestCase
@@ -23,6 +24,8 @@ class PhaseOneHundredSixtyThreeAdminStorefrontTest extends TestCase
             'name' => 'غرفه مدیریتی',
             'slug' => 'Apple',
             'contact_phone' => '09120003333',
+            'logo' => UploadedFile::fake()->create('logo.jpg', 10, 'image/jpeg'),
+            'business_license' => UploadedFile::fake()->create('license.jpg', 10, 'image/jpeg'),
         ])->assertRedirect(route('admin.storefronts.index'));
 
         $store = SellerStore::where('user_id', $user->id)->firstOrFail();
@@ -69,6 +72,8 @@ class PhaseOneHundredSixtyThreeAdminStorefrontTest extends TestCase
             'store_enabled' => 0,
             'name' => 'غرفه غیرفعال‌شده',
             'slug' => 'disable-shop',
+            'logo' => UploadedFile::fake()->create('logo-disable.jpg', 10, 'image/jpeg'),
+            'business_license' => UploadedFile::fake()->create('license-disable.jpg', 10, 'image/jpeg'),
         ])->assertRedirect(route('admin.storefronts.index'));
 
         $this->assertSame('نام ویرایش‌شده', $user->refresh()->name);
@@ -89,6 +94,8 @@ class PhaseOneHundredSixtyThreeAdminStorefrontTest extends TestCase
             'store_enabled' => 1,
             'name' => 'دوم',
             'slug' => 'shared-shop',
+            'logo' => UploadedFile::fake()->create('logo-shared.jpg', 10, 'image/jpeg'),
+            'business_license' => UploadedFile::fake()->create('license-shared.jpg', 10, 'image/jpeg'),
         ])->assertSessionHasErrors('slug');
     }
 }

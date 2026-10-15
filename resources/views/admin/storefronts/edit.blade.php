@@ -35,6 +35,20 @@
             <p class="mt-2 text-xs leading-6 text-white/70">مدیریت می‌تواند وضعیت تأیید، آدرس انگلیسی و اولویت نمایش
                 فروشگاه را تغییر دهد.</p>
         </div>
+        <div class="rounded-2xl border border-primary/20 bg-primary-50 p-4 text-sm text-slate-700" role="note">
+            <div class="flex items-center gap-2 font-black text-primary">
+                <x-heroicon-o-information-circle class="h-5 w-5" />
+                <span>راهنمای بررسی درخواست فروشگاه</span>
+            </div>
+            <ul class="mt-3 grid gap-2 text-xs leading-6 sm:grid-cols-2">
+                <li><strong>درخواست‌کننده:</strong> نام و نام خانوادگی باید با کد ملی و مدارک جواز کسب مطابقت داشته باشد.</li>
+                <li><strong>کد ملی:</strong> کد ملی معتبر ایرانی و دقیقاً ۱۰ رقمی است.</li>
+                <li><strong>شماره تماس:</strong> شماره موبایل درخواست‌کننده دقیقاً ۱۱ رقم و با ۰۹ شروع می‌شود.</li>
+                <li><strong>شماره صنفی:</strong> باید مطابق جواز کسب درخواست‌کننده وارد شود.</li>
+                <li><strong>تاریخ اتمام جواز:</strong> تاریخ انتخابی باید از امروز به بعد باشد.</li>
+                <li><strong>تصاویر:</strong> لوگوی فروشگاه و تصویر جواز کسب برای ثبت فروشگاه الزامی هستند.</li>
+            </ul>
+        </div>
         <form method="POST" action="{{ route('admin.storefronts.update', $user) }}" enctype="multipart/form-data"
             x-data="{ removeLogo: false, removeBusinessLicense: false }"
             class="admin-card space-y-5 p-5">
@@ -69,7 +83,7 @@
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">
                 </div>
                 <div>
-                    <p class="mb-2 block text-sm font-bold text-slate-700">تاریخ اعتبار جواز کسب</p>
+                    <p class="mb-2 block text-sm font-bold text-slate-700">تاریخ اتمام اعتبار جواز کسب</p>
                     <x-persian-date-select name="business_license_expires_at" :value="old('business_license_expires_at', $storeExpiry)"
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary" />
                     <p class="mt-1 text-[11px] text-slate-400">روز، ماه و سال شمسی را انتخاب کنید.</p>
@@ -129,8 +143,8 @@
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
                 <div><label for="admin-store-logo" class="mb-2 block text-sm font-bold text-slate-700">لوگوی
-                        فروشگاه</label><input id="admin-store-logo" name="logo" type="file"
-                        accept=".jpg,.jpeg,.png,.webp,.heic,.heif" @change="removeLogo = false"
+                        فروشگاه <span class="text-error">*</span></label><input id="admin-store-logo" name="logo" type="file"
+                        accept=".jpg,.jpeg,.png,.webp,.heic,.heif" @required(!$store?->logo_path) @change="removeLogo = false"
                         class="w-full rounded-xl border border-slate-200 p-2 text-sm">
                     @if ($store?->logo_path)
                         <div x-show="!removeLogo" class="relative mt-3 w-fit">
@@ -144,8 +158,8 @@
                     <input type="hidden" name="remove_logo" value="1" x-bind:disabled="!removeLogo">
                 </div>
                 <div><label for="admin-business-license" class="mb-2 block text-sm font-bold text-slate-700">تصویر
-                        جواز کسب</label><input id="admin-business-license" name="business_license" type="file"
-                        accept=".jpg,.jpeg,.png,.webp,.heic,.heif" @change="removeBusinessLicense = false"
+                        جواز کسب <span class="text-error">*</span></label><input id="admin-business-license" name="business_license" type="file"
+                        accept=".jpg,.jpeg,.png,.webp,.heic,.heif" @required(!$store?->business_license_path) @change="removeBusinessLicense = false"
                         class="w-full rounded-xl border border-slate-200 p-2 text-sm">
                     @if ($store?->business_license_path)
                         <div x-show="!removeBusinessLicense" class="relative mt-3 w-fit">

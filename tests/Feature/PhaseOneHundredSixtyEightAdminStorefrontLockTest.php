@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\SellerStore;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class PhaseOneHundredSixtyEightAdminStorefrontLockTest extends TestCase
@@ -58,6 +59,8 @@ class PhaseOneHundredSixtyEightAdminStorefrontLockTest extends TestCase
             'admin_disabled' => 0,
             'name' => $store->name,
             'slug' => $store->slug,
+            'logo' => UploadedFile::fake()->create('logo-unlock.jpg', 10, 'image/jpeg'),
+            'business_license' => UploadedFile::fake()->create('license-unlock.jpg', 10, 'image/jpeg'),
         ])->assertRedirect();
 
         $this->assertTrue($store->refresh()->is_enabled);

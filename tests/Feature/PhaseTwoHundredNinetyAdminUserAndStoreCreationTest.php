@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\SellerStore;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -107,6 +108,8 @@ class PhaseTwoHundredNinetyAdminUserAndStoreCreationTest extends TestCase
             'name' => 'فروشگاه دستی',
             'slug' => 'manual-created-store',
             'contact_phone' => $available->mobile,
+            'logo' => UploadedFile::fake()->create('manual-logo.jpg', 10, 'image/jpeg'),
+            'business_license' => UploadedFile::fake()->create('manual-license.jpg', 10, 'image/jpeg'),
         ])->assertRedirect(route('admin.storefronts.index'));
 
         $this->assertDatabaseHas('seller_stores', [

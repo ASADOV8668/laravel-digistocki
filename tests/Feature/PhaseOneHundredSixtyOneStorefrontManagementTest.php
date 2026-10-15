@@ -40,6 +40,7 @@ class PhaseOneHundredSixtyOneStorefrontManagementTest extends TestCase
             'city_id' => $city->id,
             'address' => 'آدرس تست',
             'business_license' => UploadedFile::fake()->create('license.jpg', 10, 'image/jpeg'),
+            'logo' => UploadedFile::fake()->create('logo.jpg', 10, 'image/jpeg'),
         ])->assertRedirect()->assertSessionHas('status', 'درخواست فروشگاه شما ثبت شد و پس از بررسی مدیریت اعلام نتیجه خواهد شد.');
 
         $store = SellerStore::where('user_id', $user->id)->firstOrFail();

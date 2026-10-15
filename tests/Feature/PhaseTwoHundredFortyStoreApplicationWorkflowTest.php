@@ -26,7 +26,36 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
             'name' => 'فروشگاه تست',
             'slug' => 'test-store',
             'contact_phone' => '09120001111',
-        ])->assertSessionHasErrors(['first_name', 'last_name', 'national_id', 'business_license_number', 'business_license_expires_at', 'province_id', 'city_id', 'address', 'business_license']);
+        ])->assertSessionHasErrors(['first_name', 'last_name', 'national_id', 'business_license_number', 'business_license_expires_at', 'province_id', 'city_id', 'address', 'logo', 'business_license']);
+
+        $this->assertDatabaseMissing('seller_stores', ['user_id' => $user->id]);
+    }
+
+    public function test_store_application_requires_a_logo_and_rejects_past_expiry_dates(): void
+    {
+        $user = User::factory()->create(['mobile' => '09120001222']);
+        [$province, $city] = $this->location('استان لوگو', 'شهر لوگو');
+        $validPayload = [
+            'first_name' => 'کاربر',
+            'last_name' => 'لوگو',
+            'national_id' => '0067123457',
+            'name' => 'فروشگاه لوگو',
+            'slug' => 'logo-store',
+            'contact_phone' => $user->mobile,
+            'business_license_number' => 'LIC-LOGO',
+            'province_id' => $province->id,
+            'city_id' => $city->id,
+            'address' => 'آدرس لوگو',
+            'business_license' => UploadedFile::fake()->create('license.jpg', 10, 'image/jpeg'),
+        ];
+        [$pastYear, $pastMonth, $pastDay] = array_map('intval', explode('/', PersianDate::format(now()->subDay())));
+
+        $this->actingAs($user)->put(route('storefront.update'), [
+            ...$validPayload,
+            'business_license_expires_at_year' => $pastYear,
+            'business_license_expires_at_month' => $pastMonth,
+            'business_license_expires_at_day' => $pastDay,
+        ])->assertSessionHasErrors(['logo', 'business_license_expires_at']);
 
         $this->assertDatabaseMissing('seller_stores', ['user_id' => $user->id]);
     }
@@ -137,6 +166,7 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
             'city_id' => $city->id,
             'address' => 'آدرس تاریخ',
             'business_license' => UploadedFile::fake()->create('license-date.jpg', 10, 'image/jpeg'),
+            'logo' => UploadedFile::fake()->create('logo-date.jpg', 10, 'image/jpeg'),
         ]);
 
         $response->assertRedirect();
@@ -153,9 +183,10 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
         $this->actingAs($admin)->get(route('admin.storefronts.edit', $user))
             ->assertOk()
             ->assertSee('name="business_license_expires_at_year"', false)
-            ->assertSee('value="1350"', false)
+            ->assertDontSee('value="1350"', false)
             ->assertSee('value="'.$currentYear.'" selected', false)
-            ->assertDontSee('value="'.($currentYear + 1).'"', false);
+            ->assertSee('value="'.($currentYear + 10).'"', false)
+            ->assertDontSee('value="'.($currentYear + 11).'"', false);
     }
 
     public function test_license_year_after_current_year_is_rejected(): void
@@ -170,7 +201,7 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
             'slug' => 'year-store',
             'contact_phone' => '09120005555',
             'business_license_number' => 'LIC-YEAR',
-            'business_license_expires_at_year' => (int) PersianDate::format(now(), 'Y') + 1,
+            'business_license_expires_at_year' => (int) PersianDate::format(now(), 'Y') + 11,
             'business_license_expires_at_month' => '1',
             'business_license_expires_at_day' => '1',
         ])->assertSessionHasErrors('business_license_expires_at_year');
@@ -200,6 +231,7 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
             'city_id' => $city->id,
             'address' => 'آدرس شبکه',
             'business_license' => UploadedFile::fake()->create('license-social.jpg', 10, 'image/jpeg'),
+            'logo' => UploadedFile::fake()->create('logo-social.jpg', 10, 'image/jpeg'),
             'instagram_url' => '@digistocki',
             'telegram_url' => 'https://t.me/digistocki',
             'whatsapp_url' => '989120000000',
@@ -232,6 +264,8 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
             'name' => 'فروشگاه مدیریت',
             'slug' => 'admin-persian-address',
             'address' => 'مازندران، بابلسر، خیابان اصلی، پلاک ۱۲',
+            'logo' => UploadedFile::fake()->create('admin-logo.jpg', 10, 'image/jpeg'),
+            'business_license' => UploadedFile::fake()->create('admin-license.jpg', 10, 'image/jpeg'),
         ])->assertRedirect();
 
         $this->assertDatabaseHas('seller_stores', [
@@ -365,8 +399,18 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
             ->assertSee('name="business_license_expires_at_day"', false)
             ->assertSee('name="business_license_expires_at_month"', false)
             ->assertSee('name="business_license_expires_at_year"', false)
-            ->assertSee('value="1350"', false)
+            ->assertDontSee('value="1350"', false)
             ->assertSee('value="'.(int) PersianDate::format(now(), 'Y').'"', false)
             ->assertDontSee('data-persian-datepicker', false);
+    }
+
+    /** @return array{0: Province, 1: City} */
+    private function location(string $provinceName, string $cityName): array
+    {
+        $province = Province::create(['name' => $provinceName, 'tel_prefix' => '98']);
+        $county = County::create(['name' => $provinceName.' شهرستان', 'province_id' => $province->id]);
+        $city = City::create(['name' => $cityName, 'province_id' => $province->id, 'county_id' => $county->id]);
+
+        return [$province, $city];
     }
 }

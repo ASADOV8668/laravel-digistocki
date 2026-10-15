@@ -49,6 +49,7 @@ class UpdateStorefrontRequest extends FormRequest
     {
         $user = $this->route('user');
         $store = $user?->storefront;
+        $currentYear = (int) PersianDate::format(now(), 'Y');
 
         return [
             'store_enabled' => ['boolean'],
@@ -63,12 +64,12 @@ class UpdateStorefrontRequest extends FormRequest
             'slug' => ['required', 'string', 'min:3', 'max:80', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('seller_stores', 'slug')->ignore($store?->id)],
             'business_license_number' => ['nullable', 'string', 'max:80'],
             'business_license_expires_at' => ['nullable', 'string', 'max:10'],
-            'business_license_expires_at_year' => ['nullable', 'integer', 'between:1350,'.(int) PersianDate::format(now(), 'Y')],
+            'business_license_expires_at_year' => ['nullable', 'integer', 'between:'.$currentYear.','.($currentYear + 10)],
             'business_license_expires_at_month' => ['nullable', 'integer', 'between:1,12'],
             'business_license_expires_at_day' => ['nullable', 'integer', 'between:1,31'],
             'province_id' => ['nullable', 'integer', 'exists:provinces,id'],
             'city_id' => ['nullable', 'integer', Rule::exists('cities', 'id')->where(fn ($query) => $query->where('province_id', $this->input('province_id')))],
-            'logo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
+            'logo' => [Rule::requiredIf(! $store?->logo_path || $this->boolean('remove_logo')), 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
             'business_license' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
             'remove_logo' => ['nullable', 'boolean'],
             'remove_business_license' => ['nullable', 'boolean'],
@@ -102,9 +103,14 @@ class UpdateStorefrontRequest extends FormRequest
             ], static fn (mixed $part): bool => filled($part));
 
             if ($dateParts !== [] && count($dateParts) !== 3) {
-                $validator->errors()->add('business_license_expires_at', 'روز، ماه و سال تاریخ اعتبار جواز کسب را کامل انتخاب کنید.');
-            } elseif (filled($this->input('business_license_expires_at')) && ! PersianDate::parseDate($this->input('business_license_expires_at'))) {
-                $validator->errors()->add('business_license_expires_at', 'تاریخ اعتبار جواز کسب معتبر نیست.');
+                $validator->errors()->add('business_license_expires_at', 'روز، ماه و سال تاریخ اتمام اعتبار جواز کسب را کامل انتخاب کنید.');
+            } elseif (filled($this->input('business_license_expires_at'))) {
+                $expiry = PersianDate::parseDate($this->input('business_license_expires_at'));
+                if (! $expiry) {
+                    $validator->errors()->add('business_license_expires_at', 'تاریخ اتمام اعتبار جواز کسب معتبر نیست.');
+                } elseif ($expiry->lt(now()->startOfDay())) {
+                    $validator->errors()->add('business_license_expires_at', 'تاریخ اتمام اعتبار جواز کسب باید از امروز به بعد باشد.');
+                }
             }
         });
     }
@@ -120,6 +126,7 @@ class UpdateStorefrontRequest extends FormRequest
             'whatsapp_url.regex' => 'شناسه واتساپ باید فقط شامل حروف انگلیسی، عدد، نقطه، زیرخط یا خط تیره باشد.',
             'bale_url.regex' => 'نام کاربری بله باید فقط شامل حروف انگلیسی، عدد، نقطه، زیرخط یا خط تیره باشد.',
             'rubika_url.regex' => 'نام کاربری روبیکا باید فقط شامل حروف انگلیسی، عدد، نقطه، زیرخط یا خط تیره باشد.',
+            'logo.required' => 'تصویر لوگوی فروشگاه الزامی است؛ برای حذف لوگوی قبلی، تصویر جدید را انتخاب کنید.',
         ];
     }
 

@@ -44,6 +44,7 @@ class UpdateStorefrontRequest extends FormRequest
     public function rules(): array
     {
         $store = $this->user()?->storefront;
+        $currentYear = (int) PersianDate::format(now(), 'Y');
         $slugRules = ['string', 'min:3', 'max:80', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/'];
 
         if ($store) {
@@ -63,13 +64,13 @@ class UpdateStorefrontRequest extends FormRequest
             'slug' => $slugRules,
             'business_license_number' => ['required', 'string', 'max:80'],
             'business_license_expires_at' => ['required', 'string', 'max:10'],
-            'business_license_expires_at_year' => ['nullable', 'integer', 'between:1350,'.(int) PersianDate::format(now(), 'Y')],
+            'business_license_expires_at_year' => ['nullable', 'integer', 'between:'.$currentYear.','.($currentYear + 10)],
             'business_license_expires_at_month' => ['nullable', 'integer', 'between:1,12'],
             'business_license_expires_at_day' => ['nullable', 'integer', 'between:1,31'],
             'province_id' => ['required', 'integer', 'exists:provinces,id'],
             'city_id' => ['required', 'integer', Rule::exists('cities', 'id')->where(fn ($query) => $query->where('province_id', $this->input('province_id')))],
             'address' => ['required', 'string', 'max:1000'],
-            'logo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
+            'logo' => [Rule::requiredIf(! $store?->logo_path || $this->boolean('remove_logo')), 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
             'business_license' => [Rule::requiredIf(! $store?->business_license_path || $this->boolean('remove_business_license')), 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
             'remove_logo' => ['nullable', 'boolean'],
             'remove_business_license' => ['nullable', 'boolean'],
@@ -102,9 +103,14 @@ class UpdateStorefrontRequest extends FormRequest
             ], static fn (mixed $part): bool => filled($part));
 
             if ($dateParts !== [] && count($dateParts) !== 3) {
-                $validator->errors()->add('business_license_expires_at', 'روز، ماه و سال تاریخ اعتبار جواز کسب را کامل انتخاب کنید.');
-            } elseif (filled($this->input('business_license_expires_at')) && ! PersianDate::parseDate($this->input('business_license_expires_at'))) {
-                $validator->errors()->add('business_license_expires_at', 'تاریخ اعتبار جواز کسب معتبر نیست.');
+                $validator->errors()->add('business_license_expires_at', 'روز، ماه و سال تاریخ اتمام اعتبار جواز کسب را کامل انتخاب کنید.');
+            } elseif (filled($this->input('business_license_expires_at'))) {
+                $expiry = PersianDate::parseDate($this->input('business_license_expires_at'));
+                if (! $expiry) {
+                    $validator->errors()->add('business_license_expires_at', 'تاریخ اتمام اعتبار جواز کسب معتبر نیست.');
+                } elseif ($expiry->lt(now()->startOfDay())) {
+                    $validator->errors()->add('business_license_expires_at', 'تاریخ اتمام اعتبار جواز کسب باید از امروز به بعد باشد.');
+                }
             }
         });
     }
@@ -123,6 +129,7 @@ class UpdateStorefrontRequest extends FormRequest
             'business_license.image' => 'تصویر جواز کسب باید یک فایل تصویری معتبر باشد.',
             'business_license.max' => 'حجم تصویر جواز کسب بیشتر از حد مجاز تنظیمات است.',
             'business_license.required' => 'برای حذف تصویر قبلی جواز کسب، تصویر جدید را انتخاب کنید.',
+            'logo.required' => 'تصویر لوگوی فروشگاه الزامی است؛ برای حذف لوگوی قبلی، تصویر جدید را انتخاب کنید.',
         ];
     }
 

@@ -50,6 +50,7 @@ class PhaseTwoHundredFiftyFourNotificationCenterTest extends TestCase
             'city_id' => $city->id,
             'address' => 'آدرس اعلان',
             'business_license' => UploadedFile::fake()->create('license.jpg', 10, 'image/jpeg'),
+            'logo' => UploadedFile::fake()->create('logo.jpg', 10, 'image/jpeg'),
         ])->assertRedirect();
 
         $notification = $admin->notifications()->firstOrFail();

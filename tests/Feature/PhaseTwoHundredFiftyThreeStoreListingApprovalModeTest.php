@@ -9,6 +9,7 @@ use App\Models\SellerStore;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
@@ -48,6 +49,8 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
                 'listing_approval_mode' => SellerStore::LISTING_APPROVAL_FREE,
                 'name' => $store->name,
                 'slug' => $store->slug,
+                'logo' => UploadedFile::fake()->create('logo-mode.jpg', 10, 'image/jpeg'),
+                'business_license' => UploadedFile::fake()->create('license-mode.jpg', 10, 'image/jpeg'),
             ])
             ->assertRedirect(route('admin.storefronts.index'));
 
