@@ -19,7 +19,13 @@ class ChatController extends Controller
         $userId = $request->user()->id;
         $conversations = ChatConversation::query()
             ->where(fn ($query) => $query->where('buyer_id', $userId)->orWhere('seller_id', $userId))
-            ->with(['listing.primaryImage', 'listing.user.storefront', 'latestMessage'])
+            ->with([
+                'listing.primaryImage',
+                'listing.user.storefront',
+                'buyer.storefront',
+                'seller.storefront',
+                'latestMessage',
+            ])
             ->orderByDesc('last_message_at')
             ->orderByDesc('id')
             ->paginate(20)
@@ -45,7 +51,12 @@ class ChatController extends Controller
     public function show(Request $request, ChatConversation $conversation)
     {
         $this->authorize('view', $conversation);
-        $conversation->load(['listing.primaryImage', 'listing.user.storefront', 'buyer', 'seller']);
+        $conversation->load([
+            'listing.primaryImage',
+            'listing.user.storefront',
+            'buyer.storefront',
+            'seller.storefront',
+        ]);
         $this->markIncomingMessagesAsRead($conversation, $request->user()->id);
         $messages = $conversation->messages()->with('user')->get();
 

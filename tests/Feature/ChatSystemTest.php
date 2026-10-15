@@ -53,7 +53,10 @@ class ChatSystemTest extends TestCase
         $this->actingAs($seller)
             ->get(route('chats.show', $conversation))
             ->assertOk()
-            ->assertSee('سلام، این آگهی هنوز موجود است؟');
+            ->assertSee('سلام، این آگهی هنوز موجود است؟')
+            ->assertSee('data-chat-room')
+            ->assertSee('setInterval(refresh, 1000)')
+            ->assertDontSee('حذف چت');
 
         $this->assertSame(0, ChatMessage::unreadCountForUser($seller->id));
     }
