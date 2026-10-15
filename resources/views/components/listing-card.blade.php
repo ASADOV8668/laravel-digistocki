@@ -37,7 +37,7 @@
         <a href="{{ route('listings.show', $listing) }}" class="{{ $isList ? 'flex h-full w-full items-center justify-center overflow-hidden rounded-2xl' : 'block overflow-hidden' }}">
             <img src="{{ $image ? asset('storage/' . ($isList ? $image->path : ($image->thumbnail_path ?: $image->path))) : asset('images/listing-placeholder.svg') }}"
                 alt="{{ $image ? $listing->title : 'تصویر پیش‌فرض آگهی موبایل' }}"
-                class="h-full w-full {{ $isList ? 'rounded-2xl object-cover' : 'object-cover transition duration-500 group-hover:scale-105' }}" loading="lazy"
+                class="h-full {{ $isList ? 'w-[99%] rounded-2xl object-cover' : 'w-full object-cover transition duration-500 group-hover:scale-105' }}" loading="lazy"
                 decoding="async">
         </a>
         <button type="button" @click.stop.prevent="toggle" :aria-pressed="favorited.toString()"
