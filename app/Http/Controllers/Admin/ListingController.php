@@ -17,6 +17,7 @@ use App\Notifications\ListingStatusNotification;
 use App\Services\ImageService;
 use App\Services\ListingAttributeOptionRegistrar;
 use App\Services\ListingRules;
+use App\Services\NotificationReadService;
 use App\Services\SystemOptions;
 use App\Support\MobileNumber;
 use App\Support\PersianDate;
@@ -40,8 +41,9 @@ class ListingController extends Controller
         return view('admin.listings.form', $this->formData($options));
     }
 
-    public function edit(Listing $listing, SystemOptions $options)
+    public function edit(Listing $listing, SystemOptions $options, NotificationReadService $notificationReadService)
     {
+        $notificationReadService->markTargetAsRead(auth()->user(), 'listing_id', $listing->getKey());
         $listing->load(['images', 'attributeValues', 'phoneModel', 'user']);
         $attributes = $listing->phoneModel->attributes()->where('attributes.is_active', true)->orderBy('attributes.sort_order')->get();
 

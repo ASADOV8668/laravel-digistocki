@@ -20,6 +20,7 @@ use App\Services\ListingAttributeOptionRegistrar;
 use App\Services\ListingFilterOptionService;
 use App\Services\ListingRules;
 use App\Services\LocationResolver;
+use App\Services\NotificationReadService;
 use App\Services\SystemOptions;
 use App\Support\PersianNumber;
 use App\Support\PersianSearch;
@@ -420,9 +421,12 @@ class ListingController extends Controller
         ]);
     }
 
-    public function show(Listing $listing)
+    public function show(Request $request, Listing $listing, NotificationReadService $notificationReadService)
     {
         $this->authorize('view', $listing);
+        if ($request->user()) {
+            $notificationReadService->markTargetAsRead($request->user(), 'listing_id', $listing->getKey());
+        }
         $listing->increment('views_count');
         $listing->load(['brand', 'phoneModel', 'province', 'city', 'user.storefront', 'images', 'attributeValues.attribute']);
 

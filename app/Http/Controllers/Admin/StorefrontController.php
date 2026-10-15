@@ -9,6 +9,7 @@ use App\Models\SellerStore;
 use App\Models\User;
 use App\Notifications\StorefrontStatusNotification;
 use App\Services\ImageService;
+use App\Services\NotificationReadService;
 use App\Services\SystemOptions;
 use App\Support\PersianDate;
 use App\Support\PersianSearch;
@@ -97,8 +98,9 @@ class StorefrontController extends Controller
         return view('admin.storefronts.create', compact('users', 'query'));
     }
 
-    public function show(SellerStore $sellerStore): View
+    public function show(SellerStore $sellerStore, NotificationReadService $notificationReadService): View
     {
+        $notificationReadService->markTargetAsRead(auth()->user(), 'store_id', $sellerStore->getKey());
         $sellerStore->load(['user', 'province', 'city']);
 
         return view('admin.storefronts.show', [
@@ -136,8 +138,10 @@ class StorefrontController extends Controller
         return back()->withErrors(['storefront' => $message]);
     }
 
-    public function edit(User $user, SystemOptions $options): View
+    public function edit(User $user, SystemOptions $options, NotificationReadService $notificationReadService): View
     {
+        $notificationReadService->markTargetAsRead(auth()->user(), 'user_id', $user->getKey());
+
         return view('admin.storefronts.edit', [
             'user' => $user,
             'store' => $user->storefront,
