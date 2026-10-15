@@ -31,6 +31,20 @@ class PasswordUpdateTest extends TestCase
             ->assertDontSee('شما هنوز رمز عبوری انتخاب نکرده‌اید', false);
     }
 
+    public function test_password_update_success_is_announced_with_a_flowbite_toast(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->withSession(['status' => 'password-updated'])
+            ->get('/profile')
+            ->assertOk()
+            ->assertSee('رمز عبور تغییر کرد')
+            ->assertSee('رمز عبور شما با موفقیت ذخیره شد.')
+            ->assertSee('show-notification', false)
+            ->assertDontSee('ذخیره شد.</span>', false);
+    }
+
     public function test_registration_session_flag_hides_current_password_even_if_legacy_timestamp_exists(): void
     {
         $user = User::factory()->create(['password_set_at' => now()]);

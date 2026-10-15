@@ -35,9 +35,6 @@
             <button class="rounded-lg bg-info px-4 py-2.5 text-sm font-black text-white transition hover:bg-info/80">
                 تغییر رمز عبور
             </button>
-            @if (session('status') === 'password-updated')
-                <span class="text-xs font-bold text-success">ذخیره شد.</span>
-            @endif
         </div>
     </form>
 </section>
