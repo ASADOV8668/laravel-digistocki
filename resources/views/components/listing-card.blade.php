@@ -33,11 +33,11 @@
 <article x-data="favoriteToggle('{{ route('listings.favorite.toggle', $listing) }}', {{ $isFavorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }})"
     dir="rtl"
     class="group {{ $isList ? 'listing-card--list flex flex-row' : 'listing-card--grid' }} overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/5">
-    <div class="relative shrink-0 overflow-hidden {{ $isList ? 'flex h-40 w-[40%] basis-[40%] items-center justify-center bg-white p-1 sm:h-44' : 'h-40 w-full bg-slate-100' }}">
-        <a href="{{ route('listings.show', $listing) }}" class="{{ $isList ? 'flex h-full w-full items-center justify-center overflow-hidden rounded-2xl ring-1 ring-slate-200' : 'block overflow-hidden rounded-2xl' }}">
+    <div class="relative shrink-0 overflow-hidden {{ $isList ? 'flex h-40 w-[40%] basis-[40%] items-center justify-center bg-transparent p-0 sm:h-44' : 'h-40 w-full bg-slate-100' }}">
+        <a href="{{ route('listings.show', $listing) }}" class="{{ $isList ? 'flex h-full w-full items-center justify-center overflow-hidden rounded-2xl' : 'block overflow-hidden rounded-2xl' }}">
             <img src="{{ $image ? asset('storage/' . ($isList ? $image->path : ($image->thumbnail_path ?: $image->path))) : asset('images/listing-placeholder.svg') }}"
                 alt="{{ $image ? $listing->title : 'تصویر پیش‌فرض آگهی موبایل' }}"
-                class="h-full w-full rounded-2xl {{ $isList ? 'object-contain' : 'object-cover transition duration-500 group-hover:scale-105' }}" loading="lazy"
+                class="h-full w-full rounded-2xl {{ $isList ? 'object-cover' : 'object-cover transition duration-500 group-hover:scale-105' }}" loading="lazy"
                 decoding="async">
         </a>
         <button type="button" @click.stop.prevent="toggle" :aria-pressed="favorited.toString()"
@@ -47,9 +47,9 @@
                 class="h-4 w-4" /><x-heroicon-s-heart x-show="favorited" x-cloak
                 class="h-4 w-4 fill-current" /></button>
         <span
-            class="absolute right-2 top-2 inline-flex h-8 min-w-8 items-center justify-center gap-1 rounded-full bg-neutral/90 px-2 text-[10px] font-black text-white shadow-sm"
+            class="absolute right-2 top-2 inline-flex h-7 min-w-7 items-center justify-center gap-0.5 rounded-lg bg-neutral/90 px-1.5 text-[9px] font-black text-white shadow-sm"
             aria-label="{{ \App\Support\PersianNumber::digits($listing->images->count()) }} تصویر"><x-heroicon-o-camera
-                class="h-3.5 w-3.5" /><span>{{ \App\Support\PersianNumber::digits($listing->images->count()) }}</span></span>
+                class="h-3 w-3" /><span>{{ \App\Support\PersianNumber::digits($listing->images->count()) }}</span></span>
     </div>
     <div class="{{ $isList ? 'w-[60%] basis-[60%] flex-none' : 'min-w-0 flex-1' }}">
     <a href="{{ route('listings.show', $listing) }}" class="block {{ $isList ? 'p-2.5 sm:p-3' : 'p-3.5' }}">
