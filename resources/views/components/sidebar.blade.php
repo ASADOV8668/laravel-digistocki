@@ -2,14 +2,14 @@
 @php($siteTitle = app(\App\Services\SystemOptions::class)->get('site_title'))
 
 <aside id="public-sidebar" data-drawer-backdrop="true" data-drawer-placement="left" role="dialog" aria-modal="true"
-    class="fixed left-0 top-0 z-50 h-screen w-80 max-w-[85vw] -translate-x-full overflow-y-auto bg-white p-5 shadow-2xl transition-transform focus:outline-none"
+    class="fixed left-0 top-0 z-50 h-screen w-80 max-w-[85vw] -translate-x-full overflow-y-auto bg-white p-5 shadow-2xl transition-transform focus:outline-none dark:bg-slate-900"
     tabindex="-1" aria-labelledby="public-sidebar-title">
     <div class="mb-7 flex items-center justify-between">
         <h2 id="public-sidebar-title" class="sr-only">منوی اصلی</h2>
         <x-logo />
         <button type="button" data-drawer-hide="public-sidebar" data-tooltip-target="public-sidebar-close-tooltip"
             aria-controls="public-sidebar" aria-label="بستن منو"
-            class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-x-mark
+            class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-400 dark:hover:bg-slate-800"><x-heroicon-o-x-mark
                 class="h-6 w-6" /></button>
         <div id="public-sidebar-close-tooltip" role="tooltip"
             class="invisible absolute z-10 rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white opacity-0 shadow-sm">
@@ -18,7 +18,7 @@
     </div>
 
     @auth
-        <div class="mb-6 rounded-lg bg-neutral p-4 text-white">
+        <div class="mb-6 rounded-lg bg-neutral p-4 text-white dark:bg-slate-800">
             <div class="mb-2 flex items-center gap-3">
                 <div class="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-lg font-black">
                     {{ mb_substr(auth()->user()->name, 0, 1) }}</div>
@@ -30,47 +30,53 @@
         </div>
     @else
         <div class="mb-6 rounded-lg bg-primary-50 p-4">
-            <p class="font-bold text-neutral">به {{ $siteTitle }} خوش آمدید</p><a href="{{ route('login') }}"
+            <p class="font-bold text-neutral dark:text-slate-100">به {{ $siteTitle }} خوش آمدید</p><a href="{{ route('login') }}"
                 class="mt-2 inline-flex text-sm font-bold text-primary">ورود به حساب</a>
         </div>
     @endauth
 
     <nav class="space-y-1" aria-label="ناوبری اصلی">
         <a href="{{ url('/') }}"
-            class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-home
+                class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10"><x-heroicon-o-home
                 class="h-5 w-5" /> خانه</a>
         @auth
             @if (auth()->user()->storefront?->isPubliclyEnabled())
                 <a href="{{ url('/dashboard') }}"
-                    class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-rectangle-stack
+                    class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10"><x-heroicon-o-rectangle-stack
                         class="h-5 w-5" /> آگهی‌های من</a>
             @endif
             <a href="{{ route('notifications.index') }}"
-                class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-bell
+                class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10"><x-heroicon-o-bell
                     class="h-5 w-5" /> اعلان‌ها @if ($unreadNotifications)
                     <span data-unread-notifications-badge
                         class="mr-auto rounded-full bg-primary px-2 py-0.5 text-[10px] font-black text-white">{{ $unreadNotifications }}</span>
                 @endif
             </a>
             <a href="{{ route('reports.index') }}"
-                class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-flag
+                class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10"><x-heroicon-o-flag
                     class="h-5 w-5" /> گزارش‌های من</a>
             <a href="{{ route('storefront.edit') }}"
-                class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-building-storefront
+                class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10"><x-heroicon-o-building-storefront
                     class="h-5 w-5" />
                 {{ auth()->user()->storefront?->isApproved() ? 'فروشگاه من' : 'درخواست پنل فروشگاهی' }}</a>
         @endauth
         <a href="{{ auth()->check() ? route('favorites.index') : route('login') }}"
-            class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-heart
+            class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10"><x-heroicon-o-heart
                 class="h-5 w-5" /> علاقه‌مندی‌ها</a>
         <a href="{{ url('/profile') }}"
-            class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-user-circle
+            class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10"><x-heroicon-o-user-circle
                 class="h-5 w-5" /> پروفایل</a>
         <a href="{{ route('support.index') }}"
-            class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20"><x-heroicon-o-chat-bubble-left-right
+            class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10"><x-heroicon-o-chat-bubble-left-right
                 class="h-5 w-5" /> ارتباط با پشتیبانی</a>
 
         @auth
+            <button type="button" data-theme-toggle aria-pressed="false" aria-label="فعال‌کردن حالت شب"
+                class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-right text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10">
+                <x-heroicon-o-moon data-theme-icon-light class="h-5 w-5" />
+                <x-heroicon-o-sun data-theme-icon-dark class="hidden h-5 w-5" />
+                <span data-theme-label>حالت شب</span>
+            </button>
             @if (auth()->user()->isAdmin())
                 <div class="my-3 border-t border-slate-100"></div>
                 <a href="{{ route('admin.dashboard') }}"

@@ -14,20 +14,46 @@
 
 @layer base {
     html { direction: rtl; }
-    body { @apply bg-slate-50 text-brandtext; font-family: 'Vazirmatn', sans-serif; font-synthesis: none; }
+    body { @apply bg-slate-50 text-brandtext dark:bg-slate-950 dark:text-slate-100; font-family: 'Vazirmatn', sans-serif; font-synthesis: none; }
     :where(a, button, input, select, textarea):focus-visible { @apply outline-none ring-4 ring-primary/20 ring-offset-2; }
 }
 
 @layer components {
-    .mobile-shell { @apply mx-auto min-h-screen w-full max-w-md bg-slate-50 shadow-xl; }
+    .mobile-shell { @apply mx-auto min-h-screen w-full max-w-md bg-slate-50 shadow-xl dark:bg-slate-950; }
     .mobile-button { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-primary/20 focus:ring-offset-2; }
-    .public-input { @apply block w-full rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-sm text-neutral shadow-sm transition placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70; }
-    .mobile-shell :where(input[type='text'], input[type='search'], input[type='tel'], input[type='email'], input[type='password'], input[type='number'], textarea) { @apply block w-full rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-sm text-neutral shadow-sm transition placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70; }
-    .public-select { @apply block w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70; }
-    .public-check { @apply h-4 w-4 rounded border-slate-300 bg-slate-100 text-primary focus:outline-none focus:ring-4 focus:ring-primary/20; }
-    .public-file { @apply block w-full cursor-pointer rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-500 file:me-4 file:border-0 file:bg-primary-50 file:px-4 file:py-2.5 file:text-sm file:font-bold file:text-primary hover:file:bg-primary-100; }
+    .public-input { @apply block w-full rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-sm text-neutral shadow-sm transition placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:disabled:bg-slate-800; }
+    .mobile-shell :where(input[type='text'], input[type='search'], input[type='tel'], input[type='email'], input[type='password'], input[type='number'], textarea) { @apply block w-full rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-sm text-neutral shadow-sm transition placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:disabled:bg-slate-800; }
+    .public-select { @apply block w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:disabled:bg-slate-800; }
+    .public-check { @apply h-4 w-4 rounded border-slate-300 bg-slate-100 text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:border-slate-600 dark:bg-slate-800; }
+    .public-file { @apply block w-full cursor-pointer rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-500 file:me-4 file:border-0 file:bg-primary-50 file:px-4 file:py-2.5 file:text-sm file:font-bold file:text-primary hover:file:bg-primary-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:file:bg-primary/10 dark:file:text-primary; }
     .price-range { pointer-events: none; appearance: none; background: transparent; }
     .price-range::-webkit-slider-thumb { pointer-events: auto; appearance: none; width: 1.25rem; height: 1.25rem; border: 3px solid #ffffff; border-radius: 9999px; background: #eb073f; box-shadow: 0 2px 8px rgb(15 23 42 / 0.2); cursor: grab; }
     .price-range::-moz-range-thumb { pointer-events: auto; width: 1.25rem; height: 1.25rem; border: 3px solid #ffffff; border-radius: 9999px; background: #eb073f; box-shadow: 0 2px 8px rgb(15 23 42 / 0.2); cursor: grab; }
     .price-range:focus-visible { outline: 2px solid #eb073f; outline-offset: 4px; }
+}
+
+@layer utilities {
+    /* Shared public overrides keep Flowbite cards and partials consistent in dark mode. */
+    html.dark .text-neutral,
+    html.dark .text-brandtext { color: theme('colors.slate.100'); }
+    html.dark .text-slate-950,
+    html.dark .text-slate-900,
+    html.dark .text-slate-800,
+    html.dark .text-slate-700 { color: theme('colors.slate.100'); }
+    html.dark .text-slate-600 { color: theme('colors.slate.300'); }
+    html.dark .text-slate-500 { color: theme('colors.slate.400'); }
+    html.dark .text-slate-400 { color: theme('colors.slate.500'); }
+    html.dark .border-slate-100,
+    html.dark .border-slate-200,
+    html.dark .border-slate-300 { border-color: theme('colors.slate.700'); }
+    html.dark .bg-white { background-color: theme('colors.slate.900'); }
+    html.dark .bg-slate-50 { background-color: theme('colors.slate.950'); }
+    html.dark .bg-slate-100 { background-color: theme('colors.slate.800'); }
+    html.dark .bg-slate-200 { background-color: theme('colors.slate.700'); }
+    html.dark .hover\:bg-slate-50:hover { background-color: theme('colors.slate.800'); }
+    html.dark .hover\:bg-slate-100:hover { background-color: theme('colors.slate.800'); }
+    html.dark .bg-primary-50 { background-color: rgb(235 7 63 / 0.12); }
+    html.dark .bg-primary-100 { background-color: rgb(235 7 63 / 0.18); }
+    html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+    html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-color: theme('colors.slate.700'); }
 }

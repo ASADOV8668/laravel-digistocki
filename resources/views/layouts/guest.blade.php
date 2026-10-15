@@ -20,13 +20,20 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="apple-touch-icon" sizes="192x192" href="{{ asset('images/logo-192.png') }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">@vite(['resources/css/app.css', 'resources/js/app.js'])
+    <meta name="mobile-web-app-capable" content="yes">
+    <script>
+        (() => {
+            const theme = document.cookie.match(/(?:^|;\s*)public_theme=([^;]+)/)?.[1];
+            document.documentElement.classList.toggle('dark', theme === 'dark');
+            document.documentElement.dataset.theme = theme === 'dark' ? 'dark' : 'light';
+        })();
+    </script>@vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans text-neutral antialiased">
-    <div class="min-h-screen bg-slate-50 px-4 py-6 sm:flex sm:items-center sm:justify-center sm:py-10">
+<body class="bg-slate-50 font-sans text-neutral antialiased dark:bg-slate-950 dark:text-slate-100">
+    <div class="min-h-screen bg-slate-50 px-4 py-6 dark:bg-slate-950 sm:flex sm:items-center sm:justify-center sm:py-10">
         <div
-            class="grid w-full max-w-4xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg sm:grid-cols-[0.85fr_1.15fr]">
+            class="grid w-full max-w-4xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900 sm:grid-cols-[0.85fr_1.15fr]">
             <div class="relative hidden overflow-hidden bg-slate-900 p-8 text-white sm:block">
                 <div class="absolute -left-16 -top-16 h-48 w-48 rounded-full bg-primary/25 blur-3xl"></div>
                 <div class="absolute -bottom-16 -right-16 h-48 w-48 rounded-full bg-secondary/15 blur-3xl"></div>
@@ -46,12 +53,15 @@
                 </div>
             </div>
             <div class="p-5 sm:p-9">
-                <div class="mb-7 flex items-center justify-between sm:hidden"><x-logo /><a href="{{ route('home') }}"
-                        class="rounded-lg bg-slate-100 p-2 text-slate-500" aria-label="بازگشت"><x-heroicon-o-arrow-left
-                            class="h-5 w-5" /></a></div>
+                <div class="mb-7 flex items-center justify-between sm:hidden"><x-logo /><div class="flex items-center gap-1"><button
+                            type="button" data-theme-toggle aria-pressed="false" aria-label="فعال‌کردن حالت شب"
+                            class="rounded-lg p-2 text-slate-500 dark:text-slate-300" ><x-heroicon-o-moon data-theme-icon-light
+                                class="h-5 w-5" /><x-heroicon-o-sun data-theme-icon-dark class="hidden h-5 w-5" /></button><a href="{{ route('home') }}"
+                        class="rounded-lg bg-slate-100 p-2 text-slate-500 dark:bg-slate-800 dark:text-slate-300" aria-label="بازگشت"><x-heroicon-o-arrow-left
+                            class="h-5 w-5" /></a></div></div>
                 <div class="mb-6">
                     <p class="text-xs font-bold text-primary">{{ $systemOptions->get('site_title') }}</p>
-                    <h1 class="mt-2 text-2xl font-black text-neutral">{{ $title }}</h1>
+                    <h1 class="mt-2 text-2xl font-black text-neutral dark:text-slate-100">{{ $title }}</h1>
                     <p class="mt-2 text-xs text-slate-400">اطلاعاتت را وارد کن تا ادامه بدهیم.</p>
                 </div>{{ $slot }}
             </div>

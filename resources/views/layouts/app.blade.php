@@ -33,14 +33,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <script>
+        (() => {
+            const theme = document.cookie.match(/(?:^|;\s*)public_theme=([^;]+)/)?.[1];
+            document.documentElement.classList.toggle('dark', theme === 'dark');
+            document.documentElement.dataset.theme = theme === 'dark' ? 'dark' : 'light';
+        })();
+    </script>
     @stack('head')
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans antialiased">
-    <div class="mobile-shell relative pb-24">
+<body class="bg-slate-50 font-sans text-brandtext antialiased dark:bg-slate-950 dark:text-slate-100">
+    <div class="mobile-shell relative pb-24 dark:bg-slate-950">
         <div x-data="networkStatus()" x-init="init()" x-cloak x-show="!online" x-transition
             class="fixed inset-x-4 top-3 z-[60] mx-auto flex max-w-md items-center gap-3 rounded-lg border border-warning/30 bg-warning-50 px-4 py-3 text-sm font-bold text-amber-900 shadow-lg"
             role="status" aria-live="polite">
@@ -51,7 +58,7 @@
             @if (session('status') === 'password-updated') x-init="show({ title: 'رمز عبور تغییر کرد', message: 'رمز عبور شما با موفقیت ذخیره شد.', tone: 'success' })" @endif
             x-cloak
             x-show="visible" x-transition
-            :class="tone === 'success' ? 'border-success bg-success text-white' : tone === 'error' ? 'border-error/20 bg-white text-slate-500' : 'border-slate-200 bg-white text-slate-500'"
+            :class="tone === 'success' ? 'border-success bg-success text-white' : tone === 'error' ? 'border-error/20 bg-white text-slate-500 dark:bg-slate-900 dark:text-slate-300' : 'border-slate-200 bg-white text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'"
             class="fixed inset-x-4 top-20 z-[70] mx-auto flex max-w-md items-center rounded-lg border p-4 shadow-lg"
             role="status" aria-live="polite">
             <div class="relative flex w-full items-start gap-3 pl-8"><span

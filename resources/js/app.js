@@ -10,6 +10,40 @@ import './persian-digits';
 window.Alpine = Alpine;
 window.refreshFlowbiteTooltips = () => initTooltips();
 
+const publicThemeCookie = 'public_theme';
+const publicThemeMaxAge = 60 * 60 * 24 * 365;
+
+const readPublicTheme = () => document.cookie.match(new RegExp(`(?:^|;\\s*)${publicThemeCookie}=([^;]+)`))?.[1] === 'dark' ? 'dark' : 'light';
+
+const syncPublicThemeControls = () => {
+    const theme = readPublicTheme();
+    const isDark = theme === 'dark';
+    document.documentElement.classList.toggle('dark', isDark);
+    document.documentElement.dataset.theme = theme;
+    document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
+        toggle.setAttribute('aria-pressed', String(isDark));
+        toggle.setAttribute('aria-label', isDark ? 'فعال‌کردن حالت روز' : 'فعال‌کردن حالت شب');
+        toggle.querySelector('[data-theme-icon-light]')?.classList.toggle('hidden', isDark);
+        toggle.querySelector('[data-theme-icon-dark]')?.classList.toggle('hidden', !isDark);
+        const label = toggle.querySelector('[data-theme-label]');
+        if (label) label.textContent = isDark ? 'حالت روز' : 'حالت شب';
+    });
+};
+
+window.setPublicTheme = (theme) => {
+    const nextTheme = theme === 'dark' ? 'dark' : 'light';
+    document.cookie = `${publicThemeCookie}=${nextTheme}; Max-Age=${publicThemeMaxAge}; Path=/; SameSite=Lax`;
+    syncPublicThemeControls();
+};
+
+document.addEventListener('click', (event) => {
+    const toggle = event.target.closest('[data-theme-toggle]');
+    if (!toggle) return;
+    window.setPublicTheme(readPublicTheme() === 'dark' ? 'light' : 'dark');
+});
+
+document.addEventListener('DOMContentLoaded', syncPublicThemeControls);
+
 document.addEventListener('click', (event) => {
     const link = event.target.closest('[data-listing-view-link]');
     if (!link) return;

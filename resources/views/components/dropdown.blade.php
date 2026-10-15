@@ -1,4 +1,4 @@
-@props(['align' => 'right', 'width' => '48', 'contentClasses' => 'py-1 bg-white'])
+@props(['align' => 'right', 'width' => '48', 'contentClasses' => 'py-1 bg-white dark:bg-slate-900'])
 
 @php
     $alignmentClasses = match ($align) {
@@ -22,7 +22,7 @@
     </div>
 
     <div id="{{ $dropdownId }}"
-        class="z-50 hidden {{ $width }} rounded-lg border border-slate-200 bg-white shadow-lg {{ $alignmentClasses }}"
+        class="z-50 hidden {{ $width }} rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900 {{ $alignmentClasses }}"
         role="menu">
         <div class="rounded-lg p-1 {{ $contentClasses }}">
             {{ $content }}
