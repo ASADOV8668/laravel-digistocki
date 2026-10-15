@@ -20,8 +20,13 @@
                     class="rounded-lg p-2 text-neutral transition-all duration-300 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-slate-800">
                     <x-heroicon-o-arrow-left class="h-6 w-6" />
                 </button>
+            @elseif (auth()->check() && app(\App\Services\ListingRules::class)->canCreate(auth()->user()))
+                <a href="{{ route('profile.edit') }}" aria-label="پروفایل"
+                    class="rounded-lg p-2 text-neutral transition-all duration-300 hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10">
+                    <x-heroicon-o-user class="h-5 w-5" />
+                </a>
             @elseif (auth()->check())
-                <a href="{{ auth()->check() ? route('notifications.index') : route('login') }}" aria-label="اعلان‌ها"
+                <a href="{{ route('notifications.index') }}" aria-label="اعلان‌ها"
                     class="relative rounded-lg p-2 text-neutral transition-all duration-300 hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10">
                     <x-heroicon-o-bell class="h-5 w-5" />
                     @if (auth()->check() && $unreadNotifications)
