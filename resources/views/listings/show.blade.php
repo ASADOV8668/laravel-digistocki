@@ -338,20 +338,20 @@
             </div>
         </div>
 
-        @auth
-            @if (!$listing->isOwnedBy(auth()->user()))
-                <div id="listing-report-accordion" data-accordion="collapse"
-                    class="rounded-lg bg-white shadow-sm border border-slate-200">
-                    <h2 id="listing-report-heading">
-                        <button type="button" data-accordion-target="#listing-report-panel" aria-expanded="false"
-                            aria-controls="listing-report-panel"
-                            class="flex w-full items-center justify-between gap-3 p-5 text-right text-sm font-black text-neutral hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-primary/10">
-                            <span class="flex items-center gap-2"><x-heroicon-o-flag class="h-5 w-5 text-error" /> گزارش
-                                مشکل در این آگهی</span>
-                            <x-heroicon-o-chevron-down class="h-5 w-5 shrink-0 text-slate-400" />
-                        </button>
-                    </h2>
-                    <div id="listing-report-panel" class="hidden" aria-labelledby="listing-report-heading">
+        @if (!auth()->check() || ! $listing->isOwnedBy(auth()->user()))
+            <div id="listing-report-accordion" data-accordion="collapse"
+                class="rounded-lg border border-slate-200 bg-white shadow-sm">
+                <h2 id="listing-report-heading">
+                    <button type="button" data-accordion-target="#listing-report-panel" aria-expanded="false"
+                        aria-controls="listing-report-panel"
+                        class="flex w-full items-center justify-between gap-3 p-5 text-right text-sm font-black text-neutral hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-primary/10">
+                        <span class="flex items-center gap-2"><x-heroicon-o-flag class="h-5 w-5 text-error" /> گزارش
+                            مشکل در این آگهی</span>
+                        <x-heroicon-o-chevron-down class="h-5 w-5 shrink-0 text-slate-400" />
+                    </button>
+                </h2>
+                <div id="listing-report-panel" class="hidden" aria-labelledby="listing-report-heading">
+                    @auth
                         <form method="POST" action="{{ route('listings.report', $listing) }}"
                             class="space-y-3 border-t border-slate-100 p-5">@csrf
                             <label for="listing-report-reason" class="sr-only">دلیل گزارش</label><select
@@ -368,10 +368,19 @@
                             <button class="w-full rounded-lg bg-error px-4 py-3 text-sm font-bold text-white">ثبت
                                 گزارش</button>
                         </form>
-                    </div>
+                    @else
+                        <div class="border-t border-slate-100 p-5">
+                            <p class="text-sm leading-7 text-slate-500">برای ثبت گزارش این آگهی ابتدا وارد سیستم شوید.</p>
+                            <button type="button"
+                                @click="$dispatch('show-notification', { title: 'ورود لازم است', message: 'برای ثبت گزارش آگهی ابتدا وارد سیستم شوید.', tone: 'error' })"
+                                class="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-error px-4 py-3 text-sm font-bold text-white transition hover:bg-error/90">
+                                <x-heroicon-o-lock-closed class="h-5 w-5" /> ورود برای ثبت گزارش
+                            </button>
+                        </div>
+                    @endauth
                 </div>
-            @endif
-        @endauth
+            </div>
+        @endif
 
         @if ($relatedListings->isNotEmpty())
             @php

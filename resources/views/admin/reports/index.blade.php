@@ -110,14 +110,21 @@
     }
 )
                             @php($reportOptions = $reportStatusOptions[$report->id] ?? [$report->status => $statusLabels[$report->status] ?? $report->status])
+                            @php($listingUrl = $report->listing ? route('listings.show', $report->listing) : null)
                             <tr class="transition hover:bg-slate-50">
                                 <td class="px-5 py-4">
                                     <p class="font-black text-slate-800">{{ $report->reason }}</p>
                                     <p class="mt-1 text-xs text-slate-400">#{{ $report->id }}</p>
                                 </td>
                                 <td class="px-5 py-4">
-                                    <p class="font-bold text-slate-700">
-                                        {{ $report->listing?->title ?? 'آگهی حذف‌شده' }}</p>
+                                    @if ($listingUrl)
+                                        <a href="{{ $listingUrl }}" target="_blank" rel="noopener noreferrer"
+                                            class="font-bold text-primary transition hover:text-primary-600 hover:underline">
+                                            {{ $report->listing->title }}
+                                        </a>
+                                    @else
+                                        <p class="font-bold text-slate-500">آگهی حذف‌شده</p>
+                                    @endif
                                     <p class="mt-1 text-xs text-slate-400">{{ $report->user->name }}</p>
                                 </td>
                                 <td class="max-w-[260px] px-5 py-4">
@@ -171,12 +178,20 @@
     }
 )
                     @php($reportOptions = $reportStatusOptions[$report->id] ?? [$report->status => $statusLabels[$report->status] ?? $report->status])
+                    @php($listingUrl = $report->listing ? route('listings.show', $report->listing) : null)
                     <article class="p-5">
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <h2 class="font-black text-slate-800">{{ $report->reason }}</h2>
                                 <p class="mt-1 text-xs text-slate-400">
-                                    {{ $report->listing?->title ?? 'آگهی حذف‌شده' }} · {{ $report->user->name }}</p>
+                                    @if ($listingUrl)
+                                        <a href="{{ $listingUrl }}" target="_blank" rel="noopener noreferrer"
+                                            class="font-bold text-primary hover:underline">{{ $report->listing->title }}</a>
+                                    @else
+                                        <span>آگهی حذف‌شده</span>
+                                    @endif
+                                    · {{ $report->user->name }}
+                                </p>
                                 <p class="mt-2 text-[11px] text-slate-400">
                                     {{ \App\Support\PersianDate::format($report->created_at) }} ·
                                     {{ \App\Support\PersianDate::human($report->created_at) }}</p>
