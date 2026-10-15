@@ -20,15 +20,19 @@
             {{ ['newest' => 'جدیدترین', 'price_asc' => 'ارزان‌ترین', 'price_desc' => 'گران‌ترین', 'views' => 'پربازدیدترین'][$sort] }}
         </p>
     </div>
-    <span class="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600">
-        {{ number_format($listings->total()) }} نتیجه
-    </span>
+    <div class="flex items-center gap-2">
+        <span class="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600">
+            {{ number_format($listings->total()) }} نتیجه
+        </span>
+        <x-listing-view-switcher />
+    </div>
 </div>
 
 @if ($listings->count())
+    @php($listingView = in_array(request()->input('view', request()->cookie('listing_view', 'list')), ['list', 'grid'], true) ? request()->input('view', request()->cookie('listing_view', 'list')) : 'list')
     <div data-listing-feed data-pagination-mode="{{ $paginationMode }}"
         data-next-page-url="{{ $listings->nextPageUrl() ?? '' }}">
-        <div data-listing-items class="grid grid-cols-2 gap-4 lg:grid-cols-2">
+        <div data-listing-items class="{{ $listingView === 'list' ? 'space-y-3' : 'grid grid-cols-2 gap-4 lg:grid-cols-2' }}">
             @include('listings.partials.cards', ['listings' => $listings])
         </div>
 
@@ -37,7 +41,7 @@
                 {{ $listings->links('vendor.pagination.flowbite') }}
             </div>
         @else
-            <div data-infinite-skeleton hidden class="mt-4 grid grid-cols-2 gap-4" aria-live="polite">
+            <div data-infinite-skeleton hidden class="{{ $listingView === 'list' ? 'space-y-3' : 'mt-4 grid grid-cols-2 gap-4' }}" aria-live="polite">
                 @for ($index = 0; $index < 4; $index++)
                     <div class="animate-pulse overflow-hidden rounded-lg border border-slate-200 bg-white">
                         <div class="h-48 bg-slate-200"></div>

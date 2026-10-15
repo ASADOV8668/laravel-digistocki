@@ -212,7 +212,8 @@
                 <div>
                     <h2 class="text-lg font-black text-neutral">آخرین آگهی‌ها</h2>
                     <p class="mt-1 text-xs text-slate-400">تازه‌ترین فرصت‌های خرید موبایل</p>
-                </div><a href="{{ route('listings.index') }}" class="text-xs font-bold text-primary">مشاهده همه</a>
+                </div>
+                <x-listing-view-switcher />
             </div>
             @include('home.partials.latest-listings', [
                 'latestListings' => $latestListings,

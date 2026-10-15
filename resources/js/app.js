@@ -10,6 +10,16 @@ import './persian-digits';
 window.Alpine = Alpine;
 window.refreshFlowbiteTooltips = () => initTooltips();
 
+document.addEventListener('click', (event) => {
+    const link = event.target.closest('[data-listing-view-link]');
+    if (!link) return;
+
+    const view = link.dataset.view;
+    if (!['list', 'grid'].includes(view)) return;
+
+    document.cookie = `listing_view=${view}; Max-Age=${60 * 60 * 24 * 365}; Path=/; SameSite=Lax`;
+});
+
 const initListingCarouselGestures = () => {
     document.querySelectorAll('[data-listing-carousel]').forEach((carousel) => {
         if (carousel.dataset.gestureReady === 'true') return;

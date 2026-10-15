@@ -1,5 +1,8 @@
 @props(['listing'])
 @php
+    $listingView = in_array(request()->input('view', request()->cookie('listing_view', 'list')), ['list', 'grid'], true)
+        ? request()->input('view', request()->cookie('listing_view', 'list'))
+        : 'list';
     $image = $listing->primaryImage ?? $listing->images->first();
     $isFavorited = filter_var($listing->is_favorited ?? false, FILTER_VALIDATE_BOOLEAN);
     $allCardAttributes = collect($listing->attributeValues ?? [])
@@ -25,12 +28,13 @@
         ->take(2);
 @endphp
 <article x-data="favoriteToggle('{{ route('listings.favorite.toggle', $listing) }}', {{ $isFavorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }})"
-    class="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/5">
-    <div class="relative overflow-hidden bg-slate-100">
+    dir="rtl"
+    class="group {{ $listingView === 'list' ? 'listing-card--list flex flex-row' : 'listing-card--grid' }} overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/5">
+    <div class="relative shrink-0 overflow-hidden bg-slate-100 {{ $listingView === 'list' ? 'h-36 w-36 sm:h-44 sm:w-52' : 'h-40 w-full' }}">
         <a href="{{ route('listings.show', $listing) }}" class="block">
             <img src="{{ $image ? asset('storage/' . ($image->thumbnail_path ?: $image->path)) : asset('images/listing-placeholder.svg') }}"
                 alt="{{ $image ? $listing->title : 'تصویر پیش‌فرض آگهی موبایل' }}"
-                class="h-40 w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy"
+                class="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy"
                 decoding="async">
         </a>
         <button type="button" @click.stop.prevent="toggle" :aria-pressed="favorited.toString()"
@@ -44,6 +48,7 @@
             aria-label="{{ \App\Support\PersianNumber::digits($listing->images->count()) }} تصویر"><x-heroicon-o-camera
                 class="h-3.5 w-3.5" /><span>{{ \App\Support\PersianNumber::digits($listing->images->count()) }}</span></span>
     </div>
+    <div class="min-w-0 flex-1">
     <a href="{{ route('listings.show', $listing) }}" class="block p-3.5">
         <h3 class="line-clamp-2 min-h-10 text-sm font-black leading-5 text-neutral">{{ $listing->title }}</h3>
         <p class="mt-2 truncate text-[11px] text-slate-500">{{ $listing->brand->name }} ·
@@ -78,4 +83,5 @@
             </span>
         </div>
     @endif
+    </div>
 </article>

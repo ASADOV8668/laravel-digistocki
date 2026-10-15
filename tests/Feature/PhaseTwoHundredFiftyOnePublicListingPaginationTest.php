@@ -181,6 +181,57 @@ class PhaseTwoHundredFiftyOnePublicListingPaginationTest extends TestCase
         }
     }
 
+    public function test_public_listing_views_default_to_list_and_respect_the_one_year_view_cookie(): void
+    {
+        $seller = User::factory()->create();
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+        $store = SellerStore::create([
+            'user_id' => $seller->id,
+            'slug' => 'view-mode-shop',
+            'name' => 'فروشگاه انتخاب نما',
+            'is_enabled' => true,
+            'approval_status' => 'approved',
+        ]);
+        Listing::create([
+            'user_id' => $seller->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی انتخاب نما',
+            'slug' => Str::uuid(),
+            'price' => 15000000,
+            'status' => ListingStatus::Approved,
+            'published_at' => now(),
+        ]);
+
+        $this->get(route('listings.index', ['q' => 'آیفون']))
+            ->assertOk()
+            ->assertSee('data-listing-view-link', false)
+            ->assertSee('data-view="list"', false)
+            ->assertSee('data-view="grid"', false)
+            ->assertSee('q=%D8%A2%DB%8C%D9%81%D9%88%D9%86', false)
+            ->assertSee('listing-card--list', false);
+
+        $this->withCookie('listing_view', 'grid')
+            ->get(route('listings.index'))
+            ->assertOk()
+            ->assertSee('aria-current="page"', false)
+            ->assertSee('listing-card--grid', false)
+            ->assertSee('grid-cols-2', false);
+
+        $this->withCookie('listing_view', 'grid')
+            ->get(route('storefront.show', $store))
+            ->assertOk()
+            ->assertSee('listing-card--grid', false)
+            ->assertSee('data-view="grid"', false);
+
+        $this->withCookie('listing_view', 'grid')
+            ->get(route('home'))
+            ->assertOk()
+            ->assertSee('data-listing-view-link', false)
+            ->assertSee('listing-card--grid', false);
+    }
+
     /** @return array<string, mixed> */
     private function queryParameters(string $url): array
     {
