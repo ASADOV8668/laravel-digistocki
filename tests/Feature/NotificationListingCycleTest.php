@@ -6,8 +6,10 @@ use App\Enums\ListingStatus;
 use App\Models\Brand;
 use App\Models\Listing;
 use App\Models\PhoneModel;
+use App\Models\SellerStore;
 use App\Models\User;
 use App\Notifications\ListingStatusNotification;
+use App\Notifications\StorefrontStatusNotification;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -82,6 +84,27 @@ class NotificationListingCycleTest extends TestCase
             ->assertSee('<textarea', false)
             ->assertSee('name="rejection_reason"', false)
             ->assertDontSee('<input name="rejection_reason"', false);
+    }
+
+    public function test_storefront_correction_notification_does_not_render_a_listing_action(): void
+    {
+        $owner = User::factory()->create();
+        $store = SellerStore::create([
+            'user_id' => $owner->id,
+            'slug' => 'store-correction-notification',
+            'name' => 'فروشگاه نیازمند اصلاح',
+            'approval_status' => 'rejected',
+            'is_enabled' => false,
+        ]);
+
+        $owner->notify(new StorefrontStatusNotification($store, 'rejected', 'تصویر جواز خوانا نیست.'));
+
+        $this->actingAs($owner)
+            ->get(route('notifications.index'))
+            ->assertOk()
+            ->assertSee('درخواست فروشگاه نیاز به اصلاح دارد')
+            ->assertSee('ویرایش درخواست فروشگاه')
+            ->assertDontSee('مشاهده آگهی', false);
     }
 
     private function context(): array
