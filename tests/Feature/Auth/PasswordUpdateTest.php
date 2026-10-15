@@ -42,6 +42,8 @@ class PasswordUpdateTest extends TestCase
             ->assertSee('رمز عبور تغییر کرد')
             ->assertSee('رمز عبور شما با موفقیت ذخیره شد.')
             ->assertSee('x-init="show(', false)
+            ->assertSee("tone === 'success' ? 'border-success bg-success text-white'", false)
+            ->assertSee('absolute left-0 top-0', false)
             ->assertDontSee('show-notification.window', false);
     }
 
