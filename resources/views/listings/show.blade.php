@@ -339,9 +339,29 @@
             </div>
             <div class="mt-5 border-t border-white/10 pt-4">
                 @if ($contactRevealed)
-                    <a href="tel:{{ $listing->user->mobile }}"
-                        class="flex w-full items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-4 text-sm font-black text-white transition hover:bg-secondary/90"><x-heroicon-o-phone
-                            class="h-5 w-5" /> {{ $listing->user->mobile }}</a>
+                    @php
+                        $sellerMobile = $listing->user->mobile;
+                        $smsMessage = "دیجی استوکی ، بابت آگهی {$listing->title} نیاز به ارتباط با شما دارم.";
+                    @endphp
+                    <div class="grid gap-2 sm:grid-cols-3">
+                        <a href="tel:{{ $sellerMobile }}" dir="rtl"
+                            class="flex min-h-14 items-center justify-center gap-2 rounded-lg bg-secondary px-3 py-3 text-sm font-black text-white transition hover:bg-secondary/90">
+                            <x-heroicon-o-phone class="h-5 w-5 shrink-0" />
+                            <span>تماس تلفنی</span>
+                            <span dir="ltr" class="text-xs font-bold text-white/80">{{ $sellerMobile }}</span>
+                        </a>
+                        <a href="sms:{{ $sellerMobile }}?body={{ rawurlencode($smsMessage) }}" dir="rtl"
+                            class="flex min-h-14 items-center justify-center gap-2 rounded-lg bg-primary px-3 py-3 text-sm font-black text-white transition hover:bg-primary-600">
+                            <x-heroicon-o-chat-bubble-left-right class="h-5 w-5 shrink-0" />
+                            <span>پیامک</span>
+                        </a>
+                        <button type="button" disabled aria-disabled="true"
+                            class="flex min-h-14 cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-3 text-sm font-black text-white/50">
+                            <x-heroicon-o-chat-bubble-left-right class="h-5 w-5 shrink-0" />
+                            <span>چت با فروشنده</span>
+                            <span class="text-[10px] font-bold text-white/40">به‌زودی</span>
+                        </button>
+                    </div>
                 @elseif (auth()->check())
                     <p class="mb-3 text-xs leading-6 text-white/60">برای حفظ امنیت، شماره تماس بعد از تأیید شماره
                         موبایل شما نمایش داده می‌شود.</p>
