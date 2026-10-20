@@ -27,13 +27,13 @@ class AttributeController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        $phoneModels = PhoneModel::query()
+        // Keep the full model list out of the page HTML. The visibility picker
+        // loads models on demand from the AJAX endpoint below.
+        $activeModelIds = PhoneModel::query()
             ->where('is_active', true)
-            ->with('brand:id,name,name_en')
-            ->orderBy('brand_id')
-            ->orderBy('name')
-            ->get(['id', 'brand_id', 'name', 'name_fa', 'name_en']);
-        $activeModelIds = $phoneModels->pluck('id')->map(fn ($id): int => (int) $id)->all();
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
         $attributes->getCollection()->each(function (ListingAttribute $attribute) use ($activeModelIds): void {
             $selectedModelIds = array_map('intval', $attribute->visibility_model_ids ?? []);
             $attribute->visible_model_count = match ($attribute->visibility_rule ?: 'all') {
@@ -47,28 +47,38 @@ class AttributeController extends Controller
             'attributes' => $attributes,
             'types' => AttributeType::cases(),
             'perPageOptions' => $perPageOptions,
-            'phoneModels' => $phoneModels,
         ]);
     }
 
     public function models(Request $request): JsonResponse
     {
         $query = trim((string) $request->input('q'));
+        $selectedIds = collect((array) $request->input('selected_ids', []))
+            ->map(fn ($id): int => (int) $id)
+            ->filter()
+            ->values()
+            ->all();
 
         return response()->json(PhoneModel::query()
             ->where('is_active', true)
             ->with('brand:id,name,name_en')
-            ->when($query !== '', function ($builder) use ($query): void {
-                $builder->where(function ($builder) use ($query): void {
-                    $builder->where('name', 'like', '%'.$query.'%')
-                        ->orWhere('name_fa', 'like', '%'.$query.'%')
-                        ->orWhere('name_en', 'like', '%'.$query.'%')
-                        ->orWhereHas('brand', fn ($brand) => $brand->where('name', 'like', '%'.$query.'%')->orWhere('name_en', 'like', '%'.$query.'%'));
+            ->when($query !== '' || $selectedIds !== [], function ($builder) use ($query, $selectedIds): void {
+                $builder->where(function ($builder) use ($query, $selectedIds): void {
+                    if ($query !== '') {
+                        $builder->where('name', 'like', '%'.$query.'%')
+                            ->orWhere('name_fa', 'like', '%'.$query.'%')
+                            ->orWhere('name_en', 'like', '%'.$query.'%')
+                            ->orWhereHas('brand', fn ($brand) => $brand->where('name', 'like', '%'.$query.'%')->orWhere('name_en', 'like', '%'.$query.'%'));
+                    }
+
+                    if ($selectedIds !== []) {
+                        $builder->orWhereIn('id', $selectedIds);
+                    }
                 });
             })
             ->orderBy('brand_id')
             ->orderBy('name')
-            ->limit(100)
+            ->limit(200)
             ->get(['id', 'brand_id', 'name', 'name_fa', 'name_en'])
             ->map(fn (PhoneModel $model): array => [
                 'id' => $model->id,

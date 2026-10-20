@@ -1,10 +1,3 @@
-@php
-    $phoneModelsPayload = $phoneModels->map(fn ($model) => [
-        'id' => $model->id,
-        'label' => ($model->brand?->name ?: $model->brand?->name_en).' · '.($model->name_fa ?: $model->name),
-        'search' => implode(' ', array_filter([$model->brand?->name, $model->brand?->name_en, $model->name, $model->name_fa, $model->name_en])),
-    ])->values()->all();
-@endphp
 <x-admin-layout title="ویژگی‌های گوشی">
     <x-slot name="header">
         <div class="flex items-center gap-3"><span

@@ -14,6 +14,7 @@
     <main class="mx-auto flex min-h-screen max-w-3xl items-center justify-center px-6 py-16">
         <section
             class="w-full overflow-hidden rounded-lg border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-200/60 sm:p-14">
+            <img src="{{ asset('images/logo.png') }}" alt="دیجی‌استوکی" class="mx-auto mb-8 h-20 w-20 object-contain">
             <div
                 class="mx-auto flex h-24 w-24 items-center justify-center rounded-lg bg-amber-50 text-3xl font-black text-amber-500">
                 ۵۰۰</div>

@@ -27,20 +27,66 @@ window.adminToast = () => ({
     },
 });
 
-window.attributeVisibilityPicker = (models = [], selected = [], initialRule = 'all') => ({
-    models,
+window.attributeVisibilityPicker = (endpoint, selected = [], initialRule = 'all') => ({
+    endpoint,
+    models: [],
     selected: (selected || []).map((id) => String(id)),
     query: '',
     rule: initialRule || 'all',
+    loading: false,
+    error: '',
+    timer: null,
+    controller: null,
 
     init() {
         this.rule = initialRule || this.$root.querySelector('select[name="visibility_rule"]')?.value || 'all';
+        this.$watch('query', () => this.scheduleLoad());
+        this.$watch('rule', (value) => {
+            if (value === 'all') {
+                this.models = [];
+                this.error = '';
+                return;
+            }
+
+            this.loadModels();
+        });
+
+        if (this.rule !== 'all') this.loadModels();
     },
 
-    filteredModels() {
-        const term = String(this.query || '').trim().toLocaleLowerCase();
-        if (!term) return this.models;
-        return this.models.filter((model) => String(model.search || model.label).toLocaleLowerCase().includes(term));
+    scheduleLoad() {
+        if (this.rule === 'all') return;
+        clearTimeout(this.timer);
+        this.timer = window.setTimeout(() => this.loadModels(), 250);
+    },
+
+    async loadModels() {
+        if (this.rule === 'all') return;
+        this.controller?.abort();
+        this.controller = new AbortController();
+        this.loading = true;
+        this.error = '';
+
+        const params = new URLSearchParams();
+        const query = String(this.query || '').trim();
+        if (query) params.set('q', query);
+        this.selected.forEach((id) => params.append('selected_ids[]', id));
+
+        try {
+            const response = await fetch(`${this.endpoint}?${params.toString()}`, {
+                headers: { Accept: 'application/json' },
+                signal: this.controller.signal,
+            });
+            if (!response.ok) throw new Error('دریافت فهرست مدل‌ها انجام نشد.');
+            this.models = await response.json();
+        } catch (exception) {
+            if (exception.name !== 'AbortError') {
+                this.models = [];
+                this.error = exception.message || 'دریافت فهرست مدل‌ها انجام نشد.';
+            }
+        } finally {
+            this.loading = false;
+        }
     },
 });
 

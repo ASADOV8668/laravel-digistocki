@@ -80,6 +80,11 @@ class AttributeVisibilityRuleTest extends TestCase
             ->assertOk()
             ->assertSee('شرط نمایش')
             ->assertSee('نام برند یا مدل را جستجو کنید')
-            ->assertSee('انتخاب مدل خاص');
+            ->assertSee('انتخاب مدل خاص')
+            ->assertDontSee('attributeVisibilityPicker([');
+
+        $this->actingAs($admin)->getJson(route('admin.attributes.models', ['q' => $allowedModel->name]))
+            ->assertOk()
+            ->assertJsonFragment(['id' => $allowedModel->id]);
     }
 }
