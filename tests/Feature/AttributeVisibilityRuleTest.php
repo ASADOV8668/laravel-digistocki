@@ -48,8 +48,8 @@ class AttributeVisibilityRuleTest extends TestCase
         $this->assertSame([$visibleModel->id], $attribute->visibility_model_ids);
         $this->assertDatabaseHas('model_attributes', ['phone_model_id' => $visibleModel->id, 'attribute_id' => $attribute->id]);
 
-        $visibleResponse = $this->getJson(route('listings.models.attributes', $visibleModel));
-        $hiddenResponse = $this->getJson(route('listings.models.attributes', $hiddenModel));
+        $visibleResponse = $this->getJson(route('listings.models.attributes', [$visibleModel, 'all' => 1]));
+        $hiddenResponse = $this->getJson(route('listings.models.attributes', [$hiddenModel, 'all' => 1]));
 
         $visibleResponse->assertOk()->assertJsonFragment(['id' => $attribute->id, 'name' => 'ویژگی مخصوص مدل']);
         $hiddenResponse->assertOk()->assertJsonMissing(['id' => $attribute->id]);
@@ -74,10 +74,10 @@ class AttributeVisibilityRuleTest extends TestCase
         ])->assertRedirect();
 
         $this->assertSame('exclude', $attribute->refresh()->visibility_rule);
-        $this->getJson(route('listings.models.attributes', $excludedModel))
+        $this->getJson(route('listings.models.attributes', [$excludedModel, 'all' => 1]))
             ->assertOk()
             ->assertJsonMissing(['id' => $attribute->id]);
-        $this->getJson(route('listings.models.attributes', $allowedModel))
+        $this->getJson(route('listings.models.attributes', [$allowedModel, 'all' => 1]))
             ->assertOk()
             ->assertJsonFragment(['id' => $attribute->id]);
 
@@ -93,7 +93,7 @@ class AttributeVisibilityRuleTest extends TestCase
             ->assertJsonFragment(['id' => $allowedModel->id]);
     }
 
-    public function test_storefront_filter_does_not_expose_an_attribute_outside_its_model_visibility_rule(): void
+    public function test_public_filters_keep_historical_attributes_even_if_visibility_rule_changed_later(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $seller = User::factory()->create();
@@ -145,6 +145,10 @@ class AttributeVisibilityRuleTest extends TestCase
         $this->getJson(route('storefront.models.attributes', [
             'sellerStore' => $store,
             'phoneModel' => $hiddenModel,
-        ]))->assertOk()->assertJsonMissing(['id' => $attribute->id]);
+        ]))->assertOk()->assertJsonFragment(['id' => $attribute->id]);
+
+        $this->getJson(route('listings.models.attributes', $hiddenModel))
+            ->assertOk()
+            ->assertJsonFragment(['id' => $attribute->id]);
     }
 }

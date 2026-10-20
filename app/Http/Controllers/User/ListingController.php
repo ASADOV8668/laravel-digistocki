@@ -134,13 +134,6 @@ class ListingController extends Controller
     {
         abort_unless($phoneModel->is_active, 404);
 
-        $attributes = Attribute::query()
-            ->where('is_active', true)
-            ->visibleForModel($phoneModel->id)
-            ->with('optionRestrictions')
-            ->when(! $request->boolean('all'), fn ($query) => $query->where('is_filterable', true))
-            ->orderBy('sort_order')
-            ->get();
         $activeOnly = $request->input('active_only', '1') !== '0';
         $scope = Listing::query()
             ->approved()
@@ -150,12 +143,35 @@ class ListingController extends Controller
             })
             ->when($activeOnly, fn (Builder $query) => $query->where('is_user_disabled', false));
 
+        $isListingForm = $request->boolean('all');
+        if ($isListingForm) {
+            $attributes = Attribute::query()
+                ->where('is_active', true)
+                ->visibleForModel($phoneModel->id)
+                ->with('optionRestrictions')
+                ->orderBy('sort_order')
+                ->get();
+        } else {
+            $attributeIds = ListingAttributeValue::query()
+                ->whereIn('listing_id', (clone $scope)->select('id'))
+                ->whereHas('attribute', fn (Builder $query) => $query->where('is_active', true)->where('is_filterable', true))
+                ->distinct()
+                ->pluck('attribute_id');
+            $attributes = Attribute::query()
+                ->whereIn('id', $attributeIds)
+                ->where('is_active', true)
+                ->where('is_filterable', true)
+                ->with('optionRestrictions')
+                ->orderBy('sort_order')
+                ->get();
+        }
+
         return response()->json($filterOptions->payload(
             $attributes,
             $scope,
             (array) $request->input('filters', []),
-            ! $request->boolean('all'),
-            $phoneModel->id,
+            ! $isListingForm,
+            $isListingForm ? $phoneModel->id : null,
         ));
     }
 
@@ -224,16 +240,32 @@ class ListingController extends Controller
             ? PhoneModel::query()
                 ->where('is_active', true)
                 ->when($selectedBrandId, fn (Builder $query) => $query->where('brand_id', $selectedBrandId))
-                ->with(['attributes' => fn ($query) => $query
-                    ->where('is_active', true)
-                    ->where('is_filterable', true)
-                    ->with('optionRestrictions')
-                    ->orderBy('sort_order')])
                 ->find($selectedModelId)
             : null;
-        $filterAttributes = $selectedModel?->attributes ?? collect();
-        $filterAttributesById = $filterAttributes->keyBy('id');
         $activeOnly = $request->input('active_only', '1') !== '0';
+        $filterOptionScope = Listing::query()
+            ->approved()
+            ->where(function (Builder $scopeQuery): void {
+                $scopeQuery->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->when($activeOnly, fn (Builder $scopeQuery) => $scopeQuery->where('is_user_disabled', false))
+            ->when($selectedBrandId, fn (Builder $scopeQuery) => $scopeQuery->where('brand_id', $selectedBrandId))
+            ->when($selectedModelId, fn (Builder $scopeQuery) => $scopeQuery->where('phone_model_id', $selectedModelId));
+        $filterAttributeIds = ($selectedBrandId || $selectedModelId)
+            ? ListingAttributeValue::query()
+                ->whereIn('listing_id', (clone $filterOptionScope)->select('id'))
+                ->whereHas('attribute', fn (Builder $query) => $query->where('is_active', true)->where('is_filterable', true))
+                ->distinct()
+                ->pluck('attribute_id')
+            : collect();
+        $filterAttributes = Attribute::query()
+            ->whereIn('id', $filterAttributeIds)
+            ->where('is_active', true)
+            ->where('is_filterable', true)
+            ->with('optionRestrictions')
+            ->orderBy('sort_order')
+            ->get();
+        $filterAttributesById = $filterAttributes->keyBy('id');
         $searchTerm = trim((string) $request->input('q'));
         $searchLikes = $this->searchLikes($searchTerm);
         $query = Listing::query()
@@ -365,19 +397,12 @@ class ListingController extends Controller
             $activeFilters[] = ['label' => 'مرتب‌سازی: '.$sortLabels[$sort], 'url' => $without(['sort'])];
         }
 
-        $filterOptionScope = Listing::query()
-            ->approved()
-            ->where(function (Builder $scopeQuery): void {
-                $scopeQuery->whereNull('expires_at')->orWhere('expires_at', '>', now());
-            })
-            ->when($activeOnly, fn (Builder $scopeQuery) => $scopeQuery->where('is_user_disabled', false))
-            ->when($selectedModelId, fn (Builder $scopeQuery) => $scopeQuery->where('phone_model_id', $selectedModelId));
         $filterAttributesPayload = app(ListingFilterOptionService::class)->payload(
             $filterAttributes,
             $filterOptionScope,
             (array) $request->input('filters', []),
             true,
-            $selectedModelId ?: null,
+            null,
         );
 
         $options = app(SystemOptions::class);
