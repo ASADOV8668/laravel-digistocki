@@ -26,6 +26,7 @@ class PhaseTwoHundredFortyNineAdminSettingsAjaxTest extends TestCase
                 'support_phone' => '02112345678',
                 'listings_enabled' => true,
                 'allow_contact_price' => false,
+                'show_listing_views' => false,
                 'sms_mode' => 'test',
                 'registration_mode' => 'mobile',
                 'otp_expiry_minutes' => 8,
@@ -37,6 +38,7 @@ class PhaseTwoHundredFortyNineAdminSettingsAjaxTest extends TestCase
         $this->assertDatabaseHas('options', ['key' => 'site_title', 'value' => 'دیجی استوکی جدید']);
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_count', 'value' => '7']);
         $this->assertDatabaseHas('options', ['key' => 'allow_contact_price', 'value' => '0']);
+        $this->assertDatabaseHas('options', ['key' => 'show_listing_views', 'value' => '0']);
     }
 
     public function test_ajax_settings_validation_returns_field_errors(): void

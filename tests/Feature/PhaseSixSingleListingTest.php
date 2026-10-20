@@ -7,8 +7,10 @@ use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Listing;
 use App\Models\ListingAttributeValue;
+use App\Models\ListingImage;
 use App\Models\SellerStore;
 use App\Models\User;
+use App\Services\SystemOptions;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -52,6 +54,37 @@ class PhaseSixSingleListingTest extends TestCase
         $related = $this->listing(User::factory()->create(), 'آگهی مرتبط');
 
         $this->get(route('listings.show', $main))->assertOk()->assertSee('آگهی‌های مرتبط')->assertSee($related->title);
+    }
+
+    public function test_listing_views_are_hidden_until_more_than_five_and_can_be_disabled(): void
+    {
+        app(SystemOptions::class)->set('show_listing_views', true, 'boolean');
+        $seller = User::factory()->create(['mobile' => '09129999999']);
+        $viewer = User::factory()->create(['mobile' => '09121111112']);
+        $listing = $this->listing($seller, 'آگهی نمایش بازدید');
+        ListingImage::create([
+            'listing_id' => $listing->id,
+            'path' => 'listings/views-test.webp',
+            'is_primary' => true,
+            'sort_order' => 0,
+        ]);
+
+        $this->actingAs($viewer)->get(route('listings.show', $listing))
+            ->assertOk()
+            ->assertDontSee('data-listing-views', false);
+
+        $listing->update(['views_count' => 5]);
+
+        $this->actingAs($viewer)->get(route('listings.show', $listing))
+            ->assertOk()
+            ->assertSee('data-listing-views', false)
+            ->assertSee('۶', false);
+
+        app(SystemOptions::class)->set('show_listing_views', false, 'boolean');
+
+        $this->actingAs($viewer)->get(route('listings.show', $listing))
+            ->assertOk()
+            ->assertDontSee('data-listing-views', false);
     }
 
     public function test_single_listing_shows_the_public_store_logo_and_name(): void

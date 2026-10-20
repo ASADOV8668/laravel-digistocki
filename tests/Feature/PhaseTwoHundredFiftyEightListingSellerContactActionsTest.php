@@ -39,6 +39,9 @@ class PhaseTwoHundredFiftyEightListingSellerContactActionsTest extends TestCase
             ->assertSee('sms:09120000000?body=' . rawurlencode($message), false)
             ->assertDontSee('به‌زودی')
             ->assertSee('action="'.route('chats.from-listing', $listing).'"', false);
+
+        $html = $this->actingAs($viewer)->get(route('listings.show', $listing))->getContent();
+        $this->assertStringNotContainsString('sm:grid-cols-3', $html);
     }
 
     public function test_guest_does_not_receive_seller_contact_action_links(): void

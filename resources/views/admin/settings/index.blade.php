@@ -4,6 +4,10 @@
         old('allow_contact_price', $settings['allow_contact_price'] ?? true),
         FILTER_VALIDATE_BOOLEAN,
     );
+    $showListingViews = filter_var(
+        old('show_listing_views', $settings['show_listing_views'] ?? true),
+        FILTER_VALIDATE_BOOLEAN,
+    );
     $smsMode = old('sms_mode', $settings['sms_mode']);
     $registrationMode = old('registration_mode', $settings['registration_mode'] ?? 'mobile');
     $otpExpiryMinutes = old('otp_expiry_minutes', $settings['otp_expiry_minutes'] ?? 5);
@@ -144,6 +148,15 @@
                                         class="block text-sm font-black text-slate-800">ثبت آگهی جدید</strong><small
                                         class="mt-1 block text-[11px] text-slate-400">{{ $listingsEnabled ? 'کاربران مجاز می‌توانند آگهی ثبت کنند.' : 'ثبت آگهی برای همه کاربران غیرفعال است.' }}</small></span></span><input
                                 name="listings_enabled" value="1" type="checkbox" @checked($listingsEnabled)
+                                class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary"></label>
+                        <label
+                            class="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4"><span
+                                class="flex items-center gap-3"><span
+                                    class="flex h-9 w-9 items-center justify-center rounded-xl {{ $showListingViews ? 'bg-info/10 text-info' : 'bg-slate-200 text-slate-500' }}"><x-heroicon-o-eye
+                                        class="h-5 w-5" /></span><span><strong
+                                        class="block text-sm font-black text-slate-800">نمایش تعداد بازدید آگهی</strong><small
+                                        class="mt-1 block text-[11px] text-slate-400">در حالت فعال، تعداد بازدید بیشتر از ۵ در صفحه آگهی نمایش داده می‌شود.</small></span></span><input
+                                name="show_listing_views" value="1" type="checkbox" @checked($showListingViews)
                                 class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary"></label>
                     </div>
                 </div>

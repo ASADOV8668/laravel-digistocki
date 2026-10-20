@@ -24,6 +24,7 @@ class SystemOptions
         'support_phone' => '',
         'listings_enabled' => '1',
         'allow_contact_price' => '1',
+        'show_listing_views' => '1',
         'sms_mode' => 'test',
         'registration_mode' => 'mobile',
         'otp_expiry_minutes' => '5',
@@ -128,6 +129,11 @@ class SystemOptions
     public function allowContactPrice(): bool
     {
         return $this->bool('allow_contact_price');
+    }
+
+    public function showListingViews(): bool
+    {
+        return $this->bool('show_listing_views');
     }
 
     public function smsMode(): string

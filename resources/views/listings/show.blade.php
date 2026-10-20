@@ -108,9 +108,12 @@
                         <span
                             class="rounded-full bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold backdrop-blur">{{ \App\Support\PersianNumber::digits($listing->images->count()) }}
                             تصویر</span>
-                        <span
-                            class="rounded-full bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold backdrop-blur">{{ \App\Support\PersianNumber::digits($listing->views_count) }}
-                            بازدید</span>
+                        @if (app(\App\Services\SystemOptions::class)->showListingViews() && $listing->views_count > 5)
+                            <span
+                                data-listing-views
+                                class="rounded-full bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold backdrop-blur">{{ \App\Support\PersianNumber::digits($listing->views_count) }}
+                                بازدید</span>
+                        @endif
                     </div>
                 </div>
                 @if ($listing->images->count() > 1)
@@ -343,15 +346,15 @@
                         $sellerMobile = $listing->user->mobile;
                         $smsMessage = "دیجی استوکی ، بابت آگهی {$listing->title} نیاز به ارتباط با شما دارم.";
                     @endphp
-                    <div class="grid gap-2 sm:grid-cols-3">
+                    <div class="grid gap-2">
                         <a href="tel:{{ $sellerMobile }}" dir="rtl"
-                            class="flex min-h-14 items-center justify-center gap-2 rounded-lg bg-secondary px-3 py-3 text-sm font-black text-white transition hover:bg-secondary/90">
+                            class="flex min-h-14 w-full items-center justify-center gap-2 rounded-lg bg-secondary px-3 py-3 text-sm font-black text-white transition hover:bg-secondary/90">
                             <x-heroicon-o-phone class="h-5 w-5 shrink-0" />
                             <span>تماس تلفنی</span>
                             <span dir="ltr" class="text-xs font-bold text-white/80">{{ $sellerMobile }}</span>
                         </a>
                         <a href="sms:{{ $sellerMobile }}?body={{ rawurlencode($smsMessage) }}" dir="rtl"
-                            class="flex min-h-14 items-center justify-center gap-2 rounded-lg bg-primary px-3 py-3 text-sm font-black text-white transition hover:bg-primary-600">
+                            class="flex min-h-14 w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-3 text-sm font-black text-white transition hover:bg-primary-600">
                             <x-heroicon-o-chat-bubble-left-right class="h-5 w-5 shrink-0" />
                             <span>پیامک</span>
                         </a>
