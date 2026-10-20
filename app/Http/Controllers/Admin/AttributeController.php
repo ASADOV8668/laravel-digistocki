@@ -33,6 +33,15 @@ class AttributeController extends Controller
             ->orderBy('brand_id')
             ->orderBy('name')
             ->get(['id', 'brand_id', 'name', 'name_fa', 'name_en']);
+        $activeModelIds = $phoneModels->pluck('id')->map(fn ($id): int => (int) $id)->all();
+        $attributes->getCollection()->each(function (ListingAttribute $attribute) use ($activeModelIds): void {
+            $selectedModelIds = array_map('intval', $attribute->visibility_model_ids ?? []);
+            $attribute->visible_model_count = match ($attribute->visibility_rule ?: 'all') {
+                'include' => count(array_intersect($activeModelIds, $selectedModelIds)),
+                'exclude' => count(array_diff($activeModelIds, $selectedModelIds)),
+                default => count($activeModelIds),
+            };
+        });
 
         return view('admin.attributes.index', [
             'attributes' => $attributes,

@@ -15,15 +15,19 @@ class ListingAttributeValidator
             return [];
         }
 
-        $allowed = $model->attributes()
-            ->where('attributes.is_active', true)
+        $allowed = Attribute::query()
+            ->where('is_active', true)
             ->visibleForModel($model->id)
             ->get()
             ->keyBy('id');
+        $requiredByModel = $model->attributes()->pluck('model_attributes.is_required', 'attributes.id');
         $errors = [];
 
         foreach ($allowed as $attribute) {
-            if ((bool) $attribute->pivot->is_required && $this->isEmpty($values[$attribute->id] ?? null)) {
+            $isRequired = $requiredByModel->has($attribute->id)
+                ? (bool) $requiredByModel->get($attribute->id)
+                : (bool) $attribute->is_required;
+            if ($isRequired && $this->isEmpty($values[$attribute->id] ?? null)) {
                 $errors['attributes.'.$attribute->id] = 'وارد کردن این ویژگی الزامی است.';
             }
         }

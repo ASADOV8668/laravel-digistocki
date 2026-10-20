@@ -134,11 +134,11 @@ class ListingController extends Controller
     {
         abort_unless($phoneModel->is_active, 404);
 
-        $attributes = $phoneModel->attributes()
-            ->where('attributes.is_active', true)
+        $attributes = Attribute::query()
+            ->where('is_active', true)
             ->visibleForModel($phoneModel->id)
-            ->when(! $request->boolean('all'), fn ($query) => $query->where('attributes.is_filterable', true))
-            ->orderBy('attributes.sort_order')
+            ->when(! $request->boolean('all'), fn ($query) => $query->where('is_filterable', true))
+            ->orderBy('sort_order')
             ->get();
         $activeOnly = $request->input('active_only', '1') !== '0';
         $scope = Listing::query()
@@ -515,14 +515,17 @@ class ListingController extends Controller
         $store = $request->user()->storefront;
         $selectedModelId = old('phone_model_id', $cloneListing?->phone_model_id);
         $selectedModel = $selectedModelId
-            ? PhoneModel::query()->where('is_active', true)->with(['attributes' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order')])->find($selectedModelId)
+            ? PhoneModel::query()->where('is_active', true)->find($selectedModelId)
             : null;
+        $initialAttributes = $selectedModel
+            ? Attribute::query()->where('is_active', true)->visibleForModel($selectedModel->id)->orderBy('sort_order')->get()
+            : collect();
 
         return view('listings.create', [
             'brands' => Brand::query()->where('is_active', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
             'attributes' => Attribute::query()->where('is_active', true)->orderBy('sort_order')->get(),
             'provinces' => Province::query()->orderBy('name')->get(),
-            'initialModelAttributes' => $this->attributePayload($selectedModel?->attributes ?? collect()),
+            'initialModelAttributes' => $this->attributePayload($initialAttributes),
             'initialValues' => old('attributes', $cloneValues),
             'cloneListing' => $cloneListing,
             'store' => $store,
@@ -536,10 +539,10 @@ class ListingController extends Controller
     {
         $this->authorize('update', $listing);
         $listing->load(['images', 'attributeValues', 'phoneModel', 'user.storefront']);
-        $attributes = $listing->phoneModel->attributes()
-            ->where('attributes.is_active', true)
+        $attributes = Attribute::query()
+            ->where('is_active', true)
             ->visibleForModel($listing->phone_model_id)
-            ->orderBy('attributes.sort_order')
+            ->orderBy('sort_order')
             ->get();
 
         return view('listings.edit', [
@@ -870,8 +873,8 @@ class ListingController extends Controller
 
     private function saveAttributeValues(Listing $listing, PhoneModel $model, array $values): void
     {
-        $attributes = $model->attributes()
-            ->where('attributes.is_active', true)
+        $attributes = Attribute::query()
+            ->where('is_active', true)
             ->visibleForModel($model->id)
             ->get()
             ->keyBy('id');

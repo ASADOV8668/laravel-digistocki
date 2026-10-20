@@ -45,7 +45,7 @@ class ListingController extends Controller
     {
         $notificationReadService->markTargetAsRead(auth()->user(), 'listing_id', $listing->getKey());
         $listing->load(['images', 'attributeValues', 'phoneModel', 'user']);
-        $attributes = $listing->phoneModel->attributes()->where('attributes.is_active', true)->visibleForModel($listing->phone_model_id)->orderBy('attributes.sort_order')->get();
+        $attributes = Attribute::query()->where('is_active', true)->visibleForModel($listing->phone_model_id)->orderBy('sort_order')->get();
 
         return view('admin.listings.form', $this->formData($options, $listing, $attributes));
     }
@@ -221,7 +221,7 @@ class ListingController extends Controller
     private function formData(SystemOptions $options, ?Listing $listing = null, $attributes = null): array
     {
         $selectedModel = $listing?->phoneModel ?? (old('phone_model_id') ? PhoneModel::query()->find(old('phone_model_id')) : null);
-        $attributes ??= $selectedModel?->attributes()->where('attributes.is_active', true)->visibleForModel($selectedModel->id)->orderBy('attributes.sort_order')->get() ?? collect();
+        $attributes ??= $selectedModel ? Attribute::query()->where('is_active', true)->visibleForModel($selectedModel->id)->orderBy('sort_order')->get() : collect();
 
         return [
             'listing' => $listing,
@@ -239,7 +239,7 @@ class ListingController extends Controller
 
     private function saveAttributeValues(Listing $listing, PhoneModel $model, array $values): void
     {
-        $attributes = $model->attributes()->where('attributes.is_active', true)->visibleForModel($model->id)->get()->keyBy('id');
+        $attributes = Attribute::query()->where('is_active', true)->visibleForModel($model->id)->get()->keyBy('id');
         $now = now();
         $payloads = [];
         foreach ($values as $attributeId => $value) {

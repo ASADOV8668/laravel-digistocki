@@ -20,7 +20,8 @@ final class ListingTitle
             return null;
         }
 
-        $attributes = $model->attributes()
+        $attributes = Attribute::query()
+            ->where('is_active', true)
             ->visibleForModel($model->id)
             ->whereIn('slug', ['color', 'storage'])
             ->get()

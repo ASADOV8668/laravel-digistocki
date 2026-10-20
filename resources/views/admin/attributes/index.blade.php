@@ -96,7 +96,7 @@
                                         @endif
                                     </div>
                                     <p class="mt-1 text-xs text-slate-400">{{ $attribute->unit ?: 'بدون واحد' }} ·
-                                        {{ number_format($attribute->phone_models_count) }} مدل</p>
+                                        {{ number_format($attribute->visible_model_count) }} مدل</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <form method="POST" action="{{ route('admin.attributes.toggle', $attribute) }}">
