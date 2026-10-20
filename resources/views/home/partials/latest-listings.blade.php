@@ -11,7 +11,7 @@
                 {{ $latestListings->links('vendor.pagination.flowbite') }}
             </div>
         @else
-            <div data-infinite-skeleton hidden class="{{ $listingView === 'list' ? 'space-y-3' : 'mt-4 grid grid-cols-2 gap-3' }}" aria-live="polite">
+            <div data-infinite-skeleton hidden class="hidden {{ $listingView === 'list' ? 'space-y-3' : 'mt-4 grid grid-cols-2 gap-3' }}" aria-live="polite">
                 @for ($index = 0; $index < 2; $index++)
                     <div class="animate-pulse overflow-hidden rounded-lg border border-slate-200 bg-white">
                         <div class="h-44 bg-slate-200"></div>

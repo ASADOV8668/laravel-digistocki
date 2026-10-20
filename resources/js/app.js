@@ -1848,6 +1848,14 @@ window.initInfiniteListingFeeds = (root = document) => {
         const items = feed.querySelector('[data-listing-items]');
         if (!sentinel || !items) return;
 
+        const setSkeletonVisibility = (visible) => {
+            if (!skeleton) return;
+            skeleton.hidden = !visible;
+            skeleton.classList.toggle('hidden', !visible);
+        };
+
+        setSkeletonVisibility(false);
+
         let loading = false;
         const loadMore = async () => {
             const nextPageUrl = feed.dataset.nextPageUrl;
@@ -1855,7 +1863,7 @@ window.initInfiniteListingFeeds = (root = document) => {
 
             loading = true;
             feed.dataset.loading = 'true';
-            if (skeleton) skeleton.hidden = false;
+            setSkeletonVisibility(true);
 
             try {
                 const url = new URL(nextPageUrl, window.location.href);
@@ -1884,7 +1892,7 @@ window.initInfiniteListingFeeds = (root = document) => {
             } finally {
                 loading = false;
                 feed.dataset.loading = 'false';
-                if (skeleton) skeleton.hidden = true;
+                setSkeletonVisibility(false);
             }
         };
 

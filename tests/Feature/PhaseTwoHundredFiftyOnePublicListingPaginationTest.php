@@ -100,9 +100,15 @@ class PhaseTwoHundredFiftyOnePublicListingPaginationTest extends TestCase
             $this->getJson($url)->assertOk()->assertJsonStructure(['html', 'next_page_url', 'has_more']);
         }
 
-        $this->get(route('listings.index'))->assertSee('data-pagination-mode="infinite"', false)->assertSee('data-infinite-skeleton', false);
-        $this->get(route('storefront.show', $store))->assertSee('data-pagination-mode="infinite"', false)->assertSee('data-infinite-skeleton', false);
-        $this->get(route('home'))->assertSee('data-pagination-mode="infinite"', false)->assertSee('data-infinite-skeleton', false);
+        $this->get(route('listings.index'))
+            ->assertSee('data-pagination-mode="infinite"', false)
+            ->assertSee('data-infinite-skeleton hidden class="hidden', false);
+        $this->get(route('storefront.show', $store))
+            ->assertSee('data-pagination-mode="infinite"', false)
+            ->assertSee('data-infinite-skeleton hidden class="hidden', false);
+        $this->get(route('home'))
+            ->assertSee('data-pagination-mode="infinite"', false)
+            ->assertSee('data-infinite-skeleton hidden class="hidden', false);
     }
 
     public function test_infinite_scroll_preserves_search_and_attribute_filters_for_search_and_storefront_pages(): void
