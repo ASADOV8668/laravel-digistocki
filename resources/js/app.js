@@ -4,6 +4,7 @@ import { initTooltips } from 'flowbite';
 
 import Alpine from 'alpinejs';
 import './listing-attribute-repeater';
+import './listing-title';
 import './location-components';
 import './persian-digits';
 
@@ -1356,6 +1357,7 @@ window.listingWizard = () => ({
     citiesController: null,
     titleInput: null,
     titleAttributes: [],
+    titleLanguage: 'fa',
 
     init() {
         const root = this.$root;
@@ -1366,6 +1368,7 @@ window.listingWizard = () => ({
         this.modelId = root.dataset.initialModelId || '';
         this.provinceId = root.dataset.initialProvinceId || '';
         this.cityId = root.dataset.initialCityId || '';
+        this.titleLanguage = root.dataset.titleLanguage || 'fa';
         this.titleInput = root.querySelector('[data-auto-listing-title]');
         if (this.titleInput) {
             this.titleInput.addEventListener('input', () => {
@@ -1503,34 +1506,15 @@ window.listingWizard = () => ({
 
     updateGeneratedTitle(rows = []) {
         if (!this.titleInput || this.titleInput.dataset.autoListingTitle !== 'true') return;
-
-        const brandOption = this.$root.querySelector('[name="brand_id"] option:checked');
-        const brand = brandOption?.textContent?.split('(')[0]?.trim() || '';
-        const model = this.models.find((item) => String(item.id) === String(this.modelId));
-        const modelName = model?.label || model?.name_fa || model?.name || '';
-        if (!brand || !modelName) return;
-
-        const definitions = this.titleAttributes.length
-            ? this.titleAttributes
-            : (() => {
-                const node = this.$root.querySelector('[data-repeater-definitions]');
-                try { return node ? JSON.parse(node.textContent || '[]') : []; } catch { return []; }
-            })();
-        const selectedRows = rows.length ? rows : [...this.$root.querySelectorAll('[data-repeater-values]')].flatMap(() => []);
-        const values = Object.fromEntries(selectedRows.map((row) => [String(row.attributeId), row.value]));
-        const valueFor = (slug) => {
-            const definition = definitions.find((item) => item.slug === slug);
-            if (!definition) return '';
-            const value = values[String(definition.id)];
-            return Array.isArray(value) ? value.filter(Boolean).join('، ') : (value ?? '');
-        };
-
-        const parts = [brand, modelName];
-        const color = valueFor('color');
-        const storage = valueFor('storage');
-        if (color) parts.push(color);
-        if (storage) parts.push(`${Number(storage).toLocaleString('fa-IR')} گیگابایت`);
-        this.titleInput.value = parts.join(' ');
+        const title = window.listingTitleGenerator?.generate({
+            root: this.$root,
+            models: this.models,
+            modelId: this.modelId,
+            definitions: this.titleAttributes,
+            rows,
+            language: this.titleLanguage,
+        });
+        if (title) this.titleInput.value = title;
     },
 });
 

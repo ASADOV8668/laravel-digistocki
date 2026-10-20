@@ -22,6 +22,9 @@ window.listingAdminForm = () => ({
     attributesController: null,
     citiesController: null,
     usersController: null,
+    titleInput: null,
+    titleAttributes: [],
+    titleLanguage: 'fa',
 
     init() {
         const root = this.$root;
@@ -33,12 +36,22 @@ window.listingAdminForm = () => ({
         this.modelId = root.dataset.initialModelId || '';
         this.provinceId = root.dataset.initialProvinceId || '';
         this.cityId = root.dataset.initialCityId || '';
+        this.titleLanguage = root.dataset.titleLanguage || 'fa';
+        this.titleInput = root.querySelector('[data-auto-listing-title]');
+        this.titleInput?.addEventListener('input', () => {
+            this.titleInput.dataset.autoListingTitle = 'false';
+        });
+        window.addEventListener('listing-attributes-changed', (event) => {
+            this.titleAttributes = event.detail?.definitions || this.titleAttributes;
+            this.updateGeneratedTitle(event.detail?.rows || []);
+        });
         this.userId = root.dataset.initialUserId || '';
         this.userQuery = root.dataset.initialUserQuery || '';
         this.selectedUserLabel = root.dataset.initialUserLabel || '';
         const attributesNode = root.querySelector('[data-admin-initial-attributes]');
         const valuesNode = root.querySelector('[data-admin-initial-values]');
         try { this.attributes = attributesNode ? JSON.parse(attributesNode.textContent || '[]') : []; } catch { this.attributes = []; }
+        this.titleAttributes = this.attributes;
         try { this.values = valuesNode ? JSON.parse(valuesNode.textContent || '{}') : {}; } catch { this.values = {}; }
         this.$watch('brandId', (value, previous) => { if (value && value !== previous) this.loadModels(); });
         if (this.brandId) this.loadModels(false);
@@ -63,6 +76,7 @@ window.listingAdminForm = () => ({
             const response = await fetch(`${this.modelsEndpoint}?brand_id=${encodeURIComponent(this.brandId)}`, { signal: controller.signal, headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
             if (!response.ok) throw new Error('Model request failed');
             this.models = await response.json();
+            this.updateGeneratedTitle();
         } catch (error) {
             if (error.name !== 'AbortError') this.models = [];
         } finally {
@@ -81,6 +95,7 @@ window.listingAdminForm = () => ({
             const response = await fetch(`${this.attributesEndpoint}/${this.modelId}/attributes?all=1`, { signal: controller.signal, headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
             if (!response.ok) throw new Error('Attribute request failed');
             this.attributes = await response.json();
+            this.titleAttributes = this.attributes;
             window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: this.attributes, values: this.values } }));
         } catch (error) {
             if (error.name !== 'AbortError') { this.attributes = []; window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: [], values: this.values } })); }
@@ -131,5 +146,18 @@ window.listingAdminForm = () => ({
         this.userQuery = user.label;
         this.selectedUserLabel = `${user.label} · ${user.mobile || user.email || ''}`;
         this.userResults = [];
+    },
+
+    updateGeneratedTitle(rows = []) {
+        if (!this.titleInput || this.titleInput.dataset.autoListingTitle !== 'true') return;
+        const title = window.listingTitleGenerator?.generate({
+            root: this.$root,
+            models: this.models,
+            modelId: this.modelId,
+            definitions: this.titleAttributes.length ? this.titleAttributes : this.attributes,
+            rows,
+            language: this.titleLanguage,
+        });
+        if (title) this.titleInput.value = title;
     },
 });

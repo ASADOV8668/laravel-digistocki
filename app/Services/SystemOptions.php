@@ -25,6 +25,7 @@ class SystemOptions
         'listings_enabled' => '1',
         'allow_contact_price' => '1',
         'show_listing_views' => '1',
+        'listing_title_language' => 'fa',
         'sms_mode' => 'test',
         'registration_mode' => 'mobile',
         'otp_expiry_minutes' => '5',
@@ -134,6 +135,13 @@ class SystemOptions
     public function showListingViews(): bool
     {
         return $this->bool('show_listing_views');
+    }
+
+    public function listingTitleLanguage(): string
+    {
+        return in_array($language = (string) $this->get('listing_title_language'), ['fa', 'en'], true)
+            ? $language
+            : 'fa';
     }
 
     public function smsMode(): string

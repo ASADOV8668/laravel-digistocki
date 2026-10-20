@@ -22,6 +22,7 @@
     $storefrontListingsPerPage = old('storefront_listings_per_page', $settings['storefront_listings_per_page'] ?? 100);
     $listingsPaginationType = old('listings_pagination_type', $settings['listings_pagination_type'] ?? 'pagination');
     $chatArchiveDays = old('chat_archive_days', $settings['chat_archive_days'] ?? 120);
+    $listingTitleLanguage = old('listing_title_language', $settings['listing_title_language'] ?? 'fa');
 @endphp
 <x-admin-layout title="تنظیمات سیستم">
     <x-slot name="header">
@@ -128,6 +129,15 @@
                             </div>
                             <p class="mt-2 text-[11px] text-slate-400">مقدار پیش‌فرض ۲۰٪ است؛ عدد بیشتر یعنی حجم کمتر و
                                 فشرده‌سازی بیشتر. خروجی همه تصاویر به WebP تبدیل می‌شود.</p>
+                        </div>
+                        <div>
+                            <label for="listing_title_language" class="mb-2 block text-xs font-bold text-slate-700">زبان عنوان آگهی</label>
+                            <select id="listing_title_language" name="listing_title_language"
+                                class="w-full rounded-xl border-slate-200 py-3 text-sm focus:border-warning focus:ring-warning">
+                                <option value="fa" @selected($listingTitleLanguage === 'fa')>فارسی</option>
+                                <option value="en" @selected($listingTitleLanguage === 'en')>English</option>
+                            </select>
+                            <p class="mt-2 text-[11px] text-slate-400">عنوان خودکار آگهی و ویژگی‌های کارت بر اساس این زبان ساخته و نمایش داده می‌شوند.</p>
                         </div>
                         <div><label class="mb-2 block text-xs font-bold text-slate-700">محدودیت ثبت آگهی تکراری
                                 (دقیقه)</label>

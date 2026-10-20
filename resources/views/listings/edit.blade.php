@@ -9,7 +9,7 @@
             </div>
         </div>
     </x-slot>
-    <section x-data='Object.assign(listingWizard(), imagePicker(@js($maxImageUploadMb), {{ max(0, $maxImageUploadCount - $listing->images->count()) }}, @js($listing->images->firstWhere("is_primary", true)?->id)))' data-models-endpoint="{{ url('/listings/models') }}"
+    <section x-data='Object.assign(listingWizard(), imagePicker(@js($maxImageUploadMb), {{ max(0, $maxImageUploadCount - $listing->images->count()) }}, @js($listing->images->firstWhere("is_primary", true)?->id)))' data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
         data-cities-endpoint="{{ url('/locations/provinces') }}"
         data-initial-brand-id="{{ old('brand_id', $listing->brand_id) }}"
         data-initial-model-id="{{ old('phone_model_id', $listing->phone_model_id) }}"
@@ -43,7 +43,7 @@
                         required class="public-select">
                         <option value="">انتخاب برند</option>
                         @foreach ($brands as $brand)
-                            <option value="{{ $brand->id }}" @selected((string) old('brand_id', $listing->brand_id) === (string) $brand->id)>{{ $brand->name }}
+                            <option value="{{ $brand->id }}" data-name-en="{{ $brand->name_en }}" @selected((string) old('brand_id', $listing->brand_id) === (string) $brand->id)>{{ $brand->name }}
                                 ({{ $brand->name_en }})</option>
                         @endforeach
                     </select>

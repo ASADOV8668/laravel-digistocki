@@ -27,6 +27,7 @@ class PhaseTwoHundredFortyNineAdminSettingsAjaxTest extends TestCase
                 'listings_enabled' => true,
                 'allow_contact_price' => false,
                 'show_listing_views' => false,
+                'listing_title_language' => 'en',
                 'sms_mode' => 'test',
                 'registration_mode' => 'mobile',
                 'otp_expiry_minutes' => 8,
@@ -39,6 +40,7 @@ class PhaseTwoHundredFortyNineAdminSettingsAjaxTest extends TestCase
         $this->assertDatabaseHas('options', ['key' => 'max_image_upload_count', 'value' => '7']);
         $this->assertDatabaseHas('options', ['key' => 'allow_contact_price', 'value' => '0']);
         $this->assertDatabaseHas('options', ['key' => 'show_listing_views', 'value' => '0']);
+        $this->assertDatabaseHas('options', ['key' => 'listing_title_language', 'value' => 'en']);
     }
 
     public function test_ajax_settings_validation_returns_field_errors(): void

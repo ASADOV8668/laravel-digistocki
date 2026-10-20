@@ -11,7 +11,7 @@
             </div>
         </div>
     </x-slot>
-    <section x-data='Object.assign(listingAdminForm(), imagePicker(@js($maxImageUploadMb), {{ $editing ? max(0, $maxImageUploadCount - $listing->images->count()) : $maxImageUploadCount }}, @js($listing?->images?->firstWhere("is_primary", true)?->id)))' data-models-endpoint="{{ url('/listings/models') }}"
+    <section x-data='Object.assign(listingAdminForm(), imagePicker(@js($maxImageUploadMb), {{ $editing ? max(0, $maxImageUploadCount - $listing->images->count()) : $maxImageUploadCount }}, @js($listing?->images?->firstWhere("is_primary", true)?->id)))' data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
         data-cities-endpoint="{{ url('/locations/provinces') }}" data-users-endpoint="{{ route('admin.users.search') }}"
         data-initial-brand-id="{{ old('brand_id', $listing->brand_id ?? '') }}"
         data-initial-model-id="{{ old('phone_model_id', $listing->phone_model_id ?? '') }}"
@@ -66,7 +66,7 @@
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">
                         <option value="">انتخاب برند</option>
                         @foreach ($brands as $brand)
-                            <option value="{{ $brand->id }}" @selected((string) old('brand_id', $listing->brand_id ?? '') === (string) $brand->id)>{{ $brand->name }}
+                            <option value="{{ $brand->id }}" data-name-en="{{ $brand->name_en }}" @selected((string) old('brand_id', $listing->brand_id ?? '') === (string) $brand->id)>{{ $brand->name }}
                                 ({{ $brand->name_en }})</option>
                         @endforeach
                     </select>
@@ -99,7 +99,7 @@
                 <h2 class="text-base font-black text-slate-900">اطلاعات آگهی</h2>
                 <div class="mt-4 grid gap-4 md:grid-cols-2">
                     <div class="md:col-span-2"><label class="mb-2 block text-sm font-bold text-slate-700">عنوان
-                            آگهی</label><input name="title" value="{{ old('title', $listing->title ?? '') }}"
+                            آگهی</label><input name="title" data-auto-listing-title="{{ old('title', $listing->title ?? '') === '' ? 'true' : 'false' }}" value="{{ old('title', $listing->title ?? '') }}"
                             required
                             class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">
                     </div>

@@ -8,8 +8,11 @@
     $storefront = $listing->user?->storefront;
     $showListStorefront = $isList && $storefront?->isPubliclyEnabled();
     $isFavorited = filter_var($listing->is_favorited ?? false, FILTER_VALIDATE_BOOLEAN);
+    $isEnglishTitle = \App\Support\ListingTitle::isEnglishTitle($listing->title);
+    $brandName = \App\Support\ListingTitle::brandName($listing->brand, $isEnglishTitle);
+    $modelName = \App\Support\ListingTitle::modelName($listing->phoneModel, $isEnglishTitle);
     $allCardAttributes = collect($listing->attributeValues ?? [])
-        ->map(function ($value) {
+        ->map(function ($value) use ($isEnglishTitle) {
             $raw = $value->value_json ?? ($value->value_string ?? ($value->value_integer ?? $value->value_decimal));
             if ($raw === null && $value->value_boolean !== null) {
                 $raw = $value->value_boolean ? 'دارد' : 'ندارد';
@@ -18,9 +21,9 @@
                 $raw = implode('، ', $raw);
             }
             return [
-                'name' => $value->attribute?->name,
+                'name' => \App\Support\ListingTitle::attributeName($value->attribute?->slug, $value->attribute?->name, $isEnglishTitle),
                 'slug' => $value->attribute?->slug,
-                'value' => $raw,
+                'value' => \App\Support\ListingTitle::attributeValue($value->attribute?->slug, $raw, $isEnglishTitle),
                 'color' => $value->attribute?->slug === 'color' ? \App\Support\ColorPalette::hex((string) $raw) : null,
             ];
         })
@@ -53,11 +56,10 @@
     </div>
     <div class="{{ $isList ? 'w-[60%] basis-[60%] flex-none' : 'min-w-0 flex-1' }}">
     <a href="{{ route('listings.show', $listing) }}" class="block {{ $isList ? 'p-2.5 sm:p-3' : 'p-3.5' }}">
-        <h3 class="line-clamp-2 {{ $isList ? 'min-h-9 text-[13px] leading-5' : 'min-h-10 text-sm leading-5' }} font-black text-neutral">{{ $listing->title }}</h3>
-        <p class="{{ $isList ? 'mt-1' : 'mt-2' }} truncate text-[11px] text-slate-500">{{ $listing->brand->name }} ·
-            {{ $listing->phoneModel->name_fa ?: $listing->phoneModel->name }}</p>
+        <h3 dir="{{ $isEnglishTitle ? 'ltr' : 'rtl' }}" class="line-clamp-2 {{ $isList ? 'min-h-9 text-[13px] leading-5' : 'min-h-10 text-sm leading-5' }} {{ $isEnglishTitle ? 'text-left' : 'text-right' }} font-black text-neutral">{{ $listing->title }}</h3>
+        <p dir="{{ $isEnglishTitle ? 'ltr' : 'rtl' }}" class="{{ $isList ? 'mt-1' : 'mt-2' }} truncate text-[11px] text-slate-500">{{ $brandName }} · {{ $modelName }}</p>
         @if ($cardAttributes->isNotEmpty())
-            <div class="{{ $isList ? 'mt-1 space-y-1' : 'mt-2 space-y-1.5' }} text-[11px] text-slate-500">
+            <div dir="{{ $isEnglishTitle ? 'ltr' : 'rtl' }}" class="{{ $isList ? 'mt-1 space-y-1' : 'mt-2 space-y-1.5' }} text-[11px] text-slate-500">
                 @foreach ($cardAttributes as $attribute)
                     <p class="flex items-center gap-1.5 truncate"><span
                             class="h-3 w-3 shrink-0 rounded-full border border-slate-300"
@@ -73,8 +75,8 @@
                         class="h-3.5 w-3.5 shrink-0" />{{ $listing->province?->name ?: 'استان ثبت نشده' }}{{ $listing->city?->name ? '، ' . $listing->city->name : '' }}@if ($showListStorefront)<span class="text-slate-400"> ({{ $storefront->name }})</span>@endif</span><span
                     class="shrink-0">{{ \App\Support\PersianNumber::digits(\App\Support\PersianDate::human($listing->published_at ?? $listing->created_at)) }}</span>
             </div>
-            <p class="{{ $isList ? 'mt-1 text-[13px]' : 'mt-2 text-sm' }} font-black text-primary">
-                {{ $listing->price_on_request ? 'تماس بگیرید' : \App\Support\PersianNumber::format($listing->price) . ' تومان' }}
+            <p dir="{{ $isEnglishTitle ? 'ltr' : 'rtl' }}" class="{{ $isList ? 'mt-1 text-[13px]' : 'mt-2 text-sm' }} font-black text-primary">
+                {{ $listing->price_on_request ? ($isEnglishTitle ? 'Contact seller' : 'تماس بگیرید') : \App\Support\PersianNumber::format($listing->price) . ' ' . \App\Support\ListingTitle::priceUnit($isEnglishTitle) }}
             </p>
         </div>
     </a>
