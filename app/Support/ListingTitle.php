@@ -77,7 +77,7 @@ final class ListingTitle
         }
 
         return [
-            'storage' => 'Internal storage', 'ram' => 'RAM', 'color' => 'Color',
+            'storage' => 'Storage capacity', 'ram' => 'RAM', 'color' => 'Color',
             'condition' => 'Condition', 'battery_health' => 'Battery health',
             'screen_condition' => 'Screen condition', 'body_condition' => 'Body condition',
             'water_damage' => 'Water damage', 'repaired' => 'Repaired',
@@ -110,7 +110,7 @@ final class ListingTitle
 
     public static function priceUnit(bool $english): string
     {
-        return $english ? 'Toman' : 'تومان';
+        return 'تومان';
     }
 
     private static function englishAttributeValue(?string $slug, mixed $value): string
