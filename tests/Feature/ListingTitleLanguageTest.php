@@ -48,4 +48,15 @@ class ListingTitleLanguageTest extends TestCase
         $this->assertSame('Memory', ListingTitle::attributeName('storage', 'حافظه داخلی', true));
         $this->assertSame('تومان', ListingTitle::priceUnit(true));
     }
+
+    public function test_admin_listing_form_reenables_automatic_titles_after_model_changes(): void
+    {
+        $form = file_get_contents(resource_path('views/admin/listings/form.blade.php'));
+        $script = file_get_contents(resource_path('js/admin-listing-form.js'));
+
+        $this->assertStringContainsString('@change="markTitleAutomatic(); loadModels()"', $form);
+        $this->assertStringContainsString('@change="markTitleAutomatic(); loadAttributes"', $form);
+        $this->assertStringContainsString('markTitleAutomatic()', $script);
+        $this->assertStringContainsString('this.titleInitialized', $script);
+    }
 }

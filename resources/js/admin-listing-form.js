@@ -25,6 +25,7 @@ window.listingAdminForm = () => ({
     titleInput: null,
     titleAttributes: [],
     titleLanguage: 'fa',
+    titleInitialized: false,
 
     init() {
         const root = this.$root;
@@ -42,6 +43,8 @@ window.listingAdminForm = () => ({
             this.titleInput.dataset.autoListingTitle = 'false';
         });
         window.addEventListener('listing-attributes-changed', (event) => {
+            if (this.titleInitialized) this.markTitleAutomatic();
+            this.titleInitialized = true;
             this.titleAttributes = event.detail?.definitions || this.titleAttributes;
             this.updateGeneratedTitle(event.detail?.rows || []);
         });
@@ -62,6 +65,7 @@ window.listingAdminForm = () => ({
         this.modelsController?.abort();
         this.modelsController = null;
         if (resetModel) {
+            this.markTitleAutomatic();
             this.modelId = '';
             this.attributes = [];
             this.values = {};
@@ -146,6 +150,10 @@ window.listingAdminForm = () => ({
         this.userQuery = user.label;
         this.selectedUserLabel = `${user.label} · ${user.mobile || user.email || ''}`;
         this.userResults = [];
+    },
+
+    markTitleAutomatic() {
+        if (this.titleInput) this.titleInput.dataset.autoListingTitle = 'true';
     },
 
     updateGeneratedTitle(rows = []) {

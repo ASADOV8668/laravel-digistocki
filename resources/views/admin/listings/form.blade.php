@@ -61,7 +61,7 @@
                 </div>
                 <div><label class="mb-2 block text-sm font-bold text-slate-700">برند</label><select name="brand_id"
                         data-listing-brand-picker data-model-target="#admin-listing-model"
-                        data-models-endpoint="{{ url('/listings/models') }}" x-model="brandId" @change="loadModels()"
+                        data-models-endpoint="{{ url('/listings/models') }}" x-model="brandId" @change="markTitleAutomatic(); loadModels()"
                         required
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">
                         <option value="">انتخاب برند</option>
@@ -73,7 +73,7 @@
                 </div>
                 <div class="md:col-span-2"><label class="mb-2 block text-sm font-bold text-slate-700">مدل
                         گوشی</label><select id="admin-listing-model" name="phone_model_id" x-model="modelId"
-                        @change="loadAttributes" required :disabled="!brandId || modelsLoading"
+                        @change="markTitleAutomatic(); loadAttributes" required :disabled="!brandId || modelsLoading"
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">
                         <option value="" x-text="modelsLoading ? 'در حال بارگذاری مدل‌ها...' : 'انتخاب مدل'">
                         </option><template x-for="model in models" :key="model.id">
