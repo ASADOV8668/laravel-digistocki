@@ -4,14 +4,17 @@ namespace Tests\Feature;
 
 use App\Models\Attribute;
 use App\Models\AttributeOptionRestriction;
+use App\Models\Brand;
 use App\Models\PhoneModel;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
 class AttributeOptionRestrictionTest extends TestCase
 {
+    use BuildsListingAttributePayload;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -53,5 +56,49 @@ class AttributeOptionRestrictionTest extends TestCase
         $this->actingAs($admin)->delete(route('admin.attributes.option-restrictions.destroy', [$attribute, $rule]))
             ->assertRedirect();
         $this->assertDatabaseMissing('attribute_option_restrictions', ['id' => $rule->id]);
+    }
+
+    public function test_listing_submission_rejects_an_option_outside_the_model_restriction(): void
+    {
+        $user = User::factory()->create();
+        $this->storeApplication($user);
+        $brand = Brand::query()->where('name_en', 'Apple')->firstOrFail();
+        $model = PhoneModel::query()->where('name', 'iPhone 13 Pro')->firstOrFail();
+        $attribute = Attribute::query()->where('slug', 'color')->firstOrFail();
+        $allowedOption = (string) $attribute->options[0];
+        $blockedOption = (string) $attribute->options[1];
+
+        AttributeOptionRestriction::create([
+            'attribute_id' => $attribute->id,
+            'phone_model_ids' => [$model->id],
+            'options' => [$allowedOption],
+        ]);
+
+        $payload = [
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی با گزینه محدودشده',
+            'price' => 32000000,
+            'attributes' => array_replace(
+                $this->requiredAttributeValues($model),
+                [$attribute->id => $blockedOption],
+            ),
+        ];
+
+        $this->actingAs($user)
+            ->post(route('listings.store'), $payload)
+            ->assertSessionHasErrors(['attributes.'.$attribute->id]);
+
+        $payload['title'] = 'آگهی با گزینه مجاز';
+        $payload['attributes'][$attribute->id] = $allowedOption;
+
+        $this->actingAs($user)
+            ->post(route('listings.store'), $payload)
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('listing_attribute_values', [
+            'attribute_id' => $attribute->id,
+            'value_string' => $allowedOption,
+        ]);
     }
 }

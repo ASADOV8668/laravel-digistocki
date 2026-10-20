@@ -3,12 +3,17 @@
 namespace Tests\Feature;
 
 use App\Enums\AttributeType;
+use App\Enums\ListingStatus;
 use App\Models\Attribute;
 use App\Models\Brand;
+use App\Models\Listing;
+use App\Models\ListingAttributeValue;
 use App\Models\PhoneModel;
+use App\Models\SellerStore;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class AttributeVisibilityRuleTest extends TestCase
@@ -86,5 +91,60 @@ class AttributeVisibilityRuleTest extends TestCase
         $this->actingAs($admin)->getJson(route('admin.attributes.models', ['q' => $allowedModel->name]))
             ->assertOk()
             ->assertJsonFragment(['id' => $allowedModel->id]);
+    }
+
+    public function test_storefront_filter_does_not_expose_an_attribute_outside_its_model_visibility_rule(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $seller = User::factory()->create();
+        $store = SellerStore::create([
+            'user_id' => $seller->id,
+            'slug' => 'visibility-store',
+            'name' => 'فروشگاه شرط نمایش',
+            'is_enabled' => true,
+            'approval_status' => 'approved',
+        ]);
+        $models = PhoneModel::query()->take(2)->get();
+        $visibleModel = $models->firstOrFail();
+        $hiddenModel = $models->last();
+        $attribute = Attribute::query()->where('slug', 'color')->firstOrFail();
+
+        $this->actingAs($admin)->patch(route('admin.attributes.update', $attribute), [
+            'name' => $attribute->name,
+            'type' => $attribute->type->value,
+            'options' => implode(',', $attribute->options ?? []),
+            'is_filterable' => true,
+            'is_required' => false,
+            'visibility_rule' => 'include',
+            'visibility_model_ids' => [$visibleModel->id],
+        ])->assertRedirect();
+
+        foreach ([$visibleModel, $hiddenModel] as $model) {
+            $listing = Listing::create([
+                'user_id' => $seller->id,
+                'brand_id' => $model->brand_id,
+                'phone_model_id' => $model->id,
+                'title' => 'آگهی '.$model->id,
+                'slug' => Str::uuid(),
+                'price' => 1000000,
+                'status' => ListingStatus::Approved,
+                'published_at' => now(),
+            ]);
+            ListingAttributeValue::create([
+                'listing_id' => $listing->id,
+                'attribute_id' => $attribute->id,
+                'value_string' => $attribute->options[0],
+            ]);
+        }
+
+        $this->getJson(route('storefront.models.attributes', [
+            'sellerStore' => $store,
+            'phoneModel' => $visibleModel,
+        ]))->assertOk()->assertJsonFragment(['id' => $attribute->id]);
+
+        $this->getJson(route('storefront.models.attributes', [
+            'sellerStore' => $store,
+            'phoneModel' => $hiddenModel,
+        ]))->assertOk()->assertJsonMissing(['id' => $attribute->id]);
     }
 }
