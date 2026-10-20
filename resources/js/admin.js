@@ -90,6 +90,48 @@ window.attributeVisibilityPicker = (endpoint, selected = [], initialRule = 'all'
     },
 });
 
+window.attributeOptionRestrictionForm = (endpoint, options = []) => ({
+    endpoint,
+    options: (options || []).map(String),
+    models: [],
+    selectedModels: [],
+    selectedOptions: [],
+    query: '',
+    loading: false,
+    timer: null,
+    controller: null,
+
+    init() {
+        this.loadModels();
+        this.$watch('query', () => {
+            clearTimeout(this.timer);
+            this.timer = window.setTimeout(() => this.loadModels(), 250);
+        });
+    },
+
+    async loadModels() {
+        this.controller?.abort();
+        this.controller = new AbortController();
+        this.loading = true;
+        const params = new URLSearchParams();
+        const query = String(this.query || '').trim();
+        if (query) params.set('q', query);
+
+        try {
+            const response = await fetch(`${this.endpoint}?${params.toString()}`, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: this.controller.signal,
+            });
+            if (!response.ok) throw new Error('دریافت مدل‌ها انجام نشد.');
+            this.models = await response.json();
+        } catch (exception) {
+            if (exception.name !== 'AbortError') this.models = [];
+        } finally {
+            this.loading = false;
+        }
+    },
+});
+
 window.moneyInput = (initial = '') => ({
     raw: '',
     display: '',

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\AttributeType;
 use App\Http\Controllers\Controller;
 use App\Models\Attribute as ListingAttribute;
+use App\Models\AttributeOptionRestriction;
 use App\Models\PhoneModel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -101,8 +102,63 @@ class AttributeController extends Controller
     {
         $attribute->update($this->validated($request, $attribute));
         $this->syncVisibilityModels($attribute->refresh());
+        $this->cleanOptionRestrictions($attribute->refresh());
 
         return back()->with('status', 'ویژگی به‌روزرسانی شد.');
+    }
+
+    public function optionRestrictions(ListingAttribute $attribute)
+    {
+        abort_unless(in_array($attribute->type?->value, [AttributeType::Select->value, AttributeType::MultiSelect->value], true), 404);
+
+        $rules = $attribute->optionRestrictions()->get();
+        $modelIds = $rules->flatMap(fn (AttributeOptionRestriction $rule) => array_map('intval', $rule->phone_model_ids ?? []))->unique();
+        $models = PhoneModel::query()->whereIn('id', $modelIds)->with('brand:id,name,name_en')->get()->keyBy('id');
+        $rulesPayload = $rules->map(fn (AttributeOptionRestriction $rule): array => [
+            'id' => $rule->id,
+            'options' => array_values(array_map('strval', $rule->options ?? [])),
+            'models' => collect($rule->phone_model_ids ?? [])->map(fn ($id): array => [
+                'id' => (int) $id,
+                'label' => $models->get((int) $id)?->brand?->name.' · '.($models->get((int) $id)?->name_fa ?: $models->get((int) $id)?->name),
+            ])->filter(fn (array $model): bool => $model['label'] !== ' · ')->values()->all(),
+        ])->values()->all();
+
+        return view('admin.attributes.option-restrictions', [
+            'attribute' => $attribute,
+            'rules' => $rulesPayload,
+        ]);
+    }
+
+    public function storeOptionRestriction(Request $request, ListingAttribute $attribute)
+    {
+        abort_unless(in_array($attribute->type?->value, [AttributeType::Select->value, AttributeType::MultiSelect->value], true), 404);
+        $options = array_values(array_map('strval', $attribute->options ?? []));
+        $validated = $request->validate([
+            'phone_model_ids' => ['required', 'array', 'min:1'],
+            'phone_model_ids.*' => ['integer', 'distinct', 'exists:phone_models,id'],
+            'options' => ['required', 'array', 'min:1'],
+            'options.*' => ['string', 'distinct', Rule::in($options)],
+        ], [
+            'phone_model_ids.required' => 'حداقل یک مدل را انتخاب کنید.',
+            'options.required' => 'حداقل یک گزینه را انتخاب کنید.',
+            'options.*.in' => 'یکی از گزینه‌های انتخاب‌شده معتبر نیست.',
+        ]);
+
+        AttributeOptionRestriction::create([
+            'attribute_id' => $attribute->id,
+            'phone_model_ids' => collect($validated['phone_model_ids'])->map(fn ($id): int => (int) $id)->unique()->values()->all(),
+            'options' => collect($validated['options'])->map(fn ($option): string => (string) $option)->unique()->values()->all(),
+        ]);
+
+        return back()->with('status', 'محدودسازی گزینه‌ها ذخیره شد.');
+    }
+
+    public function destroyOptionRestriction(ListingAttribute $attribute, AttributeOptionRestriction $optionRestriction)
+    {
+        abort_unless($optionRestriction->attribute_id === $attribute->id, 404);
+        $optionRestriction->delete();
+
+        return back()->with('status', 'محدودسازی حذف شد.');
     }
 
     public function toggle(Request $request, ListingAttribute $attribute): RedirectResponse|JsonResponse
@@ -152,6 +208,32 @@ class AttributeController extends Controller
         }
 
         return $data;
+    }
+
+    private function cleanOptionRestrictions(ListingAttribute $attribute): void
+    {
+        $allowedOptions = array_map('strval', $attribute->options ?? []);
+
+        if (! in_array($attribute->type?->value, [AttributeType::Select->value, AttributeType::MultiSelect->value], true)) {
+            $attribute->optionRestrictions()->delete();
+
+            return;
+        }
+
+        $attribute->optionRestrictions()->get()->each(function (AttributeOptionRestriction $rule) use ($allowedOptions): void {
+            $cleanOptions = collect($rule->options ?? [])
+                ->map(fn ($option): string => (string) $option)
+                ->filter(fn (string $option): bool => in_array($option, $allowedOptions, true))
+                ->unique()
+                ->values()
+                ->all();
+
+            if ($cleanOptions === []) {
+                $rule->delete();
+            } else {
+                $rule->update(['options' => $cleanOptions]);
+            }
+        });
     }
 
     private function syncVisibilityModels(ListingAttribute $attribute): void

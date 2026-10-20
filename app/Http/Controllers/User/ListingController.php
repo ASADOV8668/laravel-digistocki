@@ -137,6 +137,7 @@ class ListingController extends Controller
         $attributes = Attribute::query()
             ->where('is_active', true)
             ->visibleForModel($phoneModel->id)
+            ->with('optionRestrictions')
             ->when(! $request->boolean('all'), fn ($query) => $query->where('is_filterable', true))
             ->orderBy('sort_order')
             ->get();
@@ -154,6 +155,7 @@ class ListingController extends Controller
             $scope,
             (array) $request->input('filters', []),
             ! $request->boolean('all'),
+            $phoneModel->id,
         ));
     }
 
@@ -222,7 +224,11 @@ class ListingController extends Controller
             ? PhoneModel::query()
                 ->where('is_active', true)
                 ->when($selectedBrandId, fn (Builder $query) => $query->where('brand_id', $selectedBrandId))
-                ->with(['attributes' => fn ($query) => $query->where('is_active', true)->where('is_filterable', true)->orderBy('sort_order')])
+                ->with(['attributes' => fn ($query) => $query
+                    ->where('is_active', true)
+                    ->where('is_filterable', true)
+                    ->with('optionRestrictions')
+                    ->orderBy('sort_order')])
                 ->find($selectedModelId)
             : null;
         $filterAttributes = $selectedModel?->attributes ?? collect();
@@ -370,6 +376,8 @@ class ListingController extends Controller
             $filterAttributes,
             $filterOptionScope,
             (array) $request->input('filters', []),
+            true,
+            $selectedModelId ?: null,
         );
 
         $options = app(SystemOptions::class);
@@ -518,14 +526,14 @@ class ListingController extends Controller
             ? PhoneModel::query()->where('is_active', true)->find($selectedModelId)
             : null;
         $initialAttributes = $selectedModel
-            ? Attribute::query()->where('is_active', true)->visibleForModel($selectedModel->id)->orderBy('sort_order')->get()
+            ? Attribute::query()->where('is_active', true)->visibleForModel($selectedModel->id)->with('optionRestrictions')->orderBy('sort_order')->get()
             : collect();
 
         return view('listings.create', [
             'brands' => Brand::query()->where('is_active', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
             'attributes' => Attribute::query()->where('is_active', true)->orderBy('sort_order')->get(),
             'provinces' => Province::query()->orderBy('name')->get(),
-            'initialModelAttributes' => $this->attributePayload($initialAttributes),
+            'initialModelAttributes' => $this->attributePayload($initialAttributes, $selectedModel?->id),
             'initialValues' => old('attributes', $cloneValues),
             'cloneListing' => $cloneListing,
             'store' => $store,
@@ -542,6 +550,7 @@ class ListingController extends Controller
         $attributes = Attribute::query()
             ->where('is_active', true)
             ->visibleForModel($listing->phone_model_id)
+            ->with('optionRestrictions')
             ->orderBy('sort_order')
             ->get();
 
@@ -552,7 +561,7 @@ class ListingController extends Controller
             'attributes' => $attributes,
             'provinces' => Province::query()->orderBy('name')->get(),
             'initialValues' => $listing->attributeValues->mapWithKeys(fn ($value) => [$value->attribute_id => $value->value_json ?? $value->value_string ?? $value->value_integer ?? $value->value_decimal ?? $value->value_boolean])->all(),
-            'initialModelAttributes' => $this->attributePayload($attributes),
+            'initialModelAttributes' => $this->attributePayload($attributes, $listing->phone_model_id),
             'maxImageUploadMb' => $options->maxImageUploadMb(),
             'maxImageUploadCount' => $options->maxImageUploadCount(),
             'allowContactPrice' => $options->allowContactPrice(),
@@ -1045,7 +1054,7 @@ class ListingController extends Controller
         });
     }
 
-    private function attributePayload($attributes): array
+    private function attributePayload($attributes, ?int $phoneModelId = null): array
     {
         return collect($attributes)->map(fn (Attribute $attribute) => [
             'id' => $attribute->id,
@@ -1053,7 +1062,7 @@ class ListingController extends Controller
             'slug' => $attribute->slug,
             'type' => $attribute->type->value,
             'unit' => $attribute->unit,
-            'options' => $attribute->options ?? [],
+            'options' => $attribute->optionsForModel($phoneModelId),
             'is_required' => (bool) ($attribute->pivot->is_required ?? false),
         ])->values()->all();
     }

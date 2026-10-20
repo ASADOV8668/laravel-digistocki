@@ -123,6 +123,9 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::get('/attributes', [AdminAttributeController::class, 'index'])->name('admin.attributes.index');
     Route::get('/attributes/models', [AdminAttributeController::class, 'models'])->name('admin.attributes.models');
     Route::post('/attributes', [AdminAttributeController::class, 'store'])->name('admin.attributes.store');
+    Route::get('/attributes/{attribute}/option-restrictions', [AdminAttributeController::class, 'optionRestrictions'])->name('admin.attributes.option-restrictions.index');
+    Route::post('/attributes/{attribute}/option-restrictions', [AdminAttributeController::class, 'storeOptionRestriction'])->name('admin.attributes.option-restrictions.store');
+    Route::delete('/attributes/{attribute}/option-restrictions/{optionRestriction}', [AdminAttributeController::class, 'destroyOptionRestriction'])->name('admin.attributes.option-restrictions.destroy');
     Route::patch('/attributes/{attribute}', [AdminAttributeController::class, 'update'])->name('admin.attributes.update');
     Route::patch('/attributes/{attribute}/toggle', [AdminAttributeController::class, 'toggle'])->name('admin.attributes.toggle');
     Route::get('/settings', [SettingsController::class, 'edit'])->name('admin.settings.edit');

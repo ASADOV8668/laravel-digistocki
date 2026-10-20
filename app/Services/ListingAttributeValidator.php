@@ -18,8 +18,10 @@ class ListingAttributeValidator
         $allowed = Attribute::query()
             ->where('is_active', true)
             ->visibleForModel($model->id)
+            ->with('optionRestrictions')
             ->get()
             ->keyBy('id');
+        $allowed->each(fn (Attribute $attribute) => $attribute->setAttribute('options', $attribute->optionsForModel($model->id)));
         $requiredByModel = $model->attributes()->pluck('model_attributes.is_required', 'attributes.id');
         $errors = [];
 

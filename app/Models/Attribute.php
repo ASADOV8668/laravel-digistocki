@@ -61,6 +61,33 @@ class Attribute extends Model
         return $this->hasMany(ModelAttribute::class);
     }
 
+    public function optionRestrictions(): HasMany
+    {
+        return $this->hasMany(AttributeOptionRestriction::class);
+    }
+
+    /** @return array<int, string> */
+    public function optionsForModel(?int $phoneModelId = null): array
+    {
+        $options = array_values(array_map('strval', $this->options ?? []));
+
+        if ($phoneModelId === null || ! in_array($this->type?->value, [AttributeType::Select->value, AttributeType::MultiSelect->value], true)) {
+            return $options;
+        }
+
+        $matchingRules = $this->relationLoaded('optionRestrictions')
+            ? $this->optionRestrictions->filter(fn (AttributeOptionRestriction $rule): bool => in_array($phoneModelId, array_map('intval', $rule->phone_model_ids ?? []), true))
+            : $this->optionRestrictions()->get()->filter(fn (AttributeOptionRestriction $rule): bool => in_array($phoneModelId, array_map('intval', $rule->phone_model_ids ?? []), true));
+
+        if ($matchingRules->isEmpty()) {
+            return $options;
+        }
+
+        $allowed = $matchingRules->flatMap(fn (AttributeOptionRestriction $rule) => array_map('strval', $rule->options ?? []))->unique()->all();
+
+        return array_values(array_filter($options, fn (string $option): bool => in_array($option, $allowed, true)));
+    }
+
     public function phoneModels(): BelongsToMany
     {
         return $this->belongsToMany(PhoneModel::class, 'model_attributes')->withPivot(['is_required', 'sort_order'])->withTimestamps();

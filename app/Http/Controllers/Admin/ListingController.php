@@ -45,7 +45,7 @@ class ListingController extends Controller
     {
         $notificationReadService->markTargetAsRead(auth()->user(), 'listing_id', $listing->getKey());
         $listing->load(['images', 'attributeValues', 'phoneModel', 'user']);
-        $attributes = Attribute::query()->where('is_active', true)->visibleForModel($listing->phone_model_id)->orderBy('sort_order')->get();
+        $attributes = Attribute::query()->where('is_active', true)->visibleForModel($listing->phone_model_id)->with('optionRestrictions')->orderBy('sort_order')->get();
 
         return view('admin.listings.form', $this->formData($options, $listing, $attributes));
     }
@@ -221,7 +221,7 @@ class ListingController extends Controller
     private function formData(SystemOptions $options, ?Listing $listing = null, $attributes = null): array
     {
         $selectedModel = $listing?->phoneModel ?? (old('phone_model_id') ? PhoneModel::query()->find(old('phone_model_id')) : null);
-        $attributes ??= $selectedModel ? Attribute::query()->where('is_active', true)->visibleForModel($selectedModel->id)->orderBy('sort_order')->get() : collect();
+        $attributes ??= $selectedModel ? Attribute::query()->where('is_active', true)->visibleForModel($selectedModel->id)->with('optionRestrictions')->orderBy('sort_order')->get() : collect();
 
         return [
             'listing' => $listing,
@@ -230,7 +230,7 @@ class ListingController extends Controller
             'provinces' => Province::query()->orderBy('name')->get(),
             'attributes' => $attributes,
             'initialValues' => $listing ? $listing->attributeValues->mapWithKeys(fn ($value) => [$value->attribute_id => $value->value_json ?? $value->value_string ?? $value->value_integer ?? $value->value_decimal ?? $value->value_boolean])->all() : [],
-            'initialModelAttributes' => $attributes->map(fn (Attribute $attribute) => ['id' => $attribute->id, 'name' => $attribute->name, 'slug' => $attribute->slug, 'type' => $attribute->type->value, 'unit' => $attribute->unit, 'options' => $attribute->options ?? [], 'is_required' => (bool) ($attribute->pivot->is_required ?? false)])->values()->all(),
+            'initialModelAttributes' => $attributes->map(fn (Attribute $attribute) => ['id' => $attribute->id, 'name' => $attribute->name, 'slug' => $attribute->slug, 'type' => $attribute->type->value, 'unit' => $attribute->unit, 'options' => $attribute->optionsForModel($selectedModel?->id), 'is_required' => (bool) ($attribute->pivot->is_required ?? false)])->values()->all(),
             'maxImageUploadMb' => $options->maxImageUploadMb(),
             'maxImageUploadCount' => $options->maxImageUploadCount(),
             'allowContactPrice' => $options->allowContactPrice(),
@@ -239,7 +239,7 @@ class ListingController extends Controller
 
     private function saveAttributeValues(Listing $listing, PhoneModel $model, array $values): void
     {
-        $attributes = Attribute::query()->where('is_active', true)->visibleForModel($model->id)->get()->keyBy('id');
+        $attributes = Attribute::query()->where('is_active', true)->visibleForModel($model->id)->with('optionRestrictions')->get()->keyBy('id');
         $now = now();
         $payloads = [];
         foreach ($values as $attributeId => $value) {

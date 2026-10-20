@@ -15,19 +15,19 @@ class ListingFilterOptionService
      * Each attribute is calculated against all other selected filters, so a capacity selection
      * can immediately narrow the available colors without hiding the selected capacity itself.
      */
-    public function payload(iterable $attributes, Builder $scope, array $filters = [], bool $dynamic = true): array
+    public function payload(iterable $attributes, Builder $scope, array $filters = [], bool $dynamic = true, ?int $phoneModelId = null): array
     {
         $attributes = collect($attributes);
         $attributeMap = $attributes->keyBy('id');
 
-        return $attributes->map(function (Attribute $attribute) use ($scope, $filters, $attributeMap, $dynamic): array {
+        return $attributes->map(function (Attribute $attribute) use ($scope, $filters, $attributeMap, $dynamic, $phoneModelId): array {
             $payload = [
                 'id' => $attribute->id,
                 'name' => $attribute->name,
                 'slug' => $attribute->slug,
                 'type' => $attribute->type->value,
                 'unit' => $attribute->unit,
-                'options' => $attribute->options ?? [],
+                'options' => $attribute->optionsForModel($phoneModelId),
                 'is_filterable' => (bool) $attribute->is_filterable,
                 'is_required' => (bool) ($attribute->pivot->is_required ?? $attribute->is_required),
                 'sort_order' => $attribute->sort_order,

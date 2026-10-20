@@ -52,6 +52,7 @@
                 </div>
                 <input name="options" placeholder="گزینه‌ها با کاما جدا شوند"
                     class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent">
+                <p class="text-[10px] leading-5 text-slate-400">پس از ذخیره ویژگی‌های Select یا Multi_select، امکان محدودسازی گزینه‌ها بر اساس مدل در صفحه ویرایش فعال می‌شود.</p>
                 @include('admin.attributes._visibility-fields', ['selectedModelIds' => [], 'selectedRule' => 'all'])
                 <div class="space-y-2 rounded-xl bg-slate-50 p-3"><label
                         class="flex items-center gap-2 text-xs font-bold text-slate-600"><input type="checkbox"
@@ -131,7 +132,18 @@
                                                         min="0" value="{{ $attribute->sort_order }}"
                                                         class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">
                                                 </div>
-                                            </div><input name="options"
+                                            </div>
+                                            <div class="flex items-center justify-between gap-3">
+                                                <label class="text-[11px] font-bold text-slate-600">گزینه‌ها</label>
+                                                @if (in_array($attribute->type?->value, ['select', 'multi_select'], true))
+                                                    <a href="{{ route('admin.attributes.option-restrictions.index', $attribute) }}"
+                                                        class="inline-flex items-center gap-1 text-[11px] font-bold text-accent hover:underline">
+                                                        <x-heroicon-o-funnel class="h-4 w-4" />
+                                                        محدودسازی ویژگی مدل‌ها
+                                                    </a>
+                                                @endif
+                                            </div>
+                                            <input name="options"
                                                 value="{{ implode(', ', $attribute->options ?? []) }}"
                                                 placeholder="گزینه‌ها با کاما جدا شوند"
                                                 class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">

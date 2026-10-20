@@ -108,6 +108,7 @@ class StorefrontController extends Controller
             ->whereIn('id', $attributeIds)
             ->where('is_active', true)
             ->where('is_filterable', true)
+            ->with('optionRestrictions')
             ->orderBy('sort_order')
             ->get();
 
@@ -181,6 +182,8 @@ class StorefrontController extends Controller
                 $filterAttributes,
                 $attributeScope,
                 (array) $request->input('filters', []),
+                true,
+                $selectedModel?->id,
             ),
             'sort' => $sort,
             'activeFilters' => $activeFilters,
@@ -261,6 +264,7 @@ class StorefrontController extends Controller
             ->whereIn('listing_id', $this->storeListingQuery($sellerStore, $activeOnly)->where('phone_model_id', $phoneModel->id)->select('id'))
             ->distinct()->pluck('attribute_id');
         $attributes = Attribute::query()->whereIn('id', $attributeIds)->where('is_active', true)
+            ->with('optionRestrictions')
             ->when(! $request->boolean('all'), fn (Builder $query) => $query->where('is_filterable', true))
             ->orderBy('sort_order')->get();
 
@@ -271,6 +275,7 @@ class StorefrontController extends Controller
             $scope,
             (array) $request->input('filters', []),
             ! $request->boolean('all'),
+            $phoneModel->id,
         ));
     }
 
@@ -285,11 +290,11 @@ class StorefrontController extends Controller
             ->when($activeOnly, fn (Builder $query) => $query->where('is_user_disabled', false));
     }
 
-    private function attributePayload($attributes): array
+    private function attributePayload($attributes, ?int $phoneModelId = null): array
     {
         return $attributes->map(fn (Attribute $attribute) => [
             'id' => $attribute->id, 'name' => $attribute->name, 'slug' => $attribute->slug,
-            'type' => $attribute->type->value, 'unit' => $attribute->unit, 'options' => $attribute->options ?? [],
+            'type' => $attribute->type->value, 'unit' => $attribute->unit, 'options' => $attribute->optionsForModel($phoneModelId),
         ])->values()->all();
     }
 
