@@ -77,7 +77,7 @@ final class ListingTitle
         }
 
         return [
-            'storage' => 'Storage capacity', 'ram' => 'RAM', 'color' => 'Color',
+            'storage' => 'Memory', 'ram' => 'RAM', 'color' => 'Color',
             'condition' => 'Condition', 'battery_health' => 'Battery health',
             'screen_condition' => 'Screen condition', 'body_condition' => 'Body condition',
             'water_damage' => 'Water damage', 'repaired' => 'Repaired',

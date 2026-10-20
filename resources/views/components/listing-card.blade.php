@@ -75,7 +75,7 @@
                         class="h-3.5 w-3.5 shrink-0" />{{ $listing->province?->name ?: 'استان ثبت نشده' }}{{ $listing->city?->name ? '، ' . $listing->city->name : '' }}@if ($showListStorefront)<span class="text-slate-400"> ({{ $storefront->name }})</span>@endif</span><span
                     class="shrink-0">{{ \App\Support\PersianNumber::digits(\App\Support\PersianDate::human($listing->published_at ?? $listing->created_at)) }}</span>
             </div>
-            <p dir="{{ $isEnglishTitle ? 'ltr' : 'rtl' }}" class="{{ $isList ? 'mt-1 text-[13px]' : 'mt-2 text-sm' }} font-black text-primary">
+            <p dir="rtl" class="{{ $isList ? 'mt-1 text-[13px]' : 'mt-2 text-sm' }} font-black text-primary">
                 {{ $listing->price_on_request ? ($isEnglishTitle ? 'Contact seller' : 'تماس بگیرید') : \App\Support\PersianNumber::format($listing->price) . ' ' . \App\Support\ListingTitle::priceUnit($isEnglishTitle) }}
             </p>
         </div>

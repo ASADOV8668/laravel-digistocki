@@ -45,7 +45,7 @@ class ListingTitleLanguageTest extends TestCase
 
         $this->assertSame('اپل آیفون ۱۳ پرو مکس آبی ۲۵۶ گیگابایت', $persian);
         $this->assertFalse(ListingTitle::isEnglishTitle($persian));
-        $this->assertSame('Storage capacity', ListingTitle::attributeName('storage', 'حافظه داخلی', true));
+        $this->assertSame('Memory', ListingTitle::attributeName('storage', 'حافظه داخلی', true));
         $this->assertSame('تومان', ListingTitle::priceUnit(true));
     }
 }
