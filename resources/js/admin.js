@@ -27,6 +27,23 @@ window.adminToast = () => ({
     },
 });
 
+window.attributeVisibilityPicker = (models = [], selected = [], initialRule = 'all') => ({
+    models,
+    selected: (selected || []).map((id) => String(id)),
+    query: '',
+    rule: initialRule || 'all',
+
+    init() {
+        this.rule = initialRule || this.$root.querySelector('select[name="visibility_rule"]')?.value || 'all';
+    },
+
+    filteredModels() {
+        const term = String(this.query || '').trim().toLocaleLowerCase();
+        if (!term) return this.models;
+        return this.models.filter((model) => String(model.search || model.label).toLocaleLowerCase().includes(term));
+    },
+});
+
 window.moneyInput = (initial = '') => ({
     raw: '',
     display: '',

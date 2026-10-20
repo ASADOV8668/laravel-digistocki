@@ -15,7 +15,11 @@ class ListingAttributeValidator
             return [];
         }
 
-        $allowed = $model->attributes()->where('attributes.is_active', true)->get()->keyBy('id');
+        $allowed = $model->attributes()
+            ->where('attributes.is_active', true)
+            ->visibleForModel($model->id)
+            ->get()
+            ->keyBy('id');
         $errors = [];
 
         foreach ($allowed as $attribute) {

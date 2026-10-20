@@ -21,6 +21,7 @@ final class ListingTitle
         }
 
         $attributes = $model->attributes()
+            ->visibleForModel($model->id)
             ->whereIn('slug', ['color', 'storage'])
             ->get()
             ->keyBy('slug');

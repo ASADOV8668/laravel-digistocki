@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\AttributeType;
 use App\Http\Controllers\Controller;
 use App\Models\Attribute as ListingAttribute;
+use App\Models\PhoneModel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -26,13 +27,53 @@ class AttributeController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.attributes.index', ['attributes' => $attributes, 'types' => AttributeType::cases(), 'perPageOptions' => $perPageOptions]);
+        $phoneModels = PhoneModel::query()
+            ->where('is_active', true)
+            ->with('brand:id,name,name_en')
+            ->orderBy('brand_id')
+            ->orderBy('name')
+            ->get(['id', 'brand_id', 'name', 'name_fa', 'name_en']);
+
+        return view('admin.attributes.index', [
+            'attributes' => $attributes,
+            'types' => AttributeType::cases(),
+            'perPageOptions' => $perPageOptions,
+            'phoneModels' => $phoneModels,
+        ]);
+    }
+
+    public function models(Request $request): JsonResponse
+    {
+        $query = trim((string) $request->input('q'));
+
+        return response()->json(PhoneModel::query()
+            ->where('is_active', true)
+            ->with('brand:id,name,name_en')
+            ->when($query !== '', function ($builder) use ($query): void {
+                $builder->where(function ($builder) use ($query): void {
+                    $builder->where('name', 'like', '%'.$query.'%')
+                        ->orWhere('name_fa', 'like', '%'.$query.'%')
+                        ->orWhere('name_en', 'like', '%'.$query.'%')
+                        ->orWhereHas('brand', fn ($brand) => $brand->where('name', 'like', '%'.$query.'%')->orWhere('name_en', 'like', '%'.$query.'%'));
+                });
+            })
+            ->orderBy('brand_id')
+            ->orderBy('name')
+            ->limit(100)
+            ->get(['id', 'brand_id', 'name', 'name_fa', 'name_en'])
+            ->map(fn (PhoneModel $model): array => [
+                'id' => $model->id,
+                'brand_id' => $model->brand_id,
+                'label' => ($model->brand?->name ?: $model->brand?->name_en).' · '.($model->name_fa ?: $model->name),
+                'search' => implode(' ', array_filter([$model->brand?->name, $model->brand?->name_en, $model->name, $model->name_fa, $model->name_en])),
+            ])->values());
     }
 
     public function store(Request $request)
     {
         $validated = $this->validated($request);
-        ListingAttribute::create($validated);
+        $attribute = ListingAttribute::create($validated);
+        $this->syncVisibilityModels($attribute);
 
         return back()->with('status', 'ویژگی جدید اضافه شد.');
     }
@@ -40,6 +81,7 @@ class AttributeController extends Controller
     public function update(Request $request, ListingAttribute $attribute)
     {
         $attribute->update($this->validated($request, $attribute));
+        $this->syncVisibilityModels($attribute->refresh());
 
         return back()->with('status', 'ویژگی به‌روزرسانی شد.');
     }
@@ -61,7 +103,18 @@ class AttributeController extends Controller
 
     private function validated(Request $request, ?ListingAttribute $attribute = null): array
     {
-        $data = $request->validate(['name' => ['required', 'string', 'max:100'], 'type' => ['required', Rule::enum(AttributeType::class)], 'unit' => ['nullable', 'string', 'max:20'], 'options' => ['nullable', 'string', Rule::requiredIf(fn () => in_array($request->input('type'), [AttributeType::Select->value, AttributeType::MultiSelect->value], true))], 'is_filterable' => ['nullable', 'boolean'], 'is_required' => ['nullable', 'boolean'], 'sort_order' => ['nullable', 'integer', 'min:0', 'max:65535']]);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'type' => ['required', Rule::enum(AttributeType::class)],
+            'unit' => ['nullable', 'string', 'max:20'],
+            'options' => ['nullable', 'string', Rule::requiredIf(fn () => in_array($request->input('type'), [AttributeType::Select->value, AttributeType::MultiSelect->value], true))],
+            'is_filterable' => ['nullable', 'boolean'],
+            'is_required' => ['nullable', 'boolean'],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:65535'],
+            'visibility_rule' => ['required', Rule::in(['all', 'include', 'exclude'])],
+            'visibility_model_ids' => ['nullable', 'array'],
+            'visibility_model_ids.*' => ['integer', 'distinct', 'exists:phone_models,id'],
+        ]);
         $options = filled($data['options'] ?? null) ? collect(preg_split('/[,،\n]+/u', $data['options']))->map(fn ($option) => trim($option))->filter()->unique()->values()->all() : [];
         if (in_array($data['type'], [AttributeType::Select->value, AttributeType::MultiSelect->value], true) && $options === []) {
             throw ValidationException::withMessages(['options' => 'حداقل یک گزینه معتبر وارد کنید.']);
@@ -70,7 +123,36 @@ class AttributeController extends Controller
         $data['is_filterable'] = $request->boolean('is_filterable');
         $data['is_required'] = $request->boolean('is_required');
         $data['sort_order'] = (int) ($data['sort_order'] ?? 0);
+        $data['visibility_rule'] = $data['visibility_rule'] ?? 'all';
+        $data['visibility_model_ids'] = $data['visibility_rule'] === 'all'
+            ? []
+            : collect($data['visibility_model_ids'] ?? [])->map(fn ($id): int => (int) $id)->unique()->values()->all();
+
+        if ($data['visibility_rule'] !== 'all' && $data['visibility_model_ids'] === []) {
+            throw ValidationException::withMessages(['visibility_model_ids' => 'برای این شرط حداقل یک مدل را انتخاب کنید.']);
+        }
 
         return $data;
+    }
+
+    private function syncVisibilityModels(ListingAttribute $attribute): void
+    {
+        $modelQuery = PhoneModel::query()->where('is_active', true);
+
+        if ($attribute->visibility_rule === 'include') {
+            $modelQuery->whereIn('id', $attribute->visibility_model_ids ?? []);
+        } elseif ($attribute->visibility_rule === 'exclude') {
+            $modelQuery->whereNotIn('id', $attribute->visibility_model_ids ?? []);
+        }
+
+        $modelIds = $modelQuery->pluck('id')->map(fn ($id): int => (int) $id)->all();
+        $attribute->modelAttributes()->whereNotIn('phone_model_id', $modelIds)->delete();
+
+        foreach ($modelIds as $modelId) {
+            $attribute->modelAttributes()->updateOrCreate(
+                ['phone_model_id' => $modelId],
+                ['is_required' => $attribute->is_required, 'sort_order' => $attribute->sort_order],
+            );
+        }
     }
 }

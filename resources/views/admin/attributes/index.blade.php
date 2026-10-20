@@ -1,3 +1,10 @@
+@php
+    $phoneModelsPayload = $phoneModels->map(fn ($model) => [
+        'id' => $model->id,
+        'label' => ($model->brand?->name ?: $model->brand?->name_en).' · '.($model->name_fa ?: $model->name),
+        'search' => implode(' ', array_filter([$model->brand?->name, $model->brand?->name_en, $model->name, $model->name_fa, $model->name_en])),
+    ])->values()->all();
+@endphp
 <x-admin-layout title="ویژگی‌های گوشی">
     <x-slot name="header">
         <div class="flex items-center gap-3"><span
@@ -52,6 +59,7 @@
                 </div>
                 <input name="options" placeholder="گزینه‌ها با کاما جدا شوند"
                     class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent">
+                @include('admin.attributes._visibility-fields', ['selectedModelIds' => [], 'selectedRule' => 'all'])
                 <div class="space-y-2 rounded-xl bg-slate-50 p-3"><label
                         class="flex items-center gap-2 text-xs font-bold text-slate-600"><input type="checkbox"
                             name="is_filterable" value="1"
@@ -134,6 +142,7 @@
                                                 value="{{ implode(', ', $attribute->options ?? []) }}"
                                                 placeholder="گزینه‌ها با کاما جدا شوند"
                                                 class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">
+                                            @include('admin.attributes._visibility-fields', ['selectedModelIds' => $attribute->visibility_model_ids ?? [], 'selectedRule' => $attribute->visibility_rule ?? 'all'])
                                             <div class="flex flex-wrap gap-4"><label
                                                     class="flex items-center gap-2 text-xs font-bold text-slate-600"><input
                                                         type="checkbox" name="is_filterable" value="1"

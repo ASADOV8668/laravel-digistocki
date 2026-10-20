@@ -136,10 +136,10 @@ class ListingController extends Controller
 
         $attributes = $phoneModel->attributes()
             ->where('attributes.is_active', true)
+            ->visibleForModel($phoneModel->id)
             ->when(! $request->boolean('all'), fn ($query) => $query->where('attributes.is_filterable', true))
             ->orderBy('attributes.sort_order')
             ->get();
-
         $activeOnly = $request->input('active_only', '1') !== '0';
         $scope = Listing::query()
             ->approved()
@@ -538,6 +538,7 @@ class ListingController extends Controller
         $listing->load(['images', 'attributeValues', 'phoneModel', 'user.storefront']);
         $attributes = $listing->phoneModel->attributes()
             ->where('attributes.is_active', true)
+            ->visibleForModel($listing->phone_model_id)
             ->orderBy('attributes.sort_order')
             ->get();
 
@@ -871,6 +872,7 @@ class ListingController extends Controller
     {
         $attributes = $model->attributes()
             ->where('attributes.is_active', true)
+            ->visibleForModel($model->id)
             ->get()
             ->keyBy('id');
         $now = now();

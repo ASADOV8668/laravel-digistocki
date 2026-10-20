@@ -121,6 +121,7 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::patch('/phone-models/{phoneModel}', [AdminPhoneModelController::class, 'update'])->name('admin.phone-models.update');
     Route::patch('/phone-models/{phoneModel}/toggle', [AdminPhoneModelController::class, 'toggle'])->name('admin.phone-models.toggle');
     Route::get('/attributes', [AdminAttributeController::class, 'index'])->name('admin.attributes.index');
+    Route::get('/attributes/models', [AdminAttributeController::class, 'models'])->name('admin.attributes.models');
     Route::post('/attributes', [AdminAttributeController::class, 'store'])->name('admin.attributes.store');
     Route::patch('/attributes/{attribute}', [AdminAttributeController::class, 'update'])->name('admin.attributes.update');
     Route::patch('/attributes/{attribute}/toggle', [AdminAttributeController::class, 'toggle'])->name('admin.attributes.toggle');
