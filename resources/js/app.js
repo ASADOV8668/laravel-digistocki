@@ -725,9 +725,11 @@ window.pwaInstallPrompt = () => ({
             || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
 
         window.addEventListener('beforeinstallprompt', (event) => {
-            event.preventDefault();
+            // Let Chromium show its native install UI. Calling preventDefault()
+            // without a later prompt() produces a console warning and leaves
+            // the install event in a blocked state.
             this.deferredPrompt = event;
-            this.canInstall = !this.installed && !this.dismissed;
+            this.canInstall = false;
         });
 
         window.addEventListener('appinstalled', () => {
