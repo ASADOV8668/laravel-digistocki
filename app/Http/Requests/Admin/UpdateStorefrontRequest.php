@@ -42,6 +42,7 @@ class UpdateStorefrontRequest extends FormRequest
             'rubika_url' => SocialHandle::normalize($this->input('rubika_url')),
             'remove_logo' => $this->boolean('remove_logo'),
             'remove_business_license' => $this->boolean('remove_business_license'),
+            'remove_exterior_image' => $this->boolean('remove_exterior_image'),
         ]);
     }
 
@@ -69,10 +70,15 @@ class UpdateStorefrontRequest extends FormRequest
             'business_license_expires_at_day' => ['nullable', 'integer', 'between:1,31'],
             'province_id' => ['nullable', 'integer', 'exists:provinces,id'],
             'city_id' => ['nullable', 'integer', Rule::exists('cities', 'id')->where(fn ($query) => $query->where('province_id', $this->input('province_id')))],
-            'logo' => [Rule::requiredIf(! $store?->logo_path || $this->boolean('remove_logo')), 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
+            'logo' => [Rule::requiredIf(fn (): bool => (! $store?->logo_path || $this->boolean('remove_logo')) && ! $this->hasFile('logo_camera')), 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
+            'logo_camera' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
             'business_license' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
+            'business_license_camera' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
+            'exterior_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
+            'exterior_image_camera' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
             'remove_logo' => ['nullable', 'boolean'],
             'remove_business_license' => ['nullable', 'boolean'],
+            'remove_exterior_image' => ['nullable', 'boolean'],
             'address' => ['nullable', 'string', 'max:1000'],
             'contact_phone' => ['nullable', 'string', 'regex:/^09\d{9}$/'],
             'instagram_url' => ['nullable', 'string', 'max:120', 'regex:/^[A-Za-z0-9._+\-]+$/'],

@@ -358,6 +358,92 @@ class PhaseTwoHundredFortyStoreApplicationWorkflowTest extends TestCase
             ->assertSee('name="remove_business_license"', false);
     }
 
+    public function test_storefront_exterior_image_supports_gallery_and_camera_inputs(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create(['mobile' => '09120001031']);
+        [$province, $city] = $this->location('استان سردر', 'شهر سردر');
+
+        $this->actingAs($user)->put(route('storefront.update'), [
+            'first_name' => 'کاربر',
+            'last_name' => 'سردر',
+            'national_id' => '0067123457',
+            'name' => 'فروشگاه سردر',
+            'slug' => 'storefront-exterior-image',
+            'contact_phone' => $user->mobile,
+            'business_license_number' => 'LIC-EXTERIOR',
+            'business_license_expires_at_year' => (int) PersianDate::format(now(), 'Y'),
+            'business_license_expires_at_month' => (int) PersianDate::format(now(), 'm'),
+            'business_license_expires_at_day' => min(29, (int) PersianDate::format(now(), 'd')),
+            'province_id' => $province->id,
+            'city_id' => $city->id,
+            'address' => 'آدرس فروشگاه سردر',
+            'logo' => UploadedFile::fake()->create('logo.jpg', 10, 'image/jpeg'),
+            'business_license' => UploadedFile::fake()->create('license.jpg', 10, 'image/jpeg'),
+            'exterior_image_camera' => UploadedFile::fake()->create('exterior.jpg', 10, 'image/jpeg'),
+        ])->assertRedirect();
+
+        $store = SellerStore::where('user_id', $user->id)->firstOrFail();
+        $this->assertStringStartsWith('store-exteriors/', $store->exterior_image_path);
+        Storage::disk('public')->assertExists($store->exterior_image_path);
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin)->get(route('admin.storefronts.edit', $user))
+            ->assertOk()
+            ->assertSee('تصویر نمایش بیرون (سردر) فروشگاه')
+            ->assertSee('name="exterior_image_camera"', false)
+            ->assertSee('capture="environment"', false)
+            ->assertSee(asset('storage/'.$store->exterior_image_path), false);
+    }
+
+    public function test_storefront_exterior_image_is_rendered_in_public_hero_and_removed_with_store(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('store-exteriors/hero.webp', 'exterior');
+        $store = SellerStore::create([
+            'user_id' => User::factory()->create()->id,
+            'slug' => 'storefront-exterior-hero',
+            'name' => 'فروشگاه با سردر',
+            'approval_status' => 'approved',
+            'is_enabled' => true,
+            'exterior_image_path' => 'store-exteriors/hero.webp',
+        ]);
+
+        $this->get(route('storefront.show', $store))
+            ->assertOk()
+            ->assertSee('background-image: url(\''.asset('storage/'.$store->exterior_image_path).'\');', false);
+
+        $store->delete();
+        Storage::disk('public')->assertMissing('store-exteriors/hero.webp');
+    }
+
+    public function test_admin_storefront_form_can_save_the_exterior_image(): void
+    {
+        Storage::fake('public');
+        $admin = User::factory()->create(['role' => 'admin']);
+        $owner = User::factory()->create(['mobile' => '09120001032']);
+
+        $this->actingAs($admin)->put(route('admin.storefronts.update', $owner), [
+            'name' => 'فروشگاه مدیریت‌شده',
+            'slug' => 'admin-exterior-store',
+            'approval_status' => 'approved',
+            'listing_approval_mode' => 'manual',
+            'store_enabled' => 1,
+            'contact_phone' => $owner->mobile,
+            'logo' => UploadedFile::fake()->create('admin-logo.jpg', 10, 'image/jpeg'),
+            'exterior_image' => UploadedFile::fake()->create('admin-exterior.jpg', 10, 'image/jpeg'),
+        ])->assertRedirect(route('admin.storefronts.index'));
+
+        $store = SellerStore::where('user_id', $owner->id)->firstOrFail();
+        $this->assertStringStartsWith('store-exteriors/', $store->exterior_image_path);
+        Storage::disk('public')->assertExists($store->exterior_image_path);
+
+        $this->actingAs($admin)->get(route('admin.storefronts.edit', $owner))
+            ->assertOk()
+            ->assertSee('name="exterior_image_camera"', false)
+            ->assertSee('تصویر نمایش بیرون (سردر) فروشگاه');
+    }
+
     public function test_storefront_forms_show_contextual_guidance_and_configured_image_size(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

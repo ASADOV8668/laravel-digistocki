@@ -31,6 +31,7 @@ class SellerStore extends Model
         'province_id',
         'city_id',
         'logo_path',
+        'exterior_image_path',
         'address',
         'contact_phone',
         'business_license_number',
@@ -64,6 +65,7 @@ class SellerStore extends Model
         static::deleting(function (SellerStore $store): void {
             Storage::disk('public')->delete(array_values(array_filter([
                 $store->logo_path,
+                $store->exterior_image_path,
                 $store->business_license_path,
             ])));
         });

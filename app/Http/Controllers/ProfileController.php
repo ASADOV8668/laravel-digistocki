@@ -52,7 +52,7 @@ class ProfileController extends Controller
             ->with('images')
             ->get()
             ->flatMap(fn ($listing) => $listing->images->map(fn ($image) => [$image->path, $image->thumbnail_path]));
-        $storeFiles = [$user->storefront?->logo_path, $user->storefront?->business_license_path];
+        $storeFiles = [$user->storefront?->logo_path, $user->storefront?->business_license_path, $user->storefront?->exterior_image_path];
 
         Auth::logout();
 

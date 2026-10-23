@@ -79,8 +79,13 @@
         @js($priceFloor),
         @js($activeOnly)
     )" class="space-y-6 px-4 py-6">
-        <div class="overflow-hidden rounded-lg bg-neutral p-5 text-white shadow-xl shadow-slate-900/10">
-            <div class="flex items-start gap-4">
+        <div class="relative overflow-hidden rounded-lg bg-neutral p-5 text-white shadow-xl shadow-slate-900/10">
+            @if ($store->exterior_image_path)
+                <div class="absolute inset-0 bg-cover bg-center opacity-50"
+                    style="background-image: url('{{ asset('storage/' . $store->exterior_image_path) }}');"></div>
+                <div class="absolute inset-0 bg-gradient-to-l from-neutral via-neutral/85 to-primary/70"></div>
+            @endif
+            <div class="relative z-10 flex items-start gap-4">
                 @if ($store->logo_path)
                     <img src="{{ asset('storage/' . $store->logo_path) }}" alt="{{ $store->name }}"
                         class="h-20 w-20 rounded-lg bg-white object-cover p-1">
@@ -102,7 +107,7 @@
                 </div>
             </div>
 
-            <div class="mt-5 border-t border-white/10 pt-4">
+            <div class="relative z-10 mt-5 border-t border-white/10 pt-4">
                 <div class="flex items-center justify-between gap-3">
                 @auth
                     <div class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-black text-white">

@@ -43,7 +43,7 @@
             <p class="mt-2 text-xs leading-6">نام و نام خانوادگی، کد ملی و شماره تماس درخواست‌کننده باید با مدارک جواز کسب مطابقت داشته باشند.</p>
         </div>
         <form method="POST" action="{{ route('admin.storefronts.update', $user) }}" enctype="multipart/form-data"
-            x-data="{ removeLogo: false, removeBusinessLicense: false }"
+            x-data="{ removeLogo: false, removeBusinessLicense: false, removeExteriorImage: false }"
             class="admin-card space-y-5 p-5">
             @csrf @method('PUT')
             <div class="grid gap-4 sm:grid-cols-2">
@@ -143,6 +143,12 @@
                         فروشگاه <span class="text-error">*</span></label><input id="admin-store-logo" name="logo" type="file"
                         accept=".jpg,.jpeg,.png,.webp,.heic,.heif" @required(!$store?->logo_path) @change="removeLogo = false"
                         class="w-full rounded-xl border border-slate-200 p-2 text-sm">
+                    <label for="admin-store-logo-camera"
+                        class="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
+                        <x-heroicon-o-camera class="h-4 w-4" /> انتخاب با دوربین
+                    </label>
+                    <input id="admin-store-logo-camera" name="logo_camera" type="file" accept="image/*" capture="environment"
+                        @change="removeLogo = false" class="sr-only">
                     @if ($store?->logo_path)
                         <div x-show="!removeLogo" class="relative mt-3 w-fit">
                             <img src="{{ asset('storage/'.$store->logo_path) }}" alt="لوگوی فعلی فروشگاه"
@@ -159,6 +165,12 @@
                         جواز کسب <span class="text-error">*</span></label><input id="admin-business-license" name="business_license" type="file"
                         accept=".jpg,.jpeg,.png,.webp,.heic,.heif" @required(!$store?->business_license_path) @change="removeBusinessLicense = false"
                         class="w-full rounded-xl border border-slate-200 p-2 text-sm">
+                    <label for="admin-business-license-camera"
+                        class="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
+                        <x-heroicon-o-camera class="h-4 w-4" /> انتخاب با دوربین
+                    </label>
+                    <input id="admin-business-license-camera" name="business_license_camera" type="file" accept="image/*"
+                        capture="environment" @change="removeBusinessLicense = false" class="sr-only">
                     @if ($store?->business_license_path)
                         <div x-show="!removeBusinessLicense" class="relative mt-3 w-fit">
                             <img src="{{ asset('storage/'.$store->business_license_path) }}" alt="تصویر فعلی جواز کسب"
@@ -171,6 +183,30 @@
                     <input type="hidden" name="remove_business_license" value="1" x-bind:disabled="!removeBusinessLicense">
                     <p class="mt-1 text-[11px] text-slate-400">حداکثر حجم تصویر {{ \App\Support\PersianNumber::digits($maxImageUploadMb) }} مگابایت.</p>
                 </div>
+            </div>
+            <div>
+                <label for="admin-exterior-image" class="mb-2 block text-sm font-bold text-slate-700">تصویر نمایش بیرون (سردر) فروشگاه
+                    <span class="text-xs font-normal text-slate-400">(اختیاری)</span></label>
+                <input id="admin-exterior-image" name="exterior_image" type="file"
+                    accept=".jpg,.jpeg,.png,.webp,.heic,.heif" @change="removeExteriorImage = false"
+                    class="w-full rounded-xl border border-slate-200 p-2 text-sm">
+                <label for="admin-exterior-image-camera"
+                    class="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
+                    <x-heroicon-o-camera class="h-4 w-4" /> انتخاب با دوربین
+                </label>
+                <input id="admin-exterior-image-camera" name="exterior_image_camera" type="file" accept="image/*"
+                    capture="environment" @change="removeExteriorImage = false" class="sr-only">
+                @if ($store?->exterior_image_path)
+                    <div x-show="!removeExteriorImage" class="relative mt-3 w-fit">
+                        <img src="{{ asset('storage/'.$store->exterior_image_path) }}" alt="تصویر فعلی نمای بیرونی فروشگاه"
+                            class="h-28 w-48 rounded-xl border border-slate-200 object-cover">
+                        <button type="button" @click="removeExteriorImage = true"
+                            class="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-error text-white shadow"
+                            aria-label="حذف تصویر فعلی نمای بیرونی فروشگاه"><x-heroicon-o-x-mark class="h-4 w-4" /></button>
+                    </div>
+                @endif
+                <input type="hidden" name="remove_exterior_image" value="1" x-bind:disabled="!removeExteriorImage">
+                <p class="mt-1 text-[11px] text-slate-400">حداکثر حجم {{ \App\Support\PersianNumber::digits($maxImageUploadMb) }} مگابایت.</p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
                 <label

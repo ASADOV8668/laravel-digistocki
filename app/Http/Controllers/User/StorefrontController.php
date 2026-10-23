@@ -386,9 +386,11 @@ class StorefrontController extends Controller
         $validated = $request->validated();
         $logoPath = $store?->logo_path;
         $businessLicensePath = $store?->business_license_path;
+        $exteriorImagePath = $store?->exterior_image_path;
 
-        if ($request->hasFile('logo')) {
-            $logoPath = $imageService->store($request->file('logo'), 'stores', false)['path'];
+        $logoFile = $request->file('logo_camera') ?: $request->file('logo');
+        if ($logoFile) {
+            $logoPath = $imageService->store($logoFile, 'stores', false)['path'];
             if ($store?->logo_path) {
                 Storage::disk('public')->delete($store->logo_path);
             }
@@ -397,14 +399,26 @@ class StorefrontController extends Controller
             $logoPath = null;
         }
 
-        if ($request->hasFile('business_license')) {
-            $businessLicensePath = $imageService->store($request->file('business_license'), 'business-licenses', false)['path'];
+        $businessLicenseFile = $request->file('business_license_camera') ?: $request->file('business_license');
+        if ($businessLicenseFile) {
+            $businessLicensePath = $imageService->store($businessLicenseFile, 'business-licenses', false)['path'];
             if ($store?->business_license_path) {
                 Storage::disk('public')->delete($store->business_license_path);
             }
         } elseif ($store?->business_license_path && $request->boolean('remove_business_license')) {
             Storage::disk('public')->delete($store->business_license_path);
             $businessLicensePath = null;
+        }
+
+        $exteriorImageFile = $request->file('exterior_image_camera') ?: $request->file('exterior_image');
+        if ($exteriorImageFile) {
+            $exteriorImagePath = $imageService->store($exteriorImageFile, 'store-exteriors', false)['path'];
+            if ($store?->exterior_image_path) {
+                Storage::disk('public')->delete($store->exterior_image_path);
+            }
+        } elseif ($store?->exterior_image_path && $request->boolean('remove_exterior_image')) {
+            Storage::disk('public')->delete($store->exterior_image_path);
+            $exteriorImagePath = null;
         }
 
         $approvalStatus = $store?->approval_status;
@@ -422,6 +436,7 @@ class StorefrontController extends Controller
             'province_id' => $validated['province_id'],
             'city_id' => $validated['city_id'],
             'logo_path' => $logoPath,
+            'exterior_image_path' => $exteriorImagePath,
             'address' => $validated['address'],
             'contact_phone' => $validated['contact_phone'],
             'business_license_number' => $validated['business_license_number'],
