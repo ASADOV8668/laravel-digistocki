@@ -9,7 +9,7 @@ return [
     'before_or_equal' => ':attribute باید تاریخی برابر یا قبل از :date باشد.',
     'between' => [
         'array' => ':attribute باید بین :min و :max مورد داشته باشد.',
-        'file' => ':attribute باید بین :min و :max کیلوبایت باشد.',
+        'file' => ':attribute باید بین :min و :max مگابایت باشد.',
         'numeric' => ':attribute باید بین :min و :max باشد.',
         'string' => ':attribute باید بین :min و :max کاراکتر باشد.',
     ],
@@ -29,7 +29,7 @@ return [
     'json' => ':attribute باید یک رشته JSON معتبر باشد.',
     'max' => [
         'array' => 'تعداد موارد :attribute نباید بیشتر از :max باشد.',
-        'file' => 'حجم :attribute نباید بیشتر از :max کیلوبایت باشد.',
+        'file' => 'حجم :attribute نباید بیشتر از :max مگابایت باشد.',
         'numeric' => 'مقدار :attribute نباید بیشتر از :max باشد.',
         'string' => 'تعداد کاراکترهای :attribute نباید بیشتر از :max باشد.',
     ],
@@ -37,7 +37,7 @@ return [
     'mimetypes' => 'نوع فایل :attribute باید یکی از این موارد باشد: :values.',
     'min' => [
         'array' => ':attribute باید حداقل :min مورد داشته باشد.',
-        'file' => 'حجم :attribute باید حداقل :min کیلوبایت باشد.',
+        'file' => 'حجم :attribute باید حداقل :min مگابایت باشد.',
         'numeric' => 'مقدار :attribute باید حداقل :min باشد.',
         'string' => 'تعداد کاراکترهای :attribute باید حداقل :min باشد.',
     ],
@@ -52,7 +52,7 @@ return [
     'same' => ':attribute باید با :other یکسان باشد.',
     'size' => [
         'array' => ':attribute باید شامل :size مورد باشد.',
-        'file' => 'حجم :attribute باید :size کیلوبایت باشد.',
+        'file' => 'حجم :attribute باید :size مگابایت باشد.',
         'numeric' => 'مقدار :attribute باید :size باشد.',
         'string' => 'تعداد کاراکترهای :attribute باید :size باشد.',
     ],

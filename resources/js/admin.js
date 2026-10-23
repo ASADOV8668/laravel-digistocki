@@ -6,6 +6,7 @@ import './admin-listing-form';
 import './listing-title';
 import './location-components';
 import './persian-digits';
+import './file-upload-validation';
 import '../vendor/persian-datepicker/persianDatepicker-default.css';
 
 window.Alpine = Alpine;

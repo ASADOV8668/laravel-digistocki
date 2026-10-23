@@ -7,6 +7,7 @@ import './listing-attribute-repeater';
 import './listing-title';
 import './location-components';
 import './persian-digits';
+import './file-upload-validation';
 
 window.Alpine = Alpine;
 window.refreshFlowbiteTooltips = () => initTooltips();

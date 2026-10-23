@@ -133,6 +133,12 @@ class UpdateStorefrontRequest extends FormRequest
             'bale_url.regex' => 'نام کاربری بله باید فقط شامل حروف انگلیسی، عدد، نقطه، زیرخط یا خط تیره باشد.',
             'rubika_url.regex' => 'نام کاربری روبیکا باید فقط شامل حروف انگلیسی، عدد، نقطه، زیرخط یا خط تیره باشد.',
             'logo.required' => 'تصویر لوگوی فروشگاه الزامی است؛ برای حذف لوگوی قبلی، تصویر جدید را انتخاب کنید.',
+            'logo.max' => 'حجم لوگوی فروشگاه نباید بیشتر از '.app(SystemOptions::class)->maxImageUploadMb().' مگابایت باشد.',
+            'logo_camera.max' => 'حجم لوگوی فروشگاه نباید بیشتر از '.app(SystemOptions::class)->maxImageUploadMb().' مگابایت باشد.',
+            'business_license.max' => 'حجم تصویر جواز کسب نباید بیشتر از '.app(SystemOptions::class)->maxImageUploadMb().' مگابایت باشد.',
+            'business_license_camera.max' => 'حجم تصویر جواز کسب نباید بیشتر از '.app(SystemOptions::class)->maxImageUploadMb().' مگابایت باشد.',
+            'exterior_image.max' => 'حجم تصویر نمای بیرونی فروشگاه نباید بیشتر از '.app(SystemOptions::class)->maxImageUploadMb().' مگابایت باشد.',
+            'exterior_image_camera.max' => 'حجم تصویر نمای بیرونی فروشگاه نباید بیشتر از '.app(SystemOptions::class)->maxImageUploadMb().' مگابایت باشد.',
         ];
     }
 

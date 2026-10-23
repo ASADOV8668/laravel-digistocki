@@ -12,6 +12,7 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="max-image-upload-mb" content="{{ $systemOptions->maxImageUploadMb() }}">
     <title>{{ $systemOptions->pageTitle($title ?? 'پنل مدیریت') }}</title>
     <meta name="theme-color" content="#111827">
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
