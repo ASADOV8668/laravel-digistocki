@@ -102,15 +102,13 @@
                 </div>
             </div>
 
-            <div x-data="{ contactOpen: false }" class="mt-5 border-t border-white/10 pt-4">
+            <div class="mt-5 border-t border-white/10 pt-4">
                 <div class="flex items-center justify-between gap-3">
                 @auth
-                    <button type="button" @click="contactOpen = !contactOpen" :aria-expanded="contactOpen.toString()"
-                        class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-black text-white transition hover:bg-primary-600">
+                    <div class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-black text-white">
                         <x-heroicon-o-phone class="h-4 w-4" />
-                        <span x-text="contactOpen ? 'بستن اطلاعات تماس' : 'اطلاعات تماس فروشگاه'">اطلاعات تماس
-                            فروشگاه</span>
-                    </button>
+                        <span>اطلاعات تماس فروشگاه</span>
+                    </div>
                 @else
                     <a href="{{ route('login') }}"
                         class="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/20">
@@ -131,7 +129,7 @@
                 </div>
 
                 @auth
-                    <div x-show="contactOpen" x-cloak class="mt-4 grid gap-3 text-xs text-white/80 sm:grid-cols-2">
+                    <div class="mt-4 grid gap-3 text-xs text-white/80 sm:grid-cols-2">
                         @if ($store->contact_phone)
                             <a href="tel:{{ $store->contact_phone }}"
                                 class="flex items-center gap-2 text-white transition hover:text-primary-100">

@@ -186,6 +186,8 @@ class PhaseTwoHundredFiftyStorefrontFiltersTest extends TestCase
             ->get(route('storefront.show', $store))
             ->assertOk()
             ->assertSee('اطلاعات تماس فروشگاه')
+            ->assertDontSee('contactOpen')
+            ->assertDontSee('@click="contactOpen', false)
             ->assertSee('09120000000')
             ->assertSee('تهران، خیابان تست')
             ->assertSee('instagram.com/store_test')
@@ -193,6 +195,19 @@ class PhaseTwoHundredFiftyStorefrontFiltersTest extends TestCase
             ->assertSee('aria-label="اینستاگرام"', false)
             ->assertSee('aria-label="تلگرام"', false)
             ->assertSee('aria-label="اشتراک‌گذاری فروشگاه"', false);
+    }
+
+    public function test_guests_keep_the_store_contact_login_prompt(): void
+    {
+        [$store, $brand, $model] = $this->storeContext('guest-contact-store');
+        $store->update(['contact_phone' => '09120000000']);
+        $this->listing($store->user, $brand, $model, 'آگهی مهمان', 22000000);
+
+        $this->get(route('storefront.show', $store))
+            ->assertOk()
+            ->assertSee('برای مشاهده اطلاعات تماس وارد شوید')
+            ->assertSee('href="'.route('login').'"', false)
+            ->assertDontSee('tel:09120000000', false);
     }
 
     private function storeContext(string $slug): array
