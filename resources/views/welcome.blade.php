@@ -1,6 +1,6 @@
 <x-app-layout title="خانه">
     <section x-data="pullToRefresh()" @touchstart.passive="touchStart($event)" @touchmove.passive="touchMove($event)"
-        @touchend="touchEnd()" class="relative space-y-7 px-4 py-6">
+        @touchend="touchEnd()" class="relative space-y-7 px-4 pb-6 pt-3">
         <div x-cloak x-show="distance > 0 || refreshing"
             class="pointer-events-none fixed inset-x-0 top-2 z-40 mx-auto flex max-w-md justify-center"
             aria-live="polite"><span

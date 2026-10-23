@@ -84,7 +84,7 @@
         <x-top-bar :unread-notifications="$unreadNotifications" :show-back="!request()->routeIs('home')" />
         <div x-data="pwaInstallPrompt()" x-init="init()" x-cloak
             x-show="isIos && !installed && !dismissed"
-            class="mx-4 mt-3 rounded-lg border border-primary/20 bg-primary-50 p-4 shadow-sm">
+            class="fixed inset-x-4 top-20 z-50 mx-auto max-w-md rounded-lg border border-primary/20 bg-primary-50 p-4 shadow-sm">
             <div class="flex items-start gap-3">
                 <img src="{{ asset('images/logo-192.png') }}" alt="" class="h-12 w-12 rounded-lg">
                 <div class="min-w-0 flex-1">
