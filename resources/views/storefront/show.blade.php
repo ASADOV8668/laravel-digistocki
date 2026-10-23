@@ -81,9 +81,9 @@
     )" class="space-y-6 px-4 py-6">
         <div class="relative overflow-hidden rounded-lg bg-neutral p-5 text-white shadow-xl shadow-slate-900/10">
             @if ($store->exterior_image_path)
-                <div class="absolute inset-0 bg-cover bg-center opacity-50"
+                <div class="absolute inset-0 bg-cover bg-center opacity-75"
                     style="background-image: url('{{ asset('storage/' . $store->exterior_image_path) }}');"></div>
-                <div class="absolute inset-0 bg-gradient-to-l from-neutral via-neutral/85 to-primary/70"></div>
+                <div class="absolute inset-0 bg-gradient-to-l from-neutral/70 via-neutral/45 to-primary/30"></div>
             @endif
             <div class="relative z-10 flex items-start gap-4">
                 @if ($store->logo_path)
