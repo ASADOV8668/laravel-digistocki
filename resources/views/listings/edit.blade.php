@@ -9,7 +9,7 @@
             </div>
         </div>
     </x-slot>
-    <section x-data='listingWizardWithMedia(@js($maxImageUploadMb), {{ max(0, $maxImageUploadCount - $listing->images->count()) }}, @js($listing->images->firstWhere("is_primary", true)?->id), @js(route("listings.media.index")))' data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
+    <section x-data="listingWizardWithMedia(@js($maxImageUploadMb), {{ max(0, $maxImageUploadCount - $listing->images->count()) }}, @js($listing->images->firstWhere('is_primary', true)?->id), @js(route('listings.media.index')) )" data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
         data-cities-endpoint="{{ url('/locations/provinces') }}"
         data-initial-brand-id="{{ old('brand_id', $listing->brand_id) }}"
         data-initial-model-id="{{ old('phone_model_id', $listing->phone_model_id) }}"

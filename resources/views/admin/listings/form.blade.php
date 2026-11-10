@@ -11,7 +11,7 @@
             </div>
         </div>
     </x-slot>
-    <section x-data='listingAdminWithMedia(@js($maxImageUploadMb), {{ $editing ? max(0, $maxImageUploadCount - $listing->images->count()) : $maxImageUploadCount }}, @js($listing?->images?->firstWhere("is_primary", true)?->id), @js(route("admin.listings.media.index")), @js($listing?->user_id ?? old("user_id", "")))' data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
+    <section x-data="listingAdminWithMedia(@js($maxImageUploadMb), {{ $editing ? max(0, $maxImageUploadCount - $listing->images->count()) : $maxImageUploadCount }}, @js($listing?->images?->firstWhere('is_primary', true)?->id), @js(route('admin.listings.media.index')), @js($listing?->user_id ?? old('user_id', '')))" data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
         data-cities-endpoint="{{ url('/locations/provinces') }}" data-users-endpoint="{{ route('admin.users.search') }}"
         data-initial-brand-id="{{ old('brand_id', $listing->brand_id ?? '') }}"
         data-initial-model-id="{{ old('phone_model_id', $listing->phone_model_id ?? '') }}"

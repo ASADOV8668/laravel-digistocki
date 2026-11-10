@@ -13,7 +13,7 @@
             </div>
         </div>
     </x-slot>
-    <section x-data='listingWizardWithMedia(@js($maxImageUploadMb), @js($maxImageUploadCount), "", @js(route("listings.media.index")))' data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
+    <section x-data="listingWizardWithMedia(@js($maxImageUploadMb), @js($maxImageUploadCount), @js(''), @js(route('listings.media.index')) )" data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
         data-cities-endpoint="{{ url('/locations/provinces') }}"
         data-initial-brand-id="{{ old('brand_id', $clone?->brand_id) }}"
         data-initial-model-id="{{ old('phone_model_id', $clone?->phone_model_id) }}"
