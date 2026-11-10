@@ -1,4 +1,4 @@
-const CACHE_NAME = 'digistocki-assets-v5';
+const CACHE_NAME = 'digistocki-assets-v6';
 const STATIC_ASSETS = [
     './manifest.json',
     './images/logo.png',

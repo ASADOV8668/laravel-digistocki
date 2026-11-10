@@ -25,7 +25,8 @@ class PhaseNinetyThreeImagePickerTest extends TestCase
         $this->actingAs($user)
             ->get(route('listings.create'))
             ->assertOk()
-            ->assertSee('imagePicker', false)
+            ->assertSee('listingWizardWithMedia', false)
+            ->assertSee('openMedia()', false)
             ->assertSee('حداکثر ۵ تصویر')
             ->assertSee('حداقل یک تصویر', false)
             ->assertSee('preview.url', false);
@@ -49,7 +50,9 @@ class PhaseNinetyThreeImagePickerTest extends TestCase
         $publicEdit = file_get_contents(resource_path('views/listings/edit.blade.php'));
         $adminForm = file_get_contents(resource_path('views/admin/listings/form.blade.php'));
 
-        $this->assertStringContainsString('setPrimary(previews.indexOf(preview))', $publicCreate);
+        $this->assertStringContainsString('setPrimary(index)', $publicCreate);
+        $this->assertStringContainsString('listingWizardWithMedia(', $publicCreate);
+        $this->assertStringContainsString('openMedia()', $publicCreate);
         $this->assertStringContainsString('setPrimary(\'\', \'{{ $image->id }}\')', $publicEdit);
         $this->assertStringContainsString('setPrimary(\'\', \'{{ $image->id }}\')', $adminForm);
         $this->assertStringContainsString('name="primary_image_index"', $publicCreate);

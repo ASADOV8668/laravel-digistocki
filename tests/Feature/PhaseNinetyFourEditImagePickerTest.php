@@ -49,7 +49,8 @@ class PhaseNinetyFourEditImagePickerTest extends TestCase
         $this->actingAs($user)
             ->get(route('listings.edit', $listing))
             ->assertOk()
-            ->assertSee('imagePicker(5, 2,', false)
+            ->assertSee('listingWizardWithMedia(5, 2,', false)
+            ->assertSee('انتخاب از تصاویر قبلی', false)
             ->assertSee('ظرفیت باقی‌مانده: ۲ تصویر')
             ->assertSee('preview.url', false);
     }
