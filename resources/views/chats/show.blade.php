@@ -87,7 +87,7 @@
         @php
             $listing = $conversation->listing;
             $imageRecord = $listing?->primaryImage ?: $listing?->images?->first();
-            $image = $imageRecord?->thumbnail_path ?: $imageRecord?->path;
+            $image = $imageRecord?->displayUrl(true);
             $otherUser = (int) $currentUserId === (int) $conversation->buyer_id
                 ? $conversation->seller
                 : $conversation->buyer;
@@ -97,7 +97,7 @@
                 <a href="{{ $listing ? route('listings.show', $listing) : route('chats.index') }}"
                     class="flex min-w-0 flex-1 items-center gap-3 rounded-xl p-1 transition hover:bg-slate-50 dark:hover:bg-slate-800">
                     <div class="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
-                        <img src="{{ $image ? asset('storage/'.$image) : asset('images/listing-placeholder.svg') }}"
+                        <img src="{{ $image ?: asset('images/listing-placeholder.svg') }}"
                             alt="" class="h-full w-full object-cover">
                     </div>
                     <div class="min-w-0">

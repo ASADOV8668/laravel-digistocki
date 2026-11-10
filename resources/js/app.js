@@ -775,17 +775,87 @@ window.networkStatus = () => ({
     },
 });
 
-window.imagePicker = (maxMb = 5, maxFiles = 8, initialPrimaryImageId = '') => ({
+window.imagePicker = (maxMb = 5, maxFiles = 8, initialPrimaryImageId = '', mediaEndpoint = '', initialMediaUserId = '') => ({
     previews: [],
     fileInput: null,
     invalid: false,
     message: '',
     primaryIndex: '0',
     primaryImageId: initialPrimaryImageId ? String(initialPrimaryImageId) : '',
+    mediaEndpoint,
+    mediaUserId: initialMediaUserId ? String(initialMediaUserId) : '',
+    mediaItems: [],
+    selectedMedia: [],
+    mediaPrimaryId: '',
+    mediaOpen: false,
+    mediaLoading: false,
+    mediaMessage: '',
+
+    init() {
+        window.addEventListener('listing-media-user-changed', (event) => {
+            this.mediaUserId = event.detail?.userId ? String(event.detail.userId) : '';
+            this.mediaItems = [];
+            this.selectedMedia = [];
+            this.mediaPrimaryId = '';
+            this.mediaOpen = false;
+        });
+    },
+
+    mediaCount() {
+        return this.previews.length + this.selectedMedia.length;
+    },
+
+    async openMedia() {
+        if (!this.mediaEndpoint) return;
+        this.mediaOpen = true;
+        this.mediaLoading = true;
+        this.mediaMessage = '';
+        try {
+            const url = new URL(this.mediaEndpoint, window.location.origin);
+            if (this.mediaUserId) url.searchParams.set('user_id', this.mediaUserId);
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(data.message || 'بارگذاری رسانه‌ها انجام نشد.');
+            this.mediaItems = Array.isArray(data.media) ? data.media : [];
+        } catch (error) {
+            this.mediaMessage = error.message || 'بارگذاری رسانه‌ها انجام نشد.';
+        } finally {
+            this.mediaLoading = false;
+        }
+    },
+
+    toggleMedia(media) {
+        const id = String(media.id);
+        const index = this.selectedMedia.findIndex((item) => String(item.id) === id);
+        if (index >= 0) {
+            this.selectedMedia.splice(index, 1);
+            if (this.mediaPrimaryId === id) this.mediaPrimaryId = this.selectedMedia[0] ? String(this.selectedMedia[0].id) : '';
+            return;
+        }
+        if (this.mediaCount() >= maxFiles) {
+            this.mediaMessage = `حداکثر ${maxFiles} تصویر قابل انتخاب است.`;
+            return;
+        }
+        this.selectedMedia.push(media);
+        this.mediaMessage = '';
+        if (this.primaryImageId === '' && this.mediaPrimaryId === '' && this.previews.length === 0) this.mediaPrimaryId = id;
+    },
+
+    setMediaPrimary(id) {
+        this.mediaPrimaryId = id ? String(id) : '';
+        if (this.mediaPrimaryId) {
+            this.primaryImageId = '';
+            this.primaryIndex = '';
+        }
+    },
 
     setPrimary(index = '', imageId = '') {
         this.primaryIndex = imageId ? '' : String(index);
         this.primaryImageId = imageId ? String(imageId) : '';
+        if (imageId || index !== '') this.mediaPrimaryId = '';
     },
 
     syncFiles() {
@@ -821,11 +891,12 @@ window.imagePicker = (maxMb = 5, maxFiles = 8, initialPrimaryImageId = '') => ({
         this.fileInput = event.target;
         const files = Array.from(event.target.files || []);
         const oversized = files.filter((file) => file.size > maxMb * 1024 * 1024);
-        const validFiles = files.filter((file) => file.size <= maxMb * 1024 * 1024).slice(0, maxFiles);
-        this.invalid = files.length > maxFiles || oversized.length > 0;
+        const availableSlots = Math.max(0, maxFiles - this.selectedMedia.length);
+        const validFiles = files.filter((file) => file.size <= maxMb * 1024 * 1024).slice(0, availableSlots);
+        this.invalid = files.length > availableSlots || oversized.length > 0;
         this.message = oversized.length > 0
             ? `حجم تصویر «${oversized[0].name}» بیشتر از ${maxMb} مگابایت است و از انتخاب‌ها حذف شد.`
-            : files.length > maxFiles
+            : files.length > availableSlots
                 ? `حداکثر ${maxFiles} تصویر قابل انتخاب است؛ تصاویر اضافی حذف شدند.`
                 : '';
         if (typeof DataTransfer !== 'undefined') {
@@ -844,7 +915,7 @@ window.imagePicker = (maxMb = 5, maxFiles = 8, initialPrimaryImageId = '') => ({
             url: URL.createObjectURL(file),
         }));
 
-        if (!validFiles.length && this.primaryImageId === '') this.primaryIndex = '';
+        if (!validFiles.length && this.primaryImageId === '' && this.mediaPrimaryId === '') this.primaryIndex = '';
     },
 
     revokePreviews() {

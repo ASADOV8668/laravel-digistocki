@@ -18,6 +18,7 @@ use App\Services\ContactOtpService;
 use App\Services\ImageService;
 use App\Services\ListingAttributeOptionRegistrar;
 use App\Services\ListingFilterOptionService;
+use App\Services\ListingMediaService;
 use App\Services\ListingRules;
 use App\Services\LocationResolver;
 use App\Services\NotificationReadService;
@@ -35,6 +36,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Sadegh19b\LaravelIranCities\Models\City;
 use Sadegh19b\LaravelIranCities\Models\Province;
 use Throwable;
@@ -70,7 +72,7 @@ class ListingController extends Controller
             'title' => $listing->title,
             'meta' => $listing->brand->name.' · '.($listing->phoneModel->name_fa ?: $listing->phoneModel->name),
             'url' => route('listings.show', $listing),
-            'image' => $listing->primaryImage ? asset('storage/'.$listing->primaryImage->path) : asset('images/listing-placeholder.svg'),
+            'image' => $listing->primaryImage?->displayUrl(true) ?: asset('images/listing-placeholder.svg'),
         ])->values());
     }
 
@@ -230,6 +232,13 @@ class ListingController extends Controller
         }
 
         return response()->json($location);
+    }
+
+    public function media(Request $request, ListingMediaService $mediaService): JsonResponse
+    {
+        return response()->json([
+            'media' => $mediaService->ownedMedia($request->user(), 50),
+        ]);
     }
 
     public function index(Request $request)
@@ -593,7 +602,7 @@ class ListingController extends Controller
         ]);
     }
 
-    public function store(StoreListingRequest $request, ListingRules $rules, ImageService $imageService, SystemOptions $options)
+    public function store(StoreListingRequest $request, ListingRules $rules, ImageService $imageService, ListingMediaService $mediaService, SystemOptions $options)
     {
         $validated = $request->validated();
         $brand = Brand::query()->whereKey($validated['brand_id'])->where('is_active', true)->firstOrFail();
@@ -606,11 +615,12 @@ class ListingController extends Controller
         }
 
         $storedFiles = [];
+        $createdMedia = [];
         $autoPublish = $request->user()->storefront?->allowsFreeListing() ?? false;
         try {
-            $listing = DB::transaction(function () use ($validated, $request, $model, $imageService, $options, $rules, $autoPublish, &$storedFiles) {
+            $listing = DB::transaction(function () use ($validated, $request, $model, $imageService, $mediaService, $options, $rules, $autoPublish, &$storedFiles, &$createdMedia) {
                 $listingData = $validated;
-                unset($listingData['attributes'], $listingData['images'], $listingData['primary_image_index'], $listingData['primary_image_id']);
+                unset($listingData['attributes'], $listingData['images'], $listingData['primary_image_index'], $listingData['primary_image_id'], $listingData['media_ids'], $listingData['media_primary_id']);
                 $listing = Listing::create([
                     ...$listingData,
                     'user_id' => $request->user()->id,
@@ -622,15 +632,18 @@ class ListingController extends Controller
 
                 $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
                 $uploads = (array) ($validated['images'] ?? []);
-                $this->storeImages($listing, $uploads, $imageService, $storedFiles, $validated['primary_image_index'] ?? null, $validated['primary_image_id'] ?? null);
-                if ($uploads === [] && $request->integer('clone')) {
-                    $this->cloneImages($listing, $request->integer('clone'), $options, $storedFiles);
+                $this->storeImages($listing, $uploads, $imageService, $mediaService, $storedFiles, $createdMedia, $validated['primary_image_index'] ?? null, $validated['primary_image_id'] ?? null, (array) ($validated['media_ids'] ?? []), $validated['media_primary_id'] ?? null);
+                if ($uploads === [] && empty($validated['media_ids'] ?? []) && $request->integer('clone')) {
+                    $this->cloneImages($listing, $request->integer('clone'), $options, $mediaService, $storedFiles);
                 }
 
                 return $listing;
             });
         } catch (Throwable $exception) {
             $imageService->deleteMany($storedFiles);
+            foreach ($createdMedia as $media) {
+                $mediaService->deleteIfUnused($media);
+            }
 
             throw $exception;
         }
@@ -706,9 +719,11 @@ class ListingController extends Controller
         $listings = Listing::query()->where('user_id', $request->user()->id)->whereKey($validated['listing_ids'])->with('images')->get();
         $affectedListingIds = $listings->modelKeys();
         if ($validated['action'] === 'delete') {
-            $files = $listings->flatMap(fn (Listing $listing) => $listing->images->map(fn (ListingImage $image) => [$image->path, $image->thumbnail_path]));
+            $files = $listings->flatMap(fn (Listing $listing) => $listing->images->filter(fn (ListingImage $image) => ! $image->media_id)->map(fn (ListingImage $image) => [$image->path, $image->thumbnail_path]));
+            $media = $listings->flatMap(fn (Listing $listing) => $listing->images->filter(fn (ListingImage $image) => $image->media_id)->map(fn (ListingImage $image) => $image->media))->filter();
             $listings->each->delete();
             $imageService->deleteMany($files);
+            $media->each(fn (Media $item) => app(ListingMediaService::class)->deleteIfUnused($item));
         } elseif ($validated['action'] === 'contact_price') {
             if (! $options->allowContactPrice()) {
                 if ($request->expectsJson()) {
@@ -784,7 +799,7 @@ class ListingController extends Controller
         return back()->with('status', $messages[$validated['action']]);
     }
 
-    public function update(UpdateListingRequest $request, Listing $listing, ListingRules $rules, ImageService $imageService, SystemOptions $options)
+    public function update(UpdateListingRequest $request, Listing $listing, ListingRules $rules, ImageService $imageService, ListingMediaService $mediaService, SystemOptions $options)
     {
         $validated = $request->validated();
         $brand = Brand::query()->whereKey($validated['brand_id'])->where('is_active', true)->firstOrFail();
@@ -797,11 +812,12 @@ class ListingController extends Controller
         }
 
         $storedFiles = [];
+        $createdMedia = [];
         $autoPublish = $listing->user?->storefront?->allowsFreeListing() ?? false;
         try {
-            DB::transaction(function () use ($validated, $listing, $model, $imageService, $rules, $autoPublish, &$storedFiles) {
+            DB::transaction(function () use ($validated, $listing, $model, $imageService, $mediaService, $rules, $autoPublish, &$storedFiles, &$createdMedia) {
                 $listingData = $validated;
-                unset($listingData['attributes'], $listingData['images'], $listingData['primary_image_index'], $listingData['primary_image_id']);
+                unset($listingData['attributes'], $listingData['images'], $listingData['primary_image_index'], $listingData['primary_image_id'], $listingData['media_ids'], $listingData['media_primary_id']);
                 $listing->update([
                     ...$listingData,
                     'status' => $autoPublish ? 'approved' : 'pending',
@@ -811,10 +827,13 @@ class ListingController extends Controller
                 ]);
                 $listing->attributeValues()->delete();
                 $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
-                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $storedFiles, $validated['primary_image_index'] ?? null, $validated['primary_image_id'] ?? null);
+                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $mediaService, $storedFiles, $createdMedia, $validated['primary_image_index'] ?? null, $validated['primary_image_id'] ?? null, (array) ($validated['media_ids'] ?? []), $validated['media_primary_id'] ?? null);
             });
         } catch (Throwable $exception) {
             $imageService->deleteMany($storedFiles);
+            foreach ($createdMedia as $media) {
+                $mediaService->deleteIfUnused($media);
+            }
 
             throw $exception;
         }
@@ -825,12 +844,13 @@ class ListingController extends Controller
         );
     }
 
-    public function destroy(Request $request, Listing $listing, ImageService $imageService)
+    public function destroy(Request $request, Listing $listing, ImageService $imageService, ListingMediaService $mediaService)
     {
         $this->authorize('delete', $listing);
-        $images = $listing->images()->get(['path', 'thumbnail_path']);
+        $images = $listing->images()->get();
         $listing->delete();
-        $imageService->deleteMany($images->map(fn (ListingImage $image) => [$image->path, $image->thumbnail_path]));
+        $imageService->deleteMany($images->filter(fn (ListingImage $image) => ! $image->media_id)->map(fn (ListingImage $image) => [$image->path, $image->thumbnail_path]));
+        $images->filter(fn (ListingImage $image) => $image->media_id)->each(fn (ListingImage $image) => $mediaService->deleteIfUnused($image->media));
 
         return redirect()->route('dashboard')->with('status', 'آگهی حذف شد.');
     }
@@ -876,14 +896,20 @@ class ListingController extends Controller
         return back()->with('status', $autoPublish ? 'آگهی دوباره منتشر شد.' : 'آگهی برای بررسی مجدد ارسال شد.');
     }
 
-    public function destroyImage(Request $request, Listing $listing, ListingImage $image, ImageService $imageService)
+    public function destroyImage(Request $request, Listing $listing, ListingImage $image, ImageService $imageService, ListingMediaService $mediaService)
     {
         $this->authorize('update', $listing);
         abort_unless($image->listing_id === $listing->id, 404);
         $wasPrimary = (bool) $image->is_primary;
         $sortOrder = (int) $image->sort_order;
-        $imageService->delete($image->path, $image->thumbnail_path);
+        if ($image->media_id) {
+            $media = $image->media;
+        } else {
+            $imageService->delete($image->path, $image->thumbnail_path);
+            $media = null;
+        }
         $image->delete();
+        $mediaService->deleteIfUnused($media);
 
         $replacement = $listing->images()
             ->where('sort_order', '>', $sortOrder)
@@ -949,53 +975,59 @@ class ListingController extends Controller
         }
     }
 
-    private function storeImages(Listing $listing, array $images, ImageService $imageService, array &$storedFiles = [], ?int $primaryImageIndex = null, ?int $primaryImageId = null): void
+    private function storeImages(Listing $listing, array $images, ImageService $imageService, ListingMediaService $mediaService, array &$storedFiles = [], array &$createdMedia = [], ?int $primaryImageIndex = null, ?int $primaryImageId = null, array $mediaIds = [], ?int $mediaPrimaryId = null): void
     {
         $uploads = array_values(array_filter($images, fn ($image) => $image instanceof UploadedFile));
         $primaryImageId = filled($primaryImageId) ? (int) $primaryImageId : null;
         $primaryImageIndex = filled($primaryImageIndex) ? (int) $primaryImageIndex : null;
+        $mediaPrimaryId = filled($mediaPrimaryId) ? (int) $mediaPrimaryId : null;
         $selectedPrimary = $primaryImageId !== null
             ? $listing->images()->whereKey($primaryImageId)->first()
             : null;
+        $selectedMedia = collect($mediaIds)
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->map(fn (int $id) => $mediaService->findOwned($listing->user, $id))
+            ->filter();
+        $attachedMediaIds = $listing->images()->whereNotNull('media_id')->pluck('media_id')->map(fn ($id) => (int) $id);
+        $selectedMedia = $selectedMedia->reject(fn (Media $media) => $attachedMediaIds->contains((int) $media->getKey()));
 
-        if ($uploads === []) {
-            // The index belongs only to newly selected files. Never clear an
-            // existing primary image just because the edit form submitted its
-            // default index while no new file was selected.
-            if ($selectedPrimary) {
-                $listing->images()->update(['is_primary' => false]);
-                $selectedPrimary->update(['is_primary' => true]);
-            } elseif (! $listing->images()->where('is_primary', true)->exists()) {
-                $listing->images()->orderBy('sort_order')->orderBy('id')->first()?->update(['is_primary' => true]);
-            }
-
-            return;
+        if ($selectedMedia->isNotEmpty() && $mediaPrimaryId !== null && ! $selectedMedia->contains(fn (Media $media) => (int) $media->getKey() === $mediaPrimaryId)) {
+            throw ValidationException::withMessages(['media_ids' => 'تصویر اصلی انتخاب‌شده باید در تصاویر انتخابی وجود داشته باشد.']);
         }
 
-        if ($selectedPrimary || $primaryImageIndex !== null) {
+        $hasExplicitPrimary = $selectedPrimary !== null || $primaryImageIndex !== null || $mediaPrimaryId !== null;
+        if ($hasExplicitPrimary) {
             $listing->images()->update(['is_primary' => false]);
-            $selectedPrimary?->update(['is_primary' => true]);
         }
 
-        $hasPrimary = $selectedPrimary !== null || $listing->images()->where('is_primary', true)->exists();
+        $hasPrimary = ! $hasExplicitPrimary && $listing->images()->where('is_primary', true)->exists();
         $nextSortOrder = (int) $listing->images()->max('sort_order') + 1;
 
         foreach ($uploads as $index => $image) {
-            $stored = $imageService->store($image, 'listings/'.$listing->id);
-            $storedFiles[] = [$stored['path'] ?? null, $stored['thumbnail_path'] ?? null];
-            $isPrimary = $selectedPrimary === null
-                ? ($primaryImageIndex !== null ? $index === $primaryImageIndex : ! $hasPrimary)
-                : false;
-            $listing->images()->create([
-                ...$stored,
-                'is_primary' => $isPrimary,
-                'sort_order' => $nextSortOrder++,
-            ]);
+            $media = $mediaService->createFromUpload($listing->user, $image, $imageService);
+            $createdMedia[] = $media;
+            $isPrimary = $mediaPrimaryId === null
+                && ($primaryImageIndex !== null ? $index === $primaryImageIndex : ! $hasPrimary);
+            $mediaService->attachToListing($listing, $media, $isPrimary, $nextSortOrder++);
             $hasPrimary = $hasPrimary || $isPrimary;
+        }
+
+        foreach ($selectedMedia as $media) {
+            $isPrimary = $mediaPrimaryId !== null
+                ? (int) $media->getKey() === $mediaPrimaryId
+                : ! $hasPrimary;
+            $mediaService->attachToListing($listing, $media, $isPrimary, $nextSortOrder++);
+            $hasPrimary = $hasPrimary || $isPrimary;
+        }
+
+        if (! $listing->images()->where('is_primary', true)->exists()) {
+            $listing->images()->orderBy('sort_order')->orderBy('id')->first()?->update(['is_primary' => true]);
         }
     }
 
-    private function cloneImages(Listing $listing, int $sourceId, SystemOptions $options, array &$storedFiles): void
+    private function cloneImages(Listing $listing, int $sourceId, SystemOptions $options, ListingMediaService $mediaService, array &$storedFiles): void
     {
         $source = Listing::query()->where('user_id', $listing->user_id)->with('images')->find($sourceId);
         if (! $source) {
@@ -1003,6 +1035,16 @@ class ListingController extends Controller
         }
         $disk = Storage::disk('public');
         foreach ($source->images->take($options->maxImageUploadCount()) as $sourceImage) {
+            if ($sourceImage->media) {
+                $listing->images()->create([
+                    'media_id' => $sourceImage->media_id,
+                    'path' => $sourceImage->displayPath(),
+                    'thumbnail_path' => $sourceImage->displayPath(true),
+                    'is_primary' => $sourceImage->is_primary,
+                    'sort_order' => $sourceImage->sort_order,
+                ]);
+                continue;
+            }
             $name = (string) Str::uuid();
             $extension = pathinfo($sourceImage->path, PATHINFO_EXTENSION) ?: 'webp';
             $path = 'listings/'.$listing->id.'/'.$name.'.'.$extension;

@@ -151,7 +151,7 @@
                                 <td class="px-5 py-4">
                                     <div class="flex min-w-[250px] items-center gap-3">
                                         @if ($listing->primaryImage)
-                                            <img src="{{ asset('storage/' . $listing->primaryImage->path) }}"
+                                            <img src="{{ $listing->primaryImage->displayUrl(true) }}"
                                                 alt="{{ $listing->title }}" class="h-12 w-12 rounded-xl object-cover"
                                             loading="lazy" decoding="async">@else<img
                                                 src="{{ asset('images/listing-placeholder.svg') }}"
@@ -237,7 +237,7 @@
                     <article class="p-5">
                         <div class="flex gap-3">
                             @if ($listing->primaryImage)
-                                <img src="{{ asset('storage/' . $listing->primaryImage->path) }}"
+                                <img src="{{ $listing->primaryImage->displayUrl(true) }}"
                                     alt="{{ $listing->title }}" class="h-14 w-14 shrink-0 rounded-xl object-cover"
                                 loading="lazy" decoding="async">@else<img
                                     src="{{ asset('images/listing-placeholder.svg') }}" alt="تصویر پیش‌فرض آگهی"

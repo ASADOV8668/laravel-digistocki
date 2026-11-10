@@ -77,12 +77,25 @@ class UpdateListingRequest extends FormRequest
             'images.*' => ['file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
             'primary_image_index' => ['nullable', 'integer', 'min:0'],
             'primary_image_id' => ['nullable', 'integer', 'min:1'],
+            'media_ids' => ['nullable', 'array', 'max:'.$remainingImageSlots],
+            'media_ids.*' => ['integer', 'distinct', 'exists:media,id'],
+            'media_primary_id' => ['nullable', 'integer', 'min:1'],
         ];
     }
 
     protected function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
+            $newImages = count(array_filter((array) $this->file('images', [])))
+                + count(array_filter((array) $this->input('media_ids', []), static fn ($id) => filled($id)));
+            $listing = $this->route('listing');
+            $remainingImageSlots = $listing instanceof Listing
+                ? max(0, app(SystemOptions::class)->maxImageUploadCount() - $listing->images()->count())
+                : 0;
+            if ($newImages > $remainingImageSlots) {
+                $validator->errors()->add('images', 'تعداد تصاویر جدید بیشتر از ظرفیت باقی‌مانده آگهی است.');
+            }
+
             if ($this->boolean('price_on_request') && ! app(SystemOptions::class)->allowContactPrice()) {
                 $validator->errors()->add('price_on_request', 'امکان انتخاب «تماس بگیرید» در تنظیمات سیستم فعال نیست.');
             }
@@ -93,7 +106,8 @@ class UpdateListingRequest extends FormRequest
                 && $this->user()?->storefront?->city_id
                 && $listing instanceof Listing
                 && $listing->images()->count() === 0
-                && count($this->file('images', [])) === 0) {
+                && count($this->file('images', [])) === 0
+                && count(array_filter((array) $this->input('media_ids', []), static fn ($id) => filled($id))) === 0) {
                 $validator->errors()->add('images', 'حداقل یک تصویر برای آگهی لازم است.');
             }
 
@@ -115,6 +129,7 @@ class UpdateListingRequest extends FormRequest
         return [
             'images.max' => 'تعداد تصاویر جدید بیشتر از ظرفیت باقی‌مانده آگهی است.',
             'images.*.max' => 'حجم هر تصویر نباید بیشتر از '.app(SystemOptions::class)->maxImageUploadMb().' مگابایت باشد.',
+            'media_ids.*.exists' => 'یکی از تصاویر انتخاب‌شده از رسانه‌های شما نیست.',
         ];
     }
 }

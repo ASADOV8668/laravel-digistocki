@@ -24,15 +24,13 @@
         $storeAddress,
     ])->filter(fn ($part) => filled($part))->implode(' | ');
     $primaryImage = $listing->images->firstWhere('is_primary', true) ?? $listing->images->first();
-    $metaImage = $primaryImage
-        ? asset('storage/'.$primaryImage->path)
-        : asset('images/listing-placeholder.svg');
+    $metaImage = $primaryImage?->displayUrl() ?: asset('images/listing-placeholder.svg');
     $listingSchema = [
         '@context' => 'https://schema.org',
         '@type' => 'Product',
         'name' => $listing->title,
         'description' => $listing->description ?: $listing->title,
-        'image' => $listing->images->map(fn($image) => asset('storage/' . $image->path))->values()->all(),
+        'image' => $listing->images->map(fn($image) => $image->displayUrl())->filter()->values()->all(),
         'brand' => ['@type' => 'Brand', 'name' => $listing->brand->name],
         'model' => $listing->phoneModel->name_en ?: $listing->phoneModel->name,
         'offers' => [
@@ -98,7 +96,7 @@
                                 data-modal-toggle="listing-gallery-modal" data-carousel-open-index="{{ $loop->index }}"
                                 class="block h-full w-full cursor-zoom-in focus:outline-none focus:ring-4 focus:ring-primary/40"
                                 aria-label="نمایش تصویر {{ $loop->iteration }} در حالت تمام‌صفحه"><img
-                                    src="{{ asset('storage/' . $image->path) }}" alt="{{ $listing->title }}"
+                                    src="{{ $image->displayUrl() }}" alt="{{ $listing->title }}"
                                     class="absolute inset-0 block h-full w-full object-contain" decoding="async"
                                     @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif></button>
                         </div>
@@ -122,7 +120,7 @@
                             <button type="button" data-carousel-slide-to="{{ $loop->index }}" data-gallery-thumbnail
                                 aria-label="نمایش تصویر {{ $loop->iteration }}"
                                 class="h-16 w-20 shrink-0 overflow-hidden rounded-lg border-2 border-transparent bg-slate-800 transition hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary/70 {{ $loop->first ? 'border-primary' : '' }}">
-                                <img src="{{ asset('storage/' . $image->path) }}"
+                                <img src="{{ $image->displayUrl(true) }}"
                                     alt="تصویر کوچک {{ $loop->iteration }}" class="h-full w-full object-cover"
                                     loading="lazy">
                             </button>
@@ -152,7 +150,7 @@
                             @foreach ($listing->images as $image)
                                 <div class="{{ $loop->first ? '' : 'hidden' }} duration-700 ease-in-out"
                                     data-carousel-item="{{ $loop->first ? 'active' : '' }}">
-                                    <img src="{{ asset('storage/' . $image->path) }}" alt="{{ $listing->title }}"
+                                    <img src="{{ $image->displayUrl() }}" alt="{{ $listing->title }}"
                                         class="absolute block h-full w-full object-contain" decoding="async"
                                         @if ($loop->first) fetchpriority="high" @else loading="lazy" @endif>
                                 </div>

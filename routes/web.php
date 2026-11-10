@@ -37,6 +37,7 @@ Route::get('/locations/provinces/{province}/cities', [ListingController::class, 
 Route::get('/locations/reverse', [ListingController::class, 'reverseLocation'])->middleware('throttle:10,1')->name('locations.reverse');
 Route::get('/listings/create', [ListingController::class, 'create'])->middleware(['auth', 'active'])->name('listings.create');
 Route::post('/listings', [ListingController::class, 'store'])->middleware(['auth', 'active'])->name('listings.store');
+Route::get('/listings/media', [ListingController::class, 'media'])->middleware(['auth', 'active'])->name('listings.media.index');
 Route::get('/stores', [StorefrontController::class, 'index'])->name('storefront.index');
 Route::get('/store/{sellerStore:slug}/search/suggestions', [StorefrontController::class, 'searchSuggestions'])->middleware('throttle:60,1')->name('storefront.search.suggestions');
 Route::get('/store/{sellerStore:slug}/models', [StorefrontController::class, 'models'])->middleware('throttle:60,1')->name('storefront.models');
@@ -86,6 +87,7 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::get('/listings', [AdminListingController::class, 'index'])->name('admin.listings.index');
     Route::get('/listings/create', [AdminListingController::class, 'create'])->name('admin.listings.create');
     Route::post('/listings', [AdminListingController::class, 'store'])->name('admin.listings.store');
+    Route::get('/listings/media', [AdminListingController::class, 'media'])->name('admin.listings.media.index');
     Route::get('/listings/{listing}/edit', [AdminListingController::class, 'edit'])->name('admin.listings.edit');
     Route::put('/listings/{listing}', [AdminListingController::class, 'update'])->name('admin.listings.update');
     Route::delete('/listings/{listing}/images/{image}', [AdminListingController::class, 'deleteImage'])->name('admin.listings.images.destroy');

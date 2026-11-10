@@ -52,13 +52,14 @@ class StoreListingRequest extends FormRequest
             ? 'required'
             : 'nullable';
         $imageRules = ['nullable', 'array', 'max:'.app(SystemOptions::class)->maxImageUploadCount()];
+        $mediaCount = count(array_filter((array) $this->input('media_ids', []), static fn ($id) => filled($id)));
         $cloneHasImages = $this->integer('clone') > 0
             && Listing::query()
                 ->where('user_id', $this->user()?->id)
                 ->whereKey($this->integer('clone'))
                 ->whereHas('images')
                 ->exists();
-        if (! $this->user()?->isAdmin() && $store?->province_id && $store?->city_id && ! $cloneHasImages) {
+        if (! $this->user()?->isAdmin() && $store?->province_id && $store?->city_id && ! $cloneHasImages && $mediaCount === 0) {
             $imageRules = ['required', 'array', 'min:1', 'max:'.app(SystemOptions::class)->maxImageUploadCount()];
         }
         $priceRules = ['nullable', 'integer', 'min:0'];
@@ -84,12 +85,21 @@ class StoreListingRequest extends FormRequest
             'images.*' => ['file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(app(SystemOptions::class)->maxImageUploadMb() * 1024)],
             'primary_image_index' => ['nullable', 'integer', 'min:0'],
             'primary_image_id' => ['nullable', 'integer', 'min:1'],
+            'media_ids' => ['nullable', 'array', 'max:'.app(SystemOptions::class)->maxImageUploadCount()],
+            'media_ids.*' => ['integer', 'distinct', 'exists:media,id'],
+            'media_primary_id' => ['nullable', 'integer', 'min:1'],
         ];
     }
 
     protected function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
+            $totalImages = count(array_filter((array) $this->file('images', [])))
+                + count(array_filter((array) $this->input('media_ids', []), static fn ($id) => filled($id)));
+            if ($totalImages > app(SystemOptions::class)->maxImageUploadCount()) {
+                $validator->errors()->add('images', 'تعداد تصاویر انتخاب‌شده بیشتر از حد مجاز تنظیمات است.');
+            }
+
             if ($this->boolean('price_on_request') && ! app(SystemOptions::class)->allowContactPrice()) {
                 $validator->errors()->add('price_on_request', 'امکان انتخاب «تماس بگیرید» در تنظیمات سیستم فعال نیست.');
             }
@@ -119,6 +129,7 @@ class StoreListingRequest extends FormRequest
             'images.max' => 'تعداد تصاویر انتخاب‌شده بیشتر از حد مجاز تنظیمات است.',
             'images.*.max' => 'حجم هر تصویر نباید بیشتر از '.app(SystemOptions::class)->maxImageUploadMb().' مگابایت باشد.',
             'city_id.exists' => 'شهر انتخاب‌شده با استان انتخابی مطابقت ندارد.',
+            'media_ids.*.exists' => 'یکی از تصاویر انتخاب‌شده از رسانه‌های شما نیست.',
         ];
     }
 }

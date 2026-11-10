@@ -186,7 +186,7 @@
                                 class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary/30"><span
                                 class="sr-only">انتخاب {{ $listing->title }}</span></label>
                         @if ($listing->primaryImage)
-                            <img src="{{ asset('storage/' . ($listing->primaryImage->thumbnail_path ?: $listing->primaryImage->path)) }}"
+                            <img src="{{ $listing->primaryImage->displayUrl(true) }}"
                                 alt="{{ $listing->title }}" class="h-20 w-20 shrink-0 rounded-lg object-cover"
                             loading="lazy" decoding="async">@else<img
                                 src="{{ asset('images/listing-placeholder.svg') }}" alt="تصویر پیش‌فرض آگهی"

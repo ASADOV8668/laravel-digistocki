@@ -16,12 +16,12 @@
                     $listing = $conversation->listing;
                     $other = $conversation->buyer_id === auth()->id() ? $conversation->seller : $conversation->buyer;
                     $imageRecord = $listing?->primaryImage ?: $listing?->images?->first();
-                    $image = $imageRecord?->thumbnail_path ?: $imageRecord?->path;
+                    $image = $imageRecord?->displayUrl(true);
                 @endphp
                 <a href="{{ route('chats.show', $conversation) }}"
                     class="flex items-center gap-3 border-b border-slate-100 p-4 transition last:border-b-0 hover:bg-primary-50/60 dark:border-slate-800 dark:hover:bg-slate-800">
                     <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
-                        <img src="{{ $image ? asset('storage/'.$image) : asset('images/listing-placeholder.svg') }}"
+                        <img src="{{ $image ?: asset('images/listing-placeholder.svg') }}"
                             alt="" class="h-full w-full object-cover" loading="lazy">
                     </div>
                     <div class="min-w-0 flex-1">

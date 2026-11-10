@@ -17,6 +17,7 @@ use App\Notifications\ListingStatusNotification;
 use App\Services\ImageService;
 use App\Services\ListingAttributeOptionRegistrar;
 use App\Services\ListingRules;
+use App\Services\ListingMediaService;
 use App\Services\NotificationReadService;
 use App\Services\SystemOptions;
 use App\Support\MobileNumber;
@@ -30,6 +31,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Sadegh19b\LaravelIranCities\Models\Province;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Throwable;
 
 class ListingController extends Controller
@@ -50,51 +52,72 @@ class ListingController extends Controller
         return view('admin.listings.form', $this->formData($options, $listing, $attributes));
     }
 
-    public function store(StoreListingRequest $request, ImageService $imageService)
+    public function media(Request $request, ListingMediaService $mediaService): JsonResponse
+    {
+        $userId = $request->integer('user_id');
+        if ($userId < 1) {
+            return response()->json(['message' => 'ابتدا کاربر آگهی را انتخاب کنید.'], 422);
+        }
+
+        $user = User::query()->findOrFail($userId);
+
+        return response()->json(['media' => $mediaService->ownedMedia($user, 50)]);
+    }
+
+    public function store(StoreListingRequest $request, ImageService $imageService, ListingMediaService $mediaService)
     {
         $validated = $request->validated();
         $brand = Brand::query()->whereKey($validated['brand_id'])->firstOrFail();
         $model = PhoneModel::query()->whereKey($validated['phone_model_id'])->where('brand_id', $brand->id)->firstOrFail();
         $storedFiles = [];
+        $createdMedia = [];
+        $owner = User::query()->findOrFail($validated['user_id']);
 
         try {
-            $listing = DB::transaction(function () use ($validated, $model, $imageService, &$storedFiles) {
+            $listing = DB::transaction(function () use ($validated, $model, $owner, $imageService, $mediaService, &$storedFiles, &$createdMedia) {
                 $data = $validated;
-                unset($data['attributes'], $data['images'], $data['user_id'], $data['primary_image_index'], $data['primary_image_id']);
+                unset($data['attributes'], $data['images'], $data['user_id'], $data['primary_image_index'], $data['primary_image_id'], $data['media_ids'], $data['media_primary_id']);
                 $listing = Listing::create([...$data, 'user_id' => $validated['user_id'], 'slug' => Str::slug($validated['title']).'-'.Str::lower(Str::random(8)), 'status' => 'pending', 'expires_at' => null]);
                 $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
-                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $storedFiles, $validated['primary_image_index'] ?? null, $validated['primary_image_id'] ?? null);
+                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $mediaService, $storedFiles, $createdMedia, $validated['primary_image_index'] ?? null, $validated['primary_image_id'] ?? null, (array) ($validated['media_ids'] ?? []), $validated['media_primary_id'] ?? null);
 
                 return $listing;
             });
         } catch (Throwable $exception) {
             $imageService->deleteMany($storedFiles);
+            foreach ($createdMedia as $media) {
+                $mediaService->deleteIfUnused($media);
+            }
             throw $exception;
         }
 
         return redirect()->route('admin.listings.index')->with('status', 'آگهی جدید با موفقیت ثبت شد و در انتظار بررسی قرار گرفت.');
     }
 
-    public function update(UpdateListingRequest $request, Listing $listing, ImageService $imageService)
+    public function update(UpdateListingRequest $request, Listing $listing, ImageService $imageService, ListingMediaService $mediaService)
     {
         $validated = $request->validated();
         $brand = Brand::query()->whereKey($validated['brand_id'])->firstOrFail();
         $model = PhoneModel::query()->whereKey($validated['phone_model_id'])->where('brand_id', $brand->id)->firstOrFail();
         $previousStatus = $listing->status->value;
         $storedFiles = [];
+        $createdMedia = [];
 
         try {
-            DB::transaction(function () use ($validated, $listing, $model, $imageService, &$storedFiles) {
+            DB::transaction(function () use ($validated, $listing, $model, $imageService, $mediaService, &$storedFiles, &$createdMedia) {
                 $data = $validated;
-                unset($data['attributes'], $data['images'], $data['user_id'], $data['status'], $data['primary_image_index'], $data['primary_image_id']);
+                unset($data['attributes'], $data['images'], $data['user_id'], $data['status'], $data['primary_image_index'], $data['primary_image_id'], $data['media_ids'], $data['media_primary_id']);
                 $status = $validated['status'];
                 $listing->update([...$data, 'user_id' => $validated['user_id'], 'status' => $status, 'published_at' => $status === 'approved' ? now() : $listing->published_at, 'expires_at' => $status === 'approved' ? app(ListingRules::class)->expiryDate() : ($status === 'expired' ? now()->subSecond() : $listing->expires_at), 'rejection_reason' => $status === 'rejected' ? ($listing->rejection_reason ?: 'رد توسط مدیریت') : null]);
                 $listing->attributeValues()->delete();
                 $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));
-                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $storedFiles, $validated['primary_image_index'] ?? null, $validated['primary_image_id'] ?? null);
+                $this->storeImages($listing, (array) ($validated['images'] ?? []), $imageService, $mediaService, $storedFiles, $createdMedia, $validated['primary_image_index'] ?? null, $validated['primary_image_id'] ?? null, (array) ($validated['media_ids'] ?? []), $validated['media_primary_id'] ?? null);
             });
         } catch (Throwable $exception) {
             $imageService->deleteMany($storedFiles);
+            foreach ($createdMedia as $media) {
+                $mediaService->deleteIfUnused($media);
+            }
             throw $exception;
         }
 
@@ -106,13 +129,17 @@ class ListingController extends Controller
         return redirect()->route('admin.listings.index')->with('status', 'تغییرات آگهی ذخیره و برای بررسی ارسال شد.');
     }
 
-    public function deleteImage(Listing $listing, ListingImage $image, ImageService $imageService)
+    public function deleteImage(Listing $listing, ListingImage $image, ImageService $imageService, ListingMediaService $mediaService)
     {
         abort_unless($image->listing_id === $listing->id, 404);
         $wasPrimary = (bool) $image->is_primary;
         $sortOrder = (int) $image->sort_order;
-        $imageService->delete($image->path, $image->thumbnail_path);
+        $media = $image->media_id ? $image->media : null;
+        if (! $media) {
+            $imageService->delete($image->path, $image->thumbnail_path);
+        }
         $image->delete();
+        $mediaService->deleteIfUnused($media);
         $replacement = $listing->images()
             ->where('sort_order', '>', $sortOrder)
             ->orderBy('sort_order')
@@ -265,41 +292,54 @@ class ListingController extends Controller
         }
     }
 
-    private function storeImages(Listing $listing, array $images, ImageService $imageService, array &$storedFiles, ?int $primaryImageIndex = null, ?int $primaryImageId = null): void
+    private function storeImages(Listing $listing, array $images, ImageService $imageService, ListingMediaService $mediaService, array &$storedFiles, array &$createdMedia = [], ?int $primaryImageIndex = null, ?int $primaryImageId = null, array $mediaIds = [], ?int $mediaPrimaryId = null): void
     {
         $uploads = array_values(array_filter($images, fn ($image) => $image instanceof UploadedFile));
         $primaryImageId = filled($primaryImageId) ? (int) $primaryImageId : null;
         $primaryImageIndex = filled($primaryImageIndex) ? (int) $primaryImageIndex : null;
+        $mediaPrimaryId = filled($mediaPrimaryId) ? (int) $mediaPrimaryId : null;
         $selectedPrimary = $primaryImageId !== null
             ? $listing->images()->whereKey($primaryImageId)->first()
             : null;
+        $selectedMedia = collect($mediaIds)
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->map(fn (int $id) => $mediaService->findOwned($listing->user, $id))
+            ->filter();
+        $attachedMediaIds = $listing->images()->whereNotNull('media_id')->pluck('media_id')->map(fn ($id) => (int) $id);
+        $selectedMedia = $selectedMedia->reject(fn (Media $media) => $attachedMediaIds->contains((int) $media->getKey()));
 
-        if ($uploads === []) {
-            if ($selectedPrimary) {
-                $listing->images()->update(['is_primary' => false]);
-                $selectedPrimary->update(['is_primary' => true]);
-            } elseif (! $listing->images()->where('is_primary', true)->exists()) {
-                $listing->images()->orderBy('sort_order')->orderBy('id')->first()?->update(['is_primary' => true]);
-            }
-
-            return;
+        if ($selectedMedia->isNotEmpty() && $mediaPrimaryId !== null && ! $selectedMedia->contains(fn (Media $media) => (int) $media->getKey() === $mediaPrimaryId)) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['media_ids' => 'تصویر اصلی انتخاب‌شده باید در تصاویر انتخابی وجود داشته باشد.']);
         }
 
-        if ($selectedPrimary || $primaryImageIndex !== null) {
+        $hasExplicitPrimary = $selectedPrimary !== null || $primaryImageIndex !== null || $mediaPrimaryId !== null;
+        if ($hasExplicitPrimary) {
             $listing->images()->update(['is_primary' => false]);
-            $selectedPrimary?->update(['is_primary' => true]);
         }
 
-        $hasPrimary = $selectedPrimary !== null || $listing->images()->where('is_primary', true)->exists();
+        $hasPrimary = ! $hasExplicitPrimary && $listing->images()->where('is_primary', true)->exists();
         $sortOrder = (int) $listing->images()->max('sort_order') + 1;
         foreach ($uploads as $index => $image) {
-            $stored = $imageService->store($image, 'listings/'.$listing->id);
-            $storedFiles[] = [$stored['path'] ?? null, $stored['thumbnail_path'] ?? null];
-            $isPrimary = $selectedPrimary === null
-                ? ($primaryImageIndex !== null ? $index === $primaryImageIndex : ! $hasPrimary)
-                : false;
-            $listing->images()->create([...$stored, 'is_primary' => $isPrimary, 'sort_order' => $sortOrder++]);
+            $media = $mediaService->createFromUpload($listing->user, $image, $imageService);
+            $createdMedia[] = $media;
+            $isPrimary = $mediaPrimaryId === null
+                && ($primaryImageIndex !== null ? $index === $primaryImageIndex : ! $hasPrimary);
+            $mediaService->attachToListing($listing, $media, $isPrimary, $sortOrder++);
             $hasPrimary = $hasPrimary || $isPrimary;
+        }
+
+        foreach ($selectedMedia as $media) {
+            $isPrimary = $mediaPrimaryId !== null
+                ? (int) $media->getKey() === $mediaPrimaryId
+                : ! $hasPrimary;
+            $mediaService->attachToListing($listing, $media, $isPrimary, $sortOrder++);
+            $hasPrimary = $hasPrimary || $isPrimary;
+        }
+
+        if (! $listing->images()->where('is_primary', true)->exists()) {
+            $listing->images()->orderBy('sort_order')->orderBy('id')->first()?->update(['is_primary' => true]);
         }
     }
 }

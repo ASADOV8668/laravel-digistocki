@@ -11,7 +11,7 @@
             </div>
         </div>
     </x-slot>
-    <section x-data='Object.assign(listingAdminForm(), imagePicker(@js($maxImageUploadMb), {{ $editing ? max(0, $maxImageUploadCount - $listing->images->count()) : $maxImageUploadCount }}, @js($listing?->images?->firstWhere("is_primary", true)?->id)))' data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
+    <section x-data='Object.assign(listingAdminForm(), imagePicker(@js($maxImageUploadMb), {{ $editing ? max(0, $maxImageUploadCount - $listing->images->count()) : $maxImageUploadCount }}, @js($listing?->images?->firstWhere("is_primary", true)?->id), @js(route("admin.listings.media.index")), @js($listing?->user_id ?? old("user_id", ""))))' data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
         data-cities-endpoint="{{ url('/locations/provinces') }}" data-users-endpoint="{{ route('admin.users.search') }}"
         data-initial-brand-id="{{ old('brand_id', $listing->brand_id ?? '') }}"
         data-initial-model-id="{{ old('phone_model_id', $listing->phone_model_id ?? '') }}"
@@ -164,6 +164,53 @@
                         class="flex cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed border-primary/20 bg-primary-50/40 p-6 text-sm font-bold text-primary"><x-heroicon-o-photo
                             class="ml-2 h-6 w-6" />انتخاب تصاویر جدید<input @change="select($event)" type="file"
                             name="images[]" multiple accept=".jpg,.jpeg,.png,.webp,.heic,.heif" class="sr-only"></label>
+                    <div class="flex items-center justify-between gap-2">
+                        <button type="button" @click="openMedia()"
+                            class="inline-flex items-center gap-2 rounded-lg border border-primary/20 bg-white px-3 py-2 text-xs font-bold text-primary shadow-sm hover:bg-primary-50">
+                            <x-heroicon-o-photo class="h-4 w-4" /> انتخاب از تصاویر قبلی
+                        </button>
+                        <span class="text-[10px] text-slate-400" x-text="mediaCount() + ' تصویر انتخاب شده'"></span>
+                    </div>
+                    <div x-show="mediaOpen" x-cloak class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="text-xs font-black text-neutral">رسانه‌های قبلی شما</p>
+                            <button type="button" @click="mediaOpen = false" class="text-xs font-bold text-slate-400">بستن</button>
+                        </div>
+                        <p x-show="mediaLoading" class="mt-3 text-xs text-slate-400">در حال بارگذاری تصاویر...</p>
+                        <p x-show="!mediaLoading && !mediaItems.length" class="mt-3 text-xs text-slate-400">هنوز تصویر قبلی‌ای برای انتخاب وجود ندارد.</p>
+                        <p x-show="mediaMessage" x-text="mediaMessage" class="mt-2 rounded-lg bg-error/10 px-3 py-2 text-xs font-bold text-error"></p>
+                        <div x-show="!mediaLoading && mediaItems.length" class="mt-3 grid grid-cols-4 gap-2">
+                            <template x-for="media in mediaItems" :key="media.id">
+                                <button type="button" @click="toggleMedia(media)"
+                                    class="relative overflow-hidden rounded-lg border-2 bg-slate-50 text-right"
+                                    :class="selectedMedia.some(item => String(item.id) === String(media.id)) ? 'border-primary ring-2 ring-primary/20' : 'border-slate-200'">
+                                    <img :src="media.thumbnail_url || media.url" :alt="media.name" class="h-20 w-full object-cover">
+                                    <span class="block truncate px-1 py-1 text-[9px] text-slate-500" x-text="media.name"></span>
+                                    <span x-show="selectedMedia.some(item => String(item.id) === String(media.id))"
+                                        class="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white">✓</span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                    <div x-show="selectedMedia.length" x-cloak class="grid grid-cols-4 gap-2">
+                        <template x-for="media in selectedMedia" :key="'selected-media-' + media.id">
+                            <div class="relative overflow-hidden rounded-lg border-2 bg-slate-50"
+                                :class="String(mediaPrimaryId) === String(media.id) ? 'border-success ring-2 ring-success/20' : 'border-slate-200'">
+                                <button type="button" @click="setMediaPrimary(media.id)" class="block w-full">
+                                    <img :src="media.thumbnail_url || media.url" :alt="media.name" class="h-20 w-full object-cover">
+                                </button>
+                                <button type="button" @click.stop="toggleMedia(media)"
+                                    class="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-error text-white shadow-lg"
+                                    aria-label="حذف تصویر انتخاب‌شده"><x-heroicon-o-x-mark class="h-4 w-4" /></button>
+                                <span x-show="String(mediaPrimaryId) === String(media.id)"
+                                    class="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-success text-white shadow-lg">✓</span>
+                            </div>
+                        </template>
+                    </div>
+                    <template x-for="media in selectedMedia" :key="'media-input-' + media.id">
+                        <input type="hidden" name="media_ids[]" :value="media.id">
+                    </template>
+                    <input type="hidden" name="media_primary_id" x-model="mediaPrimaryId">
                     <div x-show="previews.length" x-cloak class="mt-3 grid grid-cols-4 gap-2"><template
                             x-for="(preview, index) in previews" :key="preview.url">
                             <div role="button" tabindex="0" @click="setPrimary(index)"
@@ -203,7 +250,7 @@
                                 class="relative block w-full overflow-hidden border-2 transition"
                                 :class="String(primaryImageId) === '{{ $image->id }}' ? 'border-success ring-2 ring-success/20' : 'border-transparent hover:border-primary/50'"
                                 aria-label="انتخاب تصویر اصلی">
-                                <img src="{{ asset('storage/' . $image->path) }}" alt="{{ $listing->title }}"
+                                <img src="{{ $image->displayUrl(true) }}" alt="{{ $listing->title }}"
                                     class="h-32 w-full object-cover" loading="lazy" decoding="async">
                                 <span x-show="String(primaryImageId) === '{{ $image->id }}'"
                                     class="absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-success text-white shadow-lg">✓</span>
@@ -394,6 +441,7 @@
                     this.userQuery = user.label;
                     this.selectedUserLabel = `${user.label} · ${user.mobile || user.email || ''}`;
                     this.userResults = [];
+                    window.dispatchEvent(new CustomEvent('listing-media-user-changed', { detail: { userId: user.id } }));
                 },
             });
 

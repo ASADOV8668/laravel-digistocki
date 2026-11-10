@@ -51,12 +51,12 @@ class Listing extends Model
 
     public function images(): HasMany
     {
-        return $this->hasMany(ListingImage::class)->orderBy('sort_order');
+        return $this->hasMany(ListingImage::class)->with('media')->orderBy('sort_order');
     }
 
     public function primaryImage(): HasOne
     {
-        return $this->hasOne(ListingImage::class)->where('is_primary', true)->orderBy('sort_order');
+        return $this->hasOne(ListingImage::class)->with('media')->where('is_primary', true)->orderBy('sort_order');
     }
 
     public function favorites(): HasMany

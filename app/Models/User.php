@@ -8,10 +8,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Image\Enums\Fit;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasMedia
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, InteractsWithMedia;
 
     protected $attributes = [
         'role' => 'user',
@@ -99,5 +103,23 @@ class User extends Authenticatable
     public function hasSetPassword(): bool
     {
         return $this->password_set_at !== null;
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('listing-images')->useDisk('public');
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        if (! extension_loaded('imagick') && ! function_exists('imagecreatefromstring')) {
+            return;
+        }
+
+        $this->addMediaConversion('thumb')
+            ->fit(Fit::Crop, 400, 400)
+            ->format('webp')
+            ->quality(85)
+            ->nonQueued();
     }
 }
