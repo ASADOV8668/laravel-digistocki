@@ -84,4 +84,40 @@ class ListingMediaLibraryTest extends TestCase
         $this->assertStringEndsWith('/storage/listings/legacy.webp', $image->displayUrl());
         $this->assertStringEndsWith('/storage/listings/legacy-thumb.webp', $image->displayUrl(true));
     }
+
+    public function test_admin_can_browse_all_listing_media_with_uploader_details(): void
+    {
+        Storage::fake('public');
+        $owner = User::factory()->create([
+            'name' => 'کاربر رسانه',
+            'mobile' => '09120000000',
+        ]);
+        $admin = User::factory()->create([
+            'role' => 'admin',
+        ]);
+        $mediaService = app(ListingMediaService::class);
+
+        $mediaService->createFromUpload(
+            $owner,
+            UploadedFile::fake()->create('phone-one.webp', 100, 'image/webp'),
+            app(ImageService::class),
+        );
+        $mediaService->createFromUpload(
+            $owner,
+            UploadedFile::fake()->create('phone-two.webp', 100, 'image/webp'),
+            app(ImageService::class),
+        );
+
+        $this->actingAs($admin)
+            ->get(route('admin.listings.media.index', ['user_id' => $owner->id]))
+            ->assertOk()
+            ->assertJsonCount(2, 'media');
+
+        $this->actingAs($admin)
+            ->get(route('admin.media.index', ['q' => '09120000000']))
+            ->assertOk()
+            ->assertSee('کاربر رسانه')
+            ->assertSee('phone-one')
+            ->assertSee('phone-two');
+    }
 }

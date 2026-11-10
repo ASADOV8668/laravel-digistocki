@@ -61,7 +61,7 @@ class ListingController extends Controller
 
         $user = User::query()->findOrFail($userId);
 
-        return response()->json(['media' => $mediaService->ownedMedia($user, 50)]);
+        return response()->json(['media' => $mediaService->ownedMedia($user, null)]);
     }
 
     public function store(StoreListingRequest $request, ImageService $imageService, ListingMediaService $mediaService)

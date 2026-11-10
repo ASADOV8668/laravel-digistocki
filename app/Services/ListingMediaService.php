@@ -24,13 +24,17 @@ class ListingMediaService
         }
     }
 
-    public function ownedMedia(User $owner, int $limit = 50)
+    public function ownedMedia(User $owner, ?int $limit = 50)
     {
-        return $owner->media()
+        $query = $owner->media()
             ->where('collection_name', 'listing-images')
-            ->latest('created_at')
-            ->limit($limit)
-            ->get()
+            ->latest('created_at');
+
+        if ($limit !== null) {
+            $query->limit($limit);
+        }
+
+        return $query->get()
             ->map(fn (Media $media): array => $this->payload($media))
             ->values();
     }
