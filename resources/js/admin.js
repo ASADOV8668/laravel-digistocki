@@ -645,6 +645,10 @@ window.imagePicker = (maxMb = 5, maxFiles = 8, initialPrimaryImageId = '', media
         } else if (this.invalid) {
             event.target.value = '';
         }
+        if (validFiles.length > 0 && this.mediaPrimaryId !== '') {
+            this.mediaPrimaryId = '';
+            if (this.primaryImageId === '') this.primaryIndex = '0';
+        }
         if (this.primaryImageId === '' && validFiles.length > 0 && Number(this.primaryIndex) >= validFiles.length) {
             this.primaryIndex = '0';
         }

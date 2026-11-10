@@ -66,6 +66,8 @@ class PhaseNinetyFourEditImagePickerTest extends TestCase
             $this->assertIsString($contents);
             $this->assertStringContainsString('removePreview', $contents, $path);
             $this->assertStringContainsString('transfer.items.add(preview.file)', $contents, $path);
+            $this->assertStringContainsString("if (validFiles.length > 0 && this.mediaPrimaryId !== '')", $contents, $path);
+            $this->assertStringContainsString("this.mediaPrimaryId = '';", $contents, $path);
         }
 
         foreach ([
