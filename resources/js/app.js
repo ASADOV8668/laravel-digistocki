@@ -10,6 +10,7 @@ import './persian-digits';
 import './file-upload-validation';
 
 window.Alpine = Alpine;
+window.__DIGISTOCKI_PUBLIC_ASSET_VERSION__ = '2026-11-10-media-picker-v2';
 window.refreshFlowbiteTooltips = () => initTooltips();
 
 const publicThemeCookie = 'public_theme';
