@@ -9,10 +9,12 @@ use App\Models\PhoneModel;
 use App\Models\User;
 use App\Services\ImageService;
 use App\Services\ListingMediaService;
+use App\Services\SystemOptions;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Tests\TestCase;
 
 class ListingMediaLibraryTest extends TestCase
@@ -172,5 +174,56 @@ class ListingMediaLibraryTest extends TestCase
             ->assertSessionHas('error');
 
         $this->assertDatabaseHas('media', ['id' => $used->getKey()]);
+    }
+
+    public function test_admin_can_upload_free_media_with_five_times_the_configured_limit_and_the_image_pipeline_is_used(): void
+    {
+        Storage::fake('public');
+        $owner = User::factory()->create();
+        $admin = User::factory()->create(['role' => 'admin']);
+        app(SystemOptions::class)->set('max_image_upload_mb', 3, 'integer');
+
+        $imageService = new class extends ImageService
+        {
+            public bool $processed = false;
+
+            protected function canProcess(): bool
+            {
+                return true;
+            }
+
+            protected function process(UploadedFile $file, string $path, string $thumbnailPath): void
+            {
+                $this->processed = true;
+                Storage::disk('public')->put($path, 'compressed-webp');
+            }
+        };
+        $this->app->instance(ImageService::class, $imageService);
+
+        $this->actingAs($admin)
+            ->get(route('admin.media.index'))
+            ->assertOk()
+            ->assertSee('۱۵ مگابایت')
+            ->assertSee(route('admin.media.store'), false);
+
+        $this->actingAs($admin)
+            ->post(route('admin.media.store'), [
+                'image' => UploadedFile::fake()->create('too-large.jpg', 15361, 'image/jpeg'),
+            ])
+            ->assertRedirect()
+            ->assertSessionHasErrors('image');
+
+        $this->actingAs($admin)
+            ->post(route('admin.media.store'), [
+                'image' => UploadedFile::fake()->create('admin-upload.jpg', 100, 'image/jpeg'),
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('status');
+
+        $media = Media::query()->where('model_id', $admin->id)->latest('id')->firstOrFail();
+        $this->assertTrue($imageService->processed);
+        $this->assertSame($admin->id, (int) $media->model_id);
+        $this->assertStringEndsWith('.webp', $media->file_name);
+        Storage::disk('public')->assertExists($media->getPathRelativeToRoot());
     }
 }

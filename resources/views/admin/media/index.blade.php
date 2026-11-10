@@ -48,6 +48,35 @@
             </form>
         </div>
 
+        <div class="admin-card p-5">
+            <div class="mb-4 flex items-center gap-2">
+                <x-heroicon-o-arrow-up-tray class="h-5 w-5 text-primary" />
+                <div>
+                    <h3 class="text-sm font-black text-slate-900">افزودن رسانه</h3>
+                    <p class="mt-1 text-[11px] text-slate-400">مدیر می‌تواند تصویر را مستقل از آگهی در کتابخانه رسانه ذخیره کند.</p>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('admin.media.store') }}" enctype="multipart/form-data"
+                data-file-upload data-max-image-mb="{{ $adminUploadMaxMb }}"
+                class="flex flex-col gap-3 sm:flex-row sm:items-end">
+                @csrf
+                <div class="w-full sm:max-w-xl">
+                    <label for="admin-media-image" class="mb-2 block text-xs font-bold text-slate-700">تصویر رسانه</label>
+                    <input id="admin-media-image" name="image" type="file" required
+                        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                        class="block w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-600 file:mr-0 file:border-0 file:bg-slate-900 file:px-4 file:py-3 file:text-sm file:font-bold file:text-white hover:file:bg-primary">
+                    <p class="mt-2 text-[11px] text-slate-400">
+                        فشرده‌سازی و تبدیل به WebP با همان مسیر استاندارد تصاویر انجام می‌شود؛ حداکثر حجم این بخش {{ \App\Support\PersianNumber::digits($adminUploadMaxMb) }} مگابایت است.
+                    </p>
+                </div>
+                <button type="submit"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition hover:bg-primary/90">
+                    <x-heroicon-o-arrow-up-tray class="h-5 w-5" />
+                    آپلود رسانه
+                </button>
+            </form>
+        </div>
+
         <div class="admin-card overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-right text-sm">
