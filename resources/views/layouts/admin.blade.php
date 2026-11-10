@@ -246,6 +246,13 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                         class="mx-4 mt-5 rounded-xl border border-secondary/20 bg-secondary/10 p-4 text-sm font-bold text-success sm:mx-6 lg:mx-8">
                         {{ session('status') }}</div>
                 @endif
+                @if (session('error'))
+                    <div
+                        class="mx-4 mt-5 rounded-xl border border-error/20 bg-error/10 p-4 text-sm font-bold text-error sm:mx-6 lg:mx-8"
+                        role="alert">
+                        {{ session('error') }}
+                    </div>
+                @endif
 
                 @isset($header)
                     <div class="px-4 pt-6 sm:px-6 lg:px-8">{{ $header }}</div>

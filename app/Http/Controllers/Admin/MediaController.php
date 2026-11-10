@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ListingImage;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class MediaController extends Controller
@@ -36,5 +38,21 @@ class MediaController extends Controller
             ->withQueryString();
 
         return view('admin.media.index', compact('media', 'perPageOptions'));
+    }
+
+    public function destroy(Media $media): RedirectResponse
+    {
+        abort_unless(
+            $media->collection_name === 'listing-images' && $media->model_type === User::class,
+            404,
+        );
+
+        if (ListingImage::query()->where('media_id', $media->getKey())->exists()) {
+            return back()->with('error', 'این رسانه در یک یا چند آگهی استفاده می‌شود و قابل حذف نیست.');
+        }
+
+        $media->delete();
+
+        return back()->with('status', 'رسانه با موفقیت حذف شد.');
     }
 }

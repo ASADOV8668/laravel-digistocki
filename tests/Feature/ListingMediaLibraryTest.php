@@ -120,4 +120,57 @@ class ListingMediaLibraryTest extends TestCase
             ->assertSee('phone-one')
             ->assertSee('phone-two');
     }
+
+    public function test_admin_can_delete_unused_media_with_confirmation_form_and_used_media_is_protected(): void
+    {
+        Storage::fake('public');
+        $owner = User::factory()->create();
+        $admin = User::factory()->create(['role' => 'admin']);
+        $mediaService = app(ListingMediaService::class);
+        $imageService = app(ImageService::class);
+
+        $unused = $mediaService->createFromUpload(
+            $owner,
+            UploadedFile::fake()->create('unused.webp', 100, 'image/webp'),
+            $imageService,
+        );
+
+        $this->actingAs($admin)
+            ->get(route('admin.media.index'))
+            ->assertOk()
+            ->assertSee('آیا از حذف این رسانه مطمئن هستید؟', false)
+            ->assertSee(route('admin.media.destroy', $unused), false);
+
+        $this->actingAs($admin)
+            ->delete(route('admin.media.destroy', $unused))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('media', ['id' => $unused->getKey()]);
+
+        $brand = Brand::query()->first() ?? Brand::create(['name' => 'برند آزمایشی', 'slug' => 'test-brand']);
+        $model = PhoneModel::query()->where('brand_id', $brand->id)->first()
+            ?? PhoneModel::create(['brand_id' => $brand->id, 'name' => 'مدل آزمایشی', 'slug' => 'test-model']);
+        $listing = Listing::create([
+            'user_id' => $owner->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'رسانه در حال استفاده',
+            'slug' => 'used-media-test-'.uniqid(),
+            'price' => 1000000,
+            'status' => 'approved',
+        ]);
+        $used = $mediaService->createFromUpload(
+            $owner,
+            UploadedFile::fake()->create('used.webp', 100, 'image/webp'),
+            $imageService,
+        );
+        $mediaService->attachToListing($listing, $used, true, 0);
+
+        $this->actingAs($admin)
+            ->delete(route('admin.media.destroy', $used))
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseHas('media', ['id' => $used->getKey()]);
+    }
 }

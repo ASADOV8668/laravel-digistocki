@@ -58,6 +58,7 @@
                             <th class="px-5 py-4">حجم</th>
                             <th class="px-5 py-4">آپلودکننده</th>
                             <th class="px-5 py-4">زمان آپلود</th>
+                            <th class="px-5 py-4">عملیات</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -91,10 +92,23 @@
                                     <p class="font-bold text-slate-700">{{ \App\Support\PersianNumber::digits(\App\Support\PersianDate::format($item->created_at)) }}</p>
                                     <p class="mt-1 text-[11px] text-slate-400">{{ \App\Support\PersianNumber::digits(\App\Support\PersianDate::human($item->created_at)) }}</p>
                                 </td>
+                                <td class="whitespace-nowrap px-5 py-4">
+                                    <form method="POST" action="{{ route('admin.media.destroy', $item) }}"
+                                        onsubmit="return confirm('آیا از حذف این رسانه مطمئن هستید؟ این عملیات قابل بازگشت نیست.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="inline-flex items-center gap-1.5 rounded-lg bg-error/10 px-3 py-2 text-xs font-bold text-error transition hover:bg-error hover:text-white"
+                                            title="حذف رسانه">
+                                            <x-heroicon-o-trash class="h-4 w-4" />
+                                            حذف
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-5 py-14 text-center text-sm text-slate-400">رسانه‌ای پیدا نشد.</td>
+                                <td colspan="6" class="px-5 py-14 text-center text-sm text-slate-400">رسانه‌ای پیدا نشد.</td>
                             </tr>
                         @endforelse
                     </tbody>
