@@ -11,7 +11,7 @@
             </div>
         </div>
     </x-slot>
-    <section x-data='Object.assign(listingAdminForm(), imagePicker(@js($maxImageUploadMb), {{ $editing ? max(0, $maxImageUploadCount - $listing->images->count()) : $maxImageUploadCount }}, @js($listing?->images?->firstWhere("is_primary", true)?->id), @js(route("admin.listings.media.index")), @js($listing?->user_id ?? old("user_id", ""))))' data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
+    <section x-data='listingAdminWithMedia(@js($maxImageUploadMb), {{ $editing ? max(0, $maxImageUploadCount - $listing->images->count()) : $maxImageUploadCount }}, @js($listing?->images?->firstWhere("is_primary", true)?->id), @js(route("admin.listings.media.index")), @js($listing?->user_id ?? old("user_id", "")))' data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
         data-cities-endpoint="{{ url('/locations/provinces') }}" data-users-endpoint="{{ route('admin.users.search') }}"
         data-initial-brand-id="{{ old('brand_id', $listing->brand_id ?? '') }}"
         data-initial-model-id="{{ old('phone_model_id', $listing->phone_model_id ?? '') }}"
@@ -165,7 +165,7 @@
                             class="ml-2 h-6 w-6" />انتخاب تصاویر جدید<input @change="select($event)" type="file"
                             name="images[]" multiple accept=".jpg,.jpeg,.png,.webp,.heic,.heif" class="sr-only"></label>
                     <div class="flex items-center justify-between gap-2">
-                        <button type="button" @click="openMedia()"
+                        <button type="button" @click.prevent.stop="openMedia()"
                             class="inline-flex items-center gap-2 rounded-lg border border-primary/20 bg-white px-3 py-2 text-xs font-bold text-primary shadow-sm hover:bg-primary-50">
                             <x-heroicon-o-photo class="h-4 w-4" /> انتخاب از تصاویر قبلی
                         </button>

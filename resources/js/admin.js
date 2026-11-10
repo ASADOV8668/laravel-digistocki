@@ -541,7 +541,11 @@ window.imagePicker = (maxMb = 5, maxFiles = 8, initialPrimaryImageId = '', media
     },
 
     async openMedia() {
-        if (!this.mediaEndpoint) return;
+        if (!this.mediaEndpoint) {
+            this.mediaOpen = true;
+            this.mediaMessage = 'مسیر بارگذاری تصاویر قبلی تنظیم نشده است.';
+            return;
+        }
         this.mediaOpen = true;
         this.mediaLoading = true;
         this.mediaMessage = '';
@@ -656,6 +660,25 @@ window.imagePicker = (maxMb = 5, maxFiles = 8, initialPrimaryImageId = '', media
         this.previews = [];
     },
 });
+
+const composeAdminAlpineComponents = (base, extension) => {
+    const baseInit = base.init;
+    const extensionInit = extension.init;
+
+    return {
+        ...base,
+        ...extension,
+        init(...args) {
+            if (typeof baseInit === 'function') baseInit.apply(this, args);
+            if (typeof extensionInit === 'function') extensionInit.apply(this, args);
+        },
+    };
+};
+
+window.listingAdminWithMedia = (...args) => composeAdminAlpineComponents(
+    window.listingAdminForm(),
+    window.imagePicker(...args),
+);
 
 document.addEventListener('DOMContentLoaded', () => {
     const dateFields = $('[data-persian-datepicker]');

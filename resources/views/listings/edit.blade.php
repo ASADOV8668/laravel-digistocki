@@ -9,7 +9,7 @@
             </div>
         </div>
     </x-slot>
-    <section x-data='Object.assign(listingWizard(), imagePicker(@js($maxImageUploadMb), {{ max(0, $maxImageUploadCount - $listing->images->count()) }}, @js($listing->images->firstWhere("is_primary", true)?->id), @js(route("listings.media.index"))))' data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
+    <section x-data='listingWizardWithMedia(@js($maxImageUploadMb), {{ max(0, $maxImageUploadCount - $listing->images->count()) }}, @js($listing->images->firstWhere("is_primary", true)?->id), @js(route("listings.media.index")))' data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
         data-cities-endpoint="{{ url('/locations/provinces') }}"
         data-initial-brand-id="{{ old('brand_id', $listing->brand_id) }}"
         data-initial-model-id="{{ old('phone_model_id', $listing->phone_model_id) }}"
@@ -108,7 +108,7 @@
                         کلیک کنید<input @change="select($event)" type="file" name="images[]" multiple
                             accept=".jpg,.jpeg,.png,.webp,.heic,.heif" class="sr-only"></span></label>
                     <div class="flex items-center justify-between gap-2">
-                        <button type="button" @click="openMedia()"
+                        <button type="button" @click.prevent.stop="openMedia()"
                             class="inline-flex items-center gap-2 rounded-lg border border-primary/20 bg-white px-3 py-2 text-xs font-bold text-primary shadow-sm hover:bg-primary-50">
                             <x-heroicon-o-photo class="h-4 w-4" /> انتخاب از تصاویر قبلی
                         </button>

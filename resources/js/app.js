@@ -806,7 +806,11 @@ window.imagePicker = (maxMb = 5, maxFiles = 8, initialPrimaryImageId = '', media
     },
 
     async openMedia() {
-        if (!this.mediaEndpoint) return;
+        if (!this.mediaEndpoint) {
+            this.mediaOpen = true;
+            this.mediaMessage = 'مسیر بارگذاری تصاویر قبلی تنظیم نشده است.';
+            return;
+        }
         this.mediaOpen = true;
         this.mediaLoading = true;
         this.mediaMessage = '';
@@ -1591,6 +1595,25 @@ window.listingWizard = () => ({
         if (title) this.titleInput.value = title;
     },
 });
+
+const composeAlpineComponents = (base, extension) => {
+    const baseInit = base.init;
+    const extensionInit = extension.init;
+
+    return {
+        ...base,
+        ...extension,
+        init(...args) {
+            if (typeof baseInit === 'function') baseInit.apply(this, args);
+            if (typeof extensionInit === 'function') extensionInit.apply(this, args);
+        },
+    };
+};
+
+window.listingWizardWithMedia = (...args) => composeAlpineComponents(
+    window.listingWizard(),
+    window.imagePicker(...args),
+);
 
 window.moneyInput = (initial = '') => ({
     raw: '',
