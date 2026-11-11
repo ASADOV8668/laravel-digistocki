@@ -690,7 +690,7 @@ class ListingController extends Controller
         return view('listings.edit', [
             'listing' => $listing,
             'store' => $listing->user?->storefront,
-            'brands' => Brand::query()->where('is_active', true)->where(fn ($query) => $query->where('can_post_listings', true)->orWhereKey($listing->brand_id))->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
+            'brands' => Brand::query()->where('is_active', true)->where(fn ($query) => $query->where('can_post_listings', true)->orWhere('brands.id', $listing->brand_id))->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
             'attributes' => $attributes,
             'provinces' => Province::query()->orderBy('name')->get(),
             'initialValues' => $listing->attributeValues->mapWithKeys(fn ($value) => [$value->attribute_id => $value->value_json ?? $value->value_string ?? $value->value_integer ?? $value->value_decimal ?? $value->value_boolean])->all(),

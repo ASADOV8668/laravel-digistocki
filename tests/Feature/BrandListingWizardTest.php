@@ -4,7 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\Brand;
 use App\Models\BrandListingWizardStep;
+use App\Models\Attribute;
+use App\Models\Listing;
+use App\Models\ListingAttributeValue;
 use App\Models\PhoneModel;
+use App\Models\SellerStore;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -85,5 +89,54 @@ class BrandListingWizardTest extends TestCase
 
         $this->assertFalse($brand->refresh()->can_post_listings);
         $this->getJson(route('listings.wizard.config', $brand))->assertOk();
+    }
+
+    public function test_edit_form_exposes_existing_brand_series_model_and_attribute_values(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $user = User::factory()->create();
+        SellerStore::create([
+            'user_id' => $user->id,
+            'slug' => 'edit-wizard-store-'.$user->id,
+            'name' => 'فروشگاه ویرایش سریع',
+            'approval_status' => 'approved',
+            'is_enabled' => true,
+            'listing_approval_mode' => SellerStore::LISTING_APPROVAL_FREE,
+        ]);
+        $brand = Brand::query()->where('name_en', 'Apple')->firstOrFail();
+        $model = PhoneModel::query()->where('brand_id', $brand->id)->where('name_en', 'iPhone 13 Pro Max')->firstOrFail();
+        $listing = Listing::create([
+            'user_id' => $user->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی ویرایش سریع',
+            'slug' => 'edit-wizard-'.$user->id,
+            'price' => 1000000,
+            'status' => 'approved',
+            'published_at' => now(),
+        ]);
+
+        foreach ([
+            ['storage', 'value_integer', 256],
+            ['ram', 'value_integer', 6],
+            ['color', 'value_string', 'آبی'],
+            ['condition', 'value_string', 'در حد نو'],
+            ['battery_health', 'value_integer', 90],
+        ] as [$slug, $field, $value]) {
+            ListingAttributeValue::create([
+                'listing_id' => $listing->id,
+                'attribute_id' => Attribute::query()->where('slug', $slug)->value('id'),
+                $field => $value,
+            ]);
+        }
+
+        $response = $this->actingAs($user)->get(route('listings.edit', $listing))->assertOk();
+        $html = $response->getContent();
+
+        $this->assertStringContainsString('data-initial-brand-id="'.$brand->id.'"', $html);
+        $this->assertStringContainsString('data-initial-series-id="'.$model->phone_series_id.'"', $html);
+        $this->assertStringContainsString('data-initial-model-id="'.$model->id.'"', $html);
+        $this->assertStringContainsString('"'.Attribute::query()->where('slug', 'storage')->value('id').'":256', $html);
+        $this->assertStringContainsString('"'.Attribute::query()->where('slug', 'battery_health')->value('id').'":90', $html);
     }
 }
