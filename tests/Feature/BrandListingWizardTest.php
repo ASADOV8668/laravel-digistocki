@@ -97,6 +97,22 @@ class BrandListingWizardTest extends TestCase
         $this->getJson(route('listings.wizard.config', $brand))->assertOk();
     }
 
+    public function test_admin_stage_builder_shows_default_brand_stages_when_no_custom_steps_exist(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $brand = Brand::query()->where('name_en', 'Apple')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->get(route('admin.brands.wizard-steps.index', $brand))
+            ->assertOk()
+            ->assertSee('مراحل پیش‌فرض فعال')
+            ->assertSee('انتخاب سری')
+            ->assertSee('انتخاب مدل')
+            ->assertSee('حافظه داخلی')
+            ->assertSee('پیش‌فرض');
+    }
+
     public function test_edit_form_exposes_existing_brand_series_model_and_attribute_values(): void
     {
         $this->seed(CatalogSeeder::class);

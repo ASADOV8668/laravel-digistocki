@@ -118,8 +118,49 @@ class BrandController extends Controller
 
     public function wizardSteps(Brand $brand)
     {
+        $brand->load(['wizardSteps.attribute']);
+        $defaultSteps = collect();
+
+        if ($brand->wizardSteps->isEmpty()) {
+            if ($brand->phoneSeries()->where('is_active', true)->exists()) {
+                $defaultSteps->push((object) [
+                    'step_type' => 'series',
+                    'display_type' => 'buttons',
+                    'is_required' => true,
+                    'sort_order' => 1,
+                    'attribute' => null,
+                ]);
+            }
+
+            $defaultSteps->push((object) [
+                'step_type' => 'model',
+                'display_type' => 'buttons',
+                'is_required' => true,
+                'sort_order' => 2,
+                'attribute' => null,
+            ]);
+
+            Attribute::query()
+                ->where('is_active', true)
+                ->whereHas('phoneModels', fn ($query) => $query->where('brand_id', $brand->id))
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get()
+                ->values()
+                ->each(function (Attribute $attribute, int $index) use ($defaultSteps): void {
+                    $defaultSteps->push((object) [
+                        'step_type' => 'attribute',
+                        'display_type' => in_array($attribute->slug, ['battery_health', 'ram'], true) ? 'swiper' : 'buttons',
+                        'is_required' => (bool) $attribute->is_required,
+                        'sort_order' => $index + 3,
+                        'attribute' => $attribute,
+                    ]);
+                });
+        }
+
         return view('admin.brands.wizard-steps', [
-            'brand' => $brand->load(['wizardSteps.attribute']),
+            'brand' => $brand,
+            'defaultSteps' => $defaultSteps,
             'attributes' => Attribute::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(),
             'models' => PhoneModel::query()->where('brand_id', $brand->id)->where('is_active', true)->orderBy('name')->get(['id', 'name', 'name_fa', 'name_en']),
         ]);
