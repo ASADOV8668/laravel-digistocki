@@ -272,7 +272,7 @@
             </div>
 
             <div class="mt-6 border-t border-slate-100 pt-4"><button type="submit" x-show="fastComplete()"
-                    class="mobile-button flex-1 bg-primary text-white hover:bg-primary-600">{{ $freeListing ? 'ثبت آگهی' : 'ارسال برای بررسی' }}</button>
+                    class="mobile-button w-full bg-primary py-3.5 text-base font-black text-white shadow-lg shadow-primary/20 hover:bg-primary-600">{{ $freeListing ? 'ثبت آگهی' : 'ارسال برای بررسی' }}</button>
             </div>
         </form>
     </section>
