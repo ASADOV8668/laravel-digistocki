@@ -26,7 +26,9 @@
             </div>
         </form>
         <div class="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
-            <form method="POST" action="{{ route('admin.brands.store') }}" class="admin-card h-fit space-y-4 p-5">@csrf
+            <form method="POST" action="{{ route('admin.brands.store') }}" enctype="multipart/form-data"
+                data-file-upload data-max-image-mb="{{ app(\App\Services\SystemOptions::class)->maxImageUploadMb() }}"
+                class="admin-card h-fit space-y-4 p-5">@csrf
                 <div class="flex items-center gap-2"><span
                         class="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/10 text-accent"><x-heroicon-o-plus
                             class="h-5 w-5" /></span>
@@ -41,6 +43,11 @@
                 <div><label class="mb-2 block text-xs font-bold text-slate-700">نام انگلیسی</label><input name="name_en"
                         placeholder="مثلاً Apple" dir="ltr"
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent"></div>
+                <div><label class="mb-2 block text-xs font-bold text-slate-700">تصویر شاخص برند</label><input
+                        name="featured_image" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                        class="block w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-600 file:mr-0 file:border-0 file:bg-slate-900 file:px-3 file:py-2.5 file:font-bold file:text-white">
+                    <p class="mt-1 text-[10px] text-slate-400">در صورت خالی‌بودن، تصویر پیش‌فرض نمایش داده می‌شود.</p>
+                </div>
                 <button
                     class="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-accent">ذخیره
                     برند</button>
@@ -58,7 +65,9 @@
                         <div class="p-5 transition hover:bg-slate-50">
                             <div class="flex items-center justify-between gap-3">
                                 <div class="flex items-center gap-3"><span
-                                        class="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 font-black text-accent">{{ mb_substr($brand->name, 0, 1) }}</span>
+                                        class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-slate-100"><img
+                                            src="{{ $brand->featuredImageUrl() }}" alt="{{ $brand->name }}" loading="lazy"
+                                            class="h-full w-full object-contain"></span>
                                     <div>
                                         <h2 class="font-black text-slate-800">{{ $brand->name }}</h2>
                                         <p class="mt-1 text-xs text-slate-400">
@@ -76,6 +85,8 @@
                                             class="cursor-pointer list-none rounded-lg bg-slate-100 p-2 text-slate-500 hover:bg-slate-200"
                                             title="ویرایش برند"><x-heroicon-o-pencil-square class="h-4 w-4" /></summary>
                                         <form method="POST" action="{{ route('admin.brands.update', $brand) }}"
+                                            enctype="multipart/form-data" data-file-upload
+                                            data-max-image-mb="{{ app(\App\Services\SystemOptions::class)->maxImageUploadMb() }}"
                                             class="mt-4 space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
                                             @csrf @method('PATCH')<div><label
                                                     class="mb-1 block text-[11px] font-bold text-slate-600">نام
@@ -87,6 +98,17 @@
                                                     انگلیسی</label><input name="name_en" value="{{ $brand->name_en }}"
                                                     dir="ltr"
                                                     class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">
+                                            </div>
+                                            <div><label class="mb-1 block text-[11px] font-bold text-slate-600">تصویر شاخص برند</label>
+                                                <div class="mb-2 flex items-center gap-3"><img src="{{ $brand->featuredImageUrl() }}"
+                                                        alt="{{ $brand->name }}" class="h-16 w-16 rounded-lg bg-white object-contain ring-1 ring-slate-200">
+                                                    @if ($brand->featured_image)
+                                                        <label class="flex items-center gap-1.5 text-[11px] font-bold text-error"><input
+                                                                type="checkbox" name="remove_featured_image" value="1"> حذف تصویر فعلی</label>
+                                                    @endif
+                                                </div>
+                                                <input name="featured_image" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                                                    class="block w-full cursor-pointer rounded-lg border border-slate-200 bg-white text-xs text-slate-600 file:mr-0 file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:font-bold file:text-white">
                                             </div><button
                                                 class="rounded-lg bg-accent px-4 py-2 text-xs font-bold text-white">ذخیره
                                                 تغییرات</button>

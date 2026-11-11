@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Brand;
 use App\Models\Listing;
 use App\Services\SystemOptions;
 use Illuminate\Http\Request;
@@ -40,6 +41,12 @@ class HomeController extends Controller
             'latestListings' => $latestListings,
             'paginationMode' => $paginationMode,
             'provinces' => Province::query()->orderBy('name')->get(['id', 'name']),
+            'popularBrands' => Brand::query()
+                ->where('is_active', true)
+                ->whereIn('name_en', ['Apple', 'Samsung', 'Xiaomi'])
+                ->get()
+                ->sortBy(fn (Brand $brand): int => array_search($brand->name_en, ['Apple', 'Samsung', 'Xiaomi'], true))
+                ->values(),
         ]);
     }
 }

@@ -196,13 +196,14 @@
                 </div><a href="{{ route('listings.index') }}" class="text-xs font-bold text-primary">مشاهده همه</a>
             </div>
             <div class="grid grid-cols-3 gap-3">
-                @foreach ([['آیفون', 'bg-slate-900'], ['سامسونگ', 'bg-blue-600'], ['شیائومی', 'bg-orange-500']] as [$brand, $color])
-                    <a href="{{ route('listings.index', ['q' => $brand]) }}"
+                @foreach ($popularBrands as $brand)
+                    <a href="{{ route('listings.index', ['brand_id' => $brand->id]) }}"
                         class="group rounded-lg border border-slate-200 bg-white p-3 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-                        <div
-                            class="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-lg {{ $color }} text-white transition group-hover:scale-105">
-                            <x-heroicon-o-device-phone-mobile class="h-6 w-6" /></div><span
-                            class="text-xs font-black text-neutral">{{ $brand }}</span>
+                        <div class="mx-auto mb-2 h-16 w-16 overflow-hidden rounded-xl bg-white transition group-hover:scale-105">
+                            <img src="{{ $brand->featuredImageUrl() }}" alt="{{ $brand->name }}" loading="lazy"
+                                class="h-full w-full object-contain">
+                        </div>
+                        <span class="text-xs font-black text-neutral">{{ $brand->name }}</span>
                     </a>
                 @endforeach
             </div>
