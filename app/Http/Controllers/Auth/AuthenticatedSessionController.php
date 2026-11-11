@@ -17,6 +17,10 @@ class AuthenticatedSessionController extends Controller
 {
     public function create(Request $request, SystemOptions $options): View
     {
+        if ($request->boolean('change')) {
+            $request->session()->forget(['login_identified_mobile', 'login_otp_mobile', 'login_otp_expires_at']);
+        }
+
         $step = $request->session()->has('login_otp_mobile') ? 'otp' : ($request->session()->has('login_identified_mobile') ? 'password' : 'mobile');
         $mobile = $request->session()->get('login_otp_mobile', $request->session()->get('login_identified_mobile'));
 

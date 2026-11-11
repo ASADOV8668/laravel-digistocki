@@ -26,7 +26,14 @@
         <form method="POST" action="{{ route('login') }}" class="space-y-5">@csrf
             <input type="hidden" name="mobile" value="{{ $mobile }}">
             <div class="rounded-lg bg-slate-50 px-4 py-3 text-center text-sm font-bold text-slate-700" dir="ltr">
-                {{ $mobile }}</div>
+                {{ $mobile }}
+                <a href="{{ route('login', ['change' => 1]) }}"
+                    class="mr-2 inline-flex items-center gap-1 text-xs font-black text-primary transition hover:text-primary-600"
+                    aria-label="تغییر شماره موبایل">
+                    <x-heroicon-o-pencil-square class="h-4 w-4" />
+                    تغییر شماره موبایل
+                </a>
+            </div>
             <div><x-input-label for="password" value="رمز عبور" /><x-text-input id="password"
                     aria-describedby="password-error" class="mt-2 block w-full" type="password" name="password" required
                     autofocus autocomplete="current-password" /><x-input-error id="password-error" :messages="$errors->get('password')" class="mt-2" /></div>

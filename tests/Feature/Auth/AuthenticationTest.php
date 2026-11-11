@@ -42,6 +42,24 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_password_step_allows_changing_the_mobile_number(): void
+    {
+        $user = User::factory()->create(['mobile' => '09121234567']);
+
+        $this->post(route('login'), ['mobile' => $user->mobile])
+            ->assertRedirect(route('login'));
+
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('تغییر شماره موبایل')
+            ->assertSee(route('login', ['change' => 1]), false);
+
+        $this->get(route('login', ['change' => 1]))
+            ->assertOk()
+            ->assertSee('شماره موبایل خود را وارد کنید تا حساب شما را پیدا کنیم.')
+            ->assertDontSee('ورود با رمز عبور');
+    }
+
     public function test_users_can_logout(): void
     {
         $user = User::factory()->create();
