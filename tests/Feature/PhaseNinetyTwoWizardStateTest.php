@@ -23,6 +23,7 @@ class PhaseNinetyTwoWizardStateTest extends TestCase
         $this->assertIsString($source);
         $source = str_replace(["\r\n", "\r"], "\n", $source);
         $this->assertStringContainsString('if (previousModelId !== model.id) this.filters = {};', $source);
-        $this->assertStringContainsString("this.filters = {};\n        this.open = false;", $source);
+        $this->assertStringContainsString("this.filters = {};\n        this.quickStep = 'storage';", $source);
+        $this->assertStringContainsString("this.quickStep = 'storage';\n        this.open = false;", $source);
     }
 }

@@ -20,7 +20,7 @@ class PhaseOneHundredEightySevenWizardAjaxRaceTest extends TestCase
         $this->assertNotFalse($wizard);
         $this->assertStringContainsString('attributesController: null', $wizard);
         $this->assertStringContainsString('citiesController: null', $wizard);
-        $this->assertSame(3, substr_count($wizard, 'signal: controller.signal'));
+        $this->assertSame(4, substr_count($wizard, 'signal: controller.signal'));
         $this->assertStringContainsString("if (error.name !== 'AbortError')", $wizard);
         $this->assertStringContainsString('this.attributes = [];', $wizard);
         $this->assertStringContainsString('this.cities = [];', $wizard);
