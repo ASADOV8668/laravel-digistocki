@@ -36,6 +36,17 @@ class Brand extends Model
                 'apple' => 'images/brands/apple.webp',
                 'samsung' => 'images/brands/samsung.webp',
                 'xiaomi' => 'images/brands/xiaomi.webp',
+                'huawei' => 'images/brands/huawei.webp',
+                'nokia' => 'images/brands/nokia.webp',
+                'sony' => 'images/brands/sony.webp',
+                'lg' => 'images/brands/lg.webp',
+                'google' => 'images/brands/google.webp',
+                'oneplus' => 'images/brands/oneplus.webp',
+                'oppo' => 'images/brands/oppo.webp',
+                'vivo' => 'images/brands/vivo.webp',
+                'realme' => 'images/brands/realme.webp',
+                'asus' => 'images/brands/asus.webp',
+                'motorola' => 'images/brands/motorola.webp',
                 default => 'images/brand-default.png',
             });
     }

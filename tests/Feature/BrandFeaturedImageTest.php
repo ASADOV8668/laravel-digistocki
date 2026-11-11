@@ -25,7 +25,7 @@ class BrandFeaturedImageTest extends TestCase
             ->get(route('admin.brands.index'))
             ->assertOk()
             ->assertSee('featured_image', false)
-            ->assertSee('brand-default.png', false);
+            ->assertSee('images/brands/samsung.webp', false);
 
         $this->actingAs($admin)
             ->patch(route('admin.brands.update', $brand), [
@@ -46,6 +46,11 @@ class BrandFeaturedImageTest extends TestCase
 
         $otherBrand = Brand::query()->where('name_en', 'Samsung')->firstOrFail();
         $this->assertSame(asset('images/brands/samsung.webp'), $otherBrand->featuredImageUrl());
+
+        $this->assertSame(
+            asset('images/brands/huawei.webp'),
+            Brand::query()->where('name_en', 'Huawei')->firstOrFail()->featuredImageUrl(),
+        );
 
         $unknownBrand = Brand::create([
             'name' => 'برند تست',
