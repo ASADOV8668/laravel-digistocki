@@ -32,6 +32,11 @@ class Brand extends Model
     {
         return $this->featured_image
             ? Storage::disk('public')->url($this->featured_image)
-            : asset('images/brand-default.png');
+            : asset(match (strtolower((string) $this->name_en)) {
+                'apple' => 'images/brands/apple.webp',
+                'samsung' => 'images/brands/samsung.webp',
+                'xiaomi' => 'images/brands/xiaomi.webp',
+                default => 'images/brand-default.png',
+            });
     }
 }

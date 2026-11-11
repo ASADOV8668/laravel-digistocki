@@ -45,6 +45,14 @@ class BrandFeaturedImageTest extends TestCase
             ->assertSee($brand->featuredImageUrl(), false);
 
         $otherBrand = Brand::query()->where('name_en', 'Samsung')->firstOrFail();
-        $this->assertSame(asset('images/brand-default.png'), $otherBrand->featuredImageUrl());
+        $this->assertSame(asset('images/brands/samsung.webp'), $otherBrand->featuredImageUrl());
+
+        $unknownBrand = Brand::create([
+            'name' => 'برند تست',
+            'name_en' => 'Test Brand',
+            'slug' => 'test-brand',
+            'is_active' => true,
+        ]);
+        $this->assertSame(asset('images/brand-default.png'), $unknownBrand->featuredImageUrl());
     }
 }
