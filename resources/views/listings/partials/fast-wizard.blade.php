@@ -6,7 +6,7 @@
 
     <div>
         <p class="mb-2 text-sm font-bold text-neutral">۱. برند گوشی</p>
-        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-3 xl:grid-cols-4">
             @foreach ($brands as $brand)
                 <button type="button" @click="selectFastBrand(@js(['id' => $brand->id, 'label' => $brand->name, 'secondary' => $brand->name_en, 'image' => $brand->featuredImageUrl()]))"
                     class="flex min-h-28 flex-col items-center justify-center gap-1 rounded-xl border bg-white p-2 text-center transition hover:border-primary/50 hover:shadow-sm"
@@ -39,7 +39,7 @@
                     <button type="button" @click="selectFastStage(stage, option)"
                         class="shrink-0 snap-start rounded-xl border px-4 py-2.5 text-xs font-bold transition hover:border-primary/50 hover:bg-primary-50"
                         :class="String(fastStageValue(stage)) === String(option.id) ? 'border-primary bg-primary-50 text-primary ring-2 ring-primary/15' : 'border-slate-200 text-neutral'">
-                        <span x-show="stage.type === 'attribute' && stage.attribute?.slug === 'color'" class="ml-1 inline-block h-3.5 w-3.5 rounded-full border border-slate-300 align-middle" :style="`background-color: ${listingColorHex?.[option.label] || '#94a3b8'}`"></span>
+                        <span x-cloak x-show="stage.type === 'attribute' && stage.attribute?.slug === 'color'" class="ml-1 inline-block h-3.5 w-3.5 rounded-full border border-slate-300 align-middle" :style="`background-color: ${fastColorHex(option.label)}`"></span>
                         <span x-text="option.label"></span>
                         <span x-show="option.secondary && stage.type !== 'attribute'" class="mr-1 text-[10px] text-slate-400" dir="ltr" x-text="`(${option.secondary})`"></span>
                     </button>

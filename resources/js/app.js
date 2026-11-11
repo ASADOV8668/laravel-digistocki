@@ -1524,6 +1524,10 @@ window.listingWizard = () => ({
         return stage.attribute?.name || 'ویژگی گوشی';
     },
 
+    fastColorHex(value) {
+        return window.listingColorHex?.[String(value ?? '').trim()] || '#94a3b8';
+    },
+
     fastStageOptions(stage) {
         if (stage.type === 'series') return this.wizardConfig?.series || [];
         if (stage.type === 'model') return this.wizardConfig?.models || [];

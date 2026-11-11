@@ -101,7 +101,7 @@
                 </div>
             </div>
 
-            <div x-show="fastComplete()" x-cloak class="space-y-4">
+            <div x-show="fastComplete()" x-cloak class="mt-6 space-y-4">
                 <div>
                     <h2 class="text-lg font-black text-neutral">اطلاعات آگهی</h2>
                     <p class="mt-1 text-xs text-slate-500">عنوان روشن، قیمت دقیق و موقعیت آگهی باعث اعتماد بیشتر خریدار
