@@ -1421,10 +1421,12 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
 
 window.listingWizard = () => ({
     modelsEndpoint: '',
+    wizardEndpoint: '',
     attributesEndpoint: '',
     citiesEndpoint: '',
     step: 1,
     brandId: '',
+    seriesId: '',
     modelId: '',
     models: [],
     attributes: [],
@@ -1441,14 +1443,22 @@ window.listingWizard = () => ({
     titleInput: null,
     titleAttributes: [],
     titleLanguage: 'fa',
+    fastMode: false,
+    fastBrandName: '',
+    fastLoading: false,
+    wizardConfig: null,
+    fastController: null,
 
     init() {
         const root = this.$root;
         this.modelsEndpoint = root.dataset.modelsEndpoint || '';
+        this.wizardEndpoint = root.dataset.wizardEndpoint || '';
         this.attributesEndpoint = this.modelsEndpoint;
         this.citiesEndpoint = root.dataset.citiesEndpoint || '';
         this.brandId = root.dataset.initialBrandId || '';
+        this.seriesId = root.dataset.initialSeriesId || '';
         this.modelId = root.dataset.initialModelId || '';
+        this.fastMode = Boolean(this.wizardEndpoint);
         this.provinceId = root.dataset.initialProvinceId || '';
         this.cityId = root.dataset.initialCityId || '';
         this.titleLanguage = root.dataset.titleLanguage || 'fa';
@@ -1467,10 +1477,123 @@ window.listingWizard = () => ({
         try { this.attributes = attributesNode ? JSON.parse(attributesNode.textContent || '[]') : []; } catch { this.attributes = []; }
         this.titleAttributes = this.attributes;
         try { this.values = valuesNode ? JSON.parse(valuesNode.textContent || '{}') : {}; } catch { this.values = {}; }
-        this.$watch('brandId', (value, previous) => { if (value && value !== previous) this.loadModels(); });
-        if (this.brandId) this.loadModels(false);
+        if (!this.fastMode) this.$watch('brandId', (value, previous) => { if (value && value !== previous) this.loadModels(); });
+        if (this.fastMode && this.brandId) this.loadFastWizard(false);
+        else if (this.brandId) this.loadModels(false);
         if (this.modelId && !this.attributes.length) this.loadAttributes(false);
         if (this.provinceId) this.loadCities(false);
+    },
+
+    async loadFastWizard(reset = false) {
+        this.fastController?.abort();
+        if (!this.brandId || !this.wizardEndpoint) return;
+        const controller = new AbortController();
+        this.fastController = controller;
+        this.fastLoading = true;
+        const params = new URLSearchParams();
+        if (this.seriesId) params.set('series_id', this.seriesId);
+        if (this.modelId) params.set('model_id', this.modelId);
+        try {
+            const response = await fetch(`${this.wizardEndpoint}/${encodeURIComponent(this.brandId)}?${params.toString()}`, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: controller.signal,
+            });
+            if (!response.ok) throw new Error('Wizard request failed');
+            this.wizardConfig = await response.json();
+            this.models = this.wizardConfig.models || [];
+            this.fastBrandName = this.wizardConfig.brand?.label || this.fastBrandName;
+            if (this.modelId) await this.loadAttributes(false);
+            this.updateGeneratedTitle();
+        } catch (error) {
+            if (error.name !== 'AbortError') this.wizardConfig = null;
+        } finally {
+            if (this.fastController === controller) {
+                this.fastController = null;
+                this.fastLoading = false;
+            }
+        }
+    },
+
+    fastStages() {
+        return this.wizardConfig?.steps || [];
+    },
+
+    fastStageLabel(stage) {
+        if (stage.type === 'series') return 'سری گوشی';
+        if (stage.type === 'model') return 'مدل گوشی';
+        return stage.attribute?.name || 'ویژگی گوشی';
+    },
+
+    fastStageOptions(stage) {
+        if (stage.type === 'series') return this.wizardConfig?.series || [];
+        if (stage.type === 'model') return this.wizardConfig?.models || [];
+        return (stage.attribute?.options || []).map((value) => ({ id: value, label: value }));
+    },
+
+    fastStageValue(stage) {
+        if (stage.type === 'series') return this.seriesId;
+        if (stage.type === 'model') return this.modelId;
+        return this.values?.[String(stage.attribute?.id)] ?? '';
+    },
+
+    fastStageIndex() {
+        const stages = this.fastStages();
+        if (!stages.length) return -1;
+        const firstEmpty = stages.findIndex((stage) => {
+            const value = this.fastStageValue(stage);
+            return value === '' || value === null || value === undefined || (Array.isArray(value) && !value.length);
+        });
+        return firstEmpty < 0 ? stages.length - 1 : firstEmpty;
+    },
+
+    fastComplete() {
+        if (!this.brandId || !this.modelId) return false;
+        return this.fastStages().every((stage) => {
+            if (!stage.required) return true;
+            const value = this.fastStageValue(stage);
+            return value !== '' && value !== null && value !== undefined && (!Array.isArray(value) || value.length > 0);
+        });
+    },
+
+    async selectFastBrand(brand) {
+        this.brandId = String(brand.id);
+        this.fastBrandName = brand.label || '';
+        this.seriesId = '';
+        this.modelId = '';
+        this.models = [];
+        this.attributes = [];
+        this.values = {};
+        this.wizardConfig = null;
+        window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: [], values: {} } }));
+        await this.loadFastWizard(true);
+    },
+
+    async selectFastStage(stage, option) {
+        if (stage.type === 'series') {
+            this.seriesId = String(option.id || '');
+            this.modelId = '';
+            this.attributes = [];
+            this.values = {};
+            window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: [], values: {} } }));
+            await this.loadFastWizard(true);
+            return;
+        }
+
+        if (stage.type === 'model') {
+            this.modelId = String(option.id || '');
+            this.seriesId = option.series_id ? String(option.series_id) : this.seriesId;
+            this.attributes = [];
+            this.values = {};
+            window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: [], values: {} } }));
+            await this.loadFastWizard(false);
+            return;
+        }
+
+        const attributeId = String(stage.attribute?.id || '');
+        if (!attributeId) return;
+        this.values = { ...this.values, [attributeId]: option.id || '' };
+        window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: this.attributes, values: this.values } }));
+        this.updateGeneratedTitle();
     },
 
     async loadModels(resetModel = true) {
@@ -1589,13 +1712,19 @@ window.listingWizard = () => ({
 
     updateGeneratedTitle(rows = []) {
         if (!this.titleInput || this.titleInput.dataset.autoListingTitle !== 'true') return;
+        const titleRows = rows.length
+            ? rows
+            : Object.entries(this.values || {}).map(([attributeId, value]) => ({ attributeId, value }));
         const title = window.listingTitleGenerator?.generate({
             root: this.$root,
             models: this.models,
             modelId: this.modelId,
             definitions: this.titleAttributes,
-            rows,
+            rows: titleRows,
             language: this.titleLanguage,
+            brandName: this.titleLanguage === 'en'
+                ? (this.wizardConfig?.brand?.secondary || this.fastBrandName)
+                : this.fastBrandName,
         });
         if (title) this.titleInput.value = title;
     },

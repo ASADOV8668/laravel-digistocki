@@ -50,6 +50,12 @@
                         <option value="{{ $brand->id }}">{{ $brand->name }} / {{ $brand->name_en }}</option>
                     @endforeach
                 </select>
+                <select name="phone_series_id" class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent">
+                    <option value="">بدون سری</option>
+                    @foreach ($series as $item)
+                        <option value="{{ $item->id }}">{{ $item->brand->name ?? '' }} · {{ $item->name_fa ?: $item->name }}</option>
+                    @endforeach
+                </select>
                 <input name="name" required placeholder="نام داخلی مدل"
                     class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent">
                 <div class="grid gap-2 sm:grid-cols-2"><input name="name_fa" placeholder="نام فارسی، مثل آیفون ۱۵ پرو"
@@ -117,6 +123,14 @@
                                                             <option value="{{ $brand->id }}"
                                                                 @selected($model->brand_id === $brand->id)>{{ $brand->name }}
                                                             </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div><label class="mb-1 block text-[11px] font-bold text-slate-600">سری</label><select
+                                                        name="phone_series_id" class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">
+                                                        <option value="">بدون سری</option>
+                                                        @foreach ($series->where('brand_id', $model->brand_id) as $item)
+                                                            <option value="{{ $item->id }}" @selected($model->phone_series_id === $item->id)>{{ $item->name_fa ?: $item->name }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>

@@ -9,9 +9,10 @@
             </div>
         </div>
     </x-slot>
-    <section x-data="listingWizardWithMedia(@js($maxImageUploadMb), {{ max(0, $maxImageUploadCount - $listing->images->count()) }}, @js($listing->images->firstWhere('is_primary', true)?->id), @js(route('listings.media.index')) )" data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
+    <section x-data="listingWizardWithMedia(@js($maxImageUploadMb), {{ max(0, $maxImageUploadCount - $listing->images->count()) }}, @js($listing->images->firstWhere('is_primary', true)?->id), @js(route('listings.media.index')) )" data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}" data-wizard-endpoint="{{ url('/listings/wizard/brands') }}"
         data-cities-endpoint="{{ url('/locations/provinces') }}"
         data-initial-brand-id="{{ old('brand_id', $listing->brand_id) }}"
+        data-initial-series-id="{{ old('phone_series_id', $listing->phoneModel?->phone_series_id) }}"
         data-initial-model-id="{{ old('phone_model_id', $listing->phone_model_id) }}"
         data-initial-province-id="{{ old('province_id', $store?->province_id) }}"
         data-initial-city-id="{{ old('city_id', $store?->city_id) }}" class="space-y-5 px-4 py-6">
@@ -36,8 +37,9 @@
         <form method="POST" action="{{ route('listings.update', $listing) }}" enctype="multipart/form-data"
             class="space-y-4 rounded-lg bg-white p-5 shadow-sm border border-slate-200">
             @csrf @method('PUT')
-            <div class="grid gap-4 md:grid-cols-2">
-                <div><label class="mb-2 block text-sm font-bold text-neutral">برند</label><select name="brand_id"
+            @include('listings.partials.fast-wizard')
+            <div x-show="false" class="grid gap-4 md:grid-cols-2">
+                <div><label class="mb-2 block text-sm font-bold text-neutral">برند</label><select name="legacy_brand_id"
                         data-listing-brand-picker data-model-target="#public-edit-listing-model"
                         data-models-endpoint="{{ url('/listings/models') }}" x-model="brandId" @change="loadModels()"
                         required class="public-select">
@@ -49,7 +51,7 @@
                     </select>
                 </div>
                 <div><label class="mb-2 block text-sm font-bold text-neutral">مدل گوشی</label><select
-                        id="public-edit-listing-model" name="phone_model_id" x-model="modelId" @change="loadAttributes"
+                        id="public-edit-listing-model" name="legacy_phone_model_id" x-model="modelId" @change="loadAttributes"
                         required :disabled="!brandId || modelsLoading" class="public-select">
                         <option value="" x-text="modelsLoading ? 'در حال بارگذاری مدل‌ها...' : 'انتخاب مدل'">
                         </option><template x-for="model in models" :key="model.id">
@@ -189,7 +191,7 @@
                         </p>
                     </div><span x-show="attributesLoading" class="text-xs text-slate-400">در حال بارگذاری...</span>
                 </div>
-                <div class="mt-4"><x-listing-attribute-repeater :attribute-definitions="$initialModelAttributes" :values="old('attributes', $initialValues)" /></div><template
+                <div x-show="false" class="mt-4"><x-listing-attribute-repeater :attribute-definitions="$initialModelAttributes" :values="old('attributes', $initialValues)" /></div><template
                     x-if="false"><select class="public-select min-h-28"></select><input
                         class="public-input"></template>
             </div>

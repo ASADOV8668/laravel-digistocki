@@ -13,9 +13,10 @@
             </div>
         </div>
     </x-slot>
-    <section x-data="listingWizardWithMedia(@js($maxImageUploadMb), @js($maxImageUploadCount), @js(''), @js(route('listings.media.index')) )" data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}"
+    <section x-data="listingWizardWithMedia(@js($maxImageUploadMb), @js($maxImageUploadCount), @js(''), @js(route('listings.media.index')) )" data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}" data-wizard-endpoint="{{ url('/listings/wizard/brands') }}"
         data-cities-endpoint="{{ url('/locations/provinces') }}"
         data-initial-brand-id="{{ old('brand_id', $clone?->brand_id) }}"
+        data-initial-series-id="{{ old('phone_series_id', $clone?->phoneModel?->phone_series_id) }}"
         data-initial-model-id="{{ old('phone_model_id', $clone?->phone_model_id) }}"
         data-initial-province-id="{{ old('province_id', $store?->province_id) }}"
         data-initial-city-id="{{ old('city_id', $store?->city_id) }}" class="space-y-6 px-4 py-6">
@@ -29,7 +30,7 @@
                 </ul>
             </x-flowbite-alert>@endif
 
-        <div class="rounded-lg bg-white p-4 shadow-sm border border-slate-200">
+        <div x-show="false" class="rounded-lg bg-white p-4 shadow-sm border border-slate-200">
             <div class="flex items-center justify-between text-[11px] font-bold"><span class="flex items-center gap-1.5"
                     :class="step >= 1 ? 'text-primary' : 'text-slate-400'"><span class="sr-only">۱. مدل</span><span
                         class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">۱</span>مدل</span><span
@@ -52,13 +53,14 @@
         <form method="POST" action="{{ route('listings.store') }}" enctype="multipart/form-data"
             class="rounded-lg bg-white p-5 shadow-sm border border-slate-200">
             @csrf
-            <div x-show="step === 1" x-cloak class="space-y-4">
+            @include('listings.partials.fast-wizard')
+            <div x-show="false" x-cloak class="space-y-4">
                 <div>
                     <h2 class="text-lg font-black text-neutral">مدل گوشی را انتخاب کنید</h2>
                     <p class="mt-1 text-xs leading-6 text-slate-500">با انتخاب مدل، ویژگی‌های مخصوص همان دستگاه در مرحله
                         بعد بارگذاری می‌شود.</p>
                 </div>
-                <div><label class="mb-2 block text-sm font-bold text-neutral">برند</label><select name="brand_id"
+                <div><label class="mb-2 block text-sm font-bold text-neutral">برند</label><select name="legacy_brand_id"
                         data-listing-brand-picker data-model-target="#public-listing-model"
                         data-models-endpoint="{{ url('/listings/models') }}" x-model="brandId" @change="loadModels()"
                         required class="public-select">
@@ -70,7 +72,7 @@
                     </select>
                 </div>
                 <div><label class="mb-2 block text-sm font-bold text-neutral">مدل گوشی</label><select
-                        id="public-listing-model" name="phone_model_id" x-model="modelId" @change="loadAttributes"
+                        id="public-listing-model" name="legacy_phone_model_id" x-model="modelId" @change="loadAttributes"
                         required :disabled="!brandId || modelsLoading" class="public-select">
                         <option value="" x-text="modelsLoading ? 'در حال بارگذاری مدل‌ها...' : 'انتخاب مدل'">
                         </option><template x-for="model in models" :key="model.id">
@@ -85,7 +87,7 @@
                     دقیقاً مطابق کاتالوگ همان گوشی تنظیم می‌کند.</div>
             </div>
 
-            <div x-show="step === 2" x-cloak class="space-y-4">
+            <div x-show="false" x-cloak class="space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <h2 class="text-lg font-black text-neutral">مشخصات گوشی</h2>
@@ -99,7 +101,7 @@
                 </div>
             </div>
 
-            <div x-show="step === 3" x-cloak class="space-y-4">
+            <div x-show="fastComplete()" x-cloak class="space-y-4">
                 <div>
                     <h2 class="text-lg font-black text-neutral">اطلاعات آگهی</h2>
                     <p class="mt-1 text-xs text-slate-500">عنوان روشن، قیمت دقیق و موقعیت آگهی باعث اعتماد بیشتر خریدار
@@ -154,7 +156,7 @@
                 </div>
             </div>
 
-            <div x-show="step === 4" x-cloak class="space-y-4">
+            <div x-show="fastComplete()" x-cloak class="space-y-4">
                 <div>
                     <h2 class="text-lg font-black text-neutral">تصاویر و ارسال</h2>
                     <p class="mt-1 text-xs leading-6 text-slate-500">حداقل یک تصویر و حداکثر {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر، هر تصویر حداکثر {{ $maxImageUploadMb }} مگابایت. تصویر اول به‌عنوان تصویر اصلی نمایش داده می‌شود.</p>
@@ -269,13 +271,7 @@
                 </div>
             </div>
 
-            <div class="mt-6 flex gap-2 border-t border-slate-100 pt-4"><button type="button" x-show="step > 1"
-                    @click="previous"
-                    class="rounded-lg px-4 py-3 text-sm font-bold text-slate-500 hover:bg-slate-50">مرحله
-                    قبل</button><button type="button" x-show="step < 4" @click="next"
-                    :disabled="step === 1 && !modelId"
-                    class="mobile-button flex-1 bg-neutral text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40">مرحله
-                    بعد</button><button type="submit" x-show="step === 4"
+            <div class="mt-6 border-t border-slate-100 pt-4"><button type="submit" x-show="fastComplete()"
                     class="mobile-button flex-1 bg-primary text-white hover:bg-primary-600">{{ $freeListing ? 'ثبت آگهی' : 'ارسال برای بررسی' }}</button>
             </div>
         </form>

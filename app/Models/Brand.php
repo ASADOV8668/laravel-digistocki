@@ -11,11 +11,11 @@ class Brand extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'name_en', 'slug', 'logo', 'featured_image', 'is_active'];
+    protected $fillable = ['name', 'name_en', 'slug', 'logo', 'featured_image', 'is_active', 'can_post_listings'];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'can_post_listings' => 'boolean'];
     }
 
     public function phoneModels(): HasMany
@@ -26,6 +26,16 @@ class Brand extends Model
     public function listings(): HasMany
     {
         return $this->hasMany(Listing::class);
+    }
+
+    public function phoneSeries(): HasMany
+    {
+        return $this->hasMany(PhoneSeries::class)->orderBy('sort_order')->orderBy('name');
+    }
+
+    public function wizardSteps(): HasMany
+    {
+        return $this->hasMany(BrandListingWizardStep::class)->orderBy('sort_order')->orderBy('id');
     }
 
     public function featuredImageUrl(): string

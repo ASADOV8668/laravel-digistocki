@@ -14,7 +14,7 @@ class PhoneModel extends Model
 
     protected $table = 'phone_models';
 
-    protected $fillable = ['brand_id', 'name', 'name_fa', 'name_en', 'slug', 'release_year', 'is_active'];
+    protected $fillable = ['brand_id', 'phone_series_id', 'name', 'name_fa', 'name_en', 'slug', 'release_year', 'is_active'];
 
     protected function casts(): array
     {
@@ -24,6 +24,11 @@ class PhoneModel extends Model
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    public function series(): BelongsTo
+    {
+        return $this->belongsTo(PhoneSeries::class, 'phone_series_id');
     }
 
     public function modelAttributes(): HasMany

@@ -196,6 +196,7 @@ class ListingController extends Controller
                 $query->whereIn('id', $visibleListings->select('phone_model_id'));
             })
             ->when($request->integer('brand_id'), fn (Builder $query, int $brandId) => $query->where('brand_id', $brandId))
+            ->when($request->integer('series_id'), fn (Builder $query, int $seriesId) => $query->where('phone_series_id', $seriesId))
             ->when($likes !== [], function (Builder $query) use ($likes) {
                 $query->where(function (Builder $query) use ($likes) {
                     $query->where(fn (Builder $model) => $this->whereAnyLike($model, ['name', 'name_fa', 'name_en'], $likes))
@@ -208,10 +209,103 @@ class ListingController extends Controller
         return response()->json($models->map(fn (PhoneModel $model) => [
             'id' => $model->id,
             'brand_id' => $model->brand_id,
+            'series_id' => $model->phone_series_id,
             'label' => $model->name_fa ?: $model->name,
             'secondary' => $model->name_en ?: $model->name,
             'brand' => $model->brand?->name,
         ])->values());
+    }
+
+    public function wizardConfig(Brand $brand, Request $request): JsonResponse
+    {
+        abort_unless($brand->is_active, 404);
+
+        $series = $brand->phoneSeries()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+        $seriesId = $request->integer('series_id') ?: null;
+        $modelId = $request->integer('model_id') ?: null;
+        $model = $modelId
+            ? $brand->phoneModels()->whereKey($modelId)->where('is_active', true)->first()
+            : null;
+
+        $models = $brand->phoneModels()
+            ->where('is_active', true)
+            ->when($seriesId, fn (Builder $query) => $query->where('phone_series_id', $seriesId))
+            ->with('series')
+            ->orderBy('name_fa')
+            ->get();
+
+        $steps = $brand->wizardSteps()->with('attribute')->get();
+        if ($steps->isEmpty()) {
+            $steps = collect();
+            if ($series->isNotEmpty()) {
+                $steps->push((object) ['step_type' => 'series', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => 1, 'attribute' => null]);
+            }
+            $steps->push((object) ['step_type' => 'model', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => 2, 'attribute' => null]);
+            if ($model) {
+                $attributes = Attribute::query()
+                    ->where('is_active', true)
+                    ->visibleForModel($model->id)
+                    ->with('optionRestrictions')
+                    ->orderBy('sort_order')
+                    ->get();
+                foreach ($attributes as $index => $attribute) {
+                    $steps->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => (bool) $attribute->is_required, 'sort_order' => $index + 3, 'attribute' => $attribute]);
+                }
+            }
+        }
+
+        $attributes = $model
+            ? Attribute::query()->where('is_active', true)->visibleForModel($model->id)->with('optionRestrictions')->orderBy('sort_order')->get()->keyBy('id')
+            : collect();
+
+        // A custom stage builder must not be able to hide a required catalog
+        // attribute from the form. Append missing required model attributes
+        // after the admin-defined stages so the submitted listing remains valid.
+        if ($model && $steps->isNotEmpty()) {
+            $requiredIds = $model->attributes()
+                ->where('attributes.is_active', true)
+                ->get()
+                ->filter(fn (Attribute $attribute): bool => (bool) ($attribute->pivot->is_required ?? $attribute->is_required))
+                ->pluck('id')
+                ->map(fn ($id): int => (int) $id)
+                ->all();
+            $configuredIds = $steps
+                ->filter(fn ($step): bool => $step->step_type === 'attribute' && $step->attribute?->id)
+                ->map(fn ($step): int => (int) $step->attribute->id)
+                ->all();
+            $nextSort = (int) $steps->max('sort_order') + 1;
+            foreach (array_diff($requiredIds, $configuredIds) as $attributeId) {
+                if (! $attributes->has($attributeId)) continue;
+                $steps->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => $nextSort++, 'attribute' => $attributes->get($attributeId)]);
+            }
+        }
+
+        return response()->json([
+            'brand' => ['id' => $brand->id, 'label' => $brand->name, 'secondary' => $brand->name_en, 'image' => $brand->featuredImageUrl()],
+            'series' => $series->map(fn ($item) => ['id' => $item->id, 'label' => $item->name_fa ?: $item->name, 'secondary' => $item->name_en ?: $item->name])->values(),
+            'models' => $models->map(fn (PhoneModel $item) => ['id' => $item->id, 'series_id' => $item->phone_series_id, 'label' => $item->name_fa ?: $item->name, 'secondary' => $item->name_en ?: $item->name])->values(),
+            'steps' => $steps->sortBy('sort_order')->values()->map(function ($step) use ($attributes, $model): array {
+                $attribute = $step->attribute?->id ? ($attributes->get($step->attribute->id) ?: $step->attribute) : null;
+
+                return [
+                    'type' => $step->step_type,
+                    'display_type' => $step->display_type,
+                    'required' => (bool) $step->is_required,
+                    'attribute' => $attribute ? [
+                        'id' => $attribute->id,
+                        'name' => $attribute->name,
+                        'slug' => $attribute->slug,
+                        'type' => $attribute->type->value,
+                        'unit' => $attribute->unit,
+                        'options' => $attribute->optionsForModel($model?->id),
+                    ] : null,
+                ];
+            })->values(),
+        ]);
     }
 
     public function cities(Province $province)
@@ -448,7 +542,7 @@ class ListingController extends Controller
 
         return view('listings.index', [
             'listings' => $listings,
-            'brands' => Brand::query()->where('is_active', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
+            'brands' => Brand::query()->where('is_active', true)->where('can_post_listings', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
             'attributes' => Attribute::query()->where('is_active', true)->where('is_filterable', true)->orderBy('sort_order')->get(),
             'selectedModel' => $selectedModel,
             'filterAttributesPayload' => $filterAttributesPayload,
@@ -564,7 +658,7 @@ class ListingController extends Controller
             : collect();
 
         return view('listings.create', [
-            'brands' => Brand::query()->where('is_active', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
+            'brands' => Brand::query()->where('is_active', true)->where('can_post_listings', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
             'attributes' => Attribute::query()->where('is_active', true)->orderBy('sort_order')->get(),
             'provinces' => Province::query()->orderBy('name')->get(),
             'initialModelAttributes' => $this->attributePayload($initialAttributes, $selectedModel?->id),
@@ -591,7 +685,7 @@ class ListingController extends Controller
         return view('listings.edit', [
             'listing' => $listing,
             'store' => $listing->user?->storefront,
-            'brands' => Brand::query()->where('is_active', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
+            'brands' => Brand::query()->where('is_active', true)->where(fn ($query) => $query->where('can_post_listings', true)->orWhereKey($listing->brand_id))->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
             'attributes' => $attributes,
             'provinces' => Province::query()->orderBy('name')->get(),
             'initialValues' => $listing->attributeValues->mapWithKeys(fn ($value) => [$value->attribute_id => $value->value_json ?? $value->value_string ?? $value->value_integer ?? $value->value_decimal ?? $value->value_boolean])->all(),
@@ -605,7 +699,7 @@ class ListingController extends Controller
     public function store(StoreListingRequest $request, ListingRules $rules, ImageService $imageService, ListingMediaService $mediaService, SystemOptions $options)
     {
         $validated = $request->validated();
-        $brand = Brand::query()->whereKey($validated['brand_id'])->where('is_active', true)->firstOrFail();
+        $brand = Brand::query()->whereKey($validated['brand_id'])->where('is_active', true)->where('can_post_listings', true)->firstOrFail();
         $model = PhoneModel::query()->whereKey($validated['phone_model_id'])->where('brand_id', $brand->id)->where('is_active', true)->firstOrFail();
 
         if ($rules->hasRecentDuplicate($request->user(), $brand->id, $model->id)) {

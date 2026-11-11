@@ -18,12 +18,12 @@ const attributeValue = (definitions, values, slug) => {
 };
 
 window.listingTitleGenerator = {
-    generate({ root, models = [], modelId = '', definitions = [], rows = [], language = 'fa' }) {
+    generate({ root, models = [], modelId = '', definitions = [], rows = [], language = 'fa', brandName = '' }) {
         const english = language === 'en';
         const brandOption = root?.querySelector('[name="brand_id"] option:checked');
-        const brand = english
+        const brand = brandName || (english
             ? (brandOption?.dataset.nameEn || brandOption?.textContent?.match(/\(([^)]*)\)/)?.[1]?.trim() || '')
-            : (brandOption?.textContent?.split('(')[0]?.trim() || '');
+            : (brandOption?.textContent?.split('(')[0]?.trim() || ''));
         const model = models.find((item) => String(item.id) === String(modelId));
         const modelName = english
             ? (model?.secondary || model?.name_en || model?.name || '')

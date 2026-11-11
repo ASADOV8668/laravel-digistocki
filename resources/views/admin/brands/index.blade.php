@@ -43,6 +43,11 @@
                 <div><label class="mb-2 block text-xs font-bold text-slate-700">نام انگلیسی</label><input name="name_en"
                         placeholder="مثلاً Apple" dir="ltr"
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent"></div>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                    <input type="hidden" name="can_post_listings" value="0">
+                    <input type="checkbox" name="can_post_listings" value="1" checked class="rounded border-slate-300 text-accent focus:ring-accent">
+                    امکان انتخاب این برند در ثبت آگهی
+                </label>
                 <div><label class="mb-2 block text-xs font-bold text-slate-700">تصویر شاخص برند</label><input
                         name="featured_image" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
                         class="block w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-600 file:mr-0 file:border-0 file:bg-slate-900 file:px-3 file:py-2.5 file:font-bold file:text-white">
@@ -80,6 +85,10 @@
                                         @method('PATCH')<button
                                             class="rounded-full px-3 py-1.5 text-[11px] font-black transition {{ $brand->is_active ? 'bg-success/10 text-success hover:bg-success/20' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">{{ $brand->is_active ? 'فعال' : 'غیرفعال' }}</button>
                                     </form>
+                                    <form method="POST" action="{{ route('admin.brands.posting-toggle', $brand) }}">@csrf @method('PATCH')
+                                        <button class="rounded-full px-3 py-1.5 text-[11px] font-black transition {{ $brand->can_post_listings ? 'bg-info/10 text-info hover:bg-info/20' : 'bg-warning/10 text-warning hover:bg-warning/20' }}">{{ $brand->can_post_listings ? 'ثبت آگهی مجاز' : 'ثبت آگهی بسته' }}</button>
+                                    </form>
+                                    <a href="{{ route('admin.brands.wizard-steps.index', $brand) }}" class="rounded-lg bg-accent/10 px-3 py-2 text-[11px] font-bold text-accent hover:bg-accent/20">مرحله‌ساز</a>
                                     <details>
                                         <summary
                                             class="cursor-pointer list-none rounded-lg bg-slate-100 p-2 text-slate-500 hover:bg-slate-200"
@@ -94,6 +103,11 @@
                                                     required
                                                     class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">
                                             </div>
+                                            <label class="flex items-center gap-2 text-[11px] font-bold text-slate-600">
+                                                <input type="hidden" name="can_post_listings" value="0">
+                                                <input type="checkbox" name="can_post_listings" value="1" @checked($brand->can_post_listings) class="rounded border-slate-300 text-accent focus:ring-accent">
+                                                امکان انتخاب این برند در ثبت آگهی
+                                            </label>
                                             <div><label class="mb-1 block text-[11px] font-bold text-slate-600">نام
                                                     انگلیسی</label><input name="name_en" value="{{ $brand->name_en }}"
                                                     dir="ltr"

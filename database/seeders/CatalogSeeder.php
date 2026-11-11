@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Attribute;
 use App\Models\Brand;
+use App\Models\PhoneSeries;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -37,9 +38,10 @@ class CatalogSeeder extends Seeder
             );
 
             foreach ($models as $modelName) {
+                $series = $this->seriesForModel($brand, $nameEn, $modelName);
                 $model = $brand->phoneModels()->updateOrCreate(
                     ['slug' => Str::slug($modelName)],
-                    ['name' => $modelName, 'name_fa' => $this->persianModelName($modelName), 'name_en' => $modelName, 'is_active' => true],
+                    ['phone_series_id' => $series?->id, 'name' => $modelName, 'name_fa' => $this->persianModelName($modelName), 'name_en' => $modelName, 'is_active' => true],
                 );
 
                 foreach ($attributes as $attribute) {
@@ -50,6 +52,23 @@ class CatalogSeeder extends Seeder
                 }
             }
         }
+    }
+
+    private function seriesForModel(Brand $brand, string $brandName, string $modelName): ?PhoneSeries
+    {
+        $definition = match ($brandName) {
+            'Apple' => preg_match('/\biPhone\s+(SE|11|12|13|14|15|16)\b/i', $modelName, $match) ? ['name' => $match[1], 'sort' => (int) ($match[1] === 'SE' ? 0 : $match[1])] : null,
+            'Samsung' => preg_match('/\bGalaxy\s+(S|A|Z|Note)\b/i', $modelName, $match) ? ['name' => ucfirst(strtolower($match[1])), 'sort' => 1] : null,
+            'Xiaomi' => preg_match('/\b(Redmi\s+Note|Redmi|POCO|Mi)\b/i', $modelName, $match) ? ['name' => $match[1], 'sort' => 1] : null,
+            default => null,
+        };
+
+        if (! $definition) return null;
+
+        return PhoneSeries::firstOrCreate(
+            ['brand_id' => $brand->id, 'slug' => Str::slug($definition['name'])],
+            ['name' => $definition['name'], 'name_fa' => $definition['name'], 'name_en' => $definition['name'], 'is_active' => true, 'sort_order' => $definition['sort']],
+        );
     }
 
     /** @return array<int, Attribute> */

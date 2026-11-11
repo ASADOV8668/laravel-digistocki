@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Listing;
 use App\Models\PhoneModel;
+use App\Models\Brand;
 use App\Services\ListingAttributeValidator;
 use App\Services\SystemOptions;
 use App\Support\ListingTitle;
@@ -94,6 +95,13 @@ class StoreListingRequest extends FormRequest
     protected function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
+            if (! $this->user()?->isAdmin()) {
+                $brand = Brand::query()->find($this->integer('brand_id'));
+                if (! $brand?->is_active || ! $brand?->can_post_listings) {
+                    $validator->errors()->add('brand_id', 'ثبت آگهی برای این برند در حال حاضر فعال نیست.');
+                }
+            }
+
             $totalImages = count(array_filter((array) $this->file('images', [])))
                 + count(array_filter((array) $this->input('media_ids', []), static fn ($id) => filled($id)));
             if ($totalImages > app(SystemOptions::class)->maxImageUploadCount()) {
