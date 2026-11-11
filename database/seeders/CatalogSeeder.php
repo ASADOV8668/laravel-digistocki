@@ -34,7 +34,14 @@ class CatalogSeeder extends Seeder
         foreach ($brands as $nameEn => [$name, $models]) {
             $brand = Brand::updateOrCreate(
                 ['slug' => Str::slug($nameEn)],
-                ['name' => $name, 'name_en' => $nameEn, 'is_active' => true],
+                [
+                    'name' => $name,
+                    'name_en' => $nameEn,
+                    'is_active' => true,
+                    // Only the three currently supported brands are available
+                    // in the fast add/edit listing flow.
+                    'can_post_listings' => in_array($nameEn, ['Apple', 'Samsung', 'Xiaomi'], true),
+                ],
             );
 
             foreach ($models as $modelName) {

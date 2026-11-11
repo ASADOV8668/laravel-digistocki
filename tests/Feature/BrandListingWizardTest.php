@@ -19,6 +19,11 @@ class BrandListingWizardTest extends TestCase
         $this->seed(CatalogSeeder::class);
         $brand = Brand::query()->where('name_en', 'Apple')->firstOrFail();
 
+        $this->assertSame(
+            ['Apple', 'Samsung', 'Xiaomi'],
+            Brand::query()->where('can_post_listings', true)->orderBy('name_en')->pluck('name_en')->all(),
+        );
+
         $response = $this->getJson(route('listings.wizard.config', $brand));
 
         $response->assertOk()
