@@ -37,8 +37,8 @@
             <div x-init="stage.display_type === 'swiper' && $nextTick(() => centerFastSwiper($el, stage, fastStageValue(stage)))"
                 @scroll.passive="stage.display_type === 'swiper' && syncFastSwiper($el, stage)"
                 class="flex gap-2"
-                :class="stage.display_type === 'swiper' ? 'flex-nowrap snap-x snap-mandatory overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden' : 'flex-wrap'"
-                :style="stage.display_type === 'swiper' ? 'padding-inline: calc(50% - 2.5rem); scroll-padding-inline: 50%;' : ''">
+                :class="stage.display_type === 'swiper' ? 'min-h-16 flex-nowrap snap-x snap-mandatory items-center overflow-x-auto overscroll-x-contain pt-2 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden' : 'flex-wrap'"
+                :style="stage.display_type === 'swiper' ? 'padding-inline: calc(50% - 2.5rem); padding-block: .5rem .75rem; scroll-padding-inline: 50%;' : ''">
                 <template x-for="(option, optionIndex) in fastStageOptions(stage)" :key="option.id">
                     <button type="button" @click="selectFastStage(stage, option); stage.display_type === 'swiper' && centerFastSwiper($event.currentTarget.parentElement, stage, option.id)"
                         :data-fast-swiper-option="stage.display_type === 'swiper' ? 'true' : null"
@@ -46,7 +46,7 @@
                         :data-fast-swiper-value="String(option.id)"
                         class="shrink-0 snap-center rounded-xl border px-4 py-2.5 text-xs font-bold transition hover:border-primary/50 hover:bg-primary-50"
                         :class="stage.display_type === 'swiper'
-                            ? (fastSwiperIsFocused(stage, option) ? 'min-w-20 scale-105 border-primary bg-primary-50 text-primary opacity-100 ring-2 ring-primary/15' : 'min-w-20 border-slate-200 text-neutral opacity-50')
+                            ? (fastSwiperIsFocused(stage, option) ? 'min-w-20 border-primary bg-primary-50 text-primary opacity-100 shadow-sm ring-2 ring-primary/15' : 'min-w-20 border-slate-200 text-neutral opacity-50')
                             : (String(fastStageValue(stage)) === String(option.id) ? 'border-primary bg-primary-50 text-primary ring-2 ring-primary/15' : 'border-slate-200 text-neutral')">
                         <template x-if="stage.type === 'attribute' && stage.attribute?.slug === 'color'">
                             <span class="ml-1 inline-block h-3.5 w-3.5 rounded-full border border-slate-300 align-middle" :style="`background-color: ${fastColorHex(option.label)}`"></span>
