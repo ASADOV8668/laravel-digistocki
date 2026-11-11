@@ -113,6 +113,49 @@ class BrandListingWizardTest extends TestCase
             ->assertSee('پیش‌فرض');
     }
 
+    public function test_admin_can_materialize_reorder_and_delete_brand_wizard_stages(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $brand = Brand::query()->where('name_en', 'Apple')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->post(route('admin.brands.wizard-steps.materialize', $brand))
+            ->assertRedirect();
+
+        $steps = $brand->wizardSteps()->orderBy('sort_order')->get();
+        $this->assertGreaterThan(2, $steps->count());
+
+        $this->actingAs($admin)
+            ->get(route('admin.brands.wizard-steps.index', $brand))
+            ->assertOk()
+            ->assertSee('data-wizard-step-row', false)
+            ->assertSee('ذخیره ترتیب مراحل');
+
+        $reorderedIds = $steps->pluck('id')->reverse()->values();
+        $sortOrders = $reorderedIds->mapWithKeys(
+            fn (int $stepId, int $index): array => [$stepId => $index + 1],
+        )->all();
+
+        $this->actingAs($admin)
+            ->patch(route('admin.brands.wizard-steps.reorder', $brand), [
+                'sort_orders' => $sortOrders,
+            ])
+            ->assertRedirect();
+
+        $this->assertSame(
+            $reorderedIds->all(),
+            $brand->wizardSteps()->orderBy('sort_order')->pluck('id')->values()->all(),
+        );
+
+        $deletedStep = $brand->wizardSteps()->firstOrFail();
+        $this->actingAs($admin)
+            ->delete(route('admin.brands.wizard-steps.destroy', [$brand, $deletedStep]))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('brand_listing_wizard_steps', ['id' => $deletedStep->id]);
+    }
+
     public function test_edit_form_exposes_existing_brand_series_model_and_attribute_values(): void
     {
         $this->seed(CatalogSeeder::class);

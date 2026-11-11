@@ -12,6 +12,8 @@ use App\Services\SystemOptions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -119,44 +121,7 @@ class BrandController extends Controller
     public function wizardSteps(Brand $brand)
     {
         $brand->load(['wizardSteps.attribute']);
-        $defaultSteps = collect();
-
-        if ($brand->wizardSteps->isEmpty()) {
-            if ($brand->phoneSeries()->where('is_active', true)->exists()) {
-                $defaultSteps->push((object) [
-                    'step_type' => 'series',
-                    'display_type' => 'buttons',
-                    'is_required' => true,
-                    'sort_order' => 1,
-                    'attribute' => null,
-                ]);
-            }
-
-            $defaultSteps->push((object) [
-                'step_type' => 'model',
-                'display_type' => 'buttons',
-                'is_required' => true,
-                'sort_order' => 2,
-                'attribute' => null,
-            ]);
-
-            Attribute::query()
-                ->where('is_active', true)
-                ->whereHas('phoneModels', fn ($query) => $query->where('brand_id', $brand->id))
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get()
-                ->values()
-                ->each(function (Attribute $attribute, int $index) use ($defaultSteps): void {
-                    $defaultSteps->push((object) [
-                        'step_type' => 'attribute',
-                        'display_type' => in_array($attribute->slug, ['battery_health', 'ram'], true) ? 'swiper' : 'buttons',
-                        'is_required' => (bool) $attribute->is_required,
-                        'sort_order' => $index + 3,
-                        'attribute' => $attribute,
-                    ]);
-                });
-        }
+        $defaultSteps = $this->defaultWizardSteps($brand);
 
         return view('admin.brands.wizard-steps', [
             'brand' => $brand,
@@ -164,6 +129,89 @@ class BrandController extends Controller
             'attributes' => Attribute::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(),
             'models' => PhoneModel::query()->where('brand_id', $brand->id)->where('is_active', true)->orderBy('name')->get(['id', 'name', 'name_fa', 'name_en']),
         ]);
+    }
+
+    public function materializeWizardSteps(Brand $brand): RedirectResponse
+    {
+        if ($brand->wizardSteps()->exists()) {
+            return back()->with('status', 'مراحل اختصاصی این برند قبلاً ایجاد شده‌اند.');
+        }
+
+        foreach ($this->defaultWizardSteps($brand) as $step) {
+            $brand->wizardSteps()->create([
+                'step_type' => $step->step_type,
+                'attribute_id' => $step->attribute?->id,
+                'display_type' => $step->display_type,
+                'is_required' => $step->is_required,
+                'sort_order' => $step->sort_order,
+            ]);
+        }
+
+        return back()->with('status', 'مراحل پیش‌فرض به مراحل اختصاصی تبدیل شدند و اکنون قابل جابه‌جایی و حذف هستند.');
+    }
+
+    public function reorderWizardSteps(Request $request, Brand $brand): RedirectResponse
+    {
+        $validated = $request->validate([
+            'sort_orders' => ['required', 'array'],
+            'sort_orders.*' => ['required', 'integer', 'min:1', 'max:999'],
+        ]);
+
+        $steps = $brand->wizardSteps()->get();
+        $orderedSteps = $steps
+            ->sortBy(fn (BrandListingWizardStep $step): int => (int) ($validated['sort_orders'][$step->id] ?? PHP_INT_MAX))
+            ->values();
+
+        DB::transaction(function () use ($orderedSteps): void {
+            foreach ($orderedSteps as $index => $step) {
+                $step->update(['sort_order' => $index + 1]);
+            }
+        });
+
+        return back()->with('status', 'ترتیب مراحل با موفقیت ذخیره شد.');
+    }
+
+    /** @return Collection<int, object> */
+    private function defaultWizardSteps(Brand $brand): Collection
+    {
+        $steps = collect();
+
+        if ($brand->phoneSeries()->where('is_active', true)->exists()) {
+            $steps->push((object) [
+                'step_type' => 'series',
+                'display_type' => 'buttons',
+                'is_required' => true,
+                'sort_order' => 1,
+                'attribute' => null,
+            ]);
+        }
+
+        $steps->push((object) [
+            'step_type' => 'model',
+            'display_type' => 'buttons',
+            'is_required' => true,
+            'sort_order' => 2,
+            'attribute' => null,
+        ]);
+
+        Attribute::query()
+            ->where('is_active', true)
+            ->whereHas('phoneModels', fn ($query) => $query->where('brand_id', $brand->id))
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->values()
+            ->each(function (Attribute $attribute, int $index) use ($steps): void {
+                $steps->push((object) [
+                    'step_type' => 'attribute',
+                    'display_type' => in_array($attribute->slug, ['battery_health', 'ram'], true) ? 'swiper' : 'buttons',
+                    'is_required' => (bool) $attribute->is_required,
+                    'sort_order' => $index + 3,
+                    'attribute' => $attribute,
+                ]);
+            });
+
+        return $steps;
     }
 
     public function storeWizardStep(Request $request, Brand $brand): RedirectResponse

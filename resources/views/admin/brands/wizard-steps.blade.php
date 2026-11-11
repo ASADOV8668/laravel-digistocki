@@ -13,6 +13,10 @@
             مرحله‌ها بعد از انتخاب برند به‌صورت خودکار و با یک کلیک نمایش داده می‌شوند. برای گزینه‌های زیاد، حالت Swiper حرکت افقی فعال می‌شود.
             @if (!$hasCustomSteps)
                 <span class="font-black text-accent">این فهرست، مسیر پیش‌فرض فعال برای این برند است.</span>
+                <form method="POST" action="{{ route('admin.brands.wizard-steps.materialize', $brand) }}" class="mt-3" onsubmit="return confirm('مراحل پیش‌فرض به مراحل قابل ویرایش تبدیل شوند؟')">
+                    @csrf
+                    <button class="rounded-lg bg-accent px-3 py-2 text-xs font-bold text-white hover:bg-accent/90">فعال‌سازی ویرایش ترتیب و حذف مراحل</button>
+                </form>
             @endif
         </div>
         <div class="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
@@ -38,12 +42,26 @@
             </form>
             <div class="admin-card overflow-hidden">
                 <div class="border-b border-slate-100 p-5"><h3 class="text-sm font-black text-slate-900">{{ $hasCustomSteps ? 'مراحل اختصاصی فعلی' : 'مراحل پیش‌فرض فعال' }}</h3></div>
-                <div class="divide-y divide-slate-100">
+                @if ($hasCustomSteps)
+                    <form id="wizard-reorder-form" method="POST" action="{{ route('admin.brands.wizard-steps.reorder', $brand) }}" class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50 p-4">
+                        @csrf @method('PATCH')
+                        <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                            <x-heroicon-o-bars-3 class="h-4 w-4 text-accent" />
+                            <span>برای جابه‌جایی، هر مرحله را بکشید و در جای جدید رها کنید.</span>
+                        </div>
+                        @foreach ($steps as $step)
+                            <input type="hidden" name="sort_orders[{{ $step->id }}]" value="{{ $step->sort_order }}" data-step-order-input="{{ $step->id }}">
+                        @endforeach
+                        <button class="rounded-lg bg-accent px-3 py-2 text-xs font-bold text-white hover:bg-accent/90">ذخیره ترتیب مراحل</button>
+                    </form>
+                @endif
+                <div data-wizard-sortable-list class="divide-y divide-slate-100">
                     @forelse ($steps as $step)
-                        <div class="p-5">
+                        <div class="p-5 transition hover:bg-slate-50 {{ $hasCustomSteps ? 'cursor-grab active:cursor-grabbing' : '' }}"
+                            @if ($hasCustomSteps) draggable="true" data-wizard-step-row data-step-id="{{ $step->id }}" @endif>
                             <div class="flex items-start justify-between gap-3">
                                 <div>
-                                    <p class="font-black text-slate-800">مرحله {{ $step->sort_order }} ·
+                                    <p class="font-black text-slate-800"><span class="text-accent">مرحله <span data-step-number>{{ $step->sort_order }}</span> ·</span>
                                         {{ $step->step_type === 'attribute' ? ($step->attribute?->name ?: 'ویژگی حذف‌شده') : ($step->step_type === 'series' ? 'انتخاب سری' : 'انتخاب مدل') }}</p>
                                     <p class="mt-1 text-xs text-slate-400">{{ $step->display_type === 'swiper' ? 'Swiper افقی' : 'دکمه‌ای' }} · {{ $step->is_required ? 'الزامی' : 'اختیاری' }} @if (!$hasCustomSteps) · پیش‌فرض @endif</p>
                                 </div>
@@ -72,4 +90,43 @@
             </div>
         </div>
     </section>
+    @if ($hasCustomSteps)
+        <script>
+            (() => {
+                const list = document.querySelector('[data-wizard-sortable-list]');
+                const reorderForm = document.getElementById('wizard-reorder-form');
+                if (!list || !reorderForm) return;
+
+                let dragged = null;
+                const rows = () => [...list.querySelectorAll('[data-wizard-step-row]')];
+                const syncOrder = () => rows().forEach((row, index) => {
+                    const order = index + 1;
+                    row.querySelector('[data-step-number]').textContent = order;
+                    const input = reorderForm.querySelector('[data-step-order-input="' + row.dataset.stepId + '"]');
+                    if (input) input.value = order;
+                });
+
+                rows().forEach((row) => {
+                    row.addEventListener('dragstart', (event) => {
+                        dragged = row;
+                        row.classList.add('opacity-50');
+                        event.dataTransfer.effectAllowed = 'move';
+                    });
+                    row.addEventListener('dragend', () => {
+                        row.classList.remove('opacity-50');
+                        dragged = null;
+                    });
+                    row.addEventListener('dragover', (event) => event.preventDefault());
+                    row.addEventListener('drop', (event) => {
+                        event.preventDefault();
+                        if (!dragged || dragged === row) return;
+                        const rect = row.getBoundingClientRect();
+                        const after = event.clientY > rect.top + rect.height / 2;
+                        list.insertBefore(dragged, after ? row.nextSibling : row);
+                        syncOrder();
+                    });
+                });
+            })();
+        </script>
+    @endif
 </x-admin-layout>

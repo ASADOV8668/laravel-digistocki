@@ -125,7 +125,9 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::patch('/brands/{brand}/toggle', [AdminBrandController::class, 'toggle'])->name('admin.brands.toggle');
     Route::patch('/brands/{brand}/posting-toggle', [AdminBrandController::class, 'togglePosting'])->name('admin.brands.posting-toggle');
     Route::get('/brands/{brand}/wizard-steps', [AdminBrandController::class, 'wizardSteps'])->name('admin.brands.wizard-steps.index');
+    Route::post('/brands/{brand}/wizard-steps/materialize', [AdminBrandController::class, 'materializeWizardSteps'])->name('admin.brands.wizard-steps.materialize');
     Route::post('/brands/{brand}/wizard-steps', [AdminBrandController::class, 'storeWizardStep'])->name('admin.brands.wizard-steps.store');
+    Route::patch('/brands/{brand}/wizard-steps/reorder', [AdminBrandController::class, 'reorderWizardSteps'])->name('admin.brands.wizard-steps.reorder');
     Route::patch('/brands/{brand}/wizard-steps/{wizardStep}', [AdminBrandController::class, 'updateWizardStep'])->name('admin.brands.wizard-steps.update');
     Route::delete('/brands/{brand}/wizard-steps/{wizardStep}', [AdminBrandController::class, 'destroyWizardStep'])->name('admin.brands.wizard-steps.destroy');
     Route::get('/phone-series', [AdminPhoneSeriesController::class, 'index'])->name('admin.phone-series.index');
