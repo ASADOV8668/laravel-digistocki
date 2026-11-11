@@ -34,10 +34,10 @@
                 <p class="text-sm font-bold text-neutral" x-text="`${index + 2}. ${fastStageLabel(stage)}`"></p>
                 <span x-show="stage.required" class="text-[10px] font-bold text-primary">الزامی</span>
             </div>
-            <div class="flex gap-2" :class="stage.display_type === 'swiper' ? 'overflow-x-auto pb-1' : 'flex-wrap'">
+            <div class="flex gap-2" :class="stage.display_type === 'swiper' ? 'flex-nowrap snap-x snap-mandatory overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden' : 'flex-wrap'">
                 <template x-for="option in fastStageOptions(stage)" :key="option.id">
                     <button type="button" @click="selectFastStage(stage, option)"
-                        class="shrink-0 rounded-xl border px-4 py-2.5 text-xs font-bold transition hover:border-primary/50 hover:bg-primary-50"
+                        class="shrink-0 snap-start rounded-xl border px-4 py-2.5 text-xs font-bold transition hover:border-primary/50 hover:bg-primary-50"
                         :class="String(fastStageValue(stage)) === String(option.id) ? 'border-primary bg-primary-50 text-primary ring-2 ring-primary/15' : 'border-slate-200 text-neutral'">
                         <span x-show="stage.type === 'attribute' && stage.attribute?.slug === 'color'" class="ml-1 inline-block h-3.5 w-3.5 rounded-full border border-slate-300 align-middle" :style="`background-color: ${listingColorHex?.[option.label] || '#94a3b8'}`"></span>
                         <span x-text="option.label"></span>

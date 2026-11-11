@@ -293,7 +293,12 @@ class ListingController extends Controller
 
                 return [
                     'type' => $step->step_type,
-                    'display_type' => $step->display_type,
+                    // Battery health is intentionally a compact horizontal chooser
+                    // in the fast listing flow, regardless of the generic stage
+                    // display setting selected in the admin panel.
+                    'display_type' => $step->attribute?->slug === 'battery_health'
+                        ? 'swiper'
+                        : $step->display_type,
                     'required' => (bool) $step->is_required,
                     'attribute' => $attribute ? [
                         'id' => $attribute->id,

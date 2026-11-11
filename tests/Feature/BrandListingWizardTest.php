@@ -43,6 +43,12 @@ class BrandListingWizardTest extends TestCase
             ->assertJsonPath('models.0.series_id', $model->phone_series_id)
             ->assertJsonFragment(['type' => 'attribute'])
             ->assertJsonFragment(['slug' => 'color']);
+
+        $batteryStage = collect($response->json('steps'))
+            ->first(fn (array $step): bool => data_get($step, 'attribute.slug') === 'battery_health');
+
+        $this->assertNotNull($batteryStage);
+        $this->assertSame('swiper', $batteryStage['display_type']);
     }
 
     public function test_admin_can_configure_a_brand_stage_and_disable_brand_for_new_listings(): void
