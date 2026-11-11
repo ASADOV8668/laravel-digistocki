@@ -3,6 +3,11 @@ window.listingColorHex = {
     'آبی': '#2563eb', 'سبز': '#16a34a', 'بنفش': '#9333ea', 'خاکستری': '#6b7280',
     'قرمز': '#dc2626', 'صورتی': '#ec4899', 'نارنجی': '#ea580c', 'سرمه‌ای': '#172554',
     'مسی': '#b45309', 'تیفانی': '#14b8a6', 'کرم': '#f5e6c8', 'زرد': '#eab308',
+    'Black': '#111827', 'Black Titanium': '#111827', 'White': '#ffffff', 'White Titanium': '#ffffff',
+    'Gold': '#d4a72c', 'Silver': '#cbd5e1', 'Natural Titanium': '#94a3b8',
+    'Blue': '#2563eb', 'Green': '#16a34a', 'Purple': '#9333ea', 'Gray': '#6b7280', 'Grey': '#6b7280',
+    'Red': '#dc2626', 'Pink': '#ec4899', 'Orange': '#ea580c', 'Navy': '#172554',
+    'Copper': '#b45309', 'Cream': '#f5e6c8', 'Yellow': '#eab308', 'Desert Titanium': '#ea580c', 'Deser Titanium': '#ea580c',
 };
 
 window.listingColorHexValue = (value) => {
