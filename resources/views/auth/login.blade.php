@@ -25,10 +25,10 @@
     @elseif ($step === 'password')
         <form method="POST" action="{{ route('login') }}" class="space-y-5">@csrf
             <input type="hidden" name="mobile" value="{{ $mobile }}">
-            <div class="rounded-lg bg-slate-50 px-4 py-3 text-center text-sm font-bold text-slate-700" dir="ltr">
-                {{ $mobile }}
+            <div class="rounded-lg bg-slate-50 px-4 py-3 text-center text-sm font-bold text-slate-700">
+                <div dir="ltr">{{ $mobile }}</div>
                 <a href="{{ route('login', ['change' => 1]) }}"
-                    class="mr-2 inline-flex items-center gap-1 text-xs font-black text-primary transition hover:text-primary-600"
+                    class="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-primary transition hover:text-primary-600"
                     aria-label="تغییر شماره موبایل">
                     <x-heroicon-o-pencil-square class="h-4 w-4" />
                     تغییر شماره موبایل
