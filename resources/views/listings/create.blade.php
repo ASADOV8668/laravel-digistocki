@@ -156,7 +156,7 @@
                 </div>
             </div>
 
-            <div x-show="fastComplete()" x-cloak class="space-y-4">
+            <div x-show="fastComplete()" x-cloak class="mt-6 space-y-4">
                 <div>
                     <h2 class="text-lg font-black text-neutral">تصاویر و ارسال</h2>
                     <p class="mt-1 text-xs leading-6 text-slate-500">حداقل یک تصویر و حداکثر {{ \App\Support\PersianNumber::digits($maxImageUploadCount) }} تصویر، هر تصویر حداکثر {{ $maxImageUploadMb }} مگابایت. تصویر اول به‌عنوان تصویر اصلی نمایش داده می‌شود.</p>

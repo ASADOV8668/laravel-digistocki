@@ -39,12 +39,14 @@
                     <button type="button" @click="selectFastStage(stage, option)"
                         class="shrink-0 snap-start rounded-xl border px-4 py-2.5 text-xs font-bold transition hover:border-primary/50 hover:bg-primary-50"
                         :class="String(fastStageValue(stage)) === String(option.id) ? 'border-primary bg-primary-50 text-primary ring-2 ring-primary/15' : 'border-slate-200 text-neutral'">
-                        <span x-cloak x-show="stage.type === 'attribute' && stage.attribute?.slug === 'color'" class="ml-1 inline-block h-3.5 w-3.5 rounded-full border border-slate-300 align-middle" :style="`background-color: ${fastColorHex(option.label)}`"></span>
+                        <template x-if="stage.type === 'attribute' && stage.attribute?.slug === 'color'">
+                            <span class="ml-1 inline-block h-3.5 w-3.5 rounded-full border border-slate-300 align-middle" :style="`background-color: ${fastColorHex(option.label)}`"></span>
+                        </template>
                         <span x-text="option.label"></span>
                         <span x-show="option.secondary && stage.type !== 'attribute'" class="mr-1 text-[10px] text-slate-400" dir="ltr" x-text="`(${option.secondary})`"></span>
                     </button>
                 </template>
-                <button type="button" x-show="!stage.required && stage.type === 'attribute'" @click="selectFastStage(stage, {id: '', label: ''})"
+                <button type="button" x-show="!stage.required && stage.type === 'attribute' && stage.attribute?.slug !== 'ram'" @click="selectFastStage(stage, {id: '', label: ''})"
                     class="shrink-0 rounded-xl border border-dashed border-slate-300 px-4 py-2.5 text-xs font-bold text-slate-500">همه موارد</button>
             </div>
             <p x-show="!fastStageOptions(stage).length" class="text-xs text-slate-400">برای این مرحله گزینه‌ای ثبت نشده است.</p>

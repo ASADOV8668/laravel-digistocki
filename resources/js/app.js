@@ -1072,7 +1072,7 @@ window.listingSearch = (suggestionsEndpoint, modelsEndpoint, attributesEndpoint,
     },
 
     colorHex(value) {
-        return window.listingColorHex?.[value] || '#94a3b8';
+        return window.listingColorHexValue?.(value) || '#94a3b8';
     },
 
     attributeOptions(attribute) {
@@ -1525,7 +1525,7 @@ window.listingWizard = () => ({
     },
 
     fastColorHex(value) {
-        return window.listingColorHex?.[String(value ?? '').trim()] || '#94a3b8';
+        return window.listingColorHexValue?.(value) || '#94a3b8';
     },
 
     fastStageOptions(stage) {

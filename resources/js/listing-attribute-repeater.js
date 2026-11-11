@@ -5,6 +5,20 @@ window.listingColorHex = {
     'مسی': '#b45309', 'تیفانی': '#14b8a6', 'کرم': '#f5e6c8', 'زرد': '#eab308',
 };
 
+window.listingColorHexValue = (value) => {
+    const normalize = (input) => String(input ?? '')
+        .trim()
+        .replace(/\u200c/g, '')
+        .replace(/ي/g, 'ی')
+        .replace(/ك/g, 'ک')
+        .replace(/\s+/g, ' ');
+    const colors = window.listingColorHex || {};
+    const direct = colors[String(value ?? '').trim()];
+    if (direct) return direct;
+    const normalized = normalize(value);
+    return Object.entries(colors).find(([label]) => normalize(label) === normalized)?.[1] || '#94a3b8';
+};
+
 window.listingAttributeRepeater = () => ({
     definitions: [],
     rows: [],
@@ -66,7 +80,7 @@ window.listingAttributeRepeater = () => ({
     },
 
     colorHex(value) {
-        return window.listingColorHex?.[value] || '#94a3b8';
+        return window.listingColorHexValue?.(value) || '#94a3b8';
     },
 
     addRow() {
