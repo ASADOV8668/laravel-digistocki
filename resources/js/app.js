@@ -1448,6 +1448,9 @@ window.listingWizard = () => ({
     fastLoading: false,
     wizardConfig: null,
     fastController: null,
+    fastSwiperFocus: {},
+    fastSwiperTimers: {},
+    fastSwiperSuppressed: {},
 
     init() {
         const root = this.$root;
@@ -1538,6 +1541,67 @@ window.listingWizard = () => ({
         if (stage.type === 'series') return this.seriesId;
         if (stage.type === 'model') return this.modelId;
         return this.values?.[String(stage.attribute?.id)] ?? '';
+    },
+
+    fastSwiperKey(stage) {
+        return `${stage.type}-${stage.attribute?.id || ''}`;
+    },
+
+    fastSwiperIsFocused(stage, option) {
+        const key = this.fastSwiperKey(stage);
+        const focused = this.fastSwiperFocus[key];
+        if (focused !== undefined && focused !== '') return String(focused) === String(option.id);
+
+        const current = this.fastStageValue(stage);
+        if (current !== '' && current !== null && current !== undefined) return String(current) === String(option.id);
+
+        return String(this.fastStageOptions(stage)[0]?.id ?? '') === String(option.id);
+    },
+
+    centerFastSwiper(container, stage, value = '') {
+        if (stage.display_type !== 'swiper' || !container) return;
+
+        const options = this.fastStageOptions(stage);
+        const requestedValue = value !== '' && value !== null && value !== undefined
+            ? String(value)
+            : String(this.fastStageValue(stage) || options[0]?.id || '');
+        const target = [...container.querySelectorAll('[data-fast-swiper-option="true"]')]
+            .find((button) => String(button.dataset.fastSwiperValue) === requestedValue)
+            || container.querySelector('[data-fast-swiper-option="true"]');
+        if (!target) return;
+
+        const key = this.fastSwiperKey(stage);
+        this.fastSwiperFocus[key] = target.dataset.fastSwiperValue;
+        this.fastSwiperSuppressed[key] = true;
+        target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        window.setTimeout(() => { delete this.fastSwiperSuppressed[key]; }, 350);
+    },
+
+    syncFastSwiper(container, stage) {
+        if (stage.display_type !== 'swiper' || !container) return;
+
+        const key = this.fastSwiperKey(stage);
+        window.clearTimeout(this.fastSwiperTimers[key]);
+        this.fastSwiperTimers[key] = window.setTimeout(() => {
+            if (this.fastSwiperSuppressed[key]) return;
+
+            const buttons = [...container.querySelectorAll('[data-fast-swiper-option="true"]')];
+            if (!buttons.length) return;
+            const containerRect = container.getBoundingClientRect();
+            const center = containerRect.left + containerRect.width / 2;
+            const target = buttons.reduce((closest, button) => {
+                const rect = button.getBoundingClientRect();
+                const distance = Math.abs((rect.left + rect.width / 2) - center);
+                return !closest || distance < closest.distance ? { button, distance } : closest;
+            }, null)?.button;
+            const option = this.fastStageOptions(stage)[Number(target?.dataset.fastSwiperIndex)];
+            if (!option) return;
+
+            this.fastSwiperFocus[key] = String(option.id);
+            if (String(this.fastStageValue(stage)) !== String(option.id)) {
+                this.selectFastStage(stage, option);
+            }
+        }, 100);
     },
 
     fastStageIndex() {

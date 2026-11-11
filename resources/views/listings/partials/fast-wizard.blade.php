@@ -34,11 +34,20 @@
                 <p class="text-sm font-bold text-neutral" x-text="`${index + 2}. ${fastStageLabel(stage)}`"></p>
                 <span x-show="stage.required" class="text-[10px] font-bold text-primary">الزامی</span>
             </div>
-            <div class="flex gap-2" :class="stage.display_type === 'swiper' ? 'flex-nowrap snap-x snap-mandatory overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden' : 'flex-wrap'">
-                <template x-for="option in fastStageOptions(stage)" :key="option.id">
-                    <button type="button" @click="selectFastStage(stage, option)"
-                        class="shrink-0 snap-start rounded-xl border px-4 py-2.5 text-xs font-bold transition hover:border-primary/50 hover:bg-primary-50"
-                        :class="String(fastStageValue(stage)) === String(option.id) ? 'border-primary bg-primary-50 text-primary ring-2 ring-primary/15' : 'border-slate-200 text-neutral'">
+            <div x-init="stage.display_type === 'swiper' && $nextTick(() => centerFastSwiper($el, stage, fastStageValue(stage)))"
+                @scroll.passive="stage.display_type === 'swiper' && syncFastSwiper($el, stage)"
+                class="flex gap-2"
+                :class="stage.display_type === 'swiper' ? 'flex-nowrap snap-x snap-mandatory overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden' : 'flex-wrap'"
+                :style="stage.display_type === 'swiper' ? 'padding-inline: calc(50% - 2.5rem); scroll-padding-inline: 50%;' : ''">
+                <template x-for="(option, optionIndex) in fastStageOptions(stage)" :key="option.id">
+                    <button type="button" @click="selectFastStage(stage, option); stage.display_type === 'swiper' && centerFastSwiper($event.currentTarget.parentElement, stage, option.id)"
+                        :data-fast-swiper-option="stage.display_type === 'swiper' ? 'true' : null"
+                        :data-fast-swiper-index="optionIndex"
+                        :data-fast-swiper-value="String(option.id)"
+                        class="shrink-0 snap-center rounded-xl border px-4 py-2.5 text-xs font-bold transition hover:border-primary/50 hover:bg-primary-50"
+                        :class="stage.display_type === 'swiper'
+                            ? (fastSwiperIsFocused(stage, option) ? 'min-w-20 scale-105 border-primary bg-primary-50 text-primary opacity-100 ring-2 ring-primary/15' : 'min-w-20 border-slate-200 text-neutral opacity-50')
+                            : (String(fastStageValue(stage)) === String(option.id) ? 'border-primary bg-primary-50 text-primary ring-2 ring-primary/15' : 'border-slate-200 text-neutral')">
                         <template x-if="stage.type === 'attribute' && stage.attribute?.slug === 'color'">
                             <span class="ml-1 inline-block h-3.5 w-3.5 rounded-full border border-slate-300 align-middle" :style="`background-color: ${fastColorHex(option.label)}`"></span>
                         </template>
@@ -46,7 +55,7 @@
                         <span x-show="option.secondary && stage.type !== 'attribute'" class="mr-1 text-[10px] text-slate-400" dir="ltr" x-text="`(${option.secondary})`"></span>
                     </button>
                 </template>
-                <button type="button" x-show="!stage.required && stage.type === 'attribute' && stage.attribute?.slug !== 'ram'" @click="selectFastStage(stage, {id: '', label: ''})"
+                <button type="button" x-show="stage.display_type !== 'swiper' && !stage.required && stage.type === 'attribute' && stage.attribute?.slug !== 'ram'" @click="selectFastStage(stage, {id: '', label: ''})"
                     class="shrink-0 rounded-xl border border-dashed border-slate-300 px-4 py-2.5 text-xs font-bold text-slate-500">همه موارد</button>
             </div>
             <p x-show="!fastStageOptions(stage).length" class="text-xs text-slate-400">برای این مرحله گزینه‌ای ثبت نشده است.</p>
