@@ -19,14 +19,14 @@
                     x-model="cityId"><input type="hidden" name="q" x-model="searchQuery">
                 <template x-for="cityIdValue in cityIds" :key="'home-hidden-city-' + cityIdValue"><input type="hidden"
                         name="city_ids[]" :value="cityIdValue"></template>
-                <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center overflow-hidden rounded-2xl border border-slate-200 bg-white p-1 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800">
                     <div class="relative" @click.outside="open = false"><label for="home-search"
                             class="sr-only">جستجو</label><x-heroicon-o-magnifying-glass
                             class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" /><input
                             id="home-search" x-model="query" @input="search"
                             @focus="query.length >= 2 && (open = true)" @keydown.escape="open = false" type="search"
                             autocomplete="off" placeholder="جستجو" :readonly="Boolean(selectedModelId)"
-                            class="public-input rounded-xl border-0 bg-white pr-10 pl-10 shadow-none dark:bg-slate-900"><button x-show="selectedModelId" x-cloak
+                            class="public-input rounded-xl border-0 bg-transparent pr-10 pl-10 shadow-none dark:bg-transparent"><button x-show="selectedModelId" x-cloak
                             type="button" @click="resetModelSelection" aria-label="پاک کردن انتخاب مدل"
                             class="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-primary"><x-heroicon-o-x-mark
                                 class="h-4 w-4" /></button><input
@@ -104,8 +104,8 @@
                         </div>
                     </div>
                     <button type="button" @click="openLocationPicker" :disabled="locationLoading"
-                        class="flex min-w-28 items-center justify-center gap-1.5 rounded-xl border-r border-slate-200 bg-white px-3 py-3 text-xs font-black text-neutral transition hover:bg-primary-50 hover:text-primary disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900"><x-heroicon-o-map-pin
-                            class="h-5 w-5 text-primary" /><span class="max-w-28 truncate"
+                        class="flex min-w-28 flex-row-reverse items-center justify-center gap-1.5 rounded-xl bg-transparent px-3 py-3 text-xs font-black text-slate-500 transition hover:bg-white/60 hover:text-primary disabled:opacity-60 dark:hover:bg-slate-700"><x-heroicon-o-map-pin
+                            class="h-5 w-5 text-slate-400" /><span class="max-w-28 truncate"
                             x-text="locationLoading ? 'در حال یافتن...' : locationLabel">همه ایران</span></button>
                 </div>
                 <template x-for="attribute in quickAttributes()" :key="`home-hidden-attribute-${attribute.id}`">
