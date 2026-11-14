@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\ListingStatus;
 use App\Models\Listing;
+use App\Models\SellerStore;
 use App\Models\User;
 use Carbon\CarbonInterface;
 
@@ -20,27 +21,35 @@ class ListingRules
 
     public function canCreate(User $user): bool
     {
+        $store = $this->storeForListing($user);
+
         return $user->is_active
             && $user->can_post_listings
-            && $this->hasStoreApplication($user)
+            && $store instanceof SellerStore
+            && ! $store->is_admin_disabled
+            && (! $store->business_license_expires_at || ! $store->business_license_expires_at->isBefore(today()))
             && app(SystemOptions::class)->listingsEnabled()
             && $this->activeCount($user) < self::MAX_ACTIVE_LISTINGS;
     }
 
     public function canRenew(User $user): bool
     {
+        $store = $this->storeForListing($user);
+
         return $user->is_active
             && $user->can_post_listings
-            && $this->hasStoreApplication($user)
+            && $store instanceof SellerStore
+            && ! $store->is_admin_disabled
+            && (! $store->business_license_expires_at || ! $store->business_license_expires_at->isBefore(today()))
             && app(SystemOptions::class)->listingsEnabled()
             && $this->activeCount($user) < self::MAX_ACTIVE_LISTINGS;
     }
 
-    private function hasStoreApplication(User $user): bool
+    private function storeForListing(User $user): ?SellerStore
     {
         return $user->relationLoaded('storefront')
-            ? $user->storefront !== null
-            : $user->storefront()->exists();
+            ? $user->storefront
+            : $user->storefront()->first();
     }
 
     public function hasRecentDuplicate(User $user, int $brandId, int $phoneModelId, ?CarbonInterface $since = null, ?int $exceptListingId = null): bool

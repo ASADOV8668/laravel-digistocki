@@ -29,7 +29,9 @@ class Attribute extends Model
 
     public function scopeVisibleForModel(Builder $query, int $phoneModelId): Builder
     {
-        return $query->where(function (Builder $query) use ($phoneModelId): void {
+        return $query
+            ->whereHas('phoneModels', fn (Builder $modelQuery) => $modelQuery->whereKey($phoneModelId))
+            ->where(function (Builder $query) use ($phoneModelId): void {
             $query->where('visibility_rule', 'all')
                 ->orWhere(function (Builder $query) use ($phoneModelId): void {
                     $query->where('visibility_rule', 'include')
@@ -42,7 +44,7 @@ class Attribute extends Model
                                 ->orWhereJsonDoesntContain('visibility_model_ids', $phoneModelId);
                         });
                 });
-        });
+            });
     }
 
     public function isVisibleForModel(int $phoneModelId): bool

@@ -262,6 +262,16 @@ class ListingController extends Controller
             ? Attribute::query()->where('is_active', true)->visibleForModel($model->id)->with('optionRestrictions')->orderBy('sort_order')->get()->keyBy('id')
             : collect();
 
+        // A brand-level stage may exist for another model of the same brand.
+        // Once the model is known, only attributes selected for that model
+        // are allowed into the fast wizard.
+        if ($model && $steps->isNotEmpty()) {
+            $steps = $steps
+                ->filter(fn ($step): bool => $step->step_type !== 'attribute'
+                    || $attributes->has((int) ($step->attribute_id ?? $step->attribute?->id)))
+                ->values();
+        }
+
         // A custom stage builder must not be able to hide a required catalog
         // attribute from the form. Append missing required model attributes
         // after the admin-defined stages so the submitted listing remains valid.
@@ -702,6 +712,10 @@ class ListingController extends Controller
 
     public function store(StoreListingRequest $request, ListingRules $rules, ImageService $imageService, ListingMediaService $mediaService, SystemOptions $options)
     {
+        if (! $rules->canCreate($request->user())) {
+            return redirect()->route('home')->with('status', 'ثبت آگهی برای این حساب در حال حاضر فعال نیست. اعتبار فروشگاه، وضعیت دسترسی کاربر و محدودیت ثبت آگهی را بررسی کنید.');
+        }
+
         $validated = $request->validated();
         $brand = Brand::query()->whereKey($validated['brand_id'])->where('is_active', true)->where('can_post_listings', true)->firstOrFail();
         $model = PhoneModel::query()->whereKey($validated['phone_model_id'])->where('brand_id', $brand->id)->where('is_active', true)->firstOrFail();

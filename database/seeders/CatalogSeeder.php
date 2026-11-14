@@ -13,7 +13,7 @@ class CatalogSeeder extends Seeder
     public function run(): void
     {
         $brands = [
-            'Apple' => ['اپل', ['iPhone 11', 'iPhone 11 Pro', 'iPhone 11 Pro Max', 'iPhone SE 2', 'iPhone 12', 'iPhone 12 mini', 'iPhone 12 Pro', 'iPhone 12 Pro Max', 'iPhone 13', 'iPhone 13 mini', 'iPhone 13 Pro', 'iPhone 13 Pro Max', 'iPhone SE 3', 'iPhone 14', 'iPhone 14 Plus', 'iPhone 14 Pro', 'iPhone 14 Pro Max', 'iPhone 15', 'iPhone 15 Plus', 'iPhone 15 Pro', 'iPhone 15 Pro Max', 'iPhone 16', 'iPhone 16 Plus', 'iPhone 16 Pro', 'iPhone 16 Pro Max']],
+            'Apple' => ['اپل', ['iPhone X', 'iPhone XR', 'iPhone XS', 'iPhone XS Max', 'iPhone 11', 'iPhone 11 Pro', 'iPhone 11 Pro Max', 'iPhone SE 2', 'iPhone 12', 'iPhone 12 mini', 'iPhone 12 Pro', 'iPhone 12 Pro Max', 'iPhone 13', 'iPhone 13 mini', 'iPhone 13 Pro', 'iPhone 13 Pro Max', 'iPhone SE 3', 'iPhone 14', 'iPhone 14 Plus', 'iPhone 14 Pro', 'iPhone 14 Pro Max', 'iPhone 15', 'iPhone 15 Plus', 'iPhone 15 Pro', 'iPhone 15 Pro Max', 'iPhone 16', 'iPhone 16 Plus', 'iPhone 16 Pro', 'iPhone 16 Pro Max', 'iPhone 17', 'iPhone 17 Air', 'iPhone 17 Pro', 'iPhone 17 Pro Max', 'iPhone 18', 'iPhone 18 Pro', 'iPhone 18 Pro Max', 'iPhone Duo']],
             'Samsung' => ['سامسونگ', ['Galaxy S20', 'Galaxy S20 Plus', 'Galaxy S20 Ultra', 'Galaxy S21', 'Galaxy S21 Plus', 'Galaxy S21 Ultra', 'Galaxy S22', 'Galaxy S22 Plus', 'Galaxy S22 Ultra', 'Galaxy S23', 'Galaxy S23 Plus', 'Galaxy S23 Ultra', 'Galaxy S24', 'Galaxy S24 Plus', 'Galaxy S24 Ultra', 'Galaxy A12', 'Galaxy A13', 'Galaxy A14', 'Galaxy A15', 'Galaxy A24', 'Galaxy A34', 'Galaxy A54', 'Galaxy Z Flip 4', 'Galaxy Z Flip 5', 'Galaxy Z Fold 4', 'Galaxy Z Fold 5', 'Galaxy Note 20 Ultra']],
             'Xiaomi' => ['شیائومی', ['Redmi Note 10', 'Redmi Note 10 Pro', 'Redmi Note 11', 'Redmi Note 11 Pro', 'Redmi Note 11 Pro+', 'Redmi Note 12', 'Redmi Note 12 Pro', 'Redmi Note 12 Pro+', 'Redmi Note 13', 'Redmi Note 13 Pro', 'Redmi Note 13 Pro+', 'Redmi 10', 'Redmi 12', 'Redmi 13', 'POCO X3', 'POCO X4', 'POCO X5', 'POCO X6', 'POCO F3', 'POCO F4', 'POCO F5', 'Mi 11', 'Mi 12', 'Mi 13']],
             'Huawei' => ['هواوی', ['P30', 'P40', 'P50', 'Mate 30', 'Mate 40', 'Mate 50', 'Nova 9', 'Nova 10', 'Nova 11']],
@@ -51,7 +51,11 @@ class CatalogSeeder extends Seeder
                     ['phone_series_id' => $series?->id, 'name' => $modelName, 'name_fa' => $this->persianModelName($modelName), 'name_en' => $modelName, 'is_active' => true],
                 );
 
-                foreach ($attributes as $attribute) {
+                $modelAttributes = $nameEn === 'Apple'
+                    ? collect($attributes)->reject(fn (Attribute $attribute): bool => in_array($attribute->slug, ['ram', 'infrared'], true))
+                    : collect($attributes);
+
+                foreach ($modelAttributes as $attribute) {
                     $model->modelAttributes()->updateOrCreate(
                         ['attribute_id' => $attribute->id],
                         ['is_required' => $attribute->is_required, 'sort_order' => $attribute->sort_order],
@@ -63,12 +67,16 @@ class CatalogSeeder extends Seeder
 
     private function seriesForModel(Brand $brand, string $brandName, string $modelName): ?PhoneSeries
     {
-        $definition = match ($brandName) {
-            'Apple' => preg_match('/\biPhone\s+(SE|11|12|13|14|15|16)\b/i', $modelName, $match) ? ['name' => $match[1], 'sort' => (int) ($match[1] === 'SE' ? 0 : $match[1])] : null,
-            'Samsung' => preg_match('/\bGalaxy\s+(S|A|Z|Note)\b/i', $modelName, $match) ? ['name' => ucfirst(strtolower($match[1])), 'sort' => 1] : null,
-            'Xiaomi' => preg_match('/\b(Redmi\s+Note|Redmi|POCO|Mi)\b/i', $modelName, $match) ? ['name' => $match[1], 'sort' => 1] : null,
-            default => null,
-        };
+        if ($brandName === 'Apple' && preg_match('/\biPhone\s+(?:X|XR|XS(?:\s+Max)?)\b/i', $modelName)) {
+            $definition = ['name' => 'X', 'sort' => 2];
+        } else {
+            $definition = match ($brandName) {
+                'Apple' => preg_match('/\biPhone\s+(SE|11|12|13|14|15|16|17|18|Duo)\b/i', $modelName, $match) ? ['name' => $match[1], 'sort' => (int) ($match[1] === 'SE' ? 0 : (is_numeric($match[1]) ? (int) $match[1] : 1))] : null,
+                'Samsung' => preg_match('/\bGalaxy\s+(S|A|Z|Note)\b/i', $modelName, $match) ? ['name' => ucfirst(strtolower($match[1])), 'sort' => 1] : null,
+                'Xiaomi' => preg_match('/\b(Redmi\s+Note|Redmi|POCO|Mi)\b/i', $modelName, $match) ? ['name' => $match[1], 'sort' => 1] : null,
+                default => null,
+            };
+        }
 
         if (! $definition) return null;
 
@@ -170,6 +178,7 @@ class CatalogSeeder extends Seeder
             'mini' => 'مینی',
             'Flip' => 'فلیپ',
             'Fold' => 'فولد',
+            'Duo' => 'دوو',
         ];
 
         uksort($map, fn (string $left, string $right): int => strlen($right) <=> strlen($left));

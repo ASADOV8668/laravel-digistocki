@@ -6,10 +6,12 @@ use App\Models\Listing;
 use App\Models\PhoneModel;
 use App\Models\Brand;
 use App\Services\ListingAttributeValidator;
+use App\Services\ListingRules;
 use App\Services\SystemOptions;
 use App\Support\ListingTitle;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
 class StoreListingRequest extends FormRequest
@@ -43,7 +45,18 @@ class StoreListingRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->can('create', Listing::class) ?? false;
+        return $this->user()?->is_active ?? false;
+    }
+
+    protected function failedValidation(Validator $validator): void
+    {
+        if ($this->user() && ! app(ListingRules::class)->canCreate($this->user())) {
+            throw new HttpResponseException(
+                redirect()->route('home')->with('status', 'ثبت آگهی برای این حساب در حال حاضر فعال نیست. اعتبار فروشگاه، وضعیت دسترسی کاربر و محدودیت ثبت آگهی را بررسی کنید.')
+            );
+        }
+
+        parent::failedValidation($validator);
     }
 
     public function rules(): array

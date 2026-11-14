@@ -28,6 +28,12 @@ class BrandListingWizardTest extends TestCase
             Brand::query()->where('can_post_listings', true)->orderBy('name_en')->pluck('name_en')->all(),
         );
 
+        $this->assertEqualsCanonicalizing(
+            ['X', '17', '18', 'Duo'],
+            $brand->phoneSeries()->whereIn('name_en', ['X', '17', '18', 'Duo'])->pluck('name_en')->all(),
+        );
+        $this->assertDatabaseHas('phone_models', ['brand_id' => $brand->id, 'name_en' => 'iPhone Duo']);
+
         $response = $this->getJson(route('listings.wizard.config', $brand));
 
         $response->assertOk()
@@ -59,11 +65,10 @@ class BrandListingWizardTest extends TestCase
         $this->assertNotNull($batteryStage);
         $this->assertSame('swiper', $batteryStage['display_type']);
 
-        $ramStage = collect($response->json('steps'))
-            ->first(fn (array $step): bool => data_get($step, 'attribute.slug') === 'ram');
-
-        $this->assertNotNull($ramStage);
-        $this->assertSame('swiper', $ramStage['display_type']);
+        $this->assertNull(collect($response->json('steps'))
+            ->first(fn (array $step): bool => data_get($step, 'attribute.slug') === 'ram'));
+        $this->assertNull(collect($response->json('steps'))
+            ->first(fn (array $step): bool => data_get($step, 'attribute.slug') === 'infrared'));
     }
 
     public function test_admin_can_configure_a_brand_stage_and_disable_brand_for_new_listings(): void
@@ -154,6 +159,41 @@ class BrandListingWizardTest extends TestCase
             ->assertRedirect();
 
         $this->assertDatabaseMissing('brand_listing_wizard_steps', ['id' => $deletedStep->id]);
+    }
+
+    public function test_brand_stage_attributes_are_limited_to_attributes_selected_for_the_model(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $brand = Brand::query()->where('name_en', 'Apple')->firstOrFail();
+        $model = PhoneModel::query()->where('brand_id', $brand->id)->where('name_en', 'iPhone 13 Pro Max')->firstOrFail();
+        $ram = Attribute::query()->where('slug', 'ram')->firstOrFail();
+        $color = Attribute::query()->where('slug', 'color')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->post(route('admin.brands.wizard-steps.store', $brand), [
+                'step_type' => 'attribute',
+                'attribute_id' => $ram->id,
+                'display_type' => 'buttons',
+                'is_required' => 0,
+                'sort_order' => 3,
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($admin)
+            ->post(route('admin.brands.wizard-steps.store', $brand), [
+                'step_type' => 'attribute',
+                'attribute_id' => $color->id,
+                'display_type' => 'buttons',
+                'is_required' => 1,
+                'sort_order' => 4,
+            ])
+            ->assertRedirect();
+
+        $this->getJson(route('listings.wizard.config', [$brand, 'model_id' => $model->id]))
+            ->assertOk()
+            ->assertJsonMissing(['slug' => 'ram'])
+            ->assertJsonFragment(['slug' => 'color']);
     }
 
     public function test_edit_form_exposes_existing_brand_series_model_and_attribute_values(): void
