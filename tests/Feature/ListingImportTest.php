@@ -92,7 +92,10 @@ class ListingImportTest extends TestCase
         $this->actingAs($user)->post(route('listings.import.preview'), [
             'text' => $text,
             'listing_date' => '2026-11-17',
-        ])->assertOk();
+        ])->assertOk()
+            ->assertSee('attribute_definitions')
+            ->assertSee('toggleAttribute')
+            ->assertSee('dir="ltr"', false);
 
         $parserRows = app(ListingImportParserRegistry::class)->make($parser)->parse($text, '2026-11-17');
         $token = 'test-import-token';

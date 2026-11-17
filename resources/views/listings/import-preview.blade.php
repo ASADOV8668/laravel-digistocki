@@ -40,7 +40,7 @@
                                 <div class="flex flex-wrap items-start justify-between gap-3">
                                     <div>
                                         <span class="mb-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-black {{ $row['supported'] ? 'bg-success/10 text-success' : 'bg-slate-200 text-slate-500 dark:bg-slate-800' }}">{{ $row['supported'] ? 'قابل ثبت' : 'ثبت نمی‌شود' }}</span>
-                                        <h2 class="text-lg font-black text-neutral dark:text-slate-100" dir="ltr">{{ $row['brand_name'] }} {{ $row['model_name'] }}</h2>
+                                        <h2 class="text-left text-lg font-black text-neutral dark:text-slate-100" dir="ltr">{{ $row['brand_name'] }} {{ $row['model_name'] }}</h2>
                                     </div>
                                     @if (!empty($row['issues']))
                                         <div class="max-w-md text-xs leading-6 text-warning">{{ implode(' ', $row['issues']) }}</div>
@@ -48,8 +48,42 @@
                                 </div>
                                 <div class="mt-4 grid gap-3 sm:grid-cols-3">
                                     <label class="block"><span class="mb-1 block text-xs font-bold text-slate-500">قیمت (تومان)</span><input type="text" inputmode="numeric" dir="ltr" x-model="rows[{{ $index }}].price" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"></label>
-                                    <label class="block"><span class="mb-1 block text-xs font-bold text-slate-500">رنگ</span><select x-model="rows[{{ $index }}].color" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"><option value="">انتخاب رنگ</option>@foreach ($colorOptions as $color)<option value="{{ $color }}">{{ $color }}</option>@endforeach</select></label>
                                     <label class="block"><span class="mb-1 block text-xs font-bold text-slate-500">توضیحات</span><input type="text" name="rows[{{ $index }}][description]" value="{{ $row['description'] }}" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"></label>
+                                </div>
+                                <div x-show="rows[{{ $index }}].attribute_definitions.length" class="mt-4 grid gap-3 sm:grid-cols-2">
+                                    <template x-for="attribute in rows[{{ $index }}].attribute_definitions" :key="`import-attribute-${attribute.id}`">
+                                        <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-800/70">
+                                            <div class="mb-2 flex items-center justify-between gap-2">
+                                                <span class="text-xs font-black text-neutral dark:text-slate-100" x-text="attribute.name"></span>
+                                                <span x-show="attribute.unit" class="text-[10px] font-bold text-slate-400" x-text="attribute.unit"></span>
+                                            </div>
+                                            <template x-if="attribute.options.length">
+                                                <div class="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">
+                                                    <template x-for="option in attribute.options" :key="`${attribute.id}-${option}`">
+                                                        <button type="button"
+                                                            @click="toggleAttribute({{ $index }}, attribute, option)"
+                                                            :aria-pressed="isAttributeSelected(rows[{{ $index }}], attribute, option).toString()"
+                                                            :class="isAttributeSelected(rows[{{ $index }}], attribute, option) ? 'border-primary bg-primary text-white shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-primary/50 hover:bg-primary-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200'"
+                                                            class="rounded-lg border px-2.5 py-1.5 text-xs font-bold transition">
+                                                            <span x-text="option"></span>
+                                                            <span x-show="attribute.unit && attribute.slug !== 'color'" x-text="attribute.unit"></span>
+                                                        </button>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                            <template x-if="!attribute.options.length">
+                                                <input type="text" :value="attributeValue(rows[{{ $index }}], attribute)" @input="setAttributeValue({{ $index }}, attribute, $event.target.value)" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-900">
+                                            </template>
+                                            <template x-if="attribute.type === 'multi_select'">
+                                                <template x-for="value in attributeValues(rows[{{ $index }}], attribute)" :key="`${attribute.id}-hidden-${value}`">
+                                                    <input type="hidden" :name="`rows[{{ $index }}][attributes][${attribute.id}][]`" :value="value">
+                                                </template>
+                                            </template>
+                                            <template x-if="attribute.type !== 'multi_select'">
+                                                <input type="hidden" :name="`rows[{{ $index }}][attributes][${attribute.id}]`" :value="attributeValue(rows[{{ $index }}], attribute)">
+                                            </template>
+                                        </div>
+                                    </template>
                                 </div>
                                 <p class="mt-3 rounded-lg bg-slate-50 p-3 text-xs leading-6 text-slate-500 dark:bg-slate-800 dark:text-slate-300" dir="ltr">{{ $row['raw'] }}</p>
                             </div>
@@ -78,8 +112,30 @@
         <script>
             function listingImportPreview(initialRows, colorOptions, mediaEndpoint) {
                 return {
-                    rows: initialRows.map(row => ({...row, color: row.color || '', media_id: null, media_url: '', upload_name: ''})),
+                    rows: initialRows.map(row => ({...row, attributes: row.attributes || {}, attribute_definitions: row.attribute_definitions || [], media_id: null, media_url: '', upload_name: ''})),
                     colorOptions, mediaEndpoint, mediaItems: [], mediaOpen: false, activeRow: null,
+                    attributeValues(row, attribute) {
+                        const value = row.attributes?.[attribute.id] ?? '';
+                        return Array.isArray(value) ? value.map(String) : (value === '' || value === null ? [] : [String(value)]);
+                    },
+                    attributeValue(row, attribute) {
+                        return this.attributeValues(row, attribute)[0] || '';
+                    },
+                    isAttributeSelected(row, attribute, option) {
+                        return this.attributeValues(row, attribute).includes(String(option));
+                    },
+                    setAttributeValue(index, attribute, value) {
+                        this.rows[index].attributes = {...this.rows[index].attributes, [attribute.id]: value};
+                    },
+                    toggleAttribute(index, attribute, option) {
+                        const row = this.rows[index];
+                        const current = this.attributeValues(row, attribute);
+                        const normalized = String(option);
+                        const values = attribute.type === 'multi_select'
+                            ? (current.includes(normalized) ? current.filter(value => value !== normalized) : [...current, normalized])
+                            : [normalized];
+                        this.setAttributeValue(index, attribute, attribute.type === 'multi_select' ? values : values[0]);
+                    },
                     async openMedia(index) {
                         this.activeRow = index; this.mediaOpen = true;
                         if (this.mediaItems.length) return;

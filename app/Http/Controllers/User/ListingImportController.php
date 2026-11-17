@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Attribute;
 use App\Models\ListingImportParser;
+use App\Models\PhoneModel;
 use App\Models\User;
 use App\Notifications\PendingListingNotification;
 use App\Services\ImageService;
@@ -41,6 +42,8 @@ class ListingImportController extends Controller
         $token = bin2hex(random_bytes(16));
         $request->session()->put('listing_import.preview.'.$token, ['parser_id' => $parser->id, 'rows' => $rows, 'text' => $validated['text'], 'date' => $result['detected_date'] ?? $validated['listing_date'] ?? null]);
         $colorOptions = Attribute::query()->where('slug', 'color')->value('options') ?? [];
+        $rows = $this->withAttributeDefinitions($rows);
+        $request->session()->put('listing_import.preview.'.$token.'.rows', $rows);
 
         return view('listings.import-preview', [
             'parser' => $parser,
@@ -88,8 +91,11 @@ class ListingImportController extends Controller
                 $row['price'] = $this->normalizePrice($submitted['price'] ?? $source['price'] ?? null, (int) ($source['price'] ?? 0));
                 $row['description'] = trim((string) ($submitted['description'] ?? $source['description'] ?? ''));
                 $row['attributes'] = (array) ($source['attributes'] ?? []);
-                if (filled($submitted['color'] ?? null) && ($colorId = Attribute::query()->where('slug', 'color')->value('id'))) {
-                    $row['attributes'][$colorId] = (string) $submitted['color'];
+                foreach ((array) ($submitted['attributes'] ?? []) as $attributeId => $attributeValue) {
+                    if ($attributeValue === '' || $attributeValue === [] || $attributeValue === null) {
+                        continue;
+                    }
+                    $row['attributes'][(int) $attributeId] = $attributeValue;
                 }
                 if ($row['price'] === null) {
                     throw ValidationException::withMessages(['rows.'.$index.'.price' => 'قیمت این ردیف نامعتبر است.']);
@@ -121,6 +127,44 @@ class ListingImportController extends Controller
         abort_unless($parser?->is_active === true, 403);
 
         return $parser;
+    }
+
+    /** @param array<int, array<string, mixed>> $rows */
+    private function withAttributeDefinitions(array $rows): array
+    {
+        $modelIds = collect($rows)->pluck('phone_model_id')->filter()->map(fn ($id): int => (int) $id)->unique()->values();
+        if ($modelIds->isEmpty()) {
+            return $rows;
+        }
+
+        $models = PhoneModel::query()
+            ->whereIn('id', $modelIds)
+            ->with(['attributes' => fn ($query) => $query
+                ->where('attributes.is_active', true)
+                ->with('optionRestrictions')
+                ->orderBy('model_attributes.sort_order')])
+            ->get()
+            ->keyBy('id');
+
+        return array_map(function (array $row) use ($models): array {
+            $modelId = (int) ($row['phone_model_id'] ?? 0);
+            $model = $models->get($modelId);
+
+            $row['attribute_definitions'] = $model?->attributes
+                ->filter(fn (Attribute $attribute): bool => $attribute->isVisibleForModel($modelId))
+                ->map(fn (Attribute $attribute): array => [
+                    'id' => $attribute->id,
+                    'name' => $attribute->name,
+                    'slug' => $attribute->slug,
+                    'type' => $attribute->type->value,
+                    'unit' => $attribute->unit,
+                    'options' => $attribute->optionsForModel($modelId),
+                ])
+                ->values()
+                ->all() ?? [];
+
+            return $row;
+        }, $rows);
     }
 
     private function normalizePrice(mixed $value, ?int $sourcePrice = null): ?int
