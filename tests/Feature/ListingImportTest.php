@@ -95,6 +95,7 @@ class ListingImportTest extends TestCase
         ])->assertOk()
             ->assertSee('attribute_definitions')
             ->assertSee('toggleAttribute')
+            ->assertDontSee('<select', false)
             ->assertSee('dir="ltr"', false);
 
         $parserRows = app(ListingImportParserRegistry::class)->make($parser)->parse($text, '2026-11-17');

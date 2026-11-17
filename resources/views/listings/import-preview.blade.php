@@ -57,7 +57,16 @@
                                                 <span class="text-xs font-black text-neutral dark:text-slate-100" x-text="attribute.name"></span>
                                                 <span x-show="attribute.unit" class="text-[10px] font-bold text-slate-400" x-text="attribute.unit"></span>
                                             </div>
-                                            <template x-if="attribute.options.length">
+                                            <template x-if="attribute.type === 'boolean'">
+                                                <button type="button"
+                                                    @click="setAttributeValue({{ $index }}, attribute, attributeValue(rows[{{ $index }}], attribute) === '1' ? '' : '1')"
+                                                    :aria-pressed="(attributeValue(rows[{{ $index }}], attribute) === '1').toString()"
+                                                    :class="attributeValue(rows[{{ $index }}], attribute) === '1' ? 'border-primary bg-primary text-white shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-primary/50 hover:bg-primary-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200'"
+                                                    class="rounded-lg border px-3 py-1.5 text-xs font-bold transition">
+                                                    دارد
+                                                </button>
+                                            </template>
+                                            <template x-if="attribute.type !== 'boolean' && attribute.options.length">
                                                 <div class="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">
                                                     <template x-for="option in attribute.options" :key="`${attribute.id}-${option}`">
                                                         <button type="button"
@@ -71,7 +80,7 @@
                                                     </template>
                                                 </div>
                                             </template>
-                                            <template x-if="!attribute.options.length">
+                                            <template x-if="attribute.type !== 'boolean' && !attribute.options.length">
                                                 <input type="text" :value="attributeValue(rows[{{ $index }}], attribute)" @input="setAttributeValue({{ $index }}, attribute, $event.target.value)" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-900">
                                             </template>
                                             <template x-if="attribute.type === 'multi_select'">
