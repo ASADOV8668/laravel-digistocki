@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Models\ListingImportParser;
 use App\Models\User;
 use App\Services\ImageService;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,7 +20,9 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        return view('admin.users.edit', compact('user'));
+        $importParsers = ListingImportParser::query()->where('is_active', true)->orderBy('title')->get();
+
+        return view('admin.users.edit', compact('user', 'importParsers'));
     }
 
     public function update(UpdateUserRequest $request, User $user)
@@ -35,7 +38,12 @@ class UserController extends Controller
             $data['password_set_at'] = now();
         }
         $user->update($data);
-        $user->forceFill(['role' => $validated['role'], 'is_active' => (bool) ($validated['is_active'] ?? false), 'can_post_listings' => (bool) ($validated['can_post_listings'] ?? false)])->save();
+        $user->forceFill([
+            'role' => $validated['role'],
+            'is_active' => (bool) ($validated['is_active'] ?? false),
+            'can_post_listings' => (bool) ($validated['can_post_listings'] ?? false),
+            'listing_import_parser_id' => $validated['listing_import_parser_id'] ?? null,
+        ])->save();
 
         return redirect()->route('admin.users.index')->with('status', 'اطلاعات کاربر به‌روزرسانی شد.');
     }
@@ -64,7 +72,9 @@ class UserController extends Controller
 
     public function create()
     {
-        return view('admin.users.create');
+        $importParsers = ListingImportParser::query()->where('is_active', true)->orderBy('title')->get();
+
+        return view('admin.users.create', compact('importParsers'));
     }
 
     public function store(StoreUserRequest $request)
@@ -82,6 +92,7 @@ class UserController extends Controller
             'role' => $validated['role'],
             'is_active' => (bool) ($validated['is_active'] ?? false),
             'can_post_listings' => (bool) ($validated['can_post_listings'] ?? false),
+            'listing_import_parser_id' => $validated['listing_import_parser_id'] ?? null,
             'mobile_verified_at' => now(),
         ])->save();
 

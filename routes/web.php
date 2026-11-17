@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\StorefrontController as AdminStorefrontController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\ListingImportParserController as AdminListingImportParserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\User\ReportController as UserReportController;
 use App\Http\Controllers\User\StorefrontController;
 use App\Http\Controllers\User\SupportController;
+use App\Http\Controllers\User\ListingImportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
@@ -50,6 +52,9 @@ Route::get('/listings/{listing}', [ListingController::class, 'show'])->name('lis
 Route::get('/dashboard', [UserDashboardController::class, 'index'])->middleware(['auth', 'active', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'active'])->group(function () {
+    Route::get('/dashboard/listings/import', [ListingImportController::class, 'create'])->name('listings.import.create');
+    Route::post('/dashboard/listings/import/preview', [ListingImportController::class, 'preview'])->name('listings.import.preview');
+    Route::post('/dashboard/listings/import/store', [ListingImportController::class, 'store'])->name('listings.import.store');
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::delete('/favorites', [FavoriteController::class, 'destroyAll'])->name('favorites.destroy-all');
     Route::post('/listings/{listing}/favorite', [FavoriteController::class, 'toggle'])->middleware('throttle:30,1')->name('listings.favorite.toggle');
@@ -91,6 +96,7 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::post('/listings', [AdminListingController::class, 'store'])->name('admin.listings.store');
     Route::get('/listings/media', [AdminListingController::class, 'media'])->name('admin.listings.media.index');
     Route::get('/media', [\App\Http\Controllers\Admin\MediaController::class, 'index'])->name('admin.media.index');
+    Route::get('/listing-imports', [AdminListingImportParserController::class, 'index'])->name('admin.listing-imports.index');
     Route::post('/media', [\App\Http\Controllers\Admin\MediaController::class, 'store'])->name('admin.media.store');
     Route::delete('/media/{media}', [\App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('admin.media.destroy');
     Route::get('/listings/{listing}/edit', [AdminListingController::class, 'edit'])->name('admin.listings.edit');

@@ -37,6 +37,7 @@ class UpdateUserRequest extends FormRequest
             'role' => ['required', Rule::in(['user', 'admin'])],
             'is_active' => ['boolean'],
             'can_post_listings' => ['boolean'],
+            'listing_import_parser_id' => ['nullable', 'integer', Rule::exists('listing_import_parsers', 'id')->where('is_active', true)],
         ];
     }
 }

@@ -88,6 +88,13 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                             class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.media.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
                         <span x-show="!sidebarCollapsed">رسانه‌ها</span>
                     </a>
+                    <a href="{{ route('admin.listing-imports.index') }}" title="ایمپورت آگهی"
+                        class="menu-item group {{ request()->routeIs('admin.listing-imports.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
+                        :class="sidebarCollapsed ? 'justify-center' : ''">
+                        <x-heroicon-o-arrow-down-tray
+                            class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.listing-imports.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
+                        <span x-show="!sidebarCollapsed">ایمپورت آگهی</span>
+                    </a>
                     <a href="{{ route('admin.users.index') }}" title="کاربران"
                         class="menu-item group {{ request()->routeIs('admin.users.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         :class="sidebarCollapsed ? 'justify-center' : ''">

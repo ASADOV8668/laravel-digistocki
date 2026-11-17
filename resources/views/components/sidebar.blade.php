@@ -45,6 +45,11 @@
                     class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10"><x-heroicon-o-rectangle-stack
                         class="h-5 w-5" /> آگهی‌های من</a>
             @endif
+            @if (auth()->user()->canImportListings())
+                <a href="{{ route('listings.import.create') }}"
+                    class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10"><x-heroicon-o-arrow-down-tray
+                        class="h-5 w-5" /> ایمپورت آگهی</a>
+            @endif
             <a href="{{ route('notifications.index') }}"
                 class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-neutral hover:bg-primary-50 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 dark:text-slate-100 dark:hover:bg-primary/10"><x-heroicon-o-bell
                     class="h-5 w-5" /> اعلان‌ها @if ($unreadNotifications)

@@ -1,0 +1,34 @@
+<x-app-layout title="ایمپورت آگهی">
+    <x-slot name="header">
+        <div class="flex items-center gap-3">
+            <span class="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-50 text-primary"><x-heroicon-o-arrow-down-tray class="h-6 w-6" /></span>
+            <div>
+                <p class="text-xs font-bold text-primary">قالب {{ $parser->title }}</p>
+                <h1 class="mt-1 text-xl font-black text-neutral">ایمپورت آگهی</h1>
+            </div>
+        </div>
+    </x-slot>
+
+    <section class="space-y-6 px-4 py-6">
+        @if ($errors->any())
+            <x-flowbite-alert type="danger">{{ $errors->first() }}</x-flowbite-alert>
+        @endif
+        <div class="rounded-lg border border-primary/15 bg-primary/5 p-4 text-sm leading-7 text-neutral dark:border-primary/30 dark:bg-primary/10 dark:text-slate-100">
+            متن موجودی را از تلگرام یا واتساپ کپی و اینجا وارد کنید. قبل از ثبت نهایی، همهٔ ردیف‌ها و تصویر هر آگهی را بررسی خواهید کرد.
+        </div>
+        <form method="POST" action="{{ route('listings.import.preview') }}" class="space-y-5 rounded-lg bg-white p-5 shadow-sm dark:bg-slate-900">
+            @csrf
+            <div>
+                <label for="import-text" class="mb-2 block text-sm font-bold text-neutral dark:text-slate-100">متن موجودی</label>
+                <textarea id="import-text" name="text" rows="16" dir="auto" required class="w-full rounded-lg border-slate-200 text-sm leading-7 focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800" placeholder="متن آگهی را اینجا Paste کنید...">{{ old('text') }}</textarea>
+            </div>
+            <div class="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+                <div>
+                    <label for="listing-date" class="mb-2 block text-sm font-bold text-neutral dark:text-slate-100">تاریخ آگهی <span class="text-xs font-normal text-slate-400">اگر در متن نبود</span></label>
+                    <input id="listing-date" type="date" name="listing_date" value="{{ old('listing_date') }}" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800">
+                </div>
+                <button class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-magnifying-glass class="h-5 w-5" />ساخت پیش‌نمایش</button>
+            </div>
+        </form>
+    </section>
+</x-app-layout>

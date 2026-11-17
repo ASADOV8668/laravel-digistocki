@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -15,7 +16,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class User extends Authenticatable implements HasMedia
 {
-    use HasFactory, Notifiable, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, Notifiable;
 
     protected $attributes = [
         'role' => 'user',
@@ -36,6 +37,7 @@ class User extends Authenticatable implements HasMedia
         'password',
         'password_set_at',
         'can_post_listings',
+        'listing_import_parser_id',
     ];
 
     public function isAdmin(): bool
@@ -71,6 +73,16 @@ class User extends Authenticatable implements HasMedia
     public function storefront(): HasOne
     {
         return $this->hasOne(SellerStore::class);
+    }
+
+    public function listingImportParser(): BelongsTo
+    {
+        return $this->belongsTo(ListingImportParser::class);
+    }
+
+    public function canImportListings(): bool
+    {
+        return $this->listingImportParser?->is_active === true;
     }
 
     /**
