@@ -30,26 +30,35 @@
 
             <div class="space-y-4">
                 @foreach ($rows as $index => $row)
-                    <article class="rounded-lg border {{ $row['supported'] ? 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900' : 'border-slate-200 bg-slate-50 opacity-75 dark:border-slate-800 dark:bg-slate-900/60' }} p-4 shadow-sm">
+                    <article class="rounded-lg border {{ $row['supported'] ? 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900' : 'border-slate-200 bg-slate-50 opacity-75 dark:border-slate-800 dark:bg-slate-900/60' }} p-3 shadow-sm">
                         <input type="hidden" name="rows[{{ $index }}][enabled]" value="{{ $row['supported'] ? 1 : 0 }}">
                         <input type="hidden" name="rows[{{ $index }}][price]" :value="rows[{{ $index }}].price">
                         <input type="hidden" name="rows[{{ $index }}][color]" :value="rows[{{ $index }}].color || ''">
                         <input type="hidden" name="media_ids[{{ $index }}]" :value="rows[{{ $index }}].media_id || ''">
-                        <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_180px]">
-                            <div class="min-w-0">
-                                <div class="flex flex-wrap items-start justify-between gap-3">
-                                    <div>
-                                        <span class="mb-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-black {{ $row['supported'] ? 'bg-success/10 text-success' : 'bg-slate-200 text-slate-500 dark:bg-slate-800' }}">{{ $row['supported'] ? 'قابل ثبت' : 'ثبت نمی‌شود' }}</span>
-                                        <h2 class="text-left text-lg font-black text-neutral dark:text-slate-100" dir="ltr">{{ $row['brand_name'] }} {{ $row['model_name'] }}</h2>
-                                    </div>
-                                    @if (!empty($row['issues']))
-                                        <div class="max-w-md text-xs leading-6 text-warning">{{ implode(' ', $row['issues']) }}</div>
-                                    @endif
+                        <div class="min-w-0">
+                            <div class="flex items-start gap-3">
+                                <div class="flex w-20 shrink-0 flex-col items-center gap-1.5">
+                                    <template x-if="rows[{{ $index }}].media_url"><img :src="rows[{{ $index }}].media_url" alt="" class="h-16 w-16 rounded-lg object-cover"></template>
+                                    <template x-if="!rows[{{ $index }}].media_url"><div class="flex h-16 w-16 items-center justify-center rounded-lg bg-slate-200 text-slate-400 dark:bg-slate-700"><x-heroicon-o-photo class="h-6 w-6" /></div></template>
+                                    <button type="button" @click="openMedia({{ $index }})" class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold text-primary dark:bg-slate-800"><x-heroicon-o-photo class="h-3.5 w-3.5" />انتخاب</button>
+                                    <label class="cursor-pointer text-center text-[10px] font-bold text-slate-500"><input type="file" name="uploads[{{ $index }}]" accept="image/*" capture="environment" class="sr-only" @change="uploadName({{ $index }}, $event)">تصویر جدید<span x-show="rows[{{ $index }}].upload_name" x-text="rows[{{ $index }}].upload_name" class="mt-0.5 block max-w-[78px] truncate text-primary"></span></label>
                                 </div>
-                                <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                        <span class="mb-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-black {{ $row['supported'] ? 'bg-success/10 text-success' : 'bg-slate-200 text-slate-500 dark:bg-slate-800' }}">{{ $row['supported'] ? 'قابل ثبت' : 'ثبت نمی‌شود' }}</span>
+                                            <h2 class="truncate text-left text-base font-black text-neutral dark:text-slate-100" dir="ltr">{{ $row['brand_name'] }} {{ $row['model_name'] }}</h2>
+                                        </div>
+                                    @if (!empty($row['issues']))
+                                            <div class="max-w-md text-[11px] leading-5 text-warning">{{ implode(' ', $row['issues']) }}</div>
+                                    @endif
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3 grid gap-3 sm:grid-cols-2">
                                     <label class="block"><span class="mb-1 block text-xs font-bold text-slate-500">قیمت (تومان)</span><input type="text" inputmode="numeric" dir="ltr" x-model="rows[{{ $index }}].price" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"></label>
                                     <label class="block"><span class="mb-1 block text-xs font-bold text-slate-500">توضیحات</span><input type="text" name="rows[{{ $index }}][description]" value="{{ $row['description'] }}" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"></label>
-                                </div>
+                            </div>
                                 <div x-show="rows[{{ $index }}].attribute_definitions.length" class="mt-4 grid gap-3 sm:grid-cols-2">
                                     <template x-for="attribute in rows[{{ $index }}].attribute_definitions" :key="`import-attribute-${attribute.id}`">
                                         <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-800/70">
@@ -96,13 +105,6 @@
                                 </div>
                                 <p class="mt-3 rounded-lg bg-slate-50 p-3 text-xs leading-6 text-slate-500 dark:bg-slate-800 dark:text-slate-300" dir="ltr">{{ $row['raw'] }}</p>
                             </div>
-                            <div class="flex flex-col items-center justify-center rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-                                <template x-if="rows[{{ $index }}].media_url"><img :src="rows[{{ $index }}].media_url" alt="" class="h-28 w-28 rounded-lg object-cover"></template>
-                                <template x-if="!rows[{{ $index }}].media_url"><div class="flex h-28 w-28 items-center justify-center rounded-lg bg-slate-200 text-slate-400 dark:bg-slate-700"><x-heroicon-o-photo class="h-8 w-8" /></div></template>
-                                <button type="button" @click="openMedia({{ $index }})" class="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold text-primary shadow-sm dark:bg-slate-900"><x-heroicon-o-photo class="h-4 w-4" />انتخاب تصویر</button>
-                                <label class="mt-2 cursor-pointer text-center text-[11px] font-bold text-slate-500"><input type="file" name="uploads[{{ $index }}]" accept="image/*" capture="environment" class="sr-only" @change="uploadName({{ $index }}, $event)">تصویر جدید / دوربین<span x-show="rows[{{ $index }}].upload_name" x-text="rows[{{ $index }}].upload_name" class="mt-1 block max-w-[150px] truncate text-primary"></span></label>
-                            </div>
-                        </div>
                     </article>
                 @endforeach
             </div>
