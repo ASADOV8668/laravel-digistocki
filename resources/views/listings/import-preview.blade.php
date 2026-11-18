@@ -123,7 +123,7 @@
         <script>
             function listingImportPreview(initialRows, colorOptions, mediaEndpoint) {
                 return {
-                    rows: initialRows.map(row => ({...row, attributes: row.attributes || {}, attribute_definitions: row.attribute_definitions || [], media_id: null, media_url: '', upload_name: ''})),
+                    rows: initialRows.map(row => ({...row, attributes: row.attributes || {}, attribute_definitions: row.attribute_definitions || [], media_id: row.media_id || null, media_url: row.media_url || '', upload_name: ''})),
                     colorOptions, mediaEndpoint, mediaItems: [], mediaOpen: false, activeRow: null,
                     attributeValues(row, attribute) {
                         const value = row.attributes?.[attribute.id] ?? '';

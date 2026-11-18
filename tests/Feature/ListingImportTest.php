@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Attribute;
+use App\Models\Listing;
+use App\Models\ListingImage;
 use App\Models\ListingImportParser;
 use App\Models\SellerStore;
 use App\Models\User;
@@ -116,5 +118,35 @@ class ListingImportTest extends TestCase
 
         $this->assertDatabaseHas('listings', ['user_id' => $user->id, 'price' => 165000000]);
         $this->assertDatabaseCount('listing_images', 1);
+    }
+
+    public function test_preview_prefills_latest_primary_media_for_the_same_user_and_model(): void
+    {
+        Storage::fake('public');
+        $this->seed(CatalogSeeder::class);
+        $user = User::factory()->create(['can_post_listings' => true]);
+        SellerStore::create(['user_id' => $user->id, 'slug' => 'import-store-media-'.$user->id, 'name' => 'فروشگاه رسانه', 'is_active' => true]);
+        $parser = ListingImportParser::query()->where('key', 'at_kala')->firstOrFail();
+        $user->forceFill(['listing_import_parser_id' => $parser->id])->save();
+        $parsed = app(ListingImportParserRegistry::class)->make($parser)->parse("💙13Pro 256g CH 92Bt\n💰165/000m");
+        $source = $parsed['items'][0];
+        $media = $user->addMedia(UploadedFile::fake()->image('previous-primary.jpg'))->toMediaCollection('listing-images', 'public');
+        $listing = Listing::create([
+            'user_id' => $user->id,
+            'brand_id' => $source['brand_id'],
+            'phone_model_id' => $source['phone_model_id'],
+            'title' => 'آگهی قبلی',
+            'slug' => 'previous-primary-'.$user->id,
+            'price' => 165000000,
+            'status' => 'approved',
+        ]);
+        ListingImage::create(['listing_id' => $listing->id, 'media_id' => $media->id, 'is_primary' => true, 'sort_order' => 0]);
+
+        $this->actingAs($user)->post(route('listings.import.preview'), [
+            'text' => "💙13Pro 256g CH 92Bt\n💰165/000m",
+            'listing_date' => '2026-11-18',
+        ])->assertOk()
+            ->assertSee('"media_id":'.$media->id, false)
+            ->assertSee('"media_url":', false);
     }
 }

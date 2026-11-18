@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attribute;
+use App\Models\Listing;
 use App\Models\ListingImportParser;
 use App\Models\PhoneModel;
 use App\Models\User;
@@ -42,7 +43,7 @@ class ListingImportController extends Controller
         $token = bin2hex(random_bytes(16));
         $request->session()->put('listing_import.preview.'.$token, ['parser_id' => $parser->id, 'rows' => $rows, 'text' => $validated['text'], 'date' => $result['detected_date'] ?? $validated['listing_date'] ?? null]);
         $colorOptions = Attribute::query()->where('slug', 'color')->value('options') ?? [];
-        $rows = $this->withAttributeDefinitions($rows);
+        $rows = $this->withAttributeDefinitions($rows, $request->user());
         $request->session()->put('listing_import.preview.'.$token.'.rows', $rows);
 
         return view('listings.import-preview', [
@@ -130,7 +131,7 @@ class ListingImportController extends Controller
     }
 
     /** @param array<int, array<string, mixed>> $rows */
-    private function withAttributeDefinitions(array $rows): array
+    private function withAttributeDefinitions(array $rows, User $user): array
     {
         $modelIds = collect($rows)->pluck('phone_model_id')->filter()->map(fn ($id): int => (int) $id)->unique()->values();
         if ($modelIds->isEmpty()) {
@@ -146,7 +147,18 @@ class ListingImportController extends Controller
             ->get()
             ->keyBy('id');
 
-        return array_map(function (array $row) use ($models): array {
+        $latestPrimaryImages = Listing::query()
+            ->where('user_id', $user->id)
+            ->whereIn('brand_id', collect($rows)->pluck('brand_id')->filter()->unique())
+            ->whereIn('phone_model_id', $modelIds)
+            ->with(['primaryImage.media'])
+            ->latest('created_at')
+            ->get()
+            ->filter(fn (Listing $listing): bool => $listing->primaryImage?->media !== null)
+            ->unique(fn (Listing $listing): string => $listing->brand_id.':'.$listing->phone_model_id)
+            ->keyBy(fn (Listing $listing): string => $listing->brand_id.':'.$listing->phone_model_id);
+
+        return array_map(function (array $row) use ($models, $latestPrimaryImages): array {
             $modelId = (int) ($row['phone_model_id'] ?? 0);
             $model = $models->get($modelId);
 
@@ -162,6 +174,11 @@ class ListingImportController extends Controller
                 ])
                 ->values()
                 ->all() ?? [];
+
+            $key = ($row['brand_id'] ?? 0).':'.$modelId;
+            $primaryImage = $latestPrimaryImages->get($key)?->primaryImage;
+            $row['media_id'] = $primaryImage?->media_id;
+            $row['media_url'] = $primaryImage?->displayUrl(true);
 
             return $row;
         }, $rows);
