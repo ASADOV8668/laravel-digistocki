@@ -130,7 +130,7 @@ class ListingImportTest extends TestCase
         $user->forceFill(['listing_import_parser_id' => $parser->id])->save();
         $parsed = app(ListingImportParserRegistry::class)->make($parser)->parse("💙13Pro 256g CH 92Bt\n💰165/000m");
         $source = $parsed['items'][0];
-        $media = $user->addMedia(UploadedFile::fake()->image('previous-primary.jpg'))->toMediaCollection('listing-images', 'public');
+        $media = $user->addMedia(UploadedFile::fake()->create('previous-primary.jpg', 100, 'image/jpeg'))->toMediaCollection('listing-images', 'public');
         $listing = Listing::create([
             'user_id' => $user->id,
             'brand_id' => $source['brand_id'],
@@ -140,13 +140,14 @@ class ListingImportTest extends TestCase
             'price' => 165000000,
             'status' => 'approved',
         ]);
-        ListingImage::create(['listing_id' => $listing->id, 'media_id' => $media->id, 'is_primary' => true, 'sort_order' => 0]);
+        ListingImage::create(['listing_id' => $listing->id, 'media_id' => $media->id, 'path' => 'media/previous-primary.jpg', 'thumbnail_path' => 'media/previous-primary.jpg', 'is_primary' => true, 'sort_order' => 0]);
 
-        $this->actingAs($user)->post(route('listings.import.preview'), [
+        $response = $this->actingAs($user)->post(route('listings.import.preview'), [
             'text' => "💙13Pro 256g CH 92Bt\n💰165/000m",
             'listing_date' => '2026-11-18',
-        ])->assertOk()
-            ->assertSee('"media_id":'.$media->id, false)
-            ->assertSee('"media_url":', false);
+        ]);
+        $response->assertOk()
+            ->assertSee('media_id\\u0022:'.$media->id, false)
+            ->assertSee('previous-primary.jpg', false);
     }
 }
