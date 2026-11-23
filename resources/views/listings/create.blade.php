@@ -1,6 +1,7 @@
 @php
     $clone = $cloneListing ?? null;
-    $freeListing = $store?->allowsFreeListing() ?? false;
+    $cameraListing = request()->boolean('camera') || old('camera_listing') === '1';
+    $freeListing = ! $cameraListing && ($store?->allowsFreeListing() ?? false);
 @endphp
 <x-app-layout title="ثبت آگهی">
     <x-slot name="header">
@@ -13,7 +14,7 @@
             </div>
         </div>
     </x-slot>
-    <section x-data="listingWizardWithMedia(@js($maxImageUploadMb), @js($maxImageUploadCount), @js(''), @js(route('listings.media.index')) )" data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}" data-wizard-endpoint="{{ url('/listings/wizard/brands') }}"
+    <section x-data="listingWizardWithMedia(@js($maxImageUploadMb), @js($maxImageUploadCount), @js(''), @js(route('listings.media.index')) )" @if ($cameraListing) data-camera-listing @endif data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}" data-wizard-endpoint="{{ url('/listings/wizard/brands') }}"
         data-cities-endpoint="{{ url('/locations/provinces') }}"
         data-initial-brand-id="{{ old('brand_id', $clone?->brand_id) }}"
         data-initial-series-id="{{ old('phone_series_id', $clone?->phoneModel?->phone_series_id) }}"
@@ -51,9 +52,21 @@
         </div>
 
         <form method="POST" action="{{ route('listings.store') }}" enctype="multipart/form-data"
+            @submit="if (cameraMode && !cameraCanSubmit()) $event.preventDefault()"
             class="rounded-lg bg-white p-5 shadow-sm border border-slate-200">
             @csrf
-            @include('listings.partials.fast-wizard')
+            @if ($cameraListing)
+                <input type="hidden" name="camera_listing" value="1">
+                <input type="hidden" name="brand_id" x-model="brandId">
+                <input type="hidden" name="phone_series_id" x-model="seriesId">
+                <input type="hidden" name="phone_model_id" x-model="modelId">
+                @include('listings.partials.camera-wizard')
+            @else
+                <a href="{{ route('listings.create', ['camera' => 1]) }}" class="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 px-4 py-2 text-sm font-bold text-primary">
+                    <x-heroicon-o-camera class="h-5 w-5" /> ثبت آگهی با دوربین
+                </a>
+                @include('listings.partials.fast-wizard')
+            @endif
             <div x-show="false" x-cloak class="space-y-4">
                 <div>
                     <h2 class="text-lg font-black text-neutral">مدل گوشی را انتخاب کنید</h2>
@@ -63,7 +76,7 @@
                 <div><label class="mb-2 block text-sm font-bold text-neutral">برند</label><select name="legacy_brand_id"
                         data-listing-brand-picker data-model-target="#public-listing-model"
                         data-models-endpoint="{{ url('/listings/models') }}" x-model="brandId" @change="loadModels()"
-                        required class="public-select">
+                        @unless ($cameraListing) required @endunless class="public-select">
                         <option value="">انتخاب برند</option>
                         @foreach ($brands as $brand)
                             <option value="{{ $brand->id }}" data-name-en="{{ $brand->name_en }}" @selected((string) old('brand_id') === (string) $brand->id)>{{ $brand->name }}
@@ -73,7 +86,7 @@
                 </div>
                 <div><label class="mb-2 block text-sm font-bold text-neutral">مدل گوشی</label><select
                         id="public-listing-model" name="legacy_phone_model_id" x-model="modelId" @change="loadAttributes"
-                        required :disabled="!brandId || modelsLoading" class="public-select">
+                        @unless ($cameraListing) required @endunless :disabled="!brandId || modelsLoading" class="public-select">
                         <option value="" x-text="modelsLoading ? 'در حال بارگذاری مدل‌ها...' : 'انتخاب مدل'">
                         </option><template x-for="model in models" :key="model.id">
                             <option :value="model.id"
@@ -101,7 +114,7 @@
                 </div>
             </div>
 
-            <div x-show="fastComplete()" x-cloak class="mt-6 space-y-4">
+            <div x-show="cameraMode ? cameraCanSubmit() : fastComplete()" x-cloak class="mt-6 space-y-4">
                 <div>
                     <h2 class="text-lg font-black text-neutral">اطلاعات آگهی</h2>
                     <p class="mt-1 text-xs text-slate-500">عنوان روشن، قیمت دقیق و موقعیت آگهی باعث اعتماد بیشتر خریدار
@@ -156,6 +169,7 @@
                 </div>
             </div>
 
+            @unless ($cameraListing)
             <div x-show="fastComplete()" x-cloak class="mt-6 space-y-4">
                 <div>
                     <h2 class="text-lg font-black text-neutral">تصاویر و ارسال</h2>
@@ -271,7 +285,8 @@
                 </div>
             </div>
 
-            <div class="mt-6 border-t border-slate-100 pt-4"><button type="submit" x-show="fastComplete()"
+            @endunless
+            <div class="mt-6 border-t border-slate-100 pt-4"><button type="submit" x-show="cameraMode ? cameraCanSubmit() : fastComplete()"
                     class="mobile-button w-full bg-primary py-3.5 text-base font-black text-white shadow-lg shadow-primary/20 hover:bg-primary-600">{{ $freeListing ? 'ثبت آگهی' : 'ارسال برای بررسی' }}</button>
             </div>
         </form>

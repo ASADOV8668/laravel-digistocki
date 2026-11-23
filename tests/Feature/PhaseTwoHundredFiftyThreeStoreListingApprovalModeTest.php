@@ -10,6 +10,7 @@ use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
@@ -81,6 +82,40 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
         $this->assertSame(ListingStatus::Approved, $listing->status);
         $this->assertNotNull($listing->published_at);
         $this->assertTrue($listing->expires_at->isFuture());
+    }
+
+    public function test_camera_listing_requires_a_photo_and_goes_to_review_in_a_free_listing_store(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $this->storeApplication($user)->update(['listing_approval_mode' => SellerStore::LISTING_APPROVAL_FREE]);
+        $brand = Brand::firstOrFail();
+        $model = $brand->phoneModels()->firstOrFail();
+        $payload = [
+            'camera_listing' => '1',
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی آزمایشی دوربین',
+            'price' => 32000000,
+            'attributes' => $this->requiredAttributeValues($model),
+        ];
+
+        $this->actingAs($user)
+            ->get(route('listings.create', ['camera' => 1]))
+            ->assertOk()
+            ->assertSee('data-camera-listing', false)
+            ->assertSee('گرفتن عکس');
+
+        $this->post(route('listings.store'), $payload)->assertSessionHasErrors('images');
+        $this->post(route('listings.store'), [
+            ...$payload,
+            'images' => [UploadedFile::fake()->create('product.jpg', 10, 'image/jpeg')],
+        ])->assertRedirect()->assertSessionHas('status', 'آگهی شما برای بررسی ارسال شد.');
+
+        $listing = Listing::where('title', $payload['title'])->sole();
+        $this->assertSame(ListingStatus::Pending, $listing->status);
+        $this->assertNull($listing->published_at);
+        $this->assertSame(1, $listing->images()->count());
     }
 
     public function test_free_listing_store_can_edit_approved_listing_without_review(): void

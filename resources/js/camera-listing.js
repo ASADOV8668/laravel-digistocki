@@ -1,0 +1,204 @@
+export function installCameraListingLinks() {
+    let press;
+    let timer;
+    let heldLink;
+
+    const cancel = () => {
+        clearTimeout(timer);
+        press = null;
+    };
+
+    document.addEventListener('pointerdown', (event) => {
+        const link = event.target.closest('[data-camera-listing-url]');
+        if (!link || event.button !== 0 || !event.isPrimary) return;
+
+        heldLink = null;
+        press = { id: event.pointerId, x: event.clientX, y: event.clientY };
+        timer = setTimeout(() => {
+            heldLink = link;
+            cancel();
+            window.location.assign(link.dataset.cameraListingUrl);
+        }, 2000);
+    });
+    document.addEventListener('pointermove', (event) => {
+        if (press?.id === event.pointerId && Math.hypot(event.clientX - press.x, event.clientY - press.y) > 12) cancel();
+    }, { passive: true });
+    for (const eventName of ['pointerup', 'pointercancel']) {
+        document.addEventListener(eventName, (event) => {
+            if (press?.id === event.pointerId) cancel();
+        });
+    }
+    window.addEventListener('blur', cancel);
+    document.addEventListener('scroll', cancel, { capture: true, passive: true });
+    document.addEventListener('contextmenu', (event) => {
+        if (press && event.target.closest('[data-camera-listing-url]')) event.preventDefault();
+    });
+    document.addEventListener('click', (event) => {
+        if (heldLink && event.target.closest('[data-camera-listing-url]') === heldLink) event.preventDefault();
+    }, true);
+}
+
+export function cameraListing() {
+    return {
+        cameraMode: false,
+        cameraOpened: false,
+        cameraBusy: false,
+        cameraError: '',
+        cameraStep: null,
+        cameraStepBusy: false,
+        cameraCarryValues: null,
+        cameraSkipped: {},
+        cameraStream: null,
+
+        init() {
+            this.cameraMode = this.$root.hasAttribute('data-camera-listing');
+            if (this.cameraMode) this.$nextTick(() => this.openListingCamera());
+        },
+
+        async openListingCamera() {
+            if (this.cameraBusy || this.cameraOpened) return;
+            this.cameraError = '';
+            if (!navigator.mediaDevices?.getUserMedia || typeof DataTransfer === 'undefined') {
+                this.cameraError = 'دوربین زنده در این مرورگر در دسترس نیست. از دکمهٔ انتخاب عکس استفاده کنید.';
+                return;
+            }
+
+            this.cameraBusy = true;
+            try {
+                this.cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: 'environment' } }, audio: false,
+                });
+                this.$refs.listingCameraVideo.srcObject = this.cameraStream;
+                this.cameraOpened = true;
+            } catch {
+                this.cameraError = 'دوربین باز نشد. دسترسی دوربین را در مرورگر بررسی کنید یا عکس انتخاب کنید.';
+            } finally {
+                this.cameraBusy = false;
+            }
+        },
+
+        closeListingCamera() {
+            this.cameraStream?.getTracks().forEach((track) => track.stop());
+            this.cameraStream = null;
+            this.cameraOpened = false;
+        },
+
+        takeListingPicture() {
+            const video = this.$refs.listingCameraVideo;
+            if (!video.videoWidth || this.cameraBusy) return;
+            const canvas = document.createElement('canvas');
+            const ratio = Math.min(1, 1600 / Math.max(video.videoWidth, video.videoHeight));
+            canvas.width = Math.round(video.videoWidth * ratio);
+            canvas.height = Math.round(video.videoHeight * ratio);
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            this.cameraBusy = true;
+            canvas.toBlob((blob) => {
+                this.cameraBusy = false;
+                if (!blob) {
+                    this.cameraError = 'ذخیرهٔ عکس انجام نشد. دوباره عکس بگیرید.';
+                    return;
+                }
+                const files = new DataTransfer();
+                files.items.add(new File([blob], 'product-camera.jpg', { type: 'image/jpeg' }));
+                const input = this.$refs.listingCameraFile;
+                input.files = files.files;
+                this.useListingCameraFile({ target: input });
+            }, 'image/jpeg', 0.8);
+        },
+
+        useListingCameraFile(event) {
+            if (!event.target.files.length) return;
+            this.select(event);
+            if (!this.previews.length) return;
+            this.closeListingCamera();
+            this.cameraStep = null;
+            this.moveCameraListingForward();
+        },
+
+        cameraStageKey(stage) {
+            return stage.type === 'attribute' ? String(stage.attribute.id) : stage.type;
+        },
+
+        cameraStageOptions(stage) {
+            if (stage.attribute?.type === 'boolean') return [{ id: '1', label: 'بله' }, { id: '0', label: 'خیر' }];
+            return this.fastStageOptions(stage);
+        },
+
+        cameraStageLabel(stage, value) {
+            const option = this.cameraStageOptions(stage).find(({ id }) => String(id) === String(value));
+            return (stage.type === 'model' ? option?.secondary : null) || option?.label || value;
+        },
+
+        cameraSummary() {
+            return this.fastStages().flatMap((stage) => {
+                const value = this.fastStageValue(stage);
+                return value === '' || value == null || (Array.isArray(value) && !value.length) ? [] : [{
+                    key: this.cameraStageKey(stage), label: this.fastStageLabel(stage), value: this.cameraStageLabel(stage, value),
+                }];
+            });
+        },
+
+        moveCameraListingForward() {
+            if (!this.brandId) {
+                this.cameraStep = 'brand';
+                return;
+            }
+            const selected = new Set(this.cameraSummary().map(({ key }) => key));
+            const next = this.fastStages().find((stage) => {
+                const key = this.cameraStageKey(stage);
+                const featured = ['storage', 'ram', 'color', 'part_number', 'registration_status', 'body_condition'].includes(stage.attribute?.slug);
+                return !selected.has(key) && (stage.required || (featured && !this.cameraSkipped[key] && this.cameraStageOptions(stage).length));
+            });
+            this.cameraStep = next ? this.cameraStageKey(next) : this.fastComplete() ? null : 'brand';
+        },
+
+        async chooseCameraBrand(brand) {
+            if (this.cameraStepBusy) return;
+            this.cameraStepBusy = true;
+            try {
+                if (String(brand.id) !== String(this.brandId) || !this.wizardConfig) {
+                    this.cameraCarryValues = null;
+                    this.cameraSkipped = {};
+                    await this.selectFastBrand(brand);
+                }
+                this.moveCameraListingForward();
+            } finally {
+                this.cameraStepBusy = false;
+            }
+        },
+
+        async chooseCameraStage(stage, option) {
+            if (this.cameraStepBusy || (stage.required && (option.id === '' || (Array.isArray(option.id) && !option.id.length)))) return;
+            this.cameraStepBusy = true;
+            try {
+                if (stage.type === 'attribute') this.cameraSkipped[this.cameraStageKey(stage)] = option.id === '';
+                if (String(this.fastStageValue(stage)) !== String(option.id)) {
+                    if (stage.type === 'series' || stage.type === 'model') {
+                        this.cameraCarryValues ??= { ...this.values };
+                        this.cameraSkipped = {};
+                    }
+                    await this.selectFastStage(stage, option);
+                    if (stage.type === 'model' && this.wizardConfig && this.cameraCarryValues) {
+                        const previous = this.cameraCarryValues;
+                        this.cameraCarryValues = null;
+                        this.values = Object.fromEntries(this.fastStages().flatMap((item) => {
+                            if (!item.attribute) return [];
+                            const id = item.attribute.id;
+                            const compatible = this.cameraStageOptions(item).some((candidate) => String(candidate.id) === String(previous[id]));
+                            return compatible ? [[id, previous[id]]] : [];
+                        }));
+                        window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: this.attributes, values: this.values } }));
+                        this.updateGeneratedTitle();
+                    }
+                }
+                this.moveCameraListingForward();
+            } finally {
+                this.cameraStepBusy = false;
+            }
+        },
+
+        cameraCanSubmit() {
+            return Boolean(this.wizardConfig) && this.previews.length > 0 && !this.cameraOpened && !this.cameraBusy && this.fastComplete() && this.cameraStep === null && !this.cameraStepBusy;
+        },
+    };
+}

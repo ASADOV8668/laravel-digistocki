@@ -728,11 +728,11 @@ class ListingController extends Controller
 
         $storedFiles = [];
         $createdMedia = [];
-        $autoPublish = $request->user()->storefront?->allowsFreeListing() ?? false;
+        $autoPublish = ! $request->boolean('camera_listing') && ($request->user()->storefront?->allowsFreeListing() ?? false);
         try {
             $listing = DB::transaction(function () use ($validated, $request, $model, $imageService, $mediaService, $options, $rules, $autoPublish, &$storedFiles, &$createdMedia) {
                 $listingData = $validated;
-                unset($listingData['attributes'], $listingData['images'], $listingData['primary_image_index'], $listingData['primary_image_id'], $listingData['media_ids'], $listingData['media_primary_id']);
+                unset($listingData['camera_listing'], $listingData['attributes'], $listingData['images'], $listingData['primary_image_index'], $listingData['primary_image_id'], $listingData['media_ids'], $listingData['media_primary_id']);
                 $listing = Listing::create([
                     ...$listingData,
                     'user_id' => $request->user()->id,

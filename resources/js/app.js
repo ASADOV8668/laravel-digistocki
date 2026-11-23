@@ -1,3 +1,4 @@
+import { cameraListing, installCameraListingLinks } from './camera-listing';
 import './bootstrap';
 import 'flowbite';
 import { initTooltips } from 'flowbite';
@@ -1812,9 +1813,10 @@ const composeAlpineComponents = (base, extension) => {
     };
 };
 
+installCameraListingLinks();
 window.listingWizardWithMedia = (...args) => composeAlpineComponents(
-    window.listingWizard(),
-    window.imagePicker(...args),
+    composeAlpineComponents(window.listingWizard(), window.imagePicker(...args)),
+    cameraListing(),
 );
 
 window.moneyInput = (initial = '') => ({

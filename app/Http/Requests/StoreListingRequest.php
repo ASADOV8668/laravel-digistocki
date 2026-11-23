@@ -76,6 +76,9 @@ class StoreListingRequest extends FormRequest
         if (! $this->user()?->isAdmin() && $store?->province_id && $store?->city_id && ! $cloneHasImages && $mediaCount === 0) {
             $imageRules = ['required', 'array', 'min:1', 'max:'.app(SystemOptions::class)->maxImageUploadCount()];
         }
+        if ($this->boolean('camera_listing')) {
+            $imageRules = ['required', 'array', 'min:1', 'max:'.app(SystemOptions::class)->maxImageUploadCount()];
+        }
         $priceRules = ['nullable', 'integer', 'min:0'];
         if (app(SystemOptions::class)->allowContactPrice()) {
             $priceRules[] = 'required_unless:price_on_request,1';
@@ -84,6 +87,7 @@ class StoreListingRequest extends FormRequest
         }
 
         return [
+            'camera_listing' => ['sometimes', 'boolean'],
             'brand_id' => ['required', 'integer', 'exists:brands,id'],
             'phone_model_id' => ['required', 'integer', 'exists:phone_models,id'],
             'title' => ['required', 'string', 'min:3', 'max:160'],
