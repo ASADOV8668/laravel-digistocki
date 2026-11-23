@@ -50,7 +50,8 @@
         </div>
 
         <form method="POST" action="{{ route('listings.store') }}" enctype="multipart/form-data"
-            @submit="if (cameraMode && !cameraCanSubmit()) $event.preventDefault()"
+            @submit="if (cameraMode) submitCameraListing($event)"
+            @pageshow.window="cameraSubmitting = false"
             @class(['fixed inset-0 z-[80] flex flex-col overflow-hidden bg-slate-950' => $cameraListing, 'rounded-lg border border-slate-200 bg-white p-5 shadow-sm' => ! $cameraListing])>
             @csrf
             @if ($cameraListing)

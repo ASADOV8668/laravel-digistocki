@@ -117,6 +117,8 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
             ->assertSee('data-camera-listing="auto"', false)
             ->assertSee('گرفتن عکس')
             ->assertSee('پیش‌نمایش ارسال')
+            ->assertSee('aria-label="ارسال برای بررسی ادمین"', false)
+            ->assertSee('aria-label="ویرایش قیمت"', false)
             ->assertDontSee('name="province_id"', false)
             ->assertDontSee('name="city_id"', false)
             ->assertDontSee('را از فایل‌های دستگاه انتخاب کنید');

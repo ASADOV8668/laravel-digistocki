@@ -46,6 +46,8 @@ export function cameraListing() {
         cameraError: '',
         cameraStep: null,
         cameraDetailsStep: 'title',
+        cameraEditingDetail: false,
+        cameraSubmitting: false,
         cameraStepBusy: false,
         cameraCarryValues: null,
         cameraSkipped: {},
@@ -139,11 +141,14 @@ export function cameraListing() {
             return ['string', 'integer', 'decimal'].includes(stage.attribute?.type);
         },
 
-        cameraSummary() {
+        cameraSummary(includeSkipped = false) {
             return this.fastStages().flatMap((stage) => {
+                const key = this.cameraStageKey(stage);
                 const value = this.fastStageValue(stage);
-                return value === '' || value == null || (Array.isArray(value) && !value.length) ? [] : [{
-                    key: this.cameraStageKey(stage), label: this.fastStageLabel(stage), value: this.cameraStageLabel(stage, value),
+                const empty = value === '' || value == null || (Array.isArray(value) && !value.length);
+                if (empty && !(includeSkipped && this.cameraSkipped[key])) return [];
+                return [{
+                    key, label: this.fastStageLabel(stage), value: empty ? '' : this.cameraStageLabel(stage, value),
                 }];
             });
         },
@@ -178,10 +183,11 @@ export function cameraListing() {
         },
 
         async chooseCameraStage(stage, option) {
-            if (this.cameraStepBusy || (stage.required && (option.id === '' || (Array.isArray(option.id) && !option.id.length)))) return;
+            const empty = option.id === '' || (Array.isArray(option.id) && !option.id.length);
+            if (this.cameraStepBusy || (stage.required && empty)) return;
             this.cameraStepBusy = true;
             try {
-                if (stage.type === 'attribute') this.cameraSkipped[this.cameraStageKey(stage)] = option.id === '';
+                if (stage.type === 'attribute') this.cameraSkipped[this.cameraStageKey(stage)] = empty;
                 if (String(this.fastStageValue(stage)) !== String(option.id)) {
                     if (stage.type === 'series' || stage.type === 'model') {
                         this.cameraCarryValues ??= { ...this.values };
@@ -219,8 +225,26 @@ export function cameraListing() {
             return Boolean(this.wizardConfig) && this.previews.length > 0 && !this.cameraOpened && !this.cameraBusy && !this.fastLoading && this.fastComplete() && this.cameraStep === null && !this.cameraStepBusy;
         },
 
+        editCameraDetail(field) {
+            this.cameraEditingDetail = true;
+            this.cameraDetailsStep = field;
+        },
+
+        finishCameraDetail(next) {
+            this.cameraDetailsStep = this.cameraEditingDetail ? 'review' : next;
+            this.cameraEditingDetail = false;
+        },
+
         cameraCanSubmit() {
             return this.cameraSpecsComplete() && this.cameraDetailsStep === 'review';
+        },
+
+        submitCameraListing(event) {
+            if (!this.cameraCanSubmit() || this.cameraSubmitting) {
+                event.preventDefault();
+                return;
+            }
+            this.cameraSubmitting = true;
         },
     };
 }

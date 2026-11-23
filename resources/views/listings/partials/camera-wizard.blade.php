@@ -42,11 +42,11 @@
             <button type="button" @click="cameraStep = 'brand'" :disabled="cameraStepBusy"
                 class="shrink-0 rounded-full bg-slate-100 px-3 py-2 text-xs font-bold text-slate-800"
                 x-text="fastBrandName || 'برند'"></button>
-            <template x-for="item in cameraSummary()" :key="item.key">
+            <template x-for="item in cameraSummary(cameraDetailsStep === 'review')" :key="item.key">
                 <button type="button" @click="cameraStep = item.key" :disabled="cameraStepBusy"
                     class="shrink-0 rounded-full bg-slate-100 px-3 py-2 text-xs font-bold text-slate-800 hover:bg-primary-50"
-                    :aria-label="'ویرایش ' + item.label + '، ' + item.value">
-                    <bdi x-text="item.value"></bdi>
+                    :aria-label="item.value !== '' ? 'ویرایش ' + item.label + '، ' + item.value : 'افزودن ' + item.label">
+                    <bdi x-text="item.value !== '' ? item.value : '+ ' + item.label"></bdi>
                 </button>
             </template>
         </div>
