@@ -12,6 +12,15 @@
 
 [x-cloak] { display: none !important; }
 
+@media (prefers-reduced-motion: no-preference) {
+    .listing-camera-step { animation: listing-camera-step-in 200ms ease-out both; }
+
+    @keyframes listing-camera-step-in {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+}
+
 @layer base {
     html { direction: rtl; }
     body { @apply bg-slate-50 text-brandtext dark:bg-slate-950 dark:text-slate-100; font-family: 'Vazirmatn', sans-serif; font-synthesis: none; }

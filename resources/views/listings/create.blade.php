@@ -1,6 +1,7 @@
 @php
     $clone = $cloneListing ?? null;
-    $freeListing = $store?->allowsFreeListing() ?? false;
+    $cameraListing = request()->boolean('camera') || old('camera_listing') === '1';
+    $freeListing = ! $cameraListing && ($store?->allowsFreeListing() ?? false);
 @endphp
 <x-app-layout title="ثبت آگهی">
     <x-slot name="header">
@@ -13,16 +14,15 @@
             </div>
         </div>
     </x-slot>
-    <section x-data="listingWizardWithMedia(@js($maxImageUploadMb), @js($maxImageUploadCount), @js(''), @js(route('listings.media.index')) )" data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}" data-wizard-endpoint="{{ url('/listings/wizard/brands') }}"
-        data-cities-endpoint="{{ url('/locations/provinces') }}"
+    <section x-data="listingWizardWithMedia(@js($maxImageUploadMb), @js($maxImageUploadCount), @js(''), @js(route('listings.media.index')) )" @if ($cameraListing) data-camera-listing="{{ request()->boolean('camera') && ! $errors->any() ? 'auto' : 'manual' }}" @endif data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}" data-wizard-endpoint="{{ url('/listings/wizard/brands') }}"
         data-initial-brand-id="{{ old('brand_id', $clone?->brand_id) }}"
+        @if ($cameraListing) data-initial-device-type="{{ old('device_type', $clone?->phoneModel?->device_type) }}" @endif
         data-initial-series-id="{{ old('phone_series_id', $clone?->phoneModel?->phone_series_id) }}"
         data-initial-model-id="{{ old('phone_model_id', $clone?->phone_model_id) }}"
-        data-initial-province-id="{{ old('province_id', $store?->province_id) }}"
-        data-initial-city-id="{{ old('city_id', $store?->city_id) }}" class="space-y-6 px-4 py-6">
+        class="space-y-6 px-4 py-6">
         <script type="application/json" data-listing-initial-attributes>@json($initialModelAttributes)</script>
         <script type="application/json" data-listing-initial-values>@json($initialValues ?? old('attributes', []))</script>
-        @if ($errors->any())<x-flowbite-alert type="danger">
+        @if (! $cameraListing && $errors->any())<x-flowbite-alert type="danger">
                 <ul class="space-y-1">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -51,9 +51,28 @@
         </div>
 
         <form method="POST" action="{{ route('listings.store') }}" enctype="multipart/form-data"
-            class="rounded-lg bg-white p-5 shadow-sm border border-slate-200">
+            @if ($cameraListing)
+                x-data="Object.assign(moneyInput(@js(old('price'))), { priceOnRequest: @js($allowContactPrice && (bool) old('price_on_request')), negotiable: @js((bool) old('is_negotiable')) })"
+            @endif
+            @submit="if (cameraMode) submitCameraListing($event)"
+            @pageshow.window="cameraSubmitting = false"
+            @class(['fixed inset-0 z-[80] flex flex-col overflow-hidden bg-slate-950' => $cameraListing, 'rounded-lg border border-slate-200 bg-white p-5 shadow-sm' => ! $cameraListing])>
             @csrf
-            @include('listings.partials.fast-wizard')
+            @if ($cameraListing)
+                <input type="hidden" name="camera_listing" value="1">
+                <input type="hidden" name="device_type" x-model="cameraDeviceType">
+                <input type="hidden" name="brand_id" x-model="brandId">
+                <input type="hidden" name="phone_series_id" x-model="seriesId">
+                <input type="hidden" name="phone_model_id" x-model="modelId">
+                @include('listings.partials.camera-wizard')
+            @else
+                <div class="mb-4 flex flex-wrap gap-2">
+                    <a href="{{ route('listings.create', ['camera' => 1]) }}" class="inline-flex items-center gap-2 rounded-full border border-primary/20 px-4 py-2 text-sm font-bold text-primary">
+                        <x-heroicon-o-camera class="h-5 w-5" /> ثبت آگهی با عکس
+                    </a>
+                </div>
+                @include('listings.partials.fast-wizard')
+            @endif
             <div x-show="false" x-cloak class="space-y-4">
                 <div>
                     <h2 class="text-lg font-black text-neutral">مدل گوشی را انتخاب کنید</h2>
@@ -63,7 +82,7 @@
                 <div><label class="mb-2 block text-sm font-bold text-neutral">برند</label><select name="legacy_brand_id"
                         data-listing-brand-picker data-model-target="#public-listing-model"
                         data-models-endpoint="{{ url('/listings/models') }}" x-model="brandId" @change="loadModels()"
-                        required class="public-select">
+                        @unless ($cameraListing) required @endunless class="public-select">
                         <option value="">انتخاب برند</option>
                         @foreach ($brands as $brand)
                             <option value="{{ $brand->id }}" data-name-en="{{ $brand->name_en }}" @selected((string) old('brand_id') === (string) $brand->id)>{{ $brand->name }}
@@ -73,7 +92,7 @@
                 </div>
                 <div><label class="mb-2 block text-sm font-bold text-neutral">مدل گوشی</label><select
                         id="public-listing-model" name="legacy_phone_model_id" x-model="modelId" @change="loadAttributes"
-                        required :disabled="!brandId || modelsLoading" class="public-select">
+                        @unless ($cameraListing) required @endunless :disabled="!brandId || modelsLoading" class="public-select">
                         <option value="" x-text="modelsLoading ? 'در حال بارگذاری مدل‌ها...' : 'انتخاب مدل'">
                         </option><template x-for="model in models" :key="model.id">
                             <option :value="model.id"
@@ -101,11 +120,12 @@
                 </div>
             </div>
 
+            @if ($cameraListing)
+                @include('listings.partials.camera-details')
+            @else
             <div x-show="fastComplete()" x-cloak class="mt-6 space-y-4">
                 <div>
                     <h2 class="text-lg font-black text-neutral">اطلاعات آگهی</h2>
-                    <p class="mt-1 text-xs text-slate-500">عنوان روشن، قیمت دقیق و موقعیت آگهی باعث اعتماد بیشتر خریدار
-                        می‌شود.</p>
                 </div>
                 <div><label class="mb-2 block text-sm font-bold text-neutral">عنوان آگهی</label><input id="public-listing-title" data-auto-listing-title="{{ old('title', $clone?->title ?? '') === '' ? 'true' : 'false' }}" name="title"
                         value="{{ old('title', $clone?->title ?? '') }}" required
@@ -133,22 +153,6 @@
                 <label class="flex items-center gap-2 text-sm font-bold text-neutral"><input name="is_negotiable"
                         value="1" type="checkbox" @checked(old('is_negotiable', $clone?->is_negotiable)) class="public-check"> قیمت قابل
                     مذاکره است</label>
-                <div class="grid grid-cols-2 gap-2">
-                        <div><label class="mb-2 block text-sm font-bold text-neutral">استان</label><select
-                            name="province_id" x-model="provinceId" @change="loadCities" required class="public-select">
-                            <option value="">انتخاب استان</option>
-                            @foreach ($provinces as $province)
-                                <option value="{{ $province->id }}" @selected((string) old('province_id', $store?->province_id) === (string) $province->id)>{{ $province->name }}</option>
-                            @endforeach
-                        </select></div>
-                    <div><label class="mb-2 block text-sm font-bold text-neutral">شهر</label><select name="city_id"
-                            x-model="cityId" :disabled="!provinceId || citiesLoading" required class="public-select">
-                            <option value="">انتخاب شهر</option><template x-for="city in cities"
-                                :key="city.id">
-                                <option :value="city.id" x-text="city.name"></option>
-                            </template>
-                        </select></div>
-                </div>
                 <div><label class="mb-2 block text-sm font-bold text-neutral">توضیحات</label>
                     <textarea name="description" rows="5"
                         class="block w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-neutral shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/30"
@@ -165,7 +169,7 @@
                         class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/20 bg-primary-50/40 p-8 text-center transition hover:border-primary/50"><span
                             class="flex h-12 w-12 items-center justify-center rounded-lg bg-white text-primary shadow-sm"><x-heroicon-o-photo
                                 class="h-6 w-6" /></span><span class="mt-3 text-sm font-black text-neutral">تصاویر
-                            گوشی را انتخاب کنید</span><span class="mt-1 text-xs text-slate-400">JPG، PNG یا WEBP ·
+                            را از فایل‌های دستگاه انتخاب کنید</span><span class="mt-1 text-xs text-slate-400">JPG، PNG یا WEBP ·
                             حداکثر {{ $maxImageUploadMb }}MB</span><input @change="select($event)" type="file"
                             name="images[]" multiple accept=".jpg,.jpeg,.png,.webp,.heic,.heif" class="sr-only"></label>
                     <div class="flex items-center justify-between gap-2">
@@ -274,6 +278,7 @@
             <div class="mt-6 border-t border-slate-100 pt-4"><button type="submit" x-show="fastComplete()"
                     class="mobile-button w-full bg-primary py-3.5 text-base font-black text-white shadow-lg shadow-primary/20 hover:bg-primary-600">{{ $freeListing ? 'ثبت آگهی' : 'ارسال برای بررسی' }}</button>
             </div>
+            @endif
         </form>
     </section>
 </x-app-layout>

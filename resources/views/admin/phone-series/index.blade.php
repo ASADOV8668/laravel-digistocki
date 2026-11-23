@@ -1,7 +1,7 @@
-<x-admin-layout title="سری‌های گوشی">
+<x-admin-layout title="سری‌های محصول">
     <x-slot name="header">
         <div>
-            <h2 class="text-xl font-black text-slate-900">سری‌های گوشی</h2>
+            <h2 class="text-xl font-black text-slate-900">سری‌های محصول</h2>
             <p class="mt-1 text-xs text-slate-400">سری‌ها را برای کوتاه‌کردن مسیر انتخاب مدل مدیریت کنید.</p>
         </div>
     </x-slot>

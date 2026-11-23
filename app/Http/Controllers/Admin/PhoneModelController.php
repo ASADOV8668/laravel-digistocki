@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AttributeType;
 use App\Http\Controllers\Controller;
 use App\Models\Attribute;
 use App\Models\Brand;
@@ -10,8 +11,10 @@ use App\Models\PhoneSeries;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PhoneModelController extends Controller
 {
@@ -21,7 +24,10 @@ class PhoneModelController extends Controller
     {
         $perPage = $this->adminPerPage($request);
         $perPageOptions = $this->adminPerPageOptions();
-        $models = PhoneModel::with(['brand', 'attributes' => fn ($query) => $query->where('attributes.is_active', true)->orderBy('model_attributes.sort_order')])->withCount('listings')
+        $deviceType = $request->query('device_type');
+        abort_if($deviceType !== null && (! is_string($deviceType) || ! isset(PhoneModel::DEVICE_TYPES[$deviceType])), 422);
+        $models = PhoneModel::with(['brand', 'modelAttributes', 'attributes' => fn ($query) => $query->where('attributes.is_active', true)->orderBy('model_attributes.sort_order')])->withCount('listings')
+            ->when($deviceType, fn ($query) => $query->where('device_type', $deviceType))
             ->when($request->filled('brand_id'), fn ($query) => $query->where('brand_id', $request->integer('brand_id')))
             ->when($request->filled('q'), fn ($query) => $query->where(function ($query) use ($request) {
                 $like = '%'.$request->string('q').'%';
@@ -29,14 +35,16 @@ class PhoneModelController extends Controller
             }))
             ->orderBy('name')->paginate($perPage)->withQueryString();
 
-        return view('admin.phone-models.index', ['models' => $models, 'brands' => Brand::orderBy('name')->get(), 'series' => PhoneSeries::query()->with('brand')->where('is_active', true)->orderBy('brand_id')->orderBy('sort_order')->get(), 'attributes' => Attribute::where('is_active', true)->orderBy('sort_order')->get(), 'perPageOptions' => $perPageOptions]);
+        return view('admin.phone-models.index', ['models' => $models, 'deviceType' => $deviceType, 'brands' => Brand::orderBy('name')->get(), 'series' => PhoneSeries::query()->with('brand')->where('is_active', true)->orderBy('brand_id')->orderBy('sort_order')->get(), 'attributes' => Attribute::where('is_active', true)->orderBy('sort_order')->get(), 'perPageOptions' => $perPageOptions]);
     }
 
     public function store(Request $request)
     {
         $validated = $this->validated($request);
-        $model = PhoneModel::create([...$this->modelData($validated), 'slug' => $this->uniqueSlug($validated['brand_id'], $validated['name_en'] ?? $validated['name']), 'is_active' => true]);
-        $this->syncAttributes($model, $validated['attribute_ids'] ?? [], $validated['required_attribute_ids'] ?? []);
+        DB::transaction(function () use ($validated): void {
+            $model = PhoneModel::create([...$this->modelData($validated), 'slug' => $this->uniqueSlug($validated['brand_id'], $validated['name_en'] ?? $validated['name']), 'is_active' => true]);
+            $this->syncAttributes($model, $validated);
+        });
 
         return back()->with('status', 'مدل جدید اضافه شد.');
     }
@@ -44,9 +52,11 @@ class PhoneModelController extends Controller
     public function update(Request $request, PhoneModel $phoneModel)
     {
         $validated = $this->validated($request);
-        $phoneModel->update([...$this->modelData($validated), 'slug' => $this->uniqueSlug($validated['brand_id'], $validated['name_en'] ?? $validated['name'], $phoneModel)]);
-        $phoneModel->modelAttributes()->delete();
-        $this->syncAttributes($phoneModel, $validated['attribute_ids'] ?? [], $validated['required_attribute_ids'] ?? []);
+        DB::transaction(function () use ($phoneModel, $validated): void {
+            $phoneModel = PhoneModel::query()->lockForUpdate()->findOrFail($phoneModel->id);
+            $phoneModel->update([...$this->modelData($validated), 'slug' => $this->uniqueSlug($validated['brand_id'], $validated['name_en'] ?? $validated['name'], $phoneModel)]);
+            $this->syncAttributes($phoneModel, $validated);
+        });
 
         return back()->with('status', 'مدل و ویژگی‌های آن به‌روزرسانی شد.');
     }
@@ -68,12 +78,26 @@ class PhoneModelController extends Controller
 
     private function validated(Request $request): array
     {
-        return $request->validate(['brand_id' => ['required', 'exists:brands,id'], 'phone_series_id' => ['nullable', 'integer', Rule::exists('phone_series', 'id')->where(fn ($query) => $query->where('brand_id', $request->integer('brand_id')))], 'name' => ['required', 'string', 'max:100'], 'name_fa' => ['nullable', 'string', 'max:100'], 'name_en' => ['nullable', 'string', 'max:100'], 'release_year' => ['nullable', 'integer', 'between:2000,2100'], 'attribute_ids' => ['array'], 'attribute_ids.*' => ['integer', 'exists:attributes,id'], 'required_attribute_ids' => ['array'], 'required_attribute_ids.*' => ['integer', 'exists:attributes,id']]);
+        return $request->validate([
+            'brand_id' => ['required', 'exists:brands,id'],
+            'device_type' => ['sometimes', 'required', Rule::in(array_keys(PhoneModel::DEVICE_TYPES))],
+            'phone_series_id' => ['nullable', 'integer', Rule::exists('phone_series', 'id')->where(fn ($query) => $query->where('brand_id', $request->integer('brand_id')))],
+            'name' => ['required', 'string', 'max:100'],
+            'name_fa' => ['nullable', 'string', 'max:100'],
+            'name_en' => ['nullable', 'string', 'max:100'],
+            'release_year' => ['nullable', 'integer', 'between:2000,2100'],
+            'attribute_ids' => ['array'],
+            'attribute_ids.*' => ['integer', 'distinct', 'exists:attributes,id'],
+            'required_attribute_ids' => ['array'],
+            'required_attribute_ids.*' => ['integer', 'exists:attributes,id'],
+            'attribute_options' => ['array'],
+            'attribute_options.*' => ['nullable', 'string', 'max:2000'],
+        ]);
     }
 
     private function modelData(array $validated): array
     {
-        return ['brand_id' => $validated['brand_id'], 'phone_series_id' => $validated['phone_series_id'] ?? null, 'name' => $validated['name'], 'name_fa' => $validated['name_fa'] ?? $validated['name'], 'name_en' => $validated['name_en'] ?? $validated['name'], 'release_year' => $validated['release_year'] ?? null];
+        return array_intersect_key($validated, ['device_type' => true]) + ['brand_id' => $validated['brand_id'], 'phone_series_id' => $validated['phone_series_id'] ?? null, 'name' => $validated['name'], 'name_fa' => $validated['name_fa'] ?? $validated['name'], 'name_en' => $validated['name_en'] ?? $validated['name'], 'release_year' => $validated['release_year'] ?? null];
     }
 
     private function uniqueSlug(int|string $brandId, string $name, ?PhoneModel $except = null): string
@@ -88,9 +112,33 @@ class PhoneModelController extends Controller
         return $slug;
     }
 
-    private function syncAttributes(PhoneModel $model, array $attributeIds, array $requiredAttributeIds = []): void
+    private function syncAttributes(PhoneModel $model, array $validated): void
     {
-        $requiredAttributeIds = collect($requiredAttributeIds)->map(fn ($id) => (int) $id);
-        $model->modelAttributes()->createMany(collect($attributeIds)->values()->map(fn ($id, $sort) => ['attribute_id' => $id, 'is_required' => $requiredAttributeIds->contains((int) $id), 'sort_order' => $sort])->all());
+        $attributeIds = collect($validated['attribute_ids'] ?? [])->map(fn ($id) => (int) $id)->values();
+        $requiredIds = array_map('intval', $validated['required_attribute_ids'] ?? []);
+        $optionInputs = $validated['attribute_options'] ?? [];
+        $attributes = Attribute::whereKey($attributeIds->all())->get()->keyBy('id');
+
+        // The editor lists active features. Keep the existing links for inactive features.
+        $model->modelAttributes()->whereNotIn('attribute_id', $attributeIds->all())
+            ->whereHas('attribute', fn ($query) => $query->where('is_active', true))->delete();
+
+        foreach ($attributeIds as $sort => $id) {
+            $attribute = $attributes->get($id);
+            $settings = ['is_required' => in_array($id, $requiredIds, true), 'sort_order' => $sort];
+            if ($attribute->supportsCustomOptions() && array_key_exists($id, $optionInputs)) {
+                $options = collect(preg_split('/[,،\r\n]+/u', (string) $optionInputs[$id]))
+                    ->map(fn (string $option): string => trim($option))
+                    ->filter(fn (string $option): bool => $option !== '')
+                    ->unique()->values()->all();
+                if (count($options) > 80 || collect($options)->contains(fn (string $option): bool => mb_strlen($option) > 100
+                    || ($attribute->type === AttributeType::Integer && filter_var($option, FILTER_VALIDATE_INT) === false)
+                    || ($attribute->type === AttributeType::Decimal && ! preg_match('/^-?[0-9]+(?:\.[0-9]+)?$/D', $option)))) {
+                    throw ValidationException::withMessages(['attribute_options.'.$id => 'گزینه‌های «'.$attribute->name.'» را با فرمت متناسب با نوع ویژگی وارد کنید.']);
+                }
+                $settings['custom_options'] = $options === [] ? null : $options;
+            }
+            $model->modelAttributes()->updateOrCreate(['attribute_id' => $id], $settings);
+        }
     }
 }

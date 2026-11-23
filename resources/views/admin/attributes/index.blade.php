@@ -1,4 +1,4 @@
-<x-admin-layout title="ویژگی‌های گوشی">
+<x-admin-layout title="ویژگی‌های محصول">
     <x-slot name="header">
         <div class="flex items-center gap-3"><span
                 class="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent"><x-heroicon-o-adjustments-horizontal
@@ -135,7 +135,7 @@
                                             </div>
                                             <div class="flex items-center justify-between gap-3">
                                                 <label class="text-[11px] font-bold text-slate-600">گزینه‌ها</label>
-                                                @if (in_array($attribute->type?->value, ['select', 'multi_select'], true))
+                                                @if ($attribute->supportsOptionRestrictions())
                                                     <a href="{{ route('admin.attributes.option-restrictions.index', $attribute) }}"
                                                         class="inline-flex items-center gap-1 text-[11px] font-bold text-accent hover:underline">
                                                         <x-heroicon-o-funnel class="h-4 w-4" />

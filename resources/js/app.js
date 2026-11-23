@@ -1,3 +1,4 @@
+import { cameraListing, installCameraListingLinks } from './camera-listing';
 import './bootstrap';
 import 'flowbite';
 import { initTooltips } from 'flowbite';
@@ -1456,6 +1457,7 @@ window.listingWizard = () => ({
         const root = this.$root;
         this.modelsEndpoint = root.dataset.modelsEndpoint || '';
         this.wizardEndpoint = root.dataset.wizardEndpoint || '';
+        this.cameraDeviceType = root.dataset.initialDeviceType || '';
         this.attributesEndpoint = this.modelsEndpoint;
         this.citiesEndpoint = root.dataset.citiesEndpoint || '';
         this.brandId = root.dataset.initialBrandId || '';
@@ -1494,6 +1496,7 @@ window.listingWizard = () => ({
         this.fastController = controller;
         this.fastLoading = true;
         const params = new URLSearchParams();
+        if (this.cameraDeviceType) params.set('device_type', this.cameraDeviceType);
         if (this.seriesId) params.set('series_id', this.seriesId);
         if (this.modelId) params.set('model_id', this.modelId);
         try {
@@ -1659,7 +1662,7 @@ window.listingWizard = () => ({
 
         const attributeId = String(stage.attribute?.id || '');
         if (!attributeId) return;
-        this.values = { ...this.values, [attributeId]: option.id || '' };
+        this.values = { ...this.values, [attributeId]: option.id ?? '' };
         window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: this.attributes, values: this.values } }));
         this.updateGeneratedTitle();
     },
@@ -1812,9 +1815,10 @@ const composeAlpineComponents = (base, extension) => {
     };
 };
 
+installCameraListingLinks();
 window.listingWizardWithMedia = (...args) => composeAlpineComponents(
-    window.listingWizard(),
-    window.imagePicker(...args),
+    composeAlpineComponents(window.listingWizard(), window.imagePicker(...args)),
+    cameraListing(),
 );
 
 window.moneyInput = (initial = '') => ({

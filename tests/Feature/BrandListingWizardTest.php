@@ -10,6 +10,7 @@ use App\Models\ListingAttributeValue;
 use App\Models\PhoneModel;
 use App\Models\SellerStore;
 use App\Models\User;
+use App\Services\ListingAttributeValidator;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -100,6 +101,99 @@ class BrandListingWizardTest extends TestCase
 
         $this->assertFalse($brand->refresh()->can_post_listings);
         $this->getJson(route('listings.wizard.config', $brand))->assertOk();
+    }
+
+    public function test_admin_can_save_a_smartwatch_and_the_camera_catalog_can_find_it(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $brand = Brand::where('name_en', 'Apple')->firstOrFail();
+        $admin = User::factory()->create(['role' => 'admin']);
+        $color = Attribute::where('slug', 'color')->firstOrFail();
+        $caseSize = Attribute::create(['slug' => 'case-size', 'name' => 'اندازه قاب', 'type' => 'integer', 'is_active' => true]);
+        $payload = [
+            'brand_id' => $brand->id, 'name' => 'Test Watch', 'device_type' => 'smartwatch',
+            'attribute_ids' => [$color->id, $caseSize->id], 'required_attribute_ids' => [$color->id],
+        ];
+
+        $this->actingAs($admin)->post(route('admin.phone-models.store'), [
+            ...$payload, 'attribute_options' => [$color->id => 'آبی یخی، مشکی مات', $caseSize->id => '41, 45'],
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $watch = $brand->phoneModels()->where('name', 'Test Watch')->sole();
+        $this->assertSame('smartwatch', $watch->device_type);
+        $this->getJson(route('listings.wizard.config', [$brand, 'device_type' => 'smartwatch']))
+            ->assertOk()
+            ->assertJsonCount(1, 'models')
+            ->assertJsonPath('models.0.id', $watch->id);
+
+        $config = route('listings.wizard.config', [$brand, 'device_type' => 'smartwatch', 'model_id' => $watch->id]);
+        $this->getJson($config)->assertOk()
+            ->assertJsonPath('steps.1.attribute.options', ['آبی یخی', 'مشکی مات'])
+            ->assertJsonPath('steps.1.required', true)
+            ->assertJsonPath('steps.2.attribute.options', ['41', '45']);
+        $validator = app(ListingAttributeValidator::class);
+        $this->assertSame([], $validator->errors($watch, [$color->id => 'آبی یخی', $caseSize->id => '41']));
+        $this->assertArrayHasKey('attributes.'.$caseSize->id, $validator->errors($watch, [$color->id => 'آبی یخی', $caseSize->id => '42']));
+        $this->assertNotContains('آبی یخی', $color->optionsForModel($brand->phoneModels()->where('device_type', 'mobile')->firstOrFail()->id));
+
+        $this->get(route('admin.phone-models.index', ['device_type' => 'smartwatch']))
+            ->assertOk()->assertSee('Test Watch')->assertSee('آبی یخی')->assertDontSee('iPhone 13 Pro Max');
+
+        $this->patch(route('admin.phone-models.update', $watch), [
+            ...$payload, 'attribute_options' => [$color->id => ''],
+        ])->assertRedirect()->assertSessionHasNoErrors();
+        $this->getJson($config)->assertOk()->assertJsonPath('steps.1.attribute.options', $color->optionsForModel($watch->id));
+    }
+
+    public function test_camera_catalog_filters_device_type_and_series_and_orders_model_choices(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $brand = Brand::query()->where('name_en', 'Apple')->firstOrFail();
+        $mobile = $brand->phoneModels()->where('name_en', 'iPhone 13 Pro Max')->firstOrFail();
+        $series = $brand->phoneSeries()->create(['name' => 'Test tablet series', 'slug' => 'test-tablet-series', 'is_active' => true]);
+        $tablet = $brand->phoneModels()->create([
+            'name' => 'Test tablet',
+            'slug' => 'test-tablet',
+            'phone_series_id' => $series->id,
+            'device_type' => 'tablet',
+            'is_active' => true,
+        ]);
+        $withoutSeries = $brand->phoneModels()->create([
+            'name' => 'Test tablet without series',
+            'slug' => 'test-tablet-without-series',
+            'device_type' => 'tablet',
+            'is_active' => true,
+        ]);
+        foreach (['storage' => ['128', '256'], 'color' => ['آبی']] as $slug => $options) {
+            $attribute = Attribute::where('slug', $slug)->firstOrFail();
+            $tablet->attributes()->attach($attribute->id, ['is_required' => true]);
+            $attribute->optionRestrictions()->create(['phone_model_ids' => [$tablet->id], 'options' => $options]);
+        }
+        $inactive = Attribute::create(['slug' => 'inactive-camera-feature', 'name' => 'Inactive camera feature', 'type' => 'string', 'is_active' => false]);
+        $tablet->attributes()->attach($inactive->id, ['is_required' => true]);
+
+        $this->getJson(route('listings.wizard.config', [$brand, 'device_type' => 'tablet', 'series_id' => $series->id, 'model_id' => $tablet->id]))
+            ->assertOk()
+            ->assertJsonCount(2, 'series')
+            ->assertJsonPath('series.0.id', $series->id)
+            ->assertJsonPath('series.1.id', 'none')
+            ->assertJsonCount(1, 'models')
+            ->assertJsonPath('models.0.id', $tablet->id)
+            ->assertJsonPath('steps.0.type', 'series')
+            ->assertJsonPath('steps.1.type', 'model')
+            ->assertJsonPath('steps.2.attribute.slug', 'storage')
+            ->assertJsonPath('steps.2.attribute.options', ['128', '256'])
+            ->assertJsonPath('steps.3.attribute.slug', 'color')
+            ->assertJsonPath('steps.3.attribute.options', ['آبی'])
+            ->assertJsonMissing(['slug' => 'inactive-camera-feature']);
+
+        $this->getJson(route('listings.wizard.config', [$brand, 'device_type' => 'tablet', 'series_id' => $mobile->phone_series_id]))
+            ->assertOk()
+            ->assertJsonCount(0, 'models');
+        $this->getJson(route('listings.wizard.config', [$brand, 'device_type' => 'tablet', 'series_id' => 'none']))
+            ->assertOk()
+            ->assertJsonCount(1, 'models')
+            ->assertJsonPath('models.0.id', $withoutSeries->id);
     }
 
     public function test_admin_stage_builder_shows_default_brand_stages_when_no_custom_steps_exist(): void

@@ -18,6 +18,21 @@ const attributeValue = (definitions, values, slug) => {
 };
 
 window.listingTitleGenerator = {
+    generateCamera(model, definitions, values) {
+        if (!model) return '';
+        const storage = englishDigits(attributeValue(definitions, values, 'storage'));
+        const part = String(attributeValue(definitions, values, 'part_number')).trim().toUpperCase();
+        const battery = englishDigits(attributeValue(definitions, values, 'battery_health'));
+        const color = String(attributeValue(definitions, values, 'color')).trim();
+        return [
+            model.secondary || model.label,
+            storage !== '' ? `${storage}GB` : '',
+            part,
+            battery !== '' ? `${battery}%` : '',
+            englishColors[color] || color,
+        ].filter(Boolean).join(' ').slice(0, 160);
+    },
+
     generate({ root, models = [], modelId = '', definitions = [], rows = [], language = 'fa', brandName = '' }) {
         const english = language === 'en';
         const brandOption = root?.querySelector('[name="brand_id"] option:checked');

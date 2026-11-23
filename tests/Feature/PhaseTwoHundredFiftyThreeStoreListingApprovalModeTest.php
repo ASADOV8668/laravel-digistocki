@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\ListingStatus;
+use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Listing;
 use App\Models\SellerStore;
@@ -10,6 +11,10 @@ use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Sadegh19b\LaravelIranCities\Models\City;
+use Sadegh19b\LaravelIranCities\Models\County;
+use Sadegh19b\LaravelIranCities\Models\Province;
 use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
@@ -81,6 +86,87 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
         $this->assertSame(ListingStatus::Approved, $listing->status);
         $this->assertNotNull($listing->published_at);
         $this->assertTrue($listing->expires_at->isFuture());
+    }
+
+    public function test_camera_listing_requires_a_photo_and_goes_to_review_in_a_free_listing_store(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $province = Province::create(['name' => 'استان فروشگاه', 'tel_prefix' => '11']);
+        $county = County::create(['name' => 'شهرستان فروشگاه', 'province_id' => $province->id]);
+        $city = City::create(['name' => 'شهر فروشگاه', 'province_id' => $province->id, 'county_id' => $county->id]);
+        $this->storeApplication($user)->update([
+            'listing_approval_mode' => SellerStore::LISTING_APPROVAL_FREE,
+            'province_id' => $province->id,
+            'city_id' => $city->id,
+        ]);
+        $brand = Brand::where('name_en', 'Apple')->firstOrFail();
+        $model = $brand->phoneModels()->where('name_en', 'iPhone 13 Pro Max')->firstOrFail();
+        $part = Attribute::create(['slug' => 'part_number', 'name' => 'پارت نامبر', 'type' => 'string', 'is_active' => true]);
+        $model->attributes()->attach($part->id, ['is_required' => false]);
+        $battery = Attribute::where('slug', 'battery_health')->firstOrFail();
+        $battery->update(['options' => [...$battery->options, '86']]);
+        $storage = Attribute::where('slug', 'storage')->firstOrFail();
+        $color = Attribute::where('slug', 'color')->firstOrFail();
+        $payload = [
+            'camera_listing' => '1',
+            'device_type' => 'mobile',
+            'brand_id' => $brand->id,
+            'phone_model_id' => $model->id,
+            'title' => 'آگهی آزمایشی دوربین',
+            'price' => 210000000,
+            'attributes' => array_replace($this->requiredAttributeValues($model), [
+                $storage->id => '256',
+                $part->id => 'cha',
+                $battery->id => '86',
+                $color->id => 'مشکی',
+            ]),
+        ];
+
+        $this->actingAs($user)
+            ->get(route('listings.create', ['camera' => 1]))
+            ->assertOk()
+            ->assertHeader('Permissions-Policy', 'camera=(self), geolocation=(self), microphone=()')
+            ->assertSee('data-camera-listing="auto"', false)
+            ->assertSee('گرفتن عکس')
+            ->assertSee('نوع کالای دیجیتال')
+            ->assertSee('لپ‌تاپ')
+            ->assertSee('تبلت')
+            ->assertSee('عکس با دوربین گوشی')
+            ->assertSee('capture="environment"', false)
+            ->assertSee('پیش‌نمایش ارسال')
+            ->assertSee('ارسال جهت بررسی…')
+            ->assertSee('aria-label="ارسال برای بررسی ادمین"', false)
+            ->assertSee('aria-label="ویرایش قیمت"', false)
+            ->assertDontSee('name="province_id"', false)
+            ->assertDontSee('name="city_id"', false)
+            ->assertDontSee('را از فایل‌های دستگاه انتخاب کنید');
+
+        $this->get(route('listings.create'))
+            ->assertOk()
+            ->assertHeader('Permissions-Policy', 'camera=(), geolocation=(self), microphone=()')
+            ->assertSee('را از فایل‌های دستگاه انتخاب کنید')
+            ->assertDontSee('capture="environment"', false)
+            ->assertDontSee('data-camera-listing="auto"', false);
+
+        $this->post(route('listings.store'), $payload)->assertSessionHasErrors('images');
+        $this->post(route('listings.store'), [
+            ...$payload,
+            'device_type' => 'tablet',
+            'images' => [UploadedFile::fake()->create('wrong-type.jpg', 10, 'image/jpeg')],
+        ])->assertSessionHasErrors('device_type');
+        $this->post(route('listings.store'), [
+            ...$payload,
+            'images' => [UploadedFile::fake()->create('product.jpg', 10, 'image/jpeg')],
+        ])->assertRedirect()->assertSessionHas('status', 'آگهی شما برای بررسی ارسال شد.');
+
+        $listing = Listing::where('title', 'iPhone 13 Pro Max 256GB CHA 86% Black')->sole();
+        $this->assertSame(ListingStatus::Pending, $listing->status);
+        $this->assertEquals(210000000, $listing->price);
+        $this->assertNull($listing->published_at);
+        $this->assertSame(1, $listing->images()->count());
+        $this->assertEquals($province->id, $listing->province_id);
+        $this->assertEquals($city->id, $listing->city_id);
     }
 
     public function test_free_listing_store_can_edit_approved_listing_without_review(): void

@@ -54,6 +54,30 @@ final class ListingTitle
             && preg_match('/[\x{0600}-\x{06FF}]/u', (string) $title) !== 1;
     }
 
+    public static function generateForCamera(int $brandId, int $modelId, array $values): ?string
+    {
+        $model = PhoneModel::query()->where('brand_id', $brandId)->where('is_active', true)->find($modelId);
+        if (! $model) {
+            return null;
+        }
+
+        $attributes = Attribute::query()->where('is_active', true)->visibleForModel($model->id)
+            ->whereIn('slug', ['storage', 'part_number', 'battery_health', 'color'])->get()->keyBy('slug');
+        $storage = self::englishDigits((string) self::value($values, $attributes->get('storage')));
+        $part = strtoupper(trim((string) self::value($values, $attributes->get('part_number'))));
+        $battery = self::englishDigits((string) self::value($values, $attributes->get('battery_health')));
+        $color = self::englishAttributeValue('color', trim((string) self::value($values, $attributes->get('color'))));
+        $parts = [
+            $model->name_en ?: $model->name,
+            $storage === '' ? '' : $storage.'GB',
+            $part,
+            $battery === '' ? '' : $battery.'%',
+            $color,
+        ];
+
+        return mb_substr(implode(' ', array_filter($parts, fn (string $part): bool => $part !== '')), 0, 160);
+    }
+
     public static function brandName(?Brand $brand, bool $english): string
     {
         if (! $brand) {

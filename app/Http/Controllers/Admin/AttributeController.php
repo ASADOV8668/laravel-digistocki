@@ -101,7 +101,9 @@ class AttributeController extends Controller
     public function update(Request $request, ListingAttribute $attribute)
     {
         $attribute->update($this->validated($request, $attribute));
-        $this->syncVisibilityModels($attribute->refresh());
+        if ($attribute->wasChanged(['visibility_rule', 'visibility_model_ids'])) {
+            $this->syncVisibilityModels($attribute);
+        }
         $this->cleanOptionRestrictions($attribute->refresh());
 
         return back()->with('status', 'ویژگی به‌روزرسانی شد.');
@@ -109,7 +111,7 @@ class AttributeController extends Controller
 
     public function optionRestrictions(ListingAttribute $attribute)
     {
-        abort_unless(in_array($attribute->type?->value, [AttributeType::Select->value, AttributeType::MultiSelect->value], true), 404);
+        abort_unless($attribute->supportsOptionRestrictions(), 404);
 
         $rules = $attribute->optionRestrictions()->get();
         $modelIds = $rules->flatMap(fn (AttributeOptionRestriction $rule) => array_map('intval', $rule->phone_model_ids ?? []))->unique();
@@ -131,7 +133,7 @@ class AttributeController extends Controller
 
     public function storeOptionRestriction(Request $request, ListingAttribute $attribute)
     {
-        abort_unless(in_array($attribute->type?->value, [AttributeType::Select->value, AttributeType::MultiSelect->value], true), 404);
+        abort_unless($attribute->supportsOptionRestrictions(), 404);
         $options = array_values(array_map('strval', $attribute->options ?? []));
         $validated = $request->validate([
             'phone_model_ids' => ['required', 'array', 'min:1'],
@@ -214,7 +216,7 @@ class AttributeController extends Controller
     {
         $allowedOptions = array_map('strval', $attribute->options ?? []);
 
-        if (! in_array($attribute->type?->value, [AttributeType::Select->value, AttributeType::MultiSelect->value], true)) {
+        if (! $attribute->supportsOptionRestrictions()) {
             $attribute->optionRestrictions()->delete();
 
             return;
@@ -250,7 +252,7 @@ class AttributeController extends Controller
         $attribute->modelAttributes()->whereNotIn('phone_model_id', $modelIds)->delete();
 
         foreach ($modelIds as $modelId) {
-            $attribute->modelAttributes()->updateOrCreate(
+            $attribute->modelAttributes()->firstOrCreate(
                 ['phone_model_id' => $modelId],
                 ['is_required' => $attribute->is_required, 'sort_order' => $attribute->sort_order],
             );

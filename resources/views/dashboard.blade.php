@@ -28,6 +28,7 @@
                     <h2 class="mt-1 text-2xl font-black">همه‌چیز مرتب و آماده فروش</h2>
                     <p class="mt-2 text-xs leading-6 text-white/75">وضعیت آگهی‌هایت را بررسی کن و سریع‌تر به خریدارها پاسخ
                         بده.</p><a href="{{ route('listings.create') }}"
+                    data-camera-listing-url="{{ route('listings.create', ['camera' => 1]) }}" style="touch-action: pan-y; -webkit-touch-callout: none; user-select: none;"
                         class="mt-4 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-black text-primary transition hover:bg-primary-50"><x-heroicon-o-plus
                             class="h-5 w-5" />ثبت آگهی جدید</a>
                 </div>
@@ -252,6 +253,7 @@
                     <h3 class="mt-4 font-black text-neutral">در این وضعیت آگهی‌ای ندارید</h3>
                     <p class="mt-2 text-xs leading-6 text-slate-500">اولین آگهی خودت را ثبت کن و آن را از همین‌جا
                         مدیریت کن.</p><a href="{{ route('listings.create') }}"
+                    data-camera-listing-url="{{ route('listings.create', ['camera' => 1]) }}" style="touch-action: pan-y; -webkit-touch-callout: none; user-select: none;"
                         class="mt-4 inline-flex rounded-lg bg-primary px-4 py-2.5 text-xs font-bold text-white">ثبت
                         آگهی</a>
                 </div>

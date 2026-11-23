@@ -20,6 +20,7 @@
                 class="mb-1 h-6 w-6 group-hover:text-primary" /><span>موردعلاقه</span></a>
         @if ($canPostListings)
             <a href="{{ route('listings.create') }}"
+                    data-camera-listing-url="{{ route('listings.create', ['camera' => 1]) }}" style="touch-action: pan-y; -webkit-touch-callout: none; user-select: none;"
                 class="group -mt-7 inline-flex flex-col items-center justify-center px-2 text-xs font-bold text-primary"><span
                     class="mb-1 flex h-14 w-14 items-center justify-center rounded-full border-4 border-slate-50 bg-primary text-white shadow-lg transition group-hover:bg-primary-600 dark:border-slate-950"><x-heroicon-o-plus
                         class="h-7 w-7" /></span><span>ثبت آگهی</span></a>

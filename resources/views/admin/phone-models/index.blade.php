@@ -1,17 +1,25 @@
-<x-admin-layout title="مدل‌های گوشی">
+<x-admin-layout title="کاتالوگ مدل‌های محصول">
     <x-slot name="header">
         <div class="flex items-center gap-3"><span
                 class="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent"><x-heroicon-o-device-phone-mobile
                     class="h-6 w-6" /></span>
             <div>
-                <h2 class="text-xl font-black text-slate-900">مدل‌های گوشی</h2>
+                <h2 class="text-xl font-black text-slate-900">کاتالوگ مدل‌های محصول</h2>
                 <p class="mt-1 text-xs text-slate-400">مدل‌های دوزبانه را برای جستجو و ثبت آگهی مدیریت کنید.</p>
             </div>
         </div>
     </x-slot>
     <section class="space-y-6"><x-admin.feedback /><x-admin.catalog-tabs active="models" />
+        <nav class="flex flex-wrap gap-2" aria-label="نوع محصول">
+            @foreach (['' => 'همه محصولات'] + \App\Models\PhoneModel::DEVICE_TYPES as $type => $label)
+                <a href="{{ route('admin.phone-models.index', array_filter(['device_type' => $type, ...request()->only('q', 'brand_id')])) }}"
+                    @if (($deviceType ?? '') === $type) aria-current="page" @endif
+                    @class(['rounded-xl border px-4 py-2 text-xs font-bold', 'border-accent bg-accent text-white' => ($deviceType ?? '') === $type, 'border-slate-200 bg-white text-slate-700' => ($deviceType ?? '') !== $type])>{{ $label }}</a>
+            @endforeach
+        </nav>
         <form method="GET" action="{{ route('admin.phone-models.index') }}"
             class="admin-card grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_220px_auto]">
+            @if ($deviceType)<input type="hidden" name="device_type" value="{{ $deviceType }}">@endif
             <div class="relative"><x-heroicon-o-magnifying-glass
                     class="pointer-events-none absolute right-3 top-2.5 h-5 w-5 text-slate-400" /><input name="q"
                     value="{{ request('q') }}" placeholder="جستجوی نام فارسی یا انگلیسی مدل"
@@ -26,7 +34,7 @@
             <div class="flex gap-2"><button
                     class="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-accent">جستجو</button>
                 @if (request()->hasAny(['q', 'brand_id']))
-                    <a href="{{ route('admin.phone-models.index') }}"
+                    <a href="{{ route('admin.phone-models.index', $deviceType ? ['device_type' => $deviceType] : []) }}"
                         class="rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-600">پاک‌کردن</a>
                 @endif
             </div>
@@ -50,6 +58,11 @@
                         <option value="{{ $brand->id }}">{{ $brand->name }} / {{ $brand->name_en }}</option>
                     @endforeach
                 </select>
+                <select name="device_type" aria-label="نوع کالا" class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent">
+                    @foreach (\App\Models\PhoneModel::DEVICE_TYPES as $type => $label)
+                        <option value="{{ $type }}" @selected(old('device_type', $deviceType ?? 'mobile') === $type)>{{ $label }}</option>
+                    @endforeach
+                </select>
                 <select name="phone_series_id" class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent">
                     <option value="">بدون سری</option>
                     @foreach ($series as $item)
@@ -64,21 +77,8 @@
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent"></div>
                 <input name="release_year" type="number" placeholder="سال عرضه"
                     class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent">
-                <div>
-                    <p class="mb-2 text-xs font-bold text-slate-700">ویژگی‌های قابل نمایش و الزامی</p>
-                    <div class="grid grid-cols-1 gap-2 rounded-xl bg-slate-50 p-3">
-                        @foreach ($attributes as $attribute)
-                            <label class="flex items-center justify-between gap-2 text-xs text-slate-600"><span
-                                    class="flex items-center gap-2"><input type="checkbox" name="attribute_ids[]"
-                                        value="{{ $attribute->id }}"
-                                        class="rounded border-slate-300 text-accent focus:ring-accent">{{ $attribute->name }}</span><span
-                                    class="flex items-center gap-1 text-[10px] text-slate-400"><input type="checkbox"
-                                        name="required_attribute_ids[]" value="{{ $attribute->id }}"
-                                        class="rounded border-slate-300 text-accent focus:ring-accent">
-                                    الزامی</span></label>
-                        @endforeach
-                    </div>
-                </div><button
+                @include('admin.phone-models._attributes', ['model' => null])
+                <button
                     class="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-accent">ذخیره
                     مدل</button>
             </form>
@@ -93,14 +93,13 @@
                 </div>
                 <div class="divide-y divide-slate-100">
                     @forelse ($models as $model)
-                        @php($selectedAttributes = $model->attributes->pluck('id')->all()) @php($selectedRequiredAttributes = $model->attributes->filter(fn($attribute) => (bool) $attribute->pivot->is_required)->pluck('id')->all())
                         <div class="p-5 transition hover:bg-slate-50">
                             <div class="flex items-center justify-between gap-3">
                                 <div class="min-w-0">
                                     <h2 class="font-black text-slate-800">{{ $model->brand->name }}
                                         {{ $model->name_fa ?: $model->name }}</h2>
                                     <p class="mt-1 truncate text-xs text-slate-400">
-                                        {{ $model->name_en ?: $model->name }} ·
+                                        {{ $model->name_en ?: $model->name }} · {{ \App\Models\PhoneModel::DEVICE_TYPES[$model->device_type] ?? '' }} ·
                                         {{ number_format($model->listings_count) }} آگهی</p>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -126,6 +125,13 @@
                                                         @endforeach
                                                     </select>
                                                 </div>
+                                                <div><label class="mb-1 block text-[11px] font-bold text-slate-600">نوع کالا
+                                                    <select name="device_type" class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">
+                                                        @foreach (\App\Models\PhoneModel::DEVICE_TYPES as $type => $label)
+                                                            <option value="{{ $type }}" @selected($model->device_type === $type)>{{ $label }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </label></div>
                                                 <div><label class="mb-1 block text-[11px] font-bold text-slate-600">سری</label><select
                                                         name="phone_series_id" class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">
                                                         <option value="">بدون سری</option>
@@ -156,27 +162,8 @@
                                                         class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">
                                                 </div>
                                             </div>
-                                            <div>
-                                                <p class="mb-2 text-[11px] font-bold text-slate-600">ویژگی‌های مدل و
-                                                    الزام آن‌ها</p>
-                                                <div class="grid grid-cols-1 gap-2 rounded-xl bg-white p-3">
-                                                    @foreach ($attributes as $attribute)
-                                                        <label
-                                                            class="flex items-center justify-between gap-2 text-xs text-slate-600"><span
-                                                                class="flex items-center gap-2"><input type="checkbox"
-                                                                    name="attribute_ids[]"
-                                                                    value="{{ $attribute->id }}"
-                                                                    @checked(in_array($attribute->id, $selectedAttributes, true))
-                                                                    class="rounded border-slate-300 text-accent focus:ring-accent">{{ $attribute->name }}</span><span
-                                                                class="flex items-center gap-1 text-[10px] text-slate-400"><input
-                                                                    type="checkbox" name="required_attribute_ids[]"
-                                                                    value="{{ $attribute->id }}"
-                                                                    @checked(in_array($attribute->id, $selectedRequiredAttributes, true))
-                                                                    class="rounded border-slate-300 text-accent focus:ring-accent">
-                                                                الزامی</span></label>
-                                                    @endforeach
-                                                </div>
-                                            </div><button
+                                            @include('admin.phone-models._attributes', ['model' => $model])
+                                            <button
                                                 class="rounded-lg bg-accent px-4 py-2 text-xs font-bold text-white">ذخیره
                                                 تغییرات</button>
                                         </form>
