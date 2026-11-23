@@ -101,7 +101,9 @@ class AttributeController extends Controller
     public function update(Request $request, ListingAttribute $attribute)
     {
         $attribute->update($this->validated($request, $attribute));
-        $this->syncVisibilityModels($attribute->refresh());
+        if ($attribute->wasChanged(['visibility_rule', 'visibility_model_ids'])) {
+            $this->syncVisibilityModels($attribute);
+        }
         $this->cleanOptionRestrictions($attribute->refresh());
 
         return back()->with('status', 'ویژگی به‌روزرسانی شد.');
@@ -250,7 +252,7 @@ class AttributeController extends Controller
         $attribute->modelAttributes()->whereNotIn('phone_model_id', $modelIds)->delete();
 
         foreach ($modelIds as $modelId) {
-            $attribute->modelAttributes()->updateOrCreate(
+            $attribute->modelAttributes()->firstOrCreate(
                 ['phone_model_id' => $modelId],
                 ['is_required' => $attribute->is_required, 'sort_order' => $attribute->sort_order],
             );

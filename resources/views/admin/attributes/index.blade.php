@@ -1,4 +1,4 @@
-<x-admin-layout title="ویژگی‌های گوشی">
+<x-admin-layout title="ویژگی‌های محصول">
     <x-slot name="header">
         <div class="flex items-center gap-3"><span
                 class="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent"><x-heroicon-o-adjustments-horizontal

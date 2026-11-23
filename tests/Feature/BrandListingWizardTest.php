@@ -10,6 +10,7 @@ use App\Models\ListingAttributeValue;
 use App\Models\PhoneModel;
 use App\Models\SellerStore;
 use App\Models\User;
+use App\Services\ListingAttributeValidator;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -107,11 +108,15 @@ class BrandListingWizardTest extends TestCase
         $this->seed(CatalogSeeder::class);
         $brand = Brand::where('name_en', 'Apple')->firstOrFail();
         $admin = User::factory()->create(['role' => 'admin']);
+        $color = Attribute::where('slug', 'color')->firstOrFail();
+        $caseSize = Attribute::create(['slug' => 'case-size', 'name' => 'اندازه قاب', 'type' => 'integer', 'is_active' => true]);
+        $payload = [
+            'brand_id' => $brand->id, 'name' => 'Test Watch', 'device_type' => 'smartwatch',
+            'attribute_ids' => [$color->id, $caseSize->id], 'required_attribute_ids' => [$color->id],
+        ];
 
         $this->actingAs($admin)->post(route('admin.phone-models.store'), [
-            'brand_id' => $brand->id,
-            'name' => 'Test Watch',
-            'device_type' => 'smartwatch',
+            ...$payload, 'attribute_options' => [$color->id => 'آبی یخی، مشکی مات', $caseSize->id => '41, 45'],
         ])->assertRedirect()->assertSessionHasNoErrors();
 
         $watch = $brand->phoneModels()->where('name', 'Test Watch')->sole();
@@ -120,6 +125,24 @@ class BrandListingWizardTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'models')
             ->assertJsonPath('models.0.id', $watch->id);
+
+        $config = route('listings.wizard.config', [$brand, 'device_type' => 'smartwatch', 'model_id' => $watch->id]);
+        $this->getJson($config)->assertOk()
+            ->assertJsonPath('steps.1.attribute.options', ['آبی یخی', 'مشکی مات'])
+            ->assertJsonPath('steps.1.required', true)
+            ->assertJsonPath('steps.2.attribute.options', ['41', '45']);
+        $validator = app(ListingAttributeValidator::class);
+        $this->assertSame([], $validator->errors($watch, [$color->id => 'آبی یخی', $caseSize->id => '41']));
+        $this->assertArrayHasKey('attributes.'.$caseSize->id, $validator->errors($watch, [$color->id => 'آبی یخی', $caseSize->id => '42']));
+        $this->assertNotContains('آبی یخی', $color->optionsForModel($brand->phoneModels()->where('device_type', 'mobile')->firstOrFail()->id));
+
+        $this->get(route('admin.phone-models.index', ['device_type' => 'smartwatch']))
+            ->assertOk()->assertSee('Test Watch')->assertSee('آبی یخی')->assertDontSee('iPhone 13 Pro Max');
+
+        $this->patch(route('admin.phone-models.update', $watch), [
+            ...$payload, 'attribute_options' => [$color->id => ''],
+        ])->assertRedirect()->assertSessionHasNoErrors();
+        $this->getJson($config)->assertOk()->assertJsonPath('steps.1.attribute.options', $color->optionsForModel($watch->id));
     }
 
     public function test_camera_catalog_filters_device_type_and_series_and_orders_model_choices(): void

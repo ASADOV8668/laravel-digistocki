@@ -57,6 +57,15 @@ class ListingAttributeValidator
                 AttributeType::String => is_scalar($value) ? null : 'مقدار متنی نامعتبر است.',
             };
 
+            if ($message === null && in_array($attribute->type, [AttributeType::Integer, AttributeType::Decimal, AttributeType::String], true)) {
+                $custom = $attribute->customOptionsForModel($model->id);
+                if ($custom !== null && ! collect($custom)->contains(fn (string $option): bool => $attribute->type === AttributeType::Decimal
+                    ? (float) $value === (float) $option
+                    : (string) $value === $option)) {
+                    $message = 'یکی از گزینه‌های اختصاصی این مدل را انتخاب کنید.';
+                }
+            }
+
             if ($message !== null) {
                 $errors[$field] = $message;
             }

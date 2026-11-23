@@ -93,12 +93,18 @@
                         </template>
                         <template
                             x-if="['integer', 'decimal'].includes(attribute(row.attributeId)?.type) && !isRam(row.attributeId) && !isBatteryHealth(row.attributeId)">
-                            <input :name="inputName(row)" x-model="row.value" type="number"
-                                :step="attribute(row.attributeId)?.type === 'decimal' ? '0.01' : '1'"
-                                class="public-input">
+                            <input :name="inputName(row)" x-model="row.value" type="number" :list="optionsId(row)"
+                                :step="attribute(row.attributeId)?.type === 'decimal' ? 'any' : '1'" class="public-input">
                         </template>
                         <template x-if="attribute(row.attributeId)?.type === 'string'">
-                            <input :name="inputName(row)" x-model="row.value" type="text" class="public-input">
+                            <input :name="inputName(row)" x-model="row.value" type="text" :list="optionsId(row)" class="public-input">
+                        </template>
+                        <template x-if="['integer', 'decimal', 'string'].includes(attribute(row.attributeId)?.type) && !isRam(row.attributeId) && !isBatteryHealth(row.attributeId) && options(row.attributeId).length">
+                            <datalist :id="optionsId(row)">
+                                <template x-for="option in options(row.attributeId)" :key="option">
+                                    <option :value="option"></option>
+                                </template>
+                            </datalist>
                         </template>
                     </div>
 

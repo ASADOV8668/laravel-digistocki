@@ -127,19 +127,19 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                             class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.brands.*', 'admin.phone-models.*', 'admin.attributes.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
                         <span x-show="!sidebarCollapsed">کاتالوگ گوشی</span>
                     </a>
-                    <a href="{{ route('admin.phone-models.index') }}" title="مدل‌های گوشی"
+                    <a href="{{ route('admin.phone-models.index') }}" title="مدل‌های محصول"
                         class="menu-item group {{ request()->routeIs('admin.phone-models.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         :class="sidebarCollapsed ? 'justify-center' : ''">
                         <x-heroicon-o-cpu-chip
                             class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.phone-models.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                        <span x-show="!sidebarCollapsed">مدل‌های گوشی</span>
+                        <span x-show="!sidebarCollapsed">مدل‌های محصول</span>
                     </a>
-                    <a href="{{ route('admin.attributes.index') }}" title="ویژگی‌های گوشی"
+                    <a href="{{ route('admin.attributes.index') }}" title="ویژگی‌های محصول"
                         class="menu-item group {{ request()->routeIs('admin.attributes.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         :class="sidebarCollapsed ? 'justify-center' : ''">
                         <x-heroicon-o-adjustments-horizontal
                             class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.attributes.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                        <span x-show="!sidebarCollapsed">ویژگی‌های گوشی</span>
+                        <span x-show="!sidebarCollapsed">ویژگی‌های محصول</span>
                     </a>
 
                     <p x-show="!sidebarCollapsed"

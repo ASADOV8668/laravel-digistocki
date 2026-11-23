@@ -30,6 +30,7 @@ class Attribute extends Model
     public function scopeVisibleForModel(Builder $query, int $phoneModelId): Builder
     {
         return $query
+            ->with(['modelAttributes' => fn ($relation) => $relation->where('phone_model_id', $phoneModelId)])
             ->whereHas('phoneModels', fn (Builder $modelQuery) => $modelQuery->whereKey($phoneModelId))
             ->where(function (Builder $query) use ($phoneModelId): void {
             $query->where('visibility_rule', 'all')
@@ -73,7 +74,16 @@ class Attribute extends Model
     {
         $options = array_values(array_map('strval', $this->options ?? []));
 
-        if ($phoneModelId === null || ! $this->supportsOptionRestrictions()) {
+        if ($phoneModelId === null) {
+            return $options;
+        }
+
+        $custom = $this->supportsCustomOptions() ? $this->customOptionsForModel($phoneModelId) : null;
+        if ($custom !== null) {
+            return $custom;
+        }
+
+        if (! $this->supportsOptionRestrictions()) {
             return $options;
         }
 
@@ -90,10 +100,22 @@ class Attribute extends Model
         return array_values(array_filter($options, fn (string $option): bool => in_array($option, $allowed, true)));
     }
 
+    public function customOptionsForModel(int $phoneModelId): ?array
+    {
+        return $this->relationLoaded('modelAttributes')
+            ? $this->modelAttributes->firstWhere('phone_model_id', $phoneModelId)?->custom_options
+            : $this->modelAttributes()->where('phone_model_id', $phoneModelId)->first()?->custom_options;
+    }
+
     public function supportsOptionRestrictions(): bool
     {
         return in_array($this->type, [AttributeType::Select, AttributeType::MultiSelect], true)
             || ($this->slug === 'storage' && $this->type === AttributeType::Integer);
+    }
+
+    public function supportsCustomOptions(): bool
+    {
+        return $this->type !== AttributeType::Boolean;
     }
 
     public function phoneModels(): BelongsToMany
