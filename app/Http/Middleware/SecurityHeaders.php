@@ -18,7 +18,7 @@ class SecurityHeaders
         // Geolocation is an explicit user action on the public site. Keep it
         // limited to this origin so the browser can show its permission prompt.
         $photoListing = $request->routeIs('listings.create')
-            && ($request->boolean('camera') || $request->boolean('photo') || $request->old('camera_listing') === '1')
+            && ($request->boolean('camera') || $request->old('camera_listing') === '1')
             && $response->isSuccessful();
         $cameraPolicy = $photoListing ? '(self)' : '()';
         $response->headers->set('Permissions-Policy', "camera={$cameraPolicy}, geolocation=(self), microphone=()");

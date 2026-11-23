@@ -1660,7 +1660,7 @@ window.listingWizard = () => ({
 
         const attributeId = String(stage.attribute?.id || '');
         if (!attributeId) return;
-        this.values = { ...this.values, [attributeId]: option.id || '' };
+        this.values = { ...this.values, [attributeId]: option.id ?? '' };
         window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: this.attributes, values: this.values } }));
         this.updateGeneratedTitle();
     },

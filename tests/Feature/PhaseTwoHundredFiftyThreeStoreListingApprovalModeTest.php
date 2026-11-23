@@ -11,6 +11,9 @@ use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Sadegh19b\LaravelIranCities\Models\City;
+use Sadegh19b\LaravelIranCities\Models\County;
+use Sadegh19b\LaravelIranCities\Models\Province;
 use Tests\Support\BuildsListingAttributePayload;
 use Tests\TestCase;
 
@@ -88,7 +91,14 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
     {
         Storage::fake('public');
         $user = User::factory()->create();
-        $this->storeApplication($user)->update(['listing_approval_mode' => SellerStore::LISTING_APPROVAL_FREE]);
+        $province = Province::create(['name' => 'استان فروشگاه', 'tel_prefix' => '11']);
+        $county = County::create(['name' => 'شهرستان فروشگاه', 'province_id' => $province->id]);
+        $city = City::create(['name' => 'شهر فروشگاه', 'province_id' => $province->id, 'county_id' => $county->id]);
+        $this->storeApplication($user)->update([
+            'listing_approval_mode' => SellerStore::LISTING_APPROVAL_FREE,
+            'province_id' => $province->id,
+            'city_id' => $city->id,
+        ]);
         $brand = Brand::firstOrFail();
         $model = $brand->phoneModels()->firstOrFail();
         $payload = [
@@ -105,13 +115,17 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
             ->assertOk()
             ->assertHeader('Permissions-Policy', 'camera=(self), geolocation=(self), microphone=()')
             ->assertSee('data-camera-listing="auto"', false)
-            ->assertSee('گرفتن عکس');
+            ->assertSee('گرفتن عکس')
+            ->assertSee('پیش‌نمایش ارسال')
+            ->assertDontSee('name="province_id"', false)
+            ->assertDontSee('name="city_id"', false)
+            ->assertDontSee('را از فایل‌های دستگاه انتخاب کنید');
 
-        $this->get(route('listings.create', ['photo' => 1]))
+        $this->get(route('listings.create'))
             ->assertOk()
-            ->assertSee('data-camera-listing="manual"', false)
-            ->assertSee('انتخاب عکس از فایل‌ها')
-            ->assertDontSee('capture="environment"', false);
+            ->assertHeader('Permissions-Policy', 'camera=(), geolocation=(self), microphone=()')
+            ->assertSee('را از فایل‌های دستگاه انتخاب کنید')
+            ->assertDontSee('data-camera-listing="auto"', false);
 
         $this->post(route('listings.store'), $payload)->assertSessionHasErrors('images');
         $this->post(route('listings.store'), [
@@ -123,6 +137,8 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
         $this->assertSame(ListingStatus::Pending, $listing->status);
         $this->assertNull($listing->published_at);
         $this->assertSame(1, $listing->images()->count());
+        $this->assertEquals($province->id, $listing->province_id);
+        $this->assertEquals($city->id, $listing->city_id);
     }
 
     public function test_free_listing_store_can_edit_approved_listing_without_review(): void

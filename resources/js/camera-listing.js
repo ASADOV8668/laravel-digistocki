@@ -45,6 +45,7 @@ export function cameraListing() {
         cameraBusy: false,
         cameraError: '',
         cameraStep: null,
+        cameraDetailsStep: 'title',
         cameraStepBusy: false,
         cameraCarryValues: null,
         cameraSkipped: {},
@@ -61,7 +62,7 @@ export function cameraListing() {
             if (this.cameraBusy || this.cameraOpened) return;
             this.cameraError = '';
             if (!navigator.mediaDevices?.getUserMedia || typeof DataTransfer === 'undefined') {
-                this.cameraError = 'دوربین زنده در این مرورگر در دسترس نیست. از دکمهٔ انتخاب عکس استفاده کنید.';
+                this.cameraError = 'دوربین زنده در این مرورگر در دسترس نیست. برای انتخاب فایل، به ثبت آگهی دستی بروید.';
                 return;
             }
 
@@ -73,7 +74,7 @@ export function cameraListing() {
                 this.$refs.listingCameraVideo.srcObject = this.cameraStream;
                 this.cameraOpened = true;
             } catch {
-                this.cameraError = 'دوربین باز نشد. دسترسی دوربین را در مرورگر بررسی کنید یا عکس انتخاب کنید.';
+                this.cameraError = 'دوربین باز نشد. دسترسی دوربین را در تنظیمات مرورگر بررسی کنید.';
             } finally {
                 this.cameraBusy = false;
             }
@@ -130,7 +131,8 @@ export function cameraListing() {
 
         cameraStageLabel(stage, value) {
             const option = this.cameraStageOptions(stage).find(({ id }) => String(id) === String(value));
-            return (stage.type === 'model' ? option?.secondary : null) || option?.label || value;
+            const label = (stage.type === 'model' ? option?.secondary : null) || option?.label || value;
+            return stage.attribute?.unit === '%' ? `${label}٪` : label;
         },
 
         cameraStageAcceptsText(stage) {
@@ -213,8 +215,12 @@ export function cameraListing() {
             }
         },
 
-        cameraCanSubmit() {
+        cameraSpecsComplete() {
             return Boolean(this.wizardConfig) && this.previews.length > 0 && !this.cameraOpened && !this.cameraBusy && !this.fastLoading && this.fastComplete() && this.cameraStep === null && !this.cameraStepBusy;
+        },
+
+        cameraCanSubmit() {
+            return this.cameraSpecsComplete() && this.cameraDetailsStep === 'review';
         },
     };
 }

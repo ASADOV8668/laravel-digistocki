@@ -674,7 +674,6 @@ class ListingController extends Controller
         return view('listings.create', [
             'brands' => Brand::query()->where('is_active', true)->where('can_post_listings', true)->with(['phoneModels' => fn ($query) => $query->where('is_active', true)->orderBy('name')])->orderBy('name')->get(),
             'attributes' => Attribute::query()->where('is_active', true)->orderBy('sort_order')->get(),
-            'provinces' => Province::query()->orderBy('name')->get(),
             'initialModelAttributes' => $this->attributePayload($initialAttributes, $selectedModel?->id),
             'initialValues' => old('attributes', $cloneValues),
             'cloneListing' => $cloneListing,

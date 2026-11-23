@@ -22,7 +22,7 @@ class PhaseNineListingWizardTest extends TestCase
         $this->seed(CatalogSeeder::class);
     }
 
-    public function test_create_page_exposes_four_step_wizard_and_location_fields(): void
+    public function test_create_page_exposes_four_step_wizard_without_location_fields(): void
     {
         $user = User::factory()->create();
         \App\Models\SellerStore::create(['user_id' => $user->id, 'slug' => 'wizard-store-'.$user->id, 'name' => 'فروشگاه ویزارد']);
@@ -33,8 +33,8 @@ class PhaseNineListingWizardTest extends TestCase
             ->assertSee('۲. مشخصات')
             ->assertSee('۳. اطلاعات')
             ->assertSee('۴. ارسال')
-            ->assertSee('استان')
-            ->assertSee('شهر');
+            ->assertDontSee('name="province_id"', false)
+            ->assertDontSee('name="city_id"', false);
     }
 
     public function test_all_model_attributes_endpoint_supports_listing_creation_fields(): void

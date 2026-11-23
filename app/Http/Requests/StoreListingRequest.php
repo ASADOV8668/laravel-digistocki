@@ -21,7 +21,7 @@ class StoreListingRequest extends FormRequest
         $store = $this->user()?->storefront;
         $location = [];
 
-        if ($store && ! $this->user()?->isAdmin()) {
+        if ($store) {
             $location = [
                 'province_id' => $store->province_id,
                 'city_id' => $store->city_id,
