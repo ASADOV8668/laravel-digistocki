@@ -102,6 +102,26 @@ class BrandListingWizardTest extends TestCase
         $this->getJson(route('listings.wizard.config', $brand))->assertOk();
     }
 
+    public function test_admin_can_save_a_smartwatch_and_the_camera_catalog_can_find_it(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $brand = Brand::where('name_en', 'Apple')->firstOrFail();
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)->post(route('admin.phone-models.store'), [
+            'brand_id' => $brand->id,
+            'name' => 'Test Watch',
+            'device_type' => 'smartwatch',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $watch = $brand->phoneModels()->where('name', 'Test Watch')->sole();
+        $this->assertSame('smartwatch', $watch->device_type);
+        $this->getJson(route('listings.wizard.config', [$brand, 'device_type' => 'smartwatch']))
+            ->assertOk()
+            ->assertJsonCount(1, 'models')
+            ->assertJsonPath('models.0.id', $watch->id);
+    }
+
     public function test_camera_catalog_filters_device_type_and_series_and_orders_model_choices(): void
     {
         $this->seed(CatalogSeeder::class);
