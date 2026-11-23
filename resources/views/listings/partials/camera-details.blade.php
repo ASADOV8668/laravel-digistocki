@@ -73,7 +73,7 @@
             <p class="text-sm font-bold" role="status"
                 x-text="cameraSubmitting ? 'در حال ارسال…' : 'ارسال برای بررسی ادمین'">ارسال برای بررسی ادمین</p>
             <button type="submit" aria-label="ارسال برای بررسی ادمین" :disabled="cameraSubmitting"
-                class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-emerald-700 text-white shadow-md transition hover:bg-emerald-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700 disabled:opacity-60">
+                class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-primary text-white shadow-md transition hover:bg-primary-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary disabled:opacity-60">
                 <x-heroicon-s-paper-airplane class="h-6 w-6 rotate-180" aria-hidden="true" />
             </button>
         </div>
