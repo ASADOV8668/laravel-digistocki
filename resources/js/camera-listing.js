@@ -47,7 +47,7 @@ export function cameraListing() {
         cameraError: '',
         cameraStep: null,
         cameraDeviceType: '',
-        cameraDetailsStep: 'title',
+        cameraDetailsStep: 'price',
         cameraEditingDetail: false,
         cameraSubmitting: false,
         cameraStepBusy: false,
@@ -244,6 +244,12 @@ export function cameraListing() {
 
         cameraSpecsComplete() {
             return Boolean(this.cameraDeviceType && this.wizardConfig) && this.previews.length > 0 && !this.cameraOpened && !this.cameraBusy && !this.fastLoading && this.fastComplete() && this.cameraStep === null && !this.cameraStepBusy;
+        },
+
+        cameraListingTitle() {
+            const model = this.models.find(({ id }) => String(id) === String(this.modelId));
+            const attributes = this.fastStages().flatMap(({ attribute }) => attribute ? [attribute] : []);
+            return window.listingTitleGenerator.generateCamera(model, attributes, this.values);
         },
 
         editCameraDetail(field) {

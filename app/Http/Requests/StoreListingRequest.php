@@ -30,7 +30,13 @@ class StoreListingRequest extends FormRequest
         }
 
         $title = trim((string) $this->input('title'));
-        if ($title === '') {
+        if ($this->boolean('camera_listing') && $this->filled('device_type')) {
+            $title = ListingTitle::generateForCamera(
+                $this->integer('brand_id'),
+                $this->integer('phone_model_id'),
+                (array) $this->input('attributes', []),
+            ) ?? '';
+        } elseif ($title === '') {
             $title = ListingTitle::generate(
                 $this->integer('brand_id'),
                 $this->integer('phone_model_id'),

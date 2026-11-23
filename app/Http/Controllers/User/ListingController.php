@@ -319,10 +319,10 @@ class ListingController extends Controller
                     }
                 }
                 foreach ($attributes as $attribute) {
-                    if (in_array($attribute->slug, ['storage', 'color'], true) || ! ($required[$attribute->id] ?? $attribute->is_required)) {
+                    if (in_array($attribute->slug, ['storage', 'color'], true)) {
                         continue;
                     }
-                    $ordered->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => $ordered->count() + 3, 'attribute' => $attribute]);
+                    $ordered->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => (bool) ($required[$attribute->id] ?? $attribute->is_required), 'sort_order' => $ordered->count() + 3, 'attribute' => $attribute]);
                 }
             }
             $steps = $ordered;

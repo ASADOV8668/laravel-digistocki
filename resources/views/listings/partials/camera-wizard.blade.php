@@ -43,6 +43,15 @@
     </div>
 
     <div x-show="previews.length && !cameraOpened" class="relative mt-auto max-h-[45dvh] w-full max-w-2xl space-y-3 self-center overflow-y-auto px-4 pb-3">
+        <div x-show="cameraListingTitle()" aria-live="polite" class="rounded-xl bg-slate-950/85 px-4 py-3 text-white">
+            <p dir="ltr" class="break-words text-left text-base font-black" x-text="cameraListingTitle()"></p>
+            <p x-show="priceOnRequest || raw !== ''" class="mt-1 text-left text-sm font-bold tabular-nums" dir="ltr">
+                <template x-if="priceOnRequest"><span dir="rtl">تماس بگیرید</span></template>
+                <template x-if="!priceOnRequest && raw !== ''">
+                    <span><bdi x-text="BigInt(raw || '0').toLocaleString('en-US')"></bdi> <bdi>تومان</bdi></span>
+                </template>
+            </p>
+        </div>
         <div x-show="cameraDeviceType" class="flex gap-2 overflow-x-auto py-1" aria-label="مشخصات انتخاب‌شده">
             <button type="button" @click="cameraStep = 'device'" :disabled="cameraStepBusy" aria-label="ویرایش نوع کالا"
                 class="shrink-0 rounded-full bg-slate-100 px-3 py-2 text-xs font-bold text-slate-800"

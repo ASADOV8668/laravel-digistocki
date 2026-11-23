@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\ListingStatus;
+use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Listing;
 use App\Models\SellerStore;
@@ -99,16 +100,27 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
             'province_id' => $province->id,
             'city_id' => $city->id,
         ]);
-        $brand = Brand::firstOrFail();
-        $model = $brand->phoneModels()->firstOrFail();
+        $brand = Brand::where('name_en', 'Apple')->firstOrFail();
+        $model = $brand->phoneModels()->where('name_en', 'iPhone 13 Pro Max')->firstOrFail();
+        $part = Attribute::create(['slug' => 'part_number', 'name' => 'پارت نامبر', 'type' => 'string', 'is_active' => true]);
+        $model->attributes()->attach($part->id, ['is_required' => false]);
+        $battery = Attribute::where('slug', 'battery_health')->firstOrFail();
+        $battery->update(['options' => [...$battery->options, '86']]);
+        $storage = Attribute::where('slug', 'storage')->firstOrFail();
+        $color = Attribute::where('slug', 'color')->firstOrFail();
         $payload = [
             'camera_listing' => '1',
             'device_type' => 'mobile',
             'brand_id' => $brand->id,
             'phone_model_id' => $model->id,
             'title' => 'آگهی آزمایشی دوربین',
-            'price' => 32000000,
-            'attributes' => $this->requiredAttributeValues($model),
+            'price' => 210000000,
+            'attributes' => array_replace($this->requiredAttributeValues($model), [
+                $storage->id => '256',
+                $part->id => 'cha',
+                $battery->id => '86',
+                $color->id => 'مشکی',
+            ]),
         ];
 
         $this->actingAs($user)
@@ -123,6 +135,7 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
             ->assertSee('عکس با دوربین گوشی')
             ->assertSee('capture="environment"', false)
             ->assertSee('پیش‌نمایش ارسال')
+            ->assertSee('ارسال جهت بررسی…')
             ->assertSee('aria-label="ارسال برای بررسی ادمین"', false)
             ->assertSee('aria-label="ویرایش قیمت"', false)
             ->assertDontSee('name="province_id"', false)
@@ -147,8 +160,9 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
             'images' => [UploadedFile::fake()->create('product.jpg', 10, 'image/jpeg')],
         ])->assertRedirect()->assertSessionHas('status', 'آگهی شما برای بررسی ارسال شد.');
 
-        $listing = Listing::where('title', $payload['title'])->sole();
+        $listing = Listing::where('title', 'iPhone 13 Pro Max 256GB CHA 86% Black')->sole();
         $this->assertSame(ListingStatus::Pending, $listing->status);
+        $this->assertEquals(210000000, $listing->price);
         $this->assertNull($listing->published_at);
         $this->assertSame(1, $listing->images()->count());
         $this->assertEquals($province->id, $listing->province_id);

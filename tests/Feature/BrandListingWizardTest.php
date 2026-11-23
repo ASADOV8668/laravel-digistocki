@@ -126,6 +126,8 @@ class BrandListingWizardTest extends TestCase
             $tablet->attributes()->attach($attribute->id, ['is_required' => true]);
             $attribute->optionRestrictions()->create(['phone_model_ids' => [$tablet->id], 'options' => $options]);
         }
+        $inactive = Attribute::create(['slug' => 'inactive-camera-feature', 'name' => 'Inactive camera feature', 'type' => 'string', 'is_active' => false]);
+        $tablet->attributes()->attach($inactive->id, ['is_required' => true]);
 
         $this->getJson(route('listings.wizard.config', [$brand, 'device_type' => 'tablet', 'series_id' => $series->id, 'model_id' => $tablet->id]))
             ->assertOk()
@@ -139,7 +141,8 @@ class BrandListingWizardTest extends TestCase
             ->assertJsonPath('steps.2.attribute.slug', 'storage')
             ->assertJsonPath('steps.2.attribute.options', ['128', '256'])
             ->assertJsonPath('steps.3.attribute.slug', 'color')
-            ->assertJsonPath('steps.3.attribute.options', ['آبی']);
+            ->assertJsonPath('steps.3.attribute.options', ['آبی'])
+            ->assertJsonMissing(['slug' => 'inactive-camera-feature']);
 
         $this->getJson(route('listings.wizard.config', [$brand, 'device_type' => 'tablet', 'series_id' => $mobile->phone_series_id]))
             ->assertOk()
