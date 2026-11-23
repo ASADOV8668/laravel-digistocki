@@ -73,7 +73,7 @@ class Attribute extends Model
     {
         $options = array_values(array_map('strval', $this->options ?? []));
 
-        if ($phoneModelId === null || ! in_array($this->type?->value, [AttributeType::Select->value, AttributeType::MultiSelect->value], true)) {
+        if ($phoneModelId === null || ! $this->supportsOptionRestrictions()) {
             return $options;
         }
 
@@ -88,6 +88,12 @@ class Attribute extends Model
         $allowed = $matchingRules->flatMap(fn (AttributeOptionRestriction $rule) => array_map('strval', $rule->options ?? []))->unique()->all();
 
         return array_values(array_filter($options, fn (string $option): bool => in_array($option, $allowed, true)));
+    }
+
+    public function supportsOptionRestrictions(): bool
+    {
+        return in_array($this->type, [AttributeType::Select, AttributeType::MultiSelect], true)
+            || ($this->slug === 'storage' && $this->type === AttributeType::Integer);
     }
 
     public function phoneModels(): BelongsToMany

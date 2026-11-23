@@ -220,20 +220,30 @@ class ListingController extends Controller
     {
         abort_unless($brand->is_active, 404);
 
+        $deviceType = $request->query('device_type');
+        abort_if($deviceType !== null && (! is_string($deviceType) || ! isset(PhoneModel::DEVICE_TYPES[$deviceType])), 422);
+        $catalog = $brand->phoneModels()->where('is_active', true)
+            ->when($deviceType, fn (Builder $query) => $query->where('device_type', $deviceType));
         $series = $brand->phoneSeries()
             ->where('is_active', true)
+            ->when($deviceType, fn (Builder $query) => $query->whereIn('id', (clone $catalog)->select('phone_series_id')->getQuery()))
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
         $seriesId = $request->integer('series_id') ?: null;
+        $unclassified = $deviceType && $request->query('series_id') === 'none';
+        $unclassifiedModels = $deviceType && (clone $catalog)->where(fn (Builder $query) => $query
+            ->whereNull('phone_series_id')->orWhereNotIn('phone_series_id', $series->modelKeys()))->exists();
+        $modelQuery = (clone $catalog)
+            ->when($seriesId, fn (Builder $query) => $query->where('phone_series_id', $seriesId))
+            ->when($unclassified, fn (Builder $query) => $query->where(fn (Builder $query) => $query
+                ->whereNull('phone_series_id')->orWhereNotIn('phone_series_id', $series->modelKeys())));
         $modelId = $request->integer('model_id') ?: null;
         $model = $modelId
-            ? $brand->phoneModels()->whereKey($modelId)->where('is_active', true)->first()
+            ? (clone ($deviceType ? $modelQuery : $catalog))->whereKey($modelId)->first()
             : null;
 
-        $models = $brand->phoneModels()
-            ->where('is_active', true)
-            ->when($seriesId, fn (Builder $query) => $query->where('phone_series_id', $seriesId))
+        $models = $modelQuery
             ->with('series')
             ->orderBy('name_fa')
             ->get();
@@ -294,10 +304,39 @@ class ListingController extends Controller
             }
         }
 
+        if ($deviceType) {
+            $ordered = collect();
+            if ($series->isNotEmpty()) {
+                $ordered->push((object) ['step_type' => 'series', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => 1, 'attribute' => null]);
+            }
+            $ordered->push((object) ['step_type' => 'model', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => 2, 'attribute' => null]);
+            if ($model) {
+                $required = $model->attributes()->pluck('model_attributes.is_required', 'attributes.id');
+                foreach (['storage', 'color'] as $slug) {
+                    $attribute = $attributes->firstWhere('slug', $slug);
+                    if ($attribute) {
+                        $ordered->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => $attribute->optionsForModel($model->id) !== [] || (bool) ($required[$attribute->id] ?? $attribute->is_required), 'sort_order' => $ordered->count() + 3, 'attribute' => $attribute]);
+                    }
+                }
+                foreach ($attributes as $attribute) {
+                    if (in_array($attribute->slug, ['storage', 'color'], true) || ! ($required[$attribute->id] ?? $attribute->is_required)) {
+                        continue;
+                    }
+                    $ordered->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => $ordered->count() + 3, 'attribute' => $attribute]);
+                }
+            }
+            $steps = $ordered;
+        }
+
+        $seriesOptions = $series->map(fn ($item) => ['id' => $item->id, 'label' => $item->name_fa ?: $item->name, 'secondary' => $item->name_en ?: $item->name])->values();
+        if ($unclassifiedModels && $series->isNotEmpty()) {
+            $seriesOptions->push(['id' => 'none', 'label' => 'بدون سری', 'secondary' => '']);
+        }
+
         return response()->json([
             'brand' => ['id' => $brand->id, 'label' => $brand->name, 'secondary' => $brand->name_en, 'image' => $brand->featuredImageUrl()],
-            'series' => $series->map(fn ($item) => ['id' => $item->id, 'label' => $item->name_fa ?: $item->name, 'secondary' => $item->name_en ?: $item->name])->values(),
-            'models' => $models->map(fn (PhoneModel $item) => ['id' => $item->id, 'series_id' => $item->phone_series_id, 'label' => $item->name_fa ?: $item->name, 'secondary' => $item->name_en ?: $item->name])->values(),
+            'series' => $seriesOptions,
+            'models' => $models->map(fn (PhoneModel $item) => ['id' => $item->id, 'series_id' => $unclassified ? null : $item->phone_series_id, 'label' => $item->name_fa ?: $item->name, 'secondary' => $item->name_en ?: $item->name])->values(),
             'steps' => $steps->sortBy('sort_order')->values()->map(function ($step) use ($attributes, $model): array {
                 $attribute = $step->attribute?->id ? ($attributes->get($step->attribute->id) ?: $step->attribute) : null;
 
@@ -731,7 +770,7 @@ class ListingController extends Controller
         try {
             $listing = DB::transaction(function () use ($validated, $request, $model, $imageService, $mediaService, $options, $rules, $autoPublish, &$storedFiles, &$createdMedia) {
                 $listingData = $validated;
-                unset($listingData['camera_listing'], $listingData['attributes'], $listingData['images'], $listingData['primary_image_index'], $listingData['primary_image_id'], $listingData['media_ids'], $listingData['media_primary_id']);
+                unset($listingData['camera_listing'], $listingData['device_type'], $listingData['attributes'], $listingData['images'], $listingData['primary_image_index'], $listingData['primary_image_id'], $listingData['media_ids'], $listingData['media_primary_id']);
                 $listing = Listing::create([
                     ...$listingData,
                     'user_id' => $request->user()->id,

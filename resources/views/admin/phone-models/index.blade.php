@@ -50,6 +50,11 @@
                         <option value="{{ $brand->id }}">{{ $brand->name }} / {{ $brand->name_en }}</option>
                     @endforeach
                 </select>
+                <select name="device_type" aria-label="نوع کالا" class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent">
+                    @foreach (\App\Models\PhoneModel::DEVICE_TYPES as $type => $label)
+                        <option value="{{ $type }}" @selected(old('device_type', 'mobile') === $type)>{{ $label }}</option>
+                    @endforeach
+                </select>
                 <select name="phone_series_id" class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent">
                     <option value="">بدون سری</option>
                     @foreach ($series as $item)
@@ -126,6 +131,13 @@
                                                         @endforeach
                                                     </select>
                                                 </div>
+                                                <div><label class="mb-1 block text-[11px] font-bold text-slate-600">نوع کالا
+                                                    <select name="device_type" class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">
+                                                        @foreach (\App\Models\PhoneModel::DEVICE_TYPES as $type => $label)
+                                                            <option value="{{ $type }}" @selected($model->device_type === $type)>{{ $label }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </label></div>
                                                 <div><label class="mb-1 block text-[11px] font-bold text-slate-600">سری</label><select
                                                         name="phone_series_id" class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">
                                                         <option value="">بدون سری</option>

@@ -14,7 +14,9 @@ class PhoneModel extends Model
 
     protected $table = 'phone_models';
 
-    protected $fillable = ['brand_id', 'phone_series_id', 'name', 'name_fa', 'name_en', 'slug', 'release_year', 'is_active'];
+    public const DEVICE_TYPES = ['mobile' => 'موبایل', 'laptop' => 'لپ‌تاپ', 'tablet' => 'تبلت'];
+
+    protected $fillable = ['brand_id', 'phone_series_id', 'device_type', 'name', 'name_fa', 'name_en', 'slug', 'release_year', 'is_active'];
 
     protected function casts(): array
     {

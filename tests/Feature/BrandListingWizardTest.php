@@ -102,6 +102,54 @@ class BrandListingWizardTest extends TestCase
         $this->getJson(route('listings.wizard.config', $brand))->assertOk();
     }
 
+    public function test_camera_catalog_filters_device_type_and_series_and_orders_model_choices(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $brand = Brand::query()->where('name_en', 'Apple')->firstOrFail();
+        $mobile = $brand->phoneModels()->where('name_en', 'iPhone 13 Pro Max')->firstOrFail();
+        $series = $brand->phoneSeries()->create(['name' => 'Test tablet series', 'slug' => 'test-tablet-series', 'is_active' => true]);
+        $tablet = $brand->phoneModels()->create([
+            'name' => 'Test tablet',
+            'slug' => 'test-tablet',
+            'phone_series_id' => $series->id,
+            'device_type' => 'tablet',
+            'is_active' => true,
+        ]);
+        $withoutSeries = $brand->phoneModels()->create([
+            'name' => 'Test tablet without series',
+            'slug' => 'test-tablet-without-series',
+            'device_type' => 'tablet',
+            'is_active' => true,
+        ]);
+        foreach (['storage' => ['128', '256'], 'color' => ['آبی']] as $slug => $options) {
+            $attribute = Attribute::where('slug', $slug)->firstOrFail();
+            $tablet->attributes()->attach($attribute->id, ['is_required' => true]);
+            $attribute->optionRestrictions()->create(['phone_model_ids' => [$tablet->id], 'options' => $options]);
+        }
+
+        $this->getJson(route('listings.wizard.config', [$brand, 'device_type' => 'tablet', 'series_id' => $series->id, 'model_id' => $tablet->id]))
+            ->assertOk()
+            ->assertJsonCount(2, 'series')
+            ->assertJsonPath('series.0.id', $series->id)
+            ->assertJsonPath('series.1.id', 'none')
+            ->assertJsonCount(1, 'models')
+            ->assertJsonPath('models.0.id', $tablet->id)
+            ->assertJsonPath('steps.0.type', 'series')
+            ->assertJsonPath('steps.1.type', 'model')
+            ->assertJsonPath('steps.2.attribute.slug', 'storage')
+            ->assertJsonPath('steps.2.attribute.options', ['128', '256'])
+            ->assertJsonPath('steps.3.attribute.slug', 'color')
+            ->assertJsonPath('steps.3.attribute.options', ['آبی']);
+
+        $this->getJson(route('listings.wizard.config', [$brand, 'device_type' => 'tablet', 'series_id' => $mobile->phone_series_id]))
+            ->assertOk()
+            ->assertJsonCount(0, 'models');
+        $this->getJson(route('listings.wizard.config', [$brand, 'device_type' => 'tablet', 'series_id' => 'none']))
+            ->assertOk()
+            ->assertJsonCount(1, 'models')
+            ->assertJsonPath('models.0.id', $withoutSeries->id);
+    }
+
     public function test_admin_stage_builder_shows_default_brand_stages_when_no_custom_steps_exist(): void
     {
         $this->seed(CatalogSeeder::class);

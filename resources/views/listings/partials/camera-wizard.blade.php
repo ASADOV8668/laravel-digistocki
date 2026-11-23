@@ -43,8 +43,11 @@
     </div>
 
     <div x-show="previews.length && !cameraOpened" class="relative mt-auto max-h-[45dvh] w-full max-w-2xl space-y-3 self-center overflow-y-auto px-4 pb-3">
-        <div x-show="brandId" class="flex gap-2 overflow-x-auto py-1" aria-label="مشخصات انتخاب‌شده">
-            <button type="button" @click="cameraStep = 'brand'" :disabled="cameraStepBusy"
+        <div x-show="cameraDeviceType" class="flex gap-2 overflow-x-auto py-1" aria-label="مشخصات انتخاب‌شده">
+            <button type="button" @click="cameraStep = 'device'" :disabled="cameraStepBusy" aria-label="ویرایش نوع کالا"
+                class="shrink-0 rounded-full bg-slate-100 px-3 py-2 text-xs font-bold text-slate-800"
+                x-text="(@js(\App\Models\PhoneModel::DEVICE_TYPES))[cameraDeviceType]"></button>
+            <button type="button" x-show="brandId" @click="cameraStep = 'brand'" :disabled="cameraStepBusy"
                 class="shrink-0 rounded-full bg-slate-100 px-3 py-2 text-xs font-bold text-slate-800"
                 x-text="fastBrandName || 'برند'"></button>
             <template x-for="item in cameraSummary(cameraDetailsStep === 'review')" :key="item.key">
@@ -56,12 +59,27 @@
             </template>
         </div>
         <p x-show="cameraStepBusy" role="status" class="text-sm text-white">در حال دریافت گزینه‌ها…</p>
+        <div x-show="cameraStep === 'device'" class="listing-camera-step rounded-2xl bg-white p-4 text-slate-900">
+            <h2 class="mb-2 text-sm font-bold">نوع کالای دیجیتال</h2>
+            <div class="flex gap-2 overflow-x-auto p-1">
+                @foreach (\App\Models\PhoneModel::DEVICE_TYPES as $type => $label)
+                    <button type="button" @click="chooseCameraDeviceType(@js($type))"
+                        :aria-pressed="cameraDeviceType === @js($type)"
+                        class="shrink-0 rounded-full border border-slate-200 px-4 py-2 text-sm font-bold">{{ $label }}</button>
+                @endforeach
+            </div>
+        </div>
         <div x-show="cameraStep === 'brand'" class="rounded-2xl bg-white p-4 text-slate-900" x-transition:enter="motion-safe:transition motion-safe:duration-200"
             x-transition:enter-start="motion-safe:translate-y-4 opacity-0" x-transition:enter-end="translate-y-0 opacity-100">
-            <h2 class="mb-2 text-sm font-bold">برند گوشی</h2>
+            <h2 class="mb-2 text-sm font-bold">برند دستگاه</h2>
+            @php($availableDeviceTypes = $brands->flatMap(fn ($brand) => $brand->phoneModels->pluck('device_type'))->unique()->values()->all())
+            <p x-show="!(@js($availableDeviceTypes)).includes(cameraDeviceType)" role="status" class="text-sm text-slate-600">
+                هنوز مدلی برای این نوع کالا در کاتالوگ تعریف نشده است. نوع دیگری انتخاب کنید.
+            </p>
             <div class="flex gap-2 overflow-x-auto p-1">
                 @foreach ($brands as $brand)
                     <button type="button" @click="chooseCameraBrand(@js(['id' => $brand->id, 'label' => $brand->name_en ?: $brand->name]))"
+                        x-show="(@js($brand->phoneModels->pluck('device_type')->unique()->values()->all())).includes(cameraDeviceType)"
                         :disabled="cameraStepBusy" :aria-pressed="String(brandId) === @js((string) $brand->id)"
                         :class="String(brandId) === @js((string) $brand->id) ? 'border-primary bg-primary-50' : 'border-slate-200 bg-white'"
                         class="min-w-24 shrink-0 rounded-xl border p-3 text-sm font-bold">
@@ -74,7 +92,7 @@
         <template x-for="stage in fastStages()" :key="cameraStageKey(stage)">
             <div x-show="cameraStep === cameraStageKey(stage)" class="rounded-2xl bg-white p-4 text-slate-900" x-transition:enter="motion-safe:transition motion-safe:duration-200"
                 x-transition:enter-start="motion-safe:translate-y-4 opacity-0" x-transition:enter-end="translate-y-0 opacity-100">
-                <h2 class="mb-2 text-sm font-bold" x-text="fastStageLabel(stage)"></h2>
+                <h2 class="mb-2 text-sm font-bold" x-text="stage.type === 'series' ? 'سری دستگاه' : stage.type === 'model' ? 'مدل دستگاه' : fastStageLabel(stage)"></h2>
                 <template x-if="cameraStep === cameraStageKey(stage) && stage.attribute?.type === 'multi_select'">
                     <div x-data="{ draft: Array.isArray(fastStageValue(stage)) ? [...fastStageValue(stage)] : [] }"
                         class="space-y-2">

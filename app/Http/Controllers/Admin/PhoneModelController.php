@@ -68,12 +68,12 @@ class PhoneModelController extends Controller
 
     private function validated(Request $request): array
     {
-        return $request->validate(['brand_id' => ['required', 'exists:brands,id'], 'phone_series_id' => ['nullable', 'integer', Rule::exists('phone_series', 'id')->where(fn ($query) => $query->where('brand_id', $request->integer('brand_id')))], 'name' => ['required', 'string', 'max:100'], 'name_fa' => ['nullable', 'string', 'max:100'], 'name_en' => ['nullable', 'string', 'max:100'], 'release_year' => ['nullable', 'integer', 'between:2000,2100'], 'attribute_ids' => ['array'], 'attribute_ids.*' => ['integer', 'exists:attributes,id'], 'required_attribute_ids' => ['array'], 'required_attribute_ids.*' => ['integer', 'exists:attributes,id']]);
+        return $request->validate(['brand_id' => ['required', 'exists:brands,id'], 'device_type' => ['sometimes', 'required', Rule::in(array_keys(PhoneModel::DEVICE_TYPES))], 'phone_series_id' => ['nullable', 'integer', Rule::exists('phone_series', 'id')->where(fn ($query) => $query->where('brand_id', $request->integer('brand_id')))], 'name' => ['required', 'string', 'max:100'], 'name_fa' => ['nullable', 'string', 'max:100'], 'name_en' => ['nullable', 'string', 'max:100'], 'release_year' => ['nullable', 'integer', 'between:2000,2100'], 'attribute_ids' => ['array'], 'attribute_ids.*' => ['integer', 'exists:attributes,id'], 'required_attribute_ids' => ['array'], 'required_attribute_ids.*' => ['integer', 'exists:attributes,id']]);
     }
 
     private function modelData(array $validated): array
     {
-        return ['brand_id' => $validated['brand_id'], 'phone_series_id' => $validated['phone_series_id'] ?? null, 'name' => $validated['name'], 'name_fa' => $validated['name_fa'] ?? $validated['name'], 'name_en' => $validated['name_en'] ?? $validated['name'], 'release_year' => $validated['release_year'] ?? null];
+        return array_intersect_key($validated, ['device_type' => true]) + ['brand_id' => $validated['brand_id'], 'phone_series_id' => $validated['phone_series_id'] ?? null, 'name' => $validated['name'], 'name_fa' => $validated['name_fa'] ?? $validated['name'], 'name_en' => $validated['name_en'] ?? $validated['name'], 'release_year' => $validated['release_year'] ?? null];
     }
 
     private function uniqueSlug(int|string $brandId, string $name, ?PhoneModel $except = null): string

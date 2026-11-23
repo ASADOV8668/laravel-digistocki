@@ -16,6 +16,7 @@
     </x-slot>
     <section x-data="listingWizardWithMedia(@js($maxImageUploadMb), @js($maxImageUploadCount), @js(''), @js(route('listings.media.index')) )" @if ($cameraListing) data-camera-listing="{{ request()->boolean('camera') && ! $errors->any() ? 'auto' : 'manual' }}" @endif data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}" data-wizard-endpoint="{{ url('/listings/wizard/brands') }}"
         data-initial-brand-id="{{ old('brand_id', $clone?->brand_id) }}"
+        @if ($cameraListing) data-initial-device-type="{{ old('device_type', $clone?->phoneModel?->device_type) }}" @endif
         data-initial-series-id="{{ old('phone_series_id', $clone?->phoneModel?->phone_series_id) }}"
         data-initial-model-id="{{ old('phone_model_id', $clone?->phone_model_id) }}"
         class="space-y-6 px-4 py-6">
@@ -56,6 +57,7 @@
             @csrf
             @if ($cameraListing)
                 <input type="hidden" name="camera_listing" value="1">
+                <input type="hidden" name="device_type" x-model="cameraDeviceType">
                 <input type="hidden" name="brand_id" x-model="brandId">
                 <input type="hidden" name="phone_series_id" x-model="seriesId">
                 <input type="hidden" name="phone_model_id" x-model="modelId">

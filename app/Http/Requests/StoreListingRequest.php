@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Attribute;
+use App\Models\Brand;
 use App\Models\Listing;
 use App\Models\PhoneModel;
-use App\Models\Brand;
 use App\Services\ListingAttributeValidator;
 use App\Services\ListingRules;
 use App\Services\SystemOptions;
@@ -88,6 +89,7 @@ class StoreListingRequest extends FormRequest
 
         return [
             'camera_listing' => ['sometimes', 'boolean'],
+            'device_type' => ['sometimes', 'required', Rule::in(array_keys(PhoneModel::DEVICE_TYPES))],
             'brand_id' => ['required', 'integer', 'exists:brands,id'],
             'phone_model_id' => ['required', 'integer', 'exists:phone_models,id'],
             'title' => ['required', 'string', 'min:3', 'max:160'],
@@ -132,6 +134,22 @@ class StoreListingRequest extends FormRequest
             $model = PhoneModel::query()->find($this->integer('phone_model_id'));
             if (! $model || $model->brand_id !== $this->integer('brand_id')) {
                 return;
+            }
+
+            if ($this->boolean('camera_listing') && $this->filled('device_type')) {
+                if ($model->device_type !== $this->input('device_type')) {
+                    $validator->errors()->add('device_type', 'مدل انتخاب‌شده با نوع کالا مطابقت ندارد.');
+                }
+
+                $choices = Attribute::query()->where('is_active', true)->visibleForModel($model->id)
+                    ->whereIn('slug', ['storage', 'color'])->with('optionRestrictions')->get();
+                foreach ($choices as $attribute) {
+                    $options = $attribute->optionsForModel($model->id);
+                    $value = $this->input('attributes.'.$attribute->id);
+                    if ($options !== [] && (! is_scalar($value) || ! in_array((string) $value, $options, true))) {
+                        $validator->errors()->add('attributes.'.$attribute->id, 'یکی از گزینه‌های تعریف‌شده برای این مدل را انتخاب کنید.');
+                    }
+                }
             }
 
             $errors = app(ListingAttributeValidator::class)->errors($model, (array) $this->input('attributes', []));

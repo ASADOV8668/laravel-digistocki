@@ -109,7 +109,7 @@ class AttributeController extends Controller
 
     public function optionRestrictions(ListingAttribute $attribute)
     {
-        abort_unless(in_array($attribute->type?->value, [AttributeType::Select->value, AttributeType::MultiSelect->value], true), 404);
+        abort_unless($attribute->supportsOptionRestrictions(), 404);
 
         $rules = $attribute->optionRestrictions()->get();
         $modelIds = $rules->flatMap(fn (AttributeOptionRestriction $rule) => array_map('intval', $rule->phone_model_ids ?? []))->unique();
@@ -131,7 +131,7 @@ class AttributeController extends Controller
 
     public function storeOptionRestriction(Request $request, ListingAttribute $attribute)
     {
-        abort_unless(in_array($attribute->type?->value, [AttributeType::Select->value, AttributeType::MultiSelect->value], true), 404);
+        abort_unless($attribute->supportsOptionRestrictions(), 404);
         $options = array_values(array_map('strval', $attribute->options ?? []));
         $validated = $request->validate([
             'phone_model_ids' => ['required', 'array', 'min:1'],
@@ -214,7 +214,7 @@ class AttributeController extends Controller
     {
         $allowedOptions = array_map('strval', $attribute->options ?? []);
 
-        if (! in_array($attribute->type?->value, [AttributeType::Select->value, AttributeType::MultiSelect->value], true)) {
+        if (! $attribute->supportsOptionRestrictions()) {
             $attribute->optionRestrictions()->delete();
 
             return;

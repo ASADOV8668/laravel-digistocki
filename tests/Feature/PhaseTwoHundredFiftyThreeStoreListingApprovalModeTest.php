@@ -103,6 +103,7 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
         $model = $brand->phoneModels()->firstOrFail();
         $payload = [
             'camera_listing' => '1',
+            'device_type' => 'mobile',
             'brand_id' => $brand->id,
             'phone_model_id' => $model->id,
             'title' => 'آگهی آزمایشی دوربین',
@@ -116,6 +117,9 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
             ->assertHeader('Permissions-Policy', 'camera=(self), geolocation=(self), microphone=()')
             ->assertSee('data-camera-listing="auto"', false)
             ->assertSee('گرفتن عکس')
+            ->assertSee('نوع کالای دیجیتال')
+            ->assertSee('لپ‌تاپ')
+            ->assertSee('تبلت')
             ->assertSee('عکس با دوربین گوشی')
             ->assertSee('capture="environment"', false)
             ->assertSee('پیش‌نمایش ارسال')
@@ -133,6 +137,11 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
             ->assertDontSee('data-camera-listing="auto"', false);
 
         $this->post(route('listings.store'), $payload)->assertSessionHasErrors('images');
+        $this->post(route('listings.store'), [
+            ...$payload,
+            'device_type' => 'tablet',
+            'images' => [UploadedFile::fake()->create('wrong-type.jpg', 10, 'image/jpeg')],
+        ])->assertSessionHasErrors('device_type');
         $this->post(route('listings.store'), [
             ...$payload,
             'images' => [UploadedFile::fake()->create('product.jpg', 10, 'image/jpeg')],

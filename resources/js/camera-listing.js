@@ -46,6 +46,7 @@ export function cameraListing() {
         cameraBusy: false,
         cameraError: '',
         cameraStep: null,
+        cameraDeviceType: '',
         cameraDetailsStep: 'title',
         cameraEditingDetail: false,
         cameraSubmitting: false,
@@ -158,6 +159,10 @@ export function cameraListing() {
         },
 
         moveCameraListingForward() {
+            if (!this.cameraDeviceType) {
+                this.cameraStep = 'device';
+                return;
+            }
             if (!this.brandId) {
                 this.cameraStep = 'brand';
                 return;
@@ -169,6 +174,18 @@ export function cameraListing() {
                 return !selected.has(key) && (stage.required || (hasInput && !this.cameraSkipped[key]));
             });
             this.cameraStep = next ? this.cameraStageKey(next) : this.fastComplete() ? null : 'brand';
+        },
+
+        async chooseCameraDeviceType(type) {
+            if (this.cameraStepBusy) return;
+            if (type !== this.cameraDeviceType) {
+                this.cameraDeviceType = type;
+                this.cameraCarryValues = null;
+                this.cameraSkipped = {};
+                this.fastController?.abort();
+                await this.selectFastBrand({ id: '', label: '' });
+            }
+            this.moveCameraListingForward();
         },
 
         async chooseCameraBrand(brand) {
@@ -226,7 +243,7 @@ export function cameraListing() {
         },
 
         cameraSpecsComplete() {
-            return Boolean(this.wizardConfig) && this.previews.length > 0 && !this.cameraOpened && !this.cameraBusy && !this.fastLoading && this.fastComplete() && this.cameraStep === null && !this.cameraStepBusy;
+            return Boolean(this.cameraDeviceType && this.wizardConfig) && this.previews.length > 0 && !this.cameraOpened && !this.cameraBusy && !this.fastLoading && this.fastComplete() && this.cameraStep === null && !this.cameraStepBusy;
         },
 
         editCameraDetail(field) {
