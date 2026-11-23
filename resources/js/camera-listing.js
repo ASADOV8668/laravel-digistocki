@@ -52,7 +52,9 @@ export function cameraListing() {
 
         init() {
             this.cameraMode = this.$root.hasAttribute('data-camera-listing');
-            if (this.cameraMode) this.$nextTick(() => this.openListingCamera());
+            if (this.$root.dataset.cameraListing === 'auto') {
+                this.$nextTick(() => this.openListingCamera());
+            }
         },
 
         async openListingCamera() {
@@ -79,6 +81,7 @@ export function cameraListing() {
 
         closeListingCamera() {
             this.cameraStream?.getTracks().forEach((track) => track.stop());
+            if (this.$refs.listingCameraVideo) this.$refs.listingCameraVideo.srcObject = null;
             this.cameraStream = null;
             this.cameraOpened = false;
         },
@@ -108,6 +111,7 @@ export function cameraListing() {
 
         useListingCameraFile(event) {
             if (!event.target.files.length) return;
+            this.cameraError = '';
             this.select(event);
             if (!this.previews.length) return;
             this.closeListingCamera();
@@ -129,6 +133,10 @@ export function cameraListing() {
             return (stage.type === 'model' ? option?.secondary : null) || option?.label || value;
         },
 
+        cameraStageAcceptsText(stage) {
+            return ['string', 'integer', 'decimal'].includes(stage.attribute?.type);
+        },
+
         cameraSummary() {
             return this.fastStages().flatMap((stage) => {
                 const value = this.fastStageValue(stage);
@@ -146,8 +154,8 @@ export function cameraListing() {
             const selected = new Set(this.cameraSummary().map(({ key }) => key));
             const next = this.fastStages().find((stage) => {
                 const key = this.cameraStageKey(stage);
-                const featured = ['storage', 'ram', 'color', 'part_number', 'registration_status', 'body_condition'].includes(stage.attribute?.slug);
-                return !selected.has(key) && (stage.required || (featured && !this.cameraSkipped[key] && this.cameraStageOptions(stage).length));
+                const hasInput = this.cameraStageOptions(stage).length > 0 || this.cameraStageAcceptsText(stage);
+                return !selected.has(key) && (stage.required || (hasInput && !this.cameraSkipped[key]));
             });
             this.cameraStep = next ? this.cameraStageKey(next) : this.fastComplete() ? null : 'brand';
         },
@@ -184,8 +192,16 @@ export function cameraListing() {
                         this.values = Object.fromEntries(this.fastStages().flatMap((item) => {
                             if (!item.attribute) return [];
                             const id = item.attribute.id;
-                            const compatible = this.cameraStageOptions(item).some((candidate) => String(candidate.id) === String(previous[id]));
-                            return compatible ? [[id, previous[id]]] : [];
+                            const value = previous[id];
+                            if (value === '' || value == null) return [];
+                            const options = this.cameraStageOptions(item);
+                            if (!options.length && this.cameraStageAcceptsText(item)) return [[id, value]];
+                            const isAvailable = (entry) => options.some(({ id }) => String(id) === String(entry));
+                            if (Array.isArray(value)) {
+                                const available = value.filter(isAvailable);
+                                return available.length ? [[id, available]] : [];
+                            }
+                            return isAvailable(value) ? [[id, value]] : [];
                         }));
                         window.dispatchEvent(new CustomEvent('listing-attributes-loaded', { detail: { attributes: this.attributes, values: this.values } }));
                         this.updateGeneratedTitle();
@@ -198,7 +214,7 @@ export function cameraListing() {
         },
 
         cameraCanSubmit() {
-            return Boolean(this.wizardConfig) && this.previews.length > 0 && !this.cameraOpened && !this.cameraBusy && this.fastComplete() && this.cameraStep === null && !this.cameraStepBusy;
+            return Boolean(this.wizardConfig) && this.previews.length > 0 && !this.cameraOpened && !this.cameraBusy && !this.fastLoading && this.fastComplete() && this.cameraStep === null && !this.cameraStepBusy;
         },
     };
 }

@@ -1,4 +1,4 @@
-<div class="space-y-4" x-cloak>
+<div class="space-y-4" x-cloak @pagehide.window="closeListingCamera()">
     <div class="relative aspect-[4/3] overflow-hidden rounded-2xl bg-slate-950">
         <video x-ref="listingCameraVideo" x-show="cameraOpened" autoplay playsinline muted
             class="h-full w-full object-contain" aria-label="پیش‌نمایش زندهٔ دوربین"></video>
@@ -18,12 +18,12 @@
         <button type="button" x-show="!cameraOpened" @click="openListingCamera()" :disabled="cameraBusy"
             class="rounded-full border border-primary/20 px-4 py-2 text-sm font-bold text-primary"
             x-text="previews.length ? 'عکس دوباره' : 'باز کردن دوربین'"></button>
-        <button type="button" x-show="cameraOpened && previews.length" @click="closeListingCamera()"
+        <button type="button" x-show="cameraOpened" @click="closeListingCamera()"
             class="rounded-full border border-slate-200 px-4 py-2 text-sm">بستن دوربین</button>
         <label class="cursor-pointer rounded-full border border-slate-200 px-4 py-2 text-sm focus-within:ring-2 focus-within:ring-primary/30">
-            انتخاب عکس
+            انتخاب عکس از فایل‌ها
             <input x-ref="listingCameraFile" type="file" name="images[]" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-                capture="environment" @change="useListingCameraFile($event)" class="sr-only">
+                @change="useListingCameraFile($event)" class="sr-only">
         </label>
     </div>
     <p x-show="cameraError || invalid" x-text="cameraError || message" role="status" class="text-sm text-red-700"></p>
@@ -61,7 +61,7 @@
             <div x-show="cameraStep === cameraStageKey(stage)" x-transition:enter="motion-safe:transition motion-safe:duration-200"
                 x-transition:enter-start="motion-safe:translate-y-4 opacity-0" x-transition:enter-end="translate-y-0 opacity-100">
                 <h2 class="mb-2 text-sm font-bold" x-text="fastStageLabel(stage)"></h2>
-                <template x-if="stage.attribute?.type === 'multi_select'">
+                <template x-if="cameraStep === cameraStageKey(stage) && stage.attribute?.type === 'multi_select'">
                     <div x-data="{ draft: Array.isArray(fastStageValue(stage)) ? [...fastStageValue(stage)] : [] }"
                         class="space-y-2">
                         <div class="flex gap-2 overflow-x-auto p-1">
@@ -89,7 +89,7 @@
                 </div>
                 <button type="button" x-show="!stage.required" @click="chooseCameraStage(stage, { id: '' })"
                     class="mt-2 rounded-full border border-slate-200 px-4 py-2 text-sm">رد کردن</button>
-                <template x-if="stage.attribute && !cameraStageOptions(stage).length && ['string', 'integer', 'decimal'].includes(stage.attribute.type)">
+                <template x-if="cameraStep === cameraStageKey(stage) && !cameraStageOptions(stage).length && cameraStageAcceptsText(stage)">
                     <div class="flex gap-2">
                         <input :type="stage.attribute.type === 'string' ? 'text' : 'number'" :step="stage.attribute.type === 'decimal' ? 'any' : '1'"
                             :value="fastStageValue(stage)" :aria-label="fastStageLabel(stage)"

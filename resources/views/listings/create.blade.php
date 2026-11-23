@@ -1,6 +1,6 @@
 @php
     $clone = $cloneListing ?? null;
-    $cameraListing = request()->boolean('camera') || old('camera_listing') === '1';
+    $cameraListing = request()->boolean('camera') || request()->boolean('photo') || old('camera_listing') === '1';
     $freeListing = ! $cameraListing && ($store?->allowsFreeListing() ?? false);
 @endphp
 <x-app-layout title="ثبت آگهی">
@@ -14,7 +14,7 @@
             </div>
         </div>
     </x-slot>
-    <section x-data="listingWizardWithMedia(@js($maxImageUploadMb), @js($maxImageUploadCount), @js(''), @js(route('listings.media.index')) )" @if ($cameraListing) data-camera-listing @endif data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}" data-wizard-endpoint="{{ url('/listings/wizard/brands') }}"
+    <section x-data="listingWizardWithMedia(@js($maxImageUploadMb), @js($maxImageUploadCount), @js(''), @js(route('listings.media.index')) )" @if ($cameraListing) data-camera-listing="{{ request()->boolean('camera') && ! $errors->any() ? 'auto' : 'manual' }}" @endif data-title-language="{{ app(\App\Services\SystemOptions::class)->listingTitleLanguage() }}" data-models-endpoint="{{ url('/listings/models') }}" data-wizard-endpoint="{{ url('/listings/wizard/brands') }}"
         data-cities-endpoint="{{ url('/locations/provinces') }}"
         data-initial-brand-id="{{ old('brand_id', $clone?->brand_id) }}"
         data-initial-series-id="{{ old('phone_series_id', $clone?->phoneModel?->phone_series_id) }}"
@@ -62,9 +62,14 @@
                 <input type="hidden" name="phone_model_id" x-model="modelId">
                 @include('listings.partials.camera-wizard')
             @else
-                <a href="{{ route('listings.create', ['camera' => 1]) }}" class="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 px-4 py-2 text-sm font-bold text-primary">
-                    <x-heroicon-o-camera class="h-5 w-5" /> ثبت آگهی با دوربین
-                </a>
+                <div class="mb-4 flex flex-wrap gap-2">
+                    <a href="{{ route('listings.create', ['camera' => 1]) }}" class="inline-flex items-center gap-2 rounded-full border border-primary/20 px-4 py-2 text-sm font-bold text-primary">
+                        <x-heroicon-o-camera class="h-5 w-5" /> ثبت آگهی با دوربین
+                    </a>
+                    <a href="{{ route('listings.create', ['photo' => 1]) }}" class="inline-flex items-center gap-2 rounded-full border border-primary/20 px-4 py-2 text-sm font-bold text-primary">
+                        <x-heroicon-o-photo class="h-5 w-5" /> ثبت آگهی با انتخاب فایل
+                    </a>
+                </div>
                 @include('listings.partials.fast-wizard')
             @endif
             <div x-show="false" x-cloak class="space-y-4">

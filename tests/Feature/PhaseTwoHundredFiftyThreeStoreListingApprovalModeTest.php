@@ -103,8 +103,15 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
         $this->actingAs($user)
             ->get(route('listings.create', ['camera' => 1]))
             ->assertOk()
-            ->assertSee('data-camera-listing', false)
+            ->assertHeader('Permissions-Policy', 'camera=(self), geolocation=(self), microphone=()')
+            ->assertSee('data-camera-listing="auto"', false)
             ->assertSee('گرفتن عکس');
+
+        $this->get(route('listings.create', ['photo' => 1]))
+            ->assertOk()
+            ->assertSee('data-camera-listing="manual"', false)
+            ->assertSee('انتخاب عکس از فایل‌ها')
+            ->assertDontSee('capture="environment"', false);
 
         $this->post(route('listings.store'), $payload)->assertSessionHasErrors('images');
         $this->post(route('listings.store'), [
