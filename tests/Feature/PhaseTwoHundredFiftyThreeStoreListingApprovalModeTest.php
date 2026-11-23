@@ -116,6 +116,8 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
             ->assertHeader('Permissions-Policy', 'camera=(self), geolocation=(self), microphone=()')
             ->assertSee('data-camera-listing="auto"', false)
             ->assertSee('گرفتن عکس')
+            ->assertSee('عکس با دوربین گوشی')
+            ->assertSee('capture="environment"', false)
             ->assertSee('پیش‌نمایش ارسال')
             ->assertSee('aria-label="ارسال برای بررسی ادمین"', false)
             ->assertSee('aria-label="ویرایش قیمت"', false)
@@ -127,6 +129,7 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
             ->assertOk()
             ->assertHeader('Permissions-Policy', 'camera=(), geolocation=(self), microphone=()')
             ->assertSee('را از فایل‌های دستگاه انتخاب کنید')
+            ->assertDontSee('capture="environment"', false)
             ->assertDontSee('data-camera-listing="auto"', false);
 
         $this->post(route('listings.store'), $payload)->assertSessionHasErrors('images');

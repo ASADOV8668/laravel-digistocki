@@ -42,6 +42,7 @@ export function cameraListing() {
     return {
         cameraMode: false,
         cameraOpened: false,
+        cameraReady: false,
         cameraBusy: false,
         cameraError: '',
         cameraStep: null,
@@ -64,7 +65,7 @@ export function cameraListing() {
             if (this.cameraBusy || this.cameraOpened) return;
             this.cameraError = '';
             if (!navigator.mediaDevices?.getUserMedia || typeof DataTransfer === 'undefined') {
-                this.cameraError = 'دوربین زنده در این مرورگر در دسترس نیست. برای انتخاب فایل، به ثبت آگهی دستی بروید.';
+                this.cameraError = 'پیش‌نمایش زنده در این مرورگر در دسترس نیست. گزینهٔ «عکس با دوربین گوشی» را امتحان کنید.';
                 return;
             }
 
@@ -75,8 +76,10 @@ export function cameraListing() {
                 });
                 this.$refs.listingCameraVideo.srcObject = this.cameraStream;
                 this.cameraOpened = true;
-            } catch {
-                this.cameraError = 'دوربین باز نشد. دسترسی دوربین را در تنظیمات مرورگر بررسی کنید.';
+            } catch (error) {
+                this.cameraError = error.name === 'NotAllowedError'
+                    ? 'مرورگر اجازهٔ پیش‌نمایش زنده را نداد. دسترسی دوربین سایت را در تنظیمات مرورگر بررسی کنید یا «عکس با دوربین گوشی» را امتحان کنید.'
+                    : 'پیش‌نمایش زنده باز نشد. گزینهٔ «عکس با دوربین گوشی» را امتحان کنید.';
             } finally {
                 this.cameraBusy = false;
             }
@@ -87,6 +90,7 @@ export function cameraListing() {
             if (this.$refs.listingCameraVideo) this.$refs.listingCameraVideo.srcObject = null;
             this.cameraStream = null;
             this.cameraOpened = false;
+            this.cameraReady = false;
         },
 
         takeListingPicture() {

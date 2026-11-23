@@ -1,6 +1,6 @@
 <div class="flex min-h-0 flex-1 flex-col" x-cloak @pagehide.window="closeListingCamera()">
     <div class="pointer-events-none absolute inset-0 overflow-hidden">
-        <video x-ref="listingCameraVideo" x-show="cameraOpened" autoplay playsinline muted
+        <video x-ref="listingCameraVideo" x-show="cameraOpened" @canplay="cameraReady = cameraOpened" autoplay playsinline muted
             class="h-full w-full object-contain" aria-label="پیش‌نمایش زندهٔ دوربین"></video>
         <template x-if="!cameraOpened && previews.length">
             <img :src="previews[0].url" alt="عکس محصول" class="h-full w-full object-contain">
@@ -17,6 +17,8 @@
         </a>
         <button type="button" x-show="previews.length && !cameraOpened" @click="openListingCamera()" :disabled="cameraBusy"
             class="rounded-xl bg-slate-950/80 px-3 py-2 text-sm font-bold">گرفتن دوباره عکس</button>
+        <button type="button" x-show="previews.length && !cameraOpened && !cameraBusy" @click="$refs.listingCameraFile.click()"
+            class="rounded-xl bg-slate-950/80 px-3 py-2 text-sm font-bold">عکس با دوربین گوشی</button>
     </div>
     @if ($errors->any())
         <ul role="alert" class="relative mx-4 max-h-32 overflow-auto rounded-xl bg-red-50 p-3 text-sm text-red-800">
@@ -27,12 +29,15 @@
     @endif
     <p x-show="cameraError || invalid" x-text="cameraError || message" role="status"
         class="relative mx-4 rounded-xl bg-slate-950/85 p-3 text-sm text-white"></p>
-    <input x-ref="listingCameraFile" type="file" name="images[]" hidden>
+    <input x-ref="listingCameraFile" type="file" name="images[]" accept="image/*" capture="environment"
+        @change="useListingCameraFile($event)" hidden>
     <div x-show="cameraOpened || !previews.length" class="relative mt-auto flex flex-col items-center gap-3 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-center text-white">
-        <button type="button" x-show="cameraOpened" @click="takeListingPicture()" :disabled="cameraBusy"
+        <button type="button" x-show="cameraOpened" @click="takeListingPicture()" :disabled="cameraBusy || !cameraReady"
             class="rounded-full border-4 border-white/50 bg-white px-6 py-3 font-bold text-slate-900">گرفتن عکس</button>
         <button type="button" x-show="!cameraOpened && !cameraBusy" @click="openListingCamera()"
-            class="rounded-full bg-primary px-6 py-3 font-bold text-white">باز کردن دوربین</button>
+            class="rounded-full bg-primary px-6 py-3 font-bold text-white">باز کردن دوربین زنده</button>
+        <button type="button" x-show="!cameraOpened && !cameraBusy" @click="$refs.listingCameraFile.click()"
+            class="rounded-xl bg-slate-950/80 px-4 py-2 text-sm font-bold">عکس با دوربین گوشی</button>
         <button type="button" x-show="cameraOpened && previews.length" @click="closeListingCamera()"
             class="rounded-xl bg-slate-950/80 px-4 py-2 text-sm">بازگشت به عکس قبلی</button>
     </div>
