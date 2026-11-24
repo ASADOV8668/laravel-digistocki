@@ -37,7 +37,6 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
     <div class="tailadmin-shell" data-admin-ui="tailadmin-v2">
         <div class="flex h-screen overflow-hidden">
             <aside id="admin-sidebar" role="navigation" aria-label="منوی مدیریت"
-                @click.outside="if (window.innerWidth < 1024) sidebarOpen = false"
                 :class="[sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0', sidebarCollapsed ? 'lg:w-[90px]' :
                     'lg:w-[290px]'
                 ]"
@@ -120,20 +119,16 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                     <p x-show="!sidebarCollapsed"
                         class="mb-3 mt-7 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-400">کاتالوگ
                     </p>
-                    <a href="{{ route('admin.brands.index') }}" title="کاتالوگ گوشی"
-                        class="menu-item group {{ request()->routeIs('admin.brands.*', 'admin.phone-models.*', 'admin.attributes.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
-                        :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <x-heroicon-o-device-phone-mobile
-                            class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.brands.*', 'admin.phone-models.*', 'admin.attributes.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                        <span x-show="!sidebarCollapsed">کاتالوگ گوشی</span>
-                    </a>
-                    <a href="{{ route('admin.phone-models.index') }}" title="مدل‌های محصول"
-                        class="menu-item group {{ request()->routeIs('admin.phone-models.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
-                        :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <x-heroicon-o-cpu-chip
-                            class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.phone-models.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                        <span x-show="!sidebarCollapsed">مدل‌های محصول</span>
-                    </a>
+                    @foreach (\App\Models\PhoneModel::DEVICE_TYPES as $type => $label)
+                        @php($catalogActive = request()->routeIs('admin.brands.*', 'admin.phone-series.*', 'admin.phone-models.*') && ($deviceType ?? $brand->device_type ?? 'mobile') === $type)
+                        <a href="{{ route('admin.brands.index', ['device_type' => $type]) }}" title="کاتالوگ {{ $label }}"
+                            class="menu-item group {{ $catalogActive ? 'menu-item-active' : 'menu-item-inactive' }}"
+                            :class="sidebarCollapsed ? 'justify-center' : ''">
+                            <x-heroicon-o-rectangle-stack
+                                class="h-5 w-5 shrink-0 {{ $catalogActive ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
+                            <span x-show="!sidebarCollapsed">کاتالوگ {{ $label }}</span>
+                        </a>
+                    @endforeach
                     <a href="{{ route('admin.attributes.index') }}" title="ویژگی‌های محصول"
                         class="menu-item group {{ request()->routeIs('admin.attributes.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         :class="sidebarCollapsed ? 'justify-center' : ''">

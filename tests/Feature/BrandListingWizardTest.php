@@ -106,7 +106,8 @@ class BrandListingWizardTest extends TestCase
     public function test_admin_can_save_a_smartwatch_and_the_camera_catalog_can_find_it(): void
     {
         $this->seed(CatalogSeeder::class);
-        $brand = Brand::where('name_en', 'Apple')->firstOrFail();
+        $mobileBrand = Brand::where('name_en', 'Apple')->firstOrFail();
+        $brand = Brand::create(['name' => 'Apple Watch', 'slug' => 'apple-watch', 'device_type' => 'smartwatch', 'is_active' => true]);
         $admin = User::factory()->create(['role' => 'admin']);
         $color = Attribute::where('slug', 'color')->firstOrFail();
         $caseSize = Attribute::create(['slug' => 'case-size', 'name' => 'اندازه قاب', 'type' => 'integer', 'is_active' => true]);
@@ -134,7 +135,7 @@ class BrandListingWizardTest extends TestCase
         $validator = app(ListingAttributeValidator::class);
         $this->assertSame([], $validator->errors($watch, [$color->id => 'آبی یخی', $caseSize->id => '41']));
         $this->assertArrayHasKey('attributes.'.$caseSize->id, $validator->errors($watch, [$color->id => 'آبی یخی', $caseSize->id => '42']));
-        $this->assertNotContains('آبی یخی', $color->optionsForModel($brand->phoneModels()->where('device_type', 'mobile')->firstOrFail()->id));
+        $this->assertNotContains('آبی یخی', $color->optionsForModel($mobileBrand->phoneModels()->where('device_type', 'mobile')->firstOrFail()->id));
 
         $this->get(route('admin.phone-models.index', ['device_type' => 'smartwatch']))
             ->assertOk()->assertSee('Test Watch')->assertSee('آبی یخی')->assertDontSee('iPhone 13 Pro Max');

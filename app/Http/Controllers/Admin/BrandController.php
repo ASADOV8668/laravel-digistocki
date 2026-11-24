@@ -9,6 +9,7 @@ use App\Models\BrandListingWizardStep;
 use App\Models\PhoneModel;
 use App\Services\ImageService;
 use App\Services\SystemOptions;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +17,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class BrandController extends Controller
 {
@@ -25,16 +27,24 @@ class BrandController extends Controller
     {
         $perPage = $this->adminPerPage($request);
         $perPageOptions = $this->adminPerPageOptions();
-        $brands = Brand::withCount('phoneModels')
-            ->when($request->filled('q'), fn ($query) => $query->where('name', 'like', '%'.$request->string('q').'%')->orWhere('name_en', 'like', '%'.$request->string('q').'%'))
+        $deviceType = $request->query('device_type', 'mobile');
+        abort_unless(is_string($deviceType) && isset(PhoneModel::DEVICE_TYPES[$deviceType]), 422);
+        $brands = Brand::withCount('phoneModels')->withExists('listings')
+            ->where('device_type', $deviceType)
+            ->when($request->filled('q'), fn ($query) => $query->where(fn ($search) => $search
+                ->where('name', 'like', '%'.$request->string('q').'%')
+                ->orWhere('name_en', 'like', '%'.$request->string('q').'%')))
             ->orderBy('name')->paginate($perPage)->withQueryString();
 
-        return view('admin.brands.index', compact('brands', 'perPageOptions'));
+        return view('admin.brands.index', compact('brands', 'deviceType', 'perPageOptions'));
     }
 
     public function store(Request $request, ImageService $imageService, SystemOptions $options): RedirectResponse
     {
         $validated = $this->validated($request, $options);
+        $deviceType = $request->validate([
+            'device_type' => ['sometimes', 'required', Rule::in(array_keys(PhoneModel::DEVICE_TYPES))],
+        ])['device_type'] ?? 'mobile';
         $imagePath = null;
 
         try {
@@ -44,6 +54,7 @@ class BrandController extends Controller
 
             Brand::create([
                 ...$validated,
+                'device_type' => $deviceType,
                 'featured_image' => $imagePath,
                 'slug' => $this->uniqueSlug($validated['name_en'] ?? $validated['name']),
                 'is_active' => true,
@@ -81,7 +92,8 @@ class BrandController extends Controller
                     : (bool) $brand->can_post_listings,
             ]);
 
-            if ($newImagePath !== $oldImagePath && $oldImagePath && Str::startsWith($oldImagePath, 'brands/')) {
+            if ($newImagePath !== $oldImagePath && $oldImagePath && Str::startsWith($oldImagePath, 'brands/')
+                && ! Brand::where('featured_image', $oldImagePath)->exists()) {
                 Storage::disk('public')->delete($oldImagePath);
             }
         } catch (\Throwable $exception) {
@@ -94,6 +106,30 @@ class BrandController extends Controller
         }
 
         return back()->with('status', 'برند به‌روزرسانی شد.');
+    }
+
+    public function destroy(Brand $brand): RedirectResponse
+    {
+        if ($brand->listings()->exists()) {
+            return back()->withErrors(['brand' => 'این برند آگهی وابسته دارد. می‌توانید برند را غیرفعال کنید.']);
+        }
+
+        try {
+            $brand->delete();
+        } catch (QueryException $exception) {
+            if (! in_array((string) $exception->getCode(), ['23000', '23503'], true)) {
+                throw $exception;
+            }
+
+            return back()->withErrors(['brand' => 'این برند آگهی وابسته دارد. می‌توانید برند را غیرفعال کنید.']);
+        }
+
+        $imagePath = $brand->featured_image;
+        if ($imagePath && Str::startsWith($imagePath, 'brands/') && ! Brand::where('featured_image', $imagePath)->exists()) {
+            Storage::disk('public')->delete($imagePath);
+        }
+
+        return back()->with('status', 'برند حذف شد.');
     }
 
     public function toggle(Request $request, Brand $brand): RedirectResponse|JsonResponse

@@ -24,10 +24,10 @@ class PhoneModelController extends Controller
     {
         $perPage = $this->adminPerPage($request);
         $perPageOptions = $this->adminPerPageOptions();
-        $deviceType = $request->query('device_type');
-        abort_if($deviceType !== null && (! is_string($deviceType) || ! isset(PhoneModel::DEVICE_TYPES[$deviceType])), 422);
+        $deviceType = $request->query('device_type', 'mobile');
+        abort_if(! is_string($deviceType) || ! isset(PhoneModel::DEVICE_TYPES[$deviceType]), 422);
         $models = PhoneModel::with(['brand', 'modelAttributes', 'attributes' => fn ($query) => $query->where('attributes.is_active', true)->orderBy('model_attributes.sort_order')])->withCount('listings')
-            ->when($deviceType, fn ($query) => $query->where('device_type', $deviceType))
+            ->where('device_type', $deviceType)
             ->when($request->filled('brand_id'), fn ($query) => $query->where('brand_id', $request->integer('brand_id')))
             ->when($request->filled('q'), fn ($query) => $query->where(function ($query) use ($request) {
                 $like = '%'.$request->string('q').'%';
@@ -35,7 +35,7 @@ class PhoneModelController extends Controller
             }))
             ->orderBy('name')->paginate($perPage)->withQueryString();
 
-        return view('admin.phone-models.index', ['models' => $models, 'deviceType' => $deviceType, 'brands' => Brand::orderBy('name')->get(), 'series' => PhoneSeries::query()->with('brand')->where('is_active', true)->orderBy('brand_id')->orderBy('sort_order')->get(), 'attributes' => Attribute::where('is_active', true)->orderBy('sort_order')->get(), 'perPageOptions' => $perPageOptions]);
+        return view('admin.phone-models.index', ['models' => $models, 'deviceType' => $deviceType, 'brands' => Brand::where('device_type', $deviceType)->orderBy('name')->get(), 'series' => PhoneSeries::query()->with('brand')->whereHas('brand', fn ($query) => $query->where('device_type', $deviceType))->orderBy('brand_id')->orderBy('sort_order')->get(), 'attributes' => Attribute::where('is_active', true)->orderBy('sort_order')->get(), 'perPageOptions' => $perPageOptions]);
     }
 
     public function store(Request $request)
@@ -51,7 +51,7 @@ class PhoneModelController extends Controller
 
     public function update(Request $request, PhoneModel $phoneModel)
     {
-        $validated = $this->validated($request);
+        $validated = $this->validated($request, $phoneModel->device_type);
         DB::transaction(function () use ($phoneModel, $validated): void {
             $phoneModel = PhoneModel::query()->lockForUpdate()->findOrFail($phoneModel->id);
             $phoneModel->update([...$this->modelData($validated), 'slug' => $this->uniqueSlug($validated['brand_id'], $validated['name_en'] ?? $validated['name'], $phoneModel)]);
@@ -76,11 +76,13 @@ class PhoneModelController extends Controller
         return back()->with('status', 'وضعیت مدل تغییر کرد.');
     }
 
-    private function validated(Request $request): array
+    private function validated(Request $request, ?string $currentDeviceType = null): array
     {
+        $deviceType = $currentDeviceType ?? $request->input('device_type', 'mobile');
+
         return $request->validate([
-            'brand_id' => ['required', 'exists:brands,id'],
-            'device_type' => ['sometimes', 'required', Rule::in(array_keys(PhoneModel::DEVICE_TYPES))],
+            'brand_id' => ['required', 'integer', Rule::exists('brands', 'id')->where('device_type', is_string($deviceType) ? $deviceType : '')],
+            'device_type' => ['sometimes', 'required', Rule::in($currentDeviceType ? [$currentDeviceType] : array_keys(PhoneModel::DEVICE_TYPES))],
             'phone_series_id' => ['nullable', 'integer', Rule::exists('phone_series', 'id')->where(fn ($query) => $query->where('brand_id', $request->integer('brand_id')))],
             'name' => ['required', 'string', 'max:100'],
             'name_fa' => ['nullable', 'string', 'max:100'],

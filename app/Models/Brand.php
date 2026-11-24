@@ -11,7 +11,9 @@ class Brand extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'name_en', 'slug', 'logo', 'featured_image', 'is_active', 'can_post_listings'];
+    protected $attributes = ['device_type' => 'mobile'];
+
+    protected $fillable = ['device_type', 'name', 'name_en', 'slug', 'logo', 'featured_image', 'is_active', 'can_post_listings'];
 
     protected function casts(): array
     {
