@@ -208,6 +208,39 @@
                 @endforeach
             </div>
         </div>
+        @foreach (['کاهش قیمت' => $priceDrops, 'قیمت‌های تازه به‌روزشده' => $recentPriceUpdates] as $sectionTitle => $sectionListings)
+            @if ($sectionListings->isNotEmpty())
+                <section class="space-y-3">
+                    <h2 class="text-lg font-black text-neutral">{{ $sectionTitle }}</h2>
+                    <div class="grid gap-2 sm:grid-cols-2">
+                        @foreach ($sectionListings as $listing)
+                            <a href="{{ route('listings.show', $listing) }}" class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+                                <h3 class="truncate text-sm font-bold">{{ $listing->title }}</h3>
+                                <p class="mt-1 text-sm font-black text-primary">
+                                    {{ \App\Support\PersianNumber::format($listing->price) }} تومان
+                                    @if ($listing->previous_price > $listing->price)
+                                        <del class="mr-2 text-xs font-normal text-slate-500">{{ \App\Support\PersianNumber::format($listing->previous_price) }}</del>
+                                    @endif
+                                </p>
+                            </a>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
+        @endforeach
+        @if ($activeStores->isNotEmpty())
+            <section class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-black text-neutral">فروشگاه‌های فعال</h2>
+                    <a href="{{ route('storefront.index') }}" class="text-xs font-bold text-primary">همهٔ فروشگاه‌ها</a>
+                </div>
+                <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    @foreach ($activeStores as $store)
+                        <a href="{{ route('storefront.show', $store) }}" class="truncate rounded-lg border border-slate-200 bg-white p-3 text-sm font-bold dark:border-slate-700 dark:bg-slate-900">{{ $store->name }}</a>
+                    @endforeach
+                </div>
+            </section>
+        @endif
         <div>
             <div class="mb-3 flex items-center justify-between">
                 <div>

@@ -7,7 +7,7 @@ use App\Support\RegistrationStatus;
 
 class UnifiedParser extends AbstractListingImportParser
 {
-    private const MODEL = '/^(?:[\p{Extended_Pictographic}\x{FE0F}\s]+)?(?<model>(?:iphone\s*)?(?:\d{1,2}(?!\d|[.,\/%٪])(?=\s|$|pro|plus|mini|normal|max)|xs(?:\s*max)?\b|xr\b|se\b).*|(?:galaxy|samsung|xiaomi|redmi|poco)\b.*)/iu';
+    private const MODEL = '/^(?:[\p{Extended_Pictographic}\x{FE0F}\s]+)?(?<model>(?:apple\s+)?(?:(?:iphone|آیفون|ایفون)\s*)?(?:\d{1,2}(?!\d|[.,\/%٪])(?=\s|$|pro|plus|mini|normal|max)|xs(?:\s*max)?\b|xr\b|se\b).*|(?:galaxy|samsung|xiaomi|redmi|poco)\b.*)/iu';
 
     private const PRICE = '/(?<!\d)(\d{1,4}(?:[.,٬،\/]\d{3}){1,3}|\d{5,12})(?:\s*(m|تومان))?(?!\d)/iu';
 
@@ -54,7 +54,11 @@ class UnifiedParser extends AbstractListingImportParser
 
         $raw = implode("\n", $record['lines']);
         $model = $record['model'];
-        $modelText = preg_match('/^(?:galaxy|samsung|xiaomi|redmi|poco)\b/iu', $model) ? $model : 'iphone '.$model;
+        $modelText = preg_match('/^(?:galaxy|samsung|xiaomi|redmi|poco)\b/iu', $model)
+            ? $model
+            : 'iphone '.strtr(preg_replace('/^(?:apple\s+)?(?:(?:iphone|آیفون|ایفون)\s*)?/iu', '', $model), [
+                'پرو مکس' => 'Pro Max', 'پرومکس' => 'Pro Max', 'پرو' => 'Pro', 'پلاس' => 'Plus', 'مینی' => 'Mini',
+            ]);
         $details = str_replace(["\u{FE0E}", "\u{FE0F}"], '', $raw);
         $registration = RegistrationStatus::detect($details);
         $part = preg_match('/\b(ZAA|ZA|CH|LLA|LL|JPA|JAP|JP|AE|AH|HN|B|KH|TA|TH|VN)\b/i', $model, $partNumber)
@@ -80,6 +84,18 @@ class UnifiedParser extends AbstractListingImportParser
     private function linePrice(string $line): ?int
     {
         $candidate = preg_replace('/(?:🔋\s*\d{1,3}(?:[%٪]|\s*bt)?|\d{1,3}\s*(?:[%٪]|bt|🔋))/iu', '', $line);
+        if (preg_match('/(?:💵|💰|قیمت|\bprice\b)\s*[:=：-]?\s*(.+)/iu', $line, $label)) {
+            if (preg_match('/^(\d{1,4}(?:[.٫]\d{1,3})?)\h*(هزار|میلیون|میلیارد)(?!\pL)/u', $label[1], $scaled)) {
+                $multiplier = match ($scaled[2]) {
+                    'هزار' => 1000,
+                    'میلیون' => 1000000,
+                    'میلیارد' => 1000000000,
+                };
+
+                return (int) round((float) str_replace('٫', '.', $scaled[1]) * $multiplier);
+            }
+            $candidate = preg_replace('/(?<=\d)\h+(?=\d{3}(?!\d))/u', ',', $label[1]);
+        }
         if (! preg_match(self::PRICE, $candidate, $price)) {
             return null;
         }

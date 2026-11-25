@@ -2,9 +2,17 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AttributeType;
+use App\Models\Attribute;
+use App\Models\Listing;
+use App\Models\PhoneModel;
+use App\Models\User;
+use App\Notifications\SavedListingSearchNotification;
+use App\Support\PersianDigits;
 use Database\Seeders\CatalogSeeder;
 use Database\Seeders\DemoListingSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class HomeSearchTest extends TestCase
@@ -41,11 +49,31 @@ class HomeSearchTest extends TestCase
             ->assertExactJson([]);
     }
 
+    public function test_natural_search_can_be_saved_and_sends_price_drop_notifications(): void
+    {
+        Notification::fake();
+        $buyer = User::factory()->create();
+        $query = 'آیفون ۱۳ پرو ۲۵۶ آبی';
+        $listing = Listing::where('slug', 'demo-iphone-13-pro')->sole();
+        $other = Listing::where('slug', 'demo-iphone-13-pro-max')->sole();
+
+        $results = $this->actingAs($buyer)->get(route('listings.index', ['q' => $query]))->assertOk();
+        $this->assertSame([$listing->id], $results->viewData('listings')->pluck('id')->all());
+        $this->post(route('listings.searches.store'), ['query' => $query])->assertRedirect(route('listings.searches.index'));
+        $this->get(route('listings.searches.index'))->assertOk()->assertSeeText(PersianDigits::toEnglish($query));
+
+        $listing->update(['price' => $listing->price - 1000000]);
+        Notification::assertSentTo($buyer, SavedListingSearchNotification::class);
+        $this->get(route('home'))->assertOk()->assertSeeText('کاهش قیمت');
+        $this->get(route('listings.index', ['compare' => [$listing->id, $other->id]]))
+            ->assertOk()->assertSeeText('مقایسهٔ آگهی‌ها')->assertSeeText($other->title);
+    }
+
     public function test_model_attribute_endpoint_returns_available_storage_and_color_values(): void
     {
-        $model = \App\Models\PhoneModel::whereHas('brand', fn ($query) => $query->where('name_en', 'Apple'))->where('name_en', 'iPhone 13 Pro Max')->firstOrFail();
-        $storage = \App\Models\Attribute::where('slug', 'storage')->firstOrFail();
-        $color = \App\Models\Attribute::where('slug', 'color')->firstOrFail();
+        $model = PhoneModel::whereHas('brand', fn ($query) => $query->where('name_en', 'Apple'))->where('name_en', 'iPhone 13 Pro Max')->firstOrFail();
+        $storage = Attribute::where('slug', 'storage')->firstOrFail();
+        $color = Attribute::where('slug', 'color')->firstOrFail();
 
         $this->getJson(route('listings.models.attributes', $model))
             ->assertOk()
@@ -71,12 +99,12 @@ class HomeSearchTest extends TestCase
 
     public function test_chained_search_reads_legacy_numeric_values_after_attribute_type_change(): void
     {
-        $model = \App\Models\PhoneModel::where('name_en', 'iPhone 13 Pro Max')->firstOrFail();
-        $storage = \App\Models\Attribute::where('slug', 'storage')->firstOrFail();
+        $model = PhoneModel::where('name_en', 'iPhone 13 Pro Max')->firstOrFail();
+        $storage = Attribute::where('slug', 'storage')->firstOrFail();
 
         // Existing production data may still use value_integer after an admin
         // changes the catalog field from integer to select.
-        $storage->update(['type' => \App\Enums\AttributeType::Select]);
+        $storage->update(['type' => AttributeType::Select]);
 
         $this->getJson(route('listings.models.attributes', $model))
             ->assertOk()

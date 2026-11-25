@@ -23,6 +23,7 @@ use App\Http\Controllers\User\ListingController;
 use App\Http\Controllers\User\ListingImportController;
 use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\User\ReportController as UserReportController;
+use App\Http\Controllers\User\SavedListingSearchController;
 use App\Http\Controllers\User\StorefrontController;
 use App\Http\Controllers\User\SupportController;
 use Illuminate\Support\Facades\Route;
@@ -53,9 +54,12 @@ Route::get('/listings/{listing}', [ListingController::class, 'show'])->name('lis
 Route::get('/dashboard', [UserDashboardController::class, 'index'])->middleware(['auth', 'active', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'active'])->group(function () {
+    Route::get('/dashboard/saved-searches', [SavedListingSearchController::class, 'index'])->name('listings.searches.index');
+    Route::post('/dashboard/saved-searches', [SavedListingSearchController::class, 'store'])->name('listings.searches.store');
+    Route::delete('/dashboard/saved-searches/{search}', [SavedListingSearchController::class, 'destroy'])->whereNumber('search')->name('listings.searches.destroy');
     Route::get('/dashboard/listings/import', [ListingImportController::class, 'create'])->name('listings.import.create');
     Route::post('/dashboard/listings/import/preview', [ListingImportController::class, 'preview'])->name('listings.import.preview');
-    Route::post('/dashboard/listings/import/store', [ListingImportController::class, 'store'])->name('listings.import.store');
+    Route::post('/dashboard/listings/import/store', [ListingImportController::class, 'store'])->block(60, 10)->name('listings.import.store');
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::delete('/favorites', [FavoriteController::class, 'destroyAll'])->name('favorites.destroy-all');
     Route::post('/listings/{listing}/favorite', [FavoriteController::class, 'toggle'])->middleware('throttle:30,1')->name('listings.favorite.toggle');

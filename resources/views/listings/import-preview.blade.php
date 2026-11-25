@@ -19,6 +19,34 @@
         <form method="POST" action="{{ route('listings.import.store') }}" enctype="multipart/form-data" class="space-y-5">
             @csrf
             <input type="hidden" name="token" value="{{ $token }}">
+            @php
+                $states = [
+                    'new' => 'آگهی جدید',
+                    'price_change' => 'تغییر قیمت پیشنهادی',
+                    'unchanged' => 'قیمت بدون تغییر',
+                    'review' => 'نیاز به بررسی',
+                    'unsupported' => 'ثبت نمی‌شود',
+                ];
+                $counts = collect($rows)->countBy(fn ($row) => $row['inventory_state'] ?? 'new');
+            @endphp
+            <div class="flex flex-wrap gap-2" aria-label="خلاصهٔ تطبیق موجودی">
+                @foreach ($states as $state => $label)
+                    @if ($counts->get($state))
+                        <span class="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-100">{{ $counts->get($state) }} {{ $label }}</span>
+                    @endif
+                @endforeach
+            </div>
+            @if (!empty($unmatchedListings))
+                <details class="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
+                    <summary class="cursor-pointer text-sm font-bold">آگهی‌های فعالی که در این لیست پیدا نشدند ({{ count($unmatchedListings) }})</summary>
+                    <p class="mt-2 text-xs text-slate-500">موجودی این آگهی‌ها را جداگانه بررسی کنید. وضعیت آن‌ها با ایمپورت تغییر نمی‌کند.</p>
+                    <ul class="mt-2 list-disc space-y-1 pr-5 text-sm">
+                        @foreach ($unmatchedListings as $missing)
+                            <li><a class="font-bold text-primary" href="{{ route('listings.edit', $missing['id']) }}">{{ $missing['title'] }}</a> <span class="text-xs text-slate-500">#{{ $missing['id'] }}</span></li>
+                        @endforeach
+                    </ul>
+                </details>
+            @endif
             <div class="flex flex-wrap items-end gap-4 rounded-lg bg-white p-4 shadow-sm dark:bg-slate-900">
                 <div class="min-w-[220px] flex-1">
                     <label for="preview-listing-date" class="mb-2 block text-sm font-bold text-neutral dark:text-slate-100">تاریخ آگهی</label>
@@ -29,6 +57,9 @@
 
             <div class="space-y-4">
                 @foreach ($rows as $index => $row)
+                    @php
+                        $state = $row['inventory_state'] ?? ($row['supported'] ? 'new' : 'unsupported');
+                    @endphp
                     <article class="rounded-lg border {{ $row['supported'] ? 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900' : 'border-slate-200 bg-slate-50 opacity-75 dark:border-slate-800 dark:bg-slate-900/60' }} p-3 shadow-sm">
                         <input type="hidden" name="rows[{{ $index }}][enabled]" value="{{ $row['supported'] ? 1 : 0 }}">
                         <input type="hidden" name="rows[{{ $index }}][price]" :value="rows[{{ $index }}].price">
@@ -45,7 +76,7 @@
                                 <div class="min-w-0 flex-1">
                                     <div class="flex flex-wrap items-start justify-between gap-2">
                                         <div class="min-w-0">
-                                        <span class="mb-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-black {{ $row['supported'] ? 'bg-success/10 text-success' : 'bg-slate-200 text-slate-500 dark:bg-slate-800' }}">{{ $row['supported'] ? 'قابل ثبت' : 'ثبت نمی‌شود' }}</span>
+                                        <span class="mb-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-black {{ $state === 'new' ? 'bg-success/10 text-success' : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-200' }}">{{ $states[$state] }}</span>
                                             <h2 class="truncate text-left text-base font-black text-neutral dark:text-slate-100" dir="ltr">{{ $row['brand_name'] }} {{ $row['model_name'] }}</h2>
                                         </div>
                                     @if (!empty($row['issues']))
@@ -54,9 +85,32 @@
                                     </div>
                                 </div>
                             </div>
+                            @if ($row['supported'])
+                                @php
+                                    $actions = ['skip' => 'رد کردن', 'new' => 'ثبت آگهی جدید'];
+                                    if (isset($row['inventory_match'])) {
+                                        $actions['update'] = 'به‌روزرسانی قیمت آگهی موجود';
+                                    }
+                                    $selectedAction = old("rows.$index.action", $state === 'new' ? 'new' : 'skip');
+                                @endphp
+                                <fieldset class="mt-3 flex flex-wrap gap-3 text-sm">
+                                    <legend class="mb-1 text-xs font-bold text-slate-500">عملیات این ردیف</legend>
+                                    @foreach ($actions as $action => $label)
+                                        <label class="inline-flex items-center gap-1.5">
+                                            <input type="radio" name="rows[{{ $index }}][action]" value="{{ $action }}" @checked($selectedAction === $action) class="border-slate-300 text-primary focus:ring-primary">
+                                            {{ $label }}
+                                        </label>
+                                    @endforeach
+                                </fieldset>
+                                @if (isset($row['inventory_match']))
+                                    <p class="mt-2 text-xs text-slate-500">{{ $row['inventory_match']['title'] }} #{{ $row['inventory_match']['id'] }}، قیمت فعلی {{ $row['inventory_match']['price_on_request'] ? 'تماس بگیرید' : number_format($row['inventory_match']['price']) . ' تومان' }}</p>
+                                @elseif ($state === 'review')
+                                    <p class="mt-2 text-xs text-slate-500">برای تطبیق مطمئن، مشخصات کافی نیست یا چند گوشی مشابه پیدا شد.</p>
+                                @endif
+                            @endif
                             <div class="mt-3 grid gap-3 sm:grid-cols-2">
                                     <label class="block"><span class="mb-1 block text-xs font-bold text-slate-500">قیمت (تومان)</span><input type="text" inputmode="numeric" dir="ltr" x-model="rows[{{ $index }}].price" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"></label>
-                                    <label class="block"><span class="mb-1 block text-xs font-bold text-slate-500">توضیحات</span><input type="text" name="rows[{{ $index }}][description]" value="{{ $row['description'] }}" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"></label>
+                                    <label class="block"><span class="mb-1 block text-xs font-bold text-slate-500">توضیحات</span><input type="text" name="rows[{{ $index }}][description]" value="{{ old("rows.$index.description", $row['description']) }}" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"></label>
                             </div>
                                 <div x-show="rows[{{ $index }}].attribute_definitions.length" class="mt-4 grid gap-3 sm:grid-cols-2">
                                     <template x-for="attribute in visibleAttributes(rows[{{ $index }}])" :key="`import-attribute-${attribute.id}`">
@@ -122,7 +176,7 @@
                     </article>
                 @endforeach
             </div>
-            <button class="w-full rounded-lg bg-primary px-5 py-4 text-sm font-black text-white shadow-lg shadow-primary/20 transition hover:bg-primary-600">ثبت همهٔ آگهی‌های قابل ثبت</button>
+            <button class="w-full rounded-lg bg-primary px-5 py-4 text-sm font-black text-white shadow-lg shadow-primary/20 transition hover:bg-primary-600">اعمال عملیات انتخاب‌شده</button>
         </form>
 
         <div x-show="mediaOpen" x-cloak class="fixed inset-0 z-[80] flex items-end justify-center bg-slate-950/60 p-4 sm:items-center" @keydown.escape.window="mediaOpen = false">

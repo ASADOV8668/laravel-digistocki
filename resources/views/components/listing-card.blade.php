@@ -24,14 +24,19 @@
                 'name' => \App\Support\ListingTitle::attributeName($value->attribute?->slug, $value->attribute?->name, $isEnglishTitle),
                 'slug' => $value->attribute?->slug,
                 'value' => \App\Support\ListingTitle::attributeValue($value->attribute?->slug, $raw, $isEnglishTitle),
+                'boolean' => $value->value_boolean,
                 'color' => $value->attribute?->slug === 'color' ? \App\Support\ColorPalette::hex((string) $raw) : null,
             ];
         })
         ->filter(fn($item) => filled($item['name']) && filled($item['value']));
-    $colorAttribute = $allCardAttributes->firstWhere('slug', 'color');
-    $cardAttributes = ($colorAttribute ? collect([$colorAttribute]) : collect())
-        ->concat($allCardAttributes->reject(fn($item) => $item['slug'] === 'color'))
-        ->take(2);
+    $cardAttributes = collect(['storage', 'battery_health', 'registration_status', 'color'])
+        ->map(fn ($slug) => $allCardAttributes->firstWhere('slug', $slug))
+        ->filter();
+    if (!$cardAttributes->contains('slug', 'registration_status') && ($registered = $allCardAttributes->firstWhere('slug', 'registered'))) {
+        $registered['value'] = \App\Support\RegistrationStatus::fromBoolean($registered['boolean']);
+        $cardAttributes->push($registered);
+    }
+    $cardAttributes = $cardAttributes->isNotEmpty() ? $cardAttributes : $allCardAttributes->take(2);
 @endphp
 <article x-data="favoriteToggle('{{ route('listings.favorite.toggle', $listing) }}', {{ $isFavorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }})"
     dir="rtl"
@@ -59,7 +64,7 @@
         <h3 dir="{{ $isEnglishTitle ? 'ltr' : 'rtl' }}" class="line-clamp-2 {{ $isList ? 'min-h-9 text-[13px] leading-5' : 'min-h-10 text-sm leading-5' }} {{ $isEnglishTitle ? 'text-left' : 'text-right' }} font-black text-neutral">{{ $listing->title }}</h3>
         <p dir="{{ $isEnglishTitle ? 'ltr' : 'rtl' }}" class="{{ $isList ? 'mt-1' : 'mt-2' }} truncate text-[11px] text-slate-500">{{ $brandName }} · {{ $modelName }}</p>
         @if ($cardAttributes->isNotEmpty())
-            <div dir="{{ $isEnglishTitle ? 'ltr' : 'rtl' }}" class="{{ $isList ? 'mt-1 space-y-1' : 'mt-2 space-y-1.5' }} text-[11px] text-slate-500">
+            <div dir="{{ $isEnglishTitle ? 'ltr' : 'rtl' }}" class="mt-2 flex flex-wrap gap-x-2 gap-y-1 text-[11px] text-slate-500">
                 @foreach ($cardAttributes as $attribute)
                     <p class="flex items-center gap-1.5 truncate"><span
                             class="h-3 w-3 shrink-0 rounded-full border border-slate-300"
@@ -80,6 +85,19 @@
             </p>
         </div>
     </a>
+    <div class="flex flex-wrap items-center gap-2 px-3 pb-2 text-xs">
+        <label class="inline-flex items-center gap-1 font-bold text-slate-600 dark:text-slate-300">
+            <input type="checkbox" class="rounded border-slate-300 text-primary"
+                :checked="$store.listingCompare.ids.includes({{ $listing->id }})"
+                :disabled="$store.listingCompare.ids.length >= 3 && !$store.listingCompare.ids.includes({{ $listing->id }})"
+                @change="$store.listingCompare.toggle({{ $listing->id }})">
+            مقایسه
+        </label>
+        <a x-cloak x-show="$store.listingCompare.ids.length >= 2" :href="$store.listingCompare.url(@js(route('listings.index')))" class="font-bold text-primary">دیدن مقایسه</a>
+        @if ($listing->price_changed_at)
+            <span class="text-[10px] text-slate-500">تغییر قیمت {{ \App\Support\PersianNumber::digits(\App\Support\PersianDate::human($listing->price_changed_at)) }}</span>
+        @endif
+    </div>
     @if (! $isList && $storefront?->isPubliclyEnabled())
         <div class="border-t border-slate-100 px-3.5 py-2.5">
             <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400">

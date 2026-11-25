@@ -11,9 +11,11 @@ use App\Models\User;
 use App\Notifications\PendingListingNotification;
 use App\Services\ImageService;
 use App\Services\ListingImport\ImportedListingService;
+use App\Services\ListingImport\InventoryMatch;
 use App\Services\ListingImport\ListingImportParserRegistry;
 use App\Services\ListingMediaService;
 use App\Services\ListingRules;
+use App\Services\SystemOptions;
 use App\Support\PersianDigits;
 use App\Support\RegistrationStatus;
 use Illuminate\Contracts\View\View;
@@ -30,11 +32,35 @@ class ListingImportController extends Controller
         $parser = $this->parser($request);
         $colorOptions = Attribute::query()->where('slug', 'color')->value('options') ?? [];
         $listingDate = today('Asia/Tehran')->toDateString();
+        $token = $request->query('preview');
+        if (is_string($token) && preg_match('/\A[a-f0-9]{32}\z/', $token)) {
+            $preview = $request->session()->get('listing_import.preview.'.$token);
+            abort_unless(is_array($preview) && $parser->id === $preview['parser_id'], 419);
+            $rows = $preview['rows'];
+            foreach ($rows as $index => &$row) {
+                $oldRow = $request->old('rows.'.$index, []);
+                if (is_array($oldRow)) {
+                    $row['price'] = is_scalar($oldRow['price'] ?? null) ? $oldRow['price'] : $row['price'];
+                    if (is_array($oldRow['attributes'] ?? null)) {
+                        $row['attributes'] = array_replace($row['attributes'], $oldRow['attributes']);
+                    }
+                }
+            }
+
+            return view('listings.import-preview', [
+                'parser' => $parser,
+                'rows' => $rows,
+                'token' => $token,
+                'listingDate' => $preview['date'],
+                'colorOptions' => $colorOptions,
+                'unmatchedListings' => $preview['unmatchedListings'] ?? [],
+            ]);
+        }
 
         return view('listings.import', compact('parser', 'colorOptions', 'listingDate'));
     }
 
-    public function preview(Request $request, ListingImportParserRegistry $registry): RedirectResponse|View
+    public function preview(Request $request, ListingImportParserRegistry $registry, InventoryMatch $inventory): RedirectResponse|View
     {
         $parser = $this->parser($request);
         $validated = $request->validate(['text' => ['required', 'string', 'min:10', 'max:200000'], 'listing_date' => ['nullable', 'date_format:Y-m-d']]);
@@ -45,10 +71,12 @@ class ListingImportController extends Controller
             return back()->withErrors(['text' => 'از متن واردشده هیچ ردیف قابل تشخیصی پیدا نشد.'])->withInput();
         }
         $token = bin2hex(random_bytes(16));
-        $request->session()->put('listing_import.preview.'.$token, ['parser_id' => $parser->id, 'rows' => $rows, 'text' => $validated['text'], 'date' => $listingDate]);
         $colorOptions = Attribute::query()->where('slug', 'color')->value('options') ?? [];
         $rows = $this->withAttributeDefinitions($rows, $request->user());
-        $request->session()->put('listing_import.preview.'.$token.'.rows', $rows);
+        [$rows, $unmatchedListings] = $inventory->preview($request->user(), $rows);
+        $request->session()->put('listing_import.preview.'.$token, [
+            'parser_id' => $parser->id, 'rows' => $rows, 'date' => $listingDate, 'unmatchedListings' => $unmatchedListings,
+        ]);
 
         return view('listings.import-preview', [
             'parser' => $parser,
@@ -56,34 +84,36 @@ class ListingImportController extends Controller
             'token' => $token,
             'listingDate' => $listingDate,
             'colorOptions' => $colorOptions,
+            'unmatchedListings' => $unmatchedListings,
         ]);
     }
 
-    public function store(Request $request, ImportedListingService $service, ListingRules $rules, ImageService $imageService, ListingMediaService $mediaService): RedirectResponse
+    public function store(Request $request, ImportedListingService $service, ListingRules $rules, ImageService $imageService, ListingMediaService $mediaService, InventoryMatch $inventory): RedirectResponse
     {
         $parser = $this->parser($request);
         $token = (string) $request->input('token');
         $preview = $request->session()->get('listing_import.preview.'.$token);
         abort_unless(is_array($preview), 419);
         abort_unless($parser->id === ($preview['parser_id'] ?? null), 403);
-        if (! $rules->canCreate($request->user())) {
+        if (! app(SystemOptions::class)->listingsEnabled()) {
             return redirect()->route('home')->with('status', 'ثبت آگهی برای این حساب در حال حاضر فعال نیست.');
         }
 
         $date = PersianDigits::toEnglish((string) $request->input('listing_date'));
         if (Validator::make(['listing_date' => $date], ['listing_date' => ['required', 'date_format:Y-m-d']])->fails()) {
-            return back()->withErrors(['listing_date' => 'تاریخ معتبر آگهی را وارد کنید.'])->withInput();
+            return redirect()->route('listings.import.create', ['preview' => $token])->withErrors(['listing_date' => 'تاریخ معتبر آگهی را وارد کنید.'])->withInput();
         }
         $rows = $request->input('rows', []);
         $originalRows = $preview['rows'] ?? [];
         if (! is_array($rows) || $rows === []) {
-            return back()->withErrors(['rows' => 'حداقل یک ردیف برای ثبت انتخاب کنید.']);
+            return redirect()->route('listings.import.create', ['preview' => $token])->withErrors(['rows' => 'حداقل یک ردیف برای ثبت انتخاب کنید.']);
         }
 
-        $created = 0;
+        $updated = 0;
         $createdListings = [];
         DB::beginTransaction();
         try {
+            User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
             foreach ($rows as $index => $submitted) {
                 if (! is_array($submitted) || ! filter_var($submitted['enabled'] ?? true, FILTER_VALIDATE_BOOLEAN)) {
                     continue;
@@ -91,6 +121,13 @@ class ListingImportController extends Controller
                 $source = $originalRows[$index] ?? null;
                 if (! is_array($source) || ! ($source['supported'] ?? false)) {
                     continue;
+                }
+                $action = $submitted['action'] ?? (($source['inventory_state'] ?? 'new') === 'new' ? 'new' : 'skip');
+                if ($action === 'skip') {
+                    continue;
+                }
+                if (! in_array($action, ['new', 'update'], true)) {
+                    throw ValidationException::withMessages(['rows.'.$index.'.action' => 'عملیات انتخاب‌شده معتبر نیست.']);
                 }
                 $row = $source;
                 $row['price'] = $this->normalizePrice($submitted['price'] ?? $source['price'] ?? null, (int) ($source['price'] ?? 0));
@@ -142,17 +179,27 @@ class ListingImportController extends Controller
                 if ($row['price'] === null) {
                     throw ValidationException::withMessages(['rows.'.$index.'.price' => 'قیمت این ردیف نامعتبر است.']);
                 }
+                if ($action === 'update') {
+                    $updated += (int) $inventory->updatePrice($request->user(), $source, $row, 'rows.'.$index.'.action');
+
+                    continue;
+                }
+                if (! $rules->canCreate($request->user())) {
+                    throw ValidationException::withMessages(['rows.'.$index.'.action' => 'در حال حاضر ظرفیت ثبت آگهی جدید ندارید. ردیف‌های جدید را کنار بگذارید و دوباره تلاش کنید.']);
+                }
                 $upload = $request->file('uploads.'.$index);
                 $mediaId = filled($request->input('media_ids.'.$index)) ? (int) $request->input('media_ids.'.$index) : null;
                 if (! $upload && ! $mediaId) {
                     throw ValidationException::withMessages(['uploads.'.$index => 'برای این ردیف یک تصویر از رسانه‌ها انتخاب یا تصویر جدیدی آپلود کنید.']);
                 }
                 $createdListings[] = $service->create($request->user(), $row, $upload, $mediaId, $date, $rules, $imageService, $mediaService);
-                $created++;
             }
             DB::commit();
         } catch (\Throwable $exception) {
             DB::rollBack();
+            if ($exception instanceof ValidationException && ! $request->expectsJson()) {
+                return redirect()->route('listings.import.create', ['preview' => $token])->withErrors($exception->errors())->withInput();
+            }
             throw $exception;
         }
         $request->session()->forget('listing_import.preview.'.$token);
@@ -160,7 +207,7 @@ class ListingImportController extends Controller
             fn ($listing) => User::query()->where('role', 'admin')->get()->each(fn (User $admin) => $admin->notify(new PendingListingNotification($listing))),
         );
 
-        return redirect()->route('dashboard')->with('status', $created.' آگهی از متن واردشده ایجاد شد و برای بررسی ارسال گردید.');
+        return redirect()->route('dashboard')->with('status', count($createdListings).' آگهی جدید ثبت شد، قیمت '.$updated.' آگهی به‌روزرسانی شد.');
     }
 
     private function parser(Request $request): ListingImportParser

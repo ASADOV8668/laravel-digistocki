@@ -13,6 +13,33 @@
     </div>
 @endif
 
+@if (!empty($naturalSearchCriteria) && count($naturalSearchCriteria) > 1)
+    <p class="mb-3 flex flex-wrap gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+        @isset($naturalSearchCriteria['storage'])
+            <span class="rounded-lg bg-slate-100 px-2 py-1 dark:bg-slate-800">{{ \App\Support\PersianNumber::format($naturalSearchCriteria['storage']) }} گیگابایت</span>
+        @endisset
+        @isset($naturalSearchCriteria['color'])
+            <span class="rounded-lg bg-slate-100 px-2 py-1 dark:bg-slate-800">{{ $naturalSearchCriteria['color'] }}</span>
+        @endisset
+        @isset($naturalSearchCriteria['registered'])
+            <span class="rounded-lg bg-slate-100 px-2 py-1 dark:bg-slate-800">{{ $naturalSearchCriteria['registered'] ? 'رجیستر شده' : 'رجیستر نشده' }}</span>
+        @endisset
+    </p>
+@endif
+
+@auth
+    <div class="mb-4 flex flex-wrap items-center gap-3 text-sm">
+        @if (!empty($naturalSearchCriteria))
+            <form method="POST" action="{{ route('listings.searches.store') }}">
+                @csrf
+                <input type="hidden" name="query" value="{{ request('q') }}">
+                <button class="rounded-lg bg-primary px-3 py-2 font-bold text-white">ذخیرهٔ جستجو و دریافت اعلان</button>
+            </form>
+        @endif
+        <a href="{{ route('listings.searches.index') }}" class="font-bold text-primary">جستجوهای ذخیره‌شده</a>
+    </div>
+@endauth
+
 <div class="mb-4 flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
     <div>
         <h2 class="text-sm font-black text-neutral">آگهی‌های تأییدشده</h2>

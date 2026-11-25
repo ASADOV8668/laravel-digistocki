@@ -21,6 +21,7 @@ use App\Services\ListingFilterOptionService;
 use App\Services\ListingMediaService;
 use App\Services\ListingRules;
 use App\Services\LocationResolver;
+use App\Services\NaturalListingSearch;
 use App\Services\NotificationReadService;
 use App\Services\SystemOptions;
 use App\Support\PersianNumber;
@@ -34,11 +35,11 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Illuminate\Validation\ValidationException;
 use Sadegh19b\LaravelIranCities\Models\City;
 use Sadegh19b\LaravelIranCities\Models\Province;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Throwable;
 
 class ListingController extends Controller
@@ -299,7 +300,9 @@ class ListingController extends Controller
                 ->all();
             $nextSort = (int) $steps->max('sort_order') + 1;
             foreach (array_diff($requiredIds, $configuredIds) as $attributeId) {
-                if (! $attributes->has($attributeId)) continue;
+                if (! $attributes->has($attributeId)) {
+                    continue;
+                }
                 $steps->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => $nextSort++, 'attribute' => $attributes->get($attributeId)]);
             }
         }
@@ -390,6 +393,15 @@ class ListingController extends Controller
 
     public function index(Request $request)
     {
+        if ($request->has('compare')) {
+            $ids = $request->validate(['compare' => ['required', 'array', 'min:2', 'max:3'], 'compare.*' => ['required', 'integer', 'min:1', 'distinct']])['compare'];
+            $listings = Listing::query()->published()->whereKey($ids)
+                ->with(['primaryImage', 'city', 'attributeValues.attribute'])->get()->keyBy('id');
+            $listings = collect($ids)->map(fn ($id) => $listings->get($id))->filter()->values();
+
+            return view('listings.compare', compact('listings'));
+        }
+
         $selectedBrandId = $request->integer('brand_id');
         $selectedModelId = $request->integer('phone_model_id');
         $selectedModel = $request->integer('phone_model_id')
@@ -423,7 +435,12 @@ class ListingController extends Controller
             ->get();
         $filterAttributesById = $filterAttributes->keyBy('id');
         $searchTerm = trim((string) $request->input('q'));
-        $searchLikes = $this->searchLikes($searchTerm);
+        $naturalSearch = app(NaturalListingSearch::class);
+        $criteria = $naturalSearch->parse($searchTerm);
+        if ($selectedModelId && $criteria && $selectedModelId !== $criteria['phone_model_id']) {
+            $criteria = null;
+        }
+        $searchLikes = $criteria === null ? $this->searchLikes($searchTerm) : [];
         $query = Listing::query()
             ->approved()
             ->where(function (Builder $query): void {
@@ -435,6 +452,9 @@ class ListingController extends Controller
 
         $query->when($selectedBrandId, fn (Builder $query) => $query->where('brand_id', $selectedBrandId));
         $query->when($selectedModelId, fn (Builder $query) => $query->where('phone_model_id', $selectedModelId));
+        if ($criteria !== null) {
+            $naturalSearch->apply($query, $criteria);
+        }
         $query->when($request->integer('province_id'), fn (Builder $query, int $provinceId) => $query->where('province_id', $provinceId));
         $selectedCityId = $request->integer('city_id');
         $cityIds = collect((array) $request->input('city_ids', []))
@@ -516,7 +536,7 @@ class ListingController extends Controller
         $without = fn (array $keys): string => route('listings.index', Arr::except($request->query(), $keys));
         $activeFilters = [];
 
-        if ($searchLikes !== []) {
+        if ($searchLikes !== [] || $criteria !== null) {
             $activeFilters[] = ['label' => 'جستجو: '.trim((string) $request->input('q')), 'url' => $without(['q'])];
         }
         if ($selectedBrand) {
@@ -581,12 +601,14 @@ class ListingController extends Controller
         $priceCeiling = max($priceCeiling, (int) $request->integer('max_price'));
 
         if ($request->expectsJson()) {
+            $naturalSearchCriteria = $criteria;
+
             return response()->json([
                 'html' => view(
                     $request->boolean('infinite') ? 'listings.partials.cards' : 'listings.partials.results',
                     $request->boolean('infinite')
                         ? compact('listings')
-                        : compact('listings', 'sort', 'activeFilters', 'paginationMode'),
+                        : compact('listings', 'sort', 'activeFilters', 'paginationMode', 'naturalSearchCriteria'),
                 )->render(),
                 'next_page_url' => $listings->nextPageUrl(),
                 'has_more' => $listings->hasMorePages(),
@@ -602,6 +624,7 @@ class ListingController extends Controller
             'provinces' => Province::query()->orderBy('name')->get(['id', 'name']),
             'sort' => $sort,
             'activeFilters' => $activeFilters,
+            'naturalSearchCriteria' => $criteria,
             'hasPriceRange' => $hasPriceRange,
             'activeOnly' => $activeOnly,
             'priceCeiling' => $priceCeiling,
@@ -1193,6 +1216,7 @@ class ListingController extends Controller
                     'is_primary' => $sourceImage->is_primary,
                     'sort_order' => $sourceImage->sort_order,
                 ]);
+
                 continue;
             }
             $name = (string) Str::uuid();

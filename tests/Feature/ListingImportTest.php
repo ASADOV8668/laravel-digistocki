@@ -278,6 +278,41 @@ class ListingImportTest extends TestCase
         $this->assertDatabaseHas('listing_attribute_values', ['listing_id' => $listing->id, 'attribute_id' => $attributes['registered'], 'value_boolean' => false]);
         $this->assertDatabaseHas('listing_attribute_values', ['listing_id' => $listing->id, 'attribute_id' => $attributes['registration_status'], 'value_string' => 'رجیستر نشده']);
         $this->assertDatabaseHas('listing_attribute_values', ['listing_id' => $listing->id, 'attribute_id' => $attributes['color'], 'value_string' => 'آبی']);
+
+        $newPriceText = 'آیفون ۱۳ پرو ۲۵۶GB 💙 ۹۱BT قیمت: ۱۶۰ ۰۰۰ ۰۰۰ تومان';
+        $pricePreview = $this->post(route('listings.import.preview'), ['text' => $newPriceText])->assertOk();
+        $matched = $pricePreview->viewData('rows')[0];
+        $this->assertSame('price_change', $matched['inventory_state']);
+        $this->assertSame($listing->id, $matched['inventory_match']['id']);
+
+        $payload = [
+            'token' => $pricePreview->viewData('token'),
+            'listing_date' => '2026-11-25',
+            'rows' => [['action' => 'update', 'price' => 160000000]],
+        ];
+        $this->post(route('listings.import.store'), $payload)->assertRedirect(route('dashboard'));
+        $this->assertSame(160000000, $listing->refresh()->price);
+        $this->assertSame(165000000, $listing->previous_price);
+        $this->assertNotNull($listing->price_changed_at);
+        $this->assertSame('2026-11-18', $listing->created_at->toDateString());
+        $this->assertDatabaseCount('listings', 1);
+        $this->assertDatabaseCount('listing_images', 1);
+
+        $ambiguous = $this->post(route('listings.import.preview'), [
+            'text' => $newPriceText."\n".str_replace('۱۶۰ ۰۰۰ ۰۰۰', '۱۵۵ میلیون', $newPriceText),
+        ])->assertOk();
+        $this->assertSame(['review', 'review'], array_column($ambiguous->viewData('rows'), 'inventory_state'));
+        $this->assertSame(155000000, $ambiguous->viewData('rows')[1]['price']);
+
+        $stale = $this->post(route('listings.import.preview'), ['text' => str_replace('۱۶۰', '۱۵۵', $newPriceText)])->assertOk();
+        $listing->update(['price' => 158000000]);
+        $payload['token'] = $stale->viewData('token');
+        $payload['rows'][0]['price'] = 155000000;
+        $resume = route('listings.import.create', ['preview' => $payload['token']]);
+        $this->post(route('listings.import.store'), $payload)
+            ->assertRedirect($resume)->assertSessionHasErrors('rows.0.action');
+        $this->get($resume)->assertOk();
+        $this->assertSame(158000000, $listing->refresh()->price);
     }
 
     public function test_preview_prefills_latest_primary_media_for_the_same_user_and_model(): void

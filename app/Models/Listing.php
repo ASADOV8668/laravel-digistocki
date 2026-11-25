@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ListingStatus;
+use App\Services\SavedListingSearchAlerts;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
 use Sadegh19b\LaravelIranCities\Models\City;
 use Sadegh19b\LaravelIranCities\Models\Province;
 
@@ -21,7 +23,32 @@ class Listing extends Model
 
     protected function casts(): array
     {
-        return ['status' => ListingStatus::class, 'price' => 'integer', 'price_on_request' => 'boolean', 'is_negotiable' => 'boolean', 'is_user_disabled' => 'boolean', 'views_count' => 'integer', 'published_at' => 'datetime', 'expires_at' => 'datetime'];
+        return ['status' => ListingStatus::class, 'price' => 'integer', 'previous_price' => 'integer', 'price_changed_at' => 'datetime', 'price_on_request' => 'boolean', 'is_negotiable' => 'boolean', 'is_user_disabled' => 'boolean', 'views_count' => 'integer', 'published_at' => 'datetime', 'expires_at' => 'datetime'];
+    }
+
+    protected static function booted(): void
+    {
+        static::updating(function (Listing $listing): void {
+            if ($listing->isDirty(['price', 'price_on_request'])) {
+                $listing->previous_price = $listing->getOriginal('price_on_request') ? null : $listing->getOriginal('price');
+                $listing->price_changed_at = $listing->price_on_request || $listing->price === null ? null : now();
+            }
+        });
+        static::created(function (Listing $listing): void {
+            if ($listing->status === ListingStatus::Approved && ! $listing->is_user_disabled) {
+                DB::afterCommit(fn () => rescue(fn () => app(SavedListingSearchAlerts::class)->send($listing->id, false)));
+            }
+        });
+        static::updated(function (Listing $listing): void {
+            if ($listing->status !== ListingStatus::Approved || $listing->is_user_disabled) {
+                return;
+            }
+            $priceDrop = $listing->wasChanged('price') && $listing->price !== null && $listing->previous_price > $listing->price;
+            $becameAvailable = $listing->wasChanged(['status', 'is_user_disabled']);
+            if ($priceDrop || $becameAvailable) {
+                DB::afterCommit(fn () => rescue(fn () => app(SavedListingSearchAlerts::class)->send($listing->id, $priceDrop)));
+            }
+        });
     }
 
     public function user(): BelongsTo

@@ -5,10 +5,11 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Listing;
+use App\Models\SellerStore;
 use App\Services\SystemOptions;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Sadegh19b\LaravelIranCities\Models\Province;
 
 class HomeController extends Controller
@@ -40,6 +41,16 @@ class HomeController extends Controller
         return view('welcome', [
             'latestListings' => $latestListings,
             'paginationMode' => $paginationMode,
+            'priceDrops' => Listing::query()->published()->where('price_on_request', false)
+                ->whereColumn('price', '<', 'previous_price')->where('price_changed_at', '>=', now()->subDays(7))
+                ->latest('price_changed_at')->limit(4)->get(),
+            'recentPriceUpdates' => Listing::query()->published()->where('price_on_request', false)
+                ->where('price_changed_at', '>=', now()->subDays(7))
+                ->where(fn ($query) => $query->whereNull('previous_price')->orWhereColumn('price', '>=', 'previous_price'))
+                ->latest('price_changed_at')->limit(4)->get(),
+            'activeStores' => SellerStore::query()->where('approval_status', 'approved')->where('is_enabled', true)
+                ->where('is_admin_disabled', false)->whereHas('user.listings', fn ($query) => $query->published())
+                ->latest('updated_at')->limit(4)->get(),
             'provinces' => Province::query()->orderBy('name')->get(['id', 'name']),
             'popularBrands' => Brand::query()
                 ->where('is_active', true)

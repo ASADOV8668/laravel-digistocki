@@ -11,6 +11,40 @@ import './persian-digits';
 import './file-upload-validation';
 
 window.Alpine = Alpine;
+const compareStorageKey = 'digistocki-listing-comparison';
+Alpine.store('listingCompare', {
+    ids: [],
+    init() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(compareStorageKey) || '[]');
+            this.ids = Array.isArray(saved)
+                ? [...new Set(saved.filter(id => Number.isSafeInteger(id) && id > 0))].slice(0, 3)
+                : [];
+        } catch {
+            this.ids = [];
+        }
+    },
+    toggle(id) {
+        if (this.ids.includes(id)) {
+            this.ids = this.ids.filter(selected => selected !== id);
+        } else if (this.ids.length < 3) {
+            this.ids = [...this.ids, id];
+        }
+        this.save();
+    },
+    clear() {
+        this.ids = [];
+        this.save();
+    },
+    save() {
+        try { localStorage.setItem(compareStorageKey, JSON.stringify(this.ids)); } catch { /* Storage may be unavailable. */ }
+    },
+    url(base) {
+        const url = new URL(base, window.location.origin);
+        this.ids.forEach(id => url.searchParams.append('compare[]', id));
+        return url.href;
+    },
+});
 window.__DIGISTOCKI_PUBLIC_ASSET_VERSION__ = '2026-11-10-media-picker-v2';
 window.refreshFlowbiteTooltips = () => initTooltips();
 
