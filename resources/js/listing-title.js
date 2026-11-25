@@ -33,7 +33,7 @@ window.listingTitleGenerator = {
         ].filter(Boolean).join(' ').slice(0, 160);
     },
 
-    generate({ root, models = [], modelId = '', definitions = [], rows = [], language = 'fa', brandName = '' }) {
+    generate({ root, models = [], modelId = '', definitions = [], rows = [], language = 'fa', brandName = '', partNumber = '' }) {
         const english = language === 'en';
         const brandOption = root?.querySelector('[name="brand_id"] option:checked');
         const brand = brandName || (english
@@ -49,7 +49,17 @@ window.listingTitleGenerator = {
         const values = Object.fromEntries((rows || []).map((row) => [String(row.attributeId), row.value]));
         const color = attributeValue(definitions, values, 'color');
         const storage = attributeValue(definitions, values, 'storage');
+        const part = String(attributeValue(definitions, values, 'part_number') || partNumber).trim().toUpperCase();
+        const battery = attributeValue(definitions, values, 'battery_health');
         const parts = [brand, modelName];
+
+        if (part) {
+            if (storage !== '') parts.push(english ? `${englishDigits(storage)}GB` : `${Number(englishDigits(storage)).toLocaleString('fa-IR')} گیگابایت`);
+            parts.push(part);
+            if (battery !== '') parts.push(english ? `${englishDigits(battery)}%` : `${Number(englishDigits(battery)).toLocaleString('fa-IR')}٪`);
+            if (color) parts.push(english ? (englishColors[color] || color) : color);
+            return parts.join(' ').slice(0, 160);
+        }
 
         if (color) parts.push(english ? (englishColors[color] || color) : color);
         if (storage) parts.push(english ? `${englishDigits(storage)} GB` : `${Number(storage).toLocaleString('fa-IR')} گیگابایت`);

@@ -9,7 +9,7 @@ use App\Services\SystemOptions;
 
 final class ListingTitle
 {
-    public static function generate(?int $brandId, ?int $modelId, array $values, ?string $language = null): ?string
+    public static function generate(?int $brandId, ?int $modelId, array $values, ?string $language = null, ?string $partNumber = null): ?string
     {
         $language ??= app(SystemOptions::class)->listingTitleLanguage();
         $english = $language === 'en';
@@ -23,7 +23,7 @@ final class ListingTitle
         $attributes = Attribute::query()
             ->where('is_active', true)
             ->visibleForModel($model->id)
-            ->whereIn('slug', ['color', 'storage'])
+            ->whereIn('slug', ['color', 'storage', 'part_number', 'battery_health'])
             ->get()
             ->keyBy('slug');
 
@@ -33,11 +33,19 @@ final class ListingTitle
         ];
 
         $color = self::value($values, $attributes->get('color'));
+        $storage = self::value($values, $attributes->get('storage'));
+        $partNumber = self::value($values, $attributes->get('part_number')) ?? $partNumber;
+        $battery = self::value($values, $attributes->get('battery_health'));
+        if (filled($partNumber)) {
+            $title = self::withPartNumber(implode(' ', $parts), $storage, $partNumber, $battery, english: $english);
+
+            return mb_substr(trim($title.' '.($english ? self::englishAttributeValue('color', $color) : (string) $color)), 0, 160);
+        }
+
         if (filled($color)) {
             $parts[] = $english ? self::englishAttributeValue('color', $color) : (string) $color;
         }
 
-        $storage = self::value($values, $attributes->get('storage'));
         if (filled($storage)) {
             $parts[] = $english
                 ? self::englishDigits((string) $storage).' GB'
@@ -45,6 +53,66 @@ final class ListingTitle
         }
 
         return mb_substr(trim(implode(' ', array_filter($parts))), 0, 160);
+    }
+
+    public static function alignSubmittedTitle(string $title, array $values, array $previous = []): string
+    {
+        $fields = Attribute::query()->whereIn('slug', ['storage', 'part_number', 'battery_health'])->pluck('id', 'slug');
+        $part = $values[$fields['part_number'] ?? 0] ?? null;
+        if (! is_scalar($part) || ! filled($part)) {
+            return $title;
+        }
+
+        return self::withPartNumber(
+            $title, $values[$fields['storage'] ?? 0] ?? null, $part, $values[$fields['battery_health'] ?? 0] ?? null,
+            previousPart: $previous[$fields['part_number'] ?? 0] ?? null,
+        );
+    }
+
+    public static function withPartNumber(string $title, mixed $storage, mixed $part, mixed $battery, mixed $previousPart = null, ?bool $english = null): string
+    {
+        $part = is_scalar($part) ? strtoupper(trim((string) $part)) : '';
+        if (! preg_match('/\A[A-Z0-9][A-Z0-9\/\-]{0,24}\z/iD', $part)) {
+            return $title;
+        }
+
+        $storagePattern = '[0-9۰-۹٠-٩]{2,4}\h*(?:GB|گیگابایت|گیگ)';
+        $batteryPattern = '[0-9۰-۹٠-٩]{1,3}\h*[%٪]';
+        $storage = self::titleNumber($storage, $title, $storagePattern);
+        $battery = self::titleNumber($battery, $title, $batteryPattern);
+        $english ??= self::isEnglishTitle($title);
+        $parts = [
+            $storage === '' ? '' : ($english ? $storage.'GB' : PersianNumber::digits($storage).' گیگابایت'),
+            $part,
+            $battery === '' ? '' : ($english ? $battery.'%' : PersianNumber::digits($battery).'٪'),
+        ];
+        $cluster = implode(' ', array_filter($parts, fn (string $value): bool => $value !== ''));
+        $codes = array_unique(array_filter([$part, $previousPart], fn ($code): bool => is_scalar($code) && filled($code)));
+        $codePatterns = array_map(fn ($code): string => preg_quote((string) $code, '~'), $codes);
+        $inserted = false;
+        $aligned = preg_replace_callback('~(?<![\pL\pN])(?:'.$storagePattern.'|'.$batteryPattern.'|'.implode('|', $codePatterns).')(?![\pL\pN])~iu',
+            function () use ($cluster, &$inserted): string {
+                if ($inserted) {
+                    return '';
+                }
+                $inserted = true;
+
+                return $cluster;
+            }, $title);
+
+        $aligned = $inserted ? $aligned : rtrim(mb_substr($title, 0, 159 - mb_strlen($cluster))).' '.$cluster;
+
+        return mb_substr(trim(preg_replace('/\h+/u', ' ', $aligned)), 0, 160);
+    }
+
+    private static function titleNumber(mixed $value, string $title, string $pattern): string
+    {
+        if (is_scalar($value) && preg_match('/\A\d{1,4}\z/', self::englishDigits(trim((string) $value)), $number)) {
+            return $number[0];
+        }
+
+        return preg_match('~(?<![\pL\pN])('.$pattern.')(?![\pL\pN])~iu', $title, $match)
+            ? (preg_replace('/\D/', '', self::englishDigits($match[1])) ?? '') : '';
     }
 
     public static function isEnglishTitle(?string $title): bool

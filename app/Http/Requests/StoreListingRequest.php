@@ -41,6 +41,8 @@ class StoreListingRequest extends FormRequest
                 $this->integer('phone_model_id'),
                 (array) $this->input('attributes', []),
             );
+        } else {
+            $title = ListingTitle::alignSubmittedTitle($title, (array) $this->input('attributes', []));
         }
 
         $this->merge(array_filter([

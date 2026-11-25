@@ -81,6 +81,9 @@ abstract class AbstractListingImportParser implements ListingImportParser
             if ($battery !== null && ($id = $this->attributeId('battery_health'))) {
                 $attributes[$id] = $battery;
             }
+            if (! empty($extra['part_number']) && ($id = $this->attributeId('part_number'))) {
+                $attributes[$id] = $extra['part_number'];
+            }
             if (isset($extra['registered']) && ($id = $this->attributeId('registered'))) {
                 $attributes[$id] = $extra['registered'] ? 1 : 0;
             }

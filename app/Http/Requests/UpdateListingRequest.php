@@ -32,6 +32,12 @@ class UpdateListingRequest extends FormRequest
                 $this->integer('phone_model_id'),
                 (array) $this->input('attributes', []),
             );
+        } else {
+            $listing = $this->route('listing');
+            $previous = $listing instanceof Listing
+                ? $listing->attributeValues()->pluck('value_string', 'attribute_id')->all()
+                : [];
+            $title = ListingTitle::alignSubmittedTitle($title, (array) $this->input('attributes', []), $previous);
         }
 
         $this->merge(array_filter([

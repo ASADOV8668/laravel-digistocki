@@ -77,7 +77,7 @@
                                     <div class="flex flex-wrap items-start justify-between gap-2">
                                         <div class="min-w-0">
                                         <span class="mb-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-black {{ $state === 'new' ? 'bg-success/10 text-success' : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-200' }}">{{ $states[$state] }}</span>
-                                            <h2 class="truncate text-left text-base font-black text-neutral dark:text-slate-100" dir="ltr">{{ $row['brand_name'] }} {{ $row['model_name'] }}</h2>
+                                            <h2 class="truncate text-left text-base font-black text-neutral dark:text-slate-100" dir="auto" x-text="previewTitle(rows[{{ $index }}])">{{ $row['brand_name'] }} {{ $row['model_name'] }}</h2>
                                         </div>
                                     @if (!empty($row['issues']))
                                             <div class="max-w-md text-[11px] leading-5 text-warning">{{ implode(' ', $row['issues']) }}</div>
@@ -193,6 +193,17 @@
                 return {
                     rows: initialRows.map(row => ({...row, attributes: row.attributes || {}, attribute_definitions: row.attribute_definitions || [], media_id: row.media_id || null, media_url: row.media_url || '', upload_name: ''})),
                     colorOptions, mediaEndpoint, mediaItems: [], mediaOpen: false, activeRow: null,
+                    previewTitle(row) {
+                        return window.listingTitleGenerator.generate({
+                            models: [{id: row.phone_model_id, label: row.model_name, secondary: row.model_name}],
+                            modelId: row.phone_model_id,
+                            definitions: row.attribute_definitions,
+                            rows: Object.entries(row.attributes).map(([attributeId, value]) => ({attributeId, value})),
+                            language: @js(app(\App\Services\SystemOptions::class)->listingTitleLanguage()),
+                            brandName: row.brand_name,
+                            partNumber: row.part_number || '',
+                        }) || [row.brand_name, row.model_name].filter(Boolean).join(' ');
+                    },
                     visibleAttributes(row) {
                         const hasRegistrationStatus = row.attribute_definitions.some(attribute => attribute.slug === 'registration_status');
                         return row.attribute_definitions.filter(attribute => !hasRegistrationStatus || attribute.slug !== 'registered');

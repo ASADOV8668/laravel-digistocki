@@ -61,7 +61,7 @@ class UnifiedParser extends AbstractListingImportParser
             ]);
         $details = str_replace(["\u{FE0E}", "\u{FE0F}"], '', $raw);
         $registration = RegistrationStatus::detect($details);
-        $part = preg_match('/\b(ZAA|ZA|CH|LLA|LL|JPA|JAP|JP|AE|AH|HN|B|KH|TA|TH|VN)\b/i', $model, $partNumber)
+        $part = preg_match('/\b(ZAA|ZA|CHA|CH|LLA|LL|JPA|JAP|JP|AE|AH|HN|B|KH|TA|TH|VN)\b/i', $model.' '.$details, $partNumber)
             ? strtoupper($partNumber[1]) : null;
         $storage = preg_match('/(?<!\d)(\d{2,4})\s*(گیگ(?:ابایت)?|ترابایت)(?![\pL\pN])/u', $details, $capacity)
             ? (int) $capacity[1] * ($capacity[2] === 'ترابایت' ? 1024 : 1)
