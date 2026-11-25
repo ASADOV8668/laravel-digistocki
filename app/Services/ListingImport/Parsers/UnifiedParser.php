@@ -3,6 +3,7 @@
 namespace App\Services\ListingImport\Parsers;
 
 use App\Services\ListingImport\AbstractListingImportParser;
+use App\Support\RegistrationStatus;
 
 class UnifiedParser extends AbstractListingImportParser
 {
@@ -55,8 +56,7 @@ class UnifiedParser extends AbstractListingImportParser
         $model = $record['model'];
         $modelText = preg_match('/^(?:galaxy|samsung|xiaomi|redmi|poco)\b/iu', $model) ? $model : 'iphone '.$model;
         $details = str_replace(["\u{FE0E}", "\u{FE0F}"], '', $raw);
-        $positive = (bool) preg_match('/✅|رجیستر(?:ی)?\s+شده/u', $details);
-        $negative = (bool) preg_match('/❌|🚫|رجیستر(?:ی)?\s+نشده/u', $details);
+        $registration = RegistrationStatus::detect($details);
         $part = preg_match('/\b(ZAA|ZA|CH|LLA|LL|JPA|JAP|JP|AE|AH|HN|B|KH|TA|TH|VN)\b/i', $model, $partNumber)
             ? strtoupper($partNumber[1]) : null;
         $storage = preg_match('/(?<!\d)(\d{2,4})\s*(گیگ(?:ابایت)?|ترابایت)(?![\pL\pN])/u', $details, $capacity)
@@ -69,7 +69,8 @@ class UnifiedParser extends AbstractListingImportParser
         preg_match_all('/\(([^()]*[\pL][^()]*)\)/u', $details, $notes);
         $items[] = $this->row($raw, $modelText, $this->color($details) ?? $this->color($model), $record['price'], $this->battery($details), [
             'storage' => $storage,
-            'registered' => $positive === $negative ? null : $positive,
+            'registered' => RegistrationStatus::registered($registration),
+            'registration_status' => $registration,
             'part_number' => $part,
             'cycle' => preg_match('/\bcycle\s*:?\s*(\d+)/i', $details, $cycle) ? (int) $cycle[1] : null,
             'description' => implode(' ', $notes[1]),

@@ -4,6 +4,7 @@ namespace App\Services\ListingImport\Parsers;
 
 use App\Services\ListingImport\AbstractListingImportParser;
 use App\Support\PersianDigits;
+use App\Support\RegistrationStatus;
 
 class PatternParser extends AbstractListingImportParser
 {
@@ -63,6 +64,10 @@ class PatternParser extends AbstractListingImportParser
             if ($registration !== null) {
                 $extra['registered'] = $registration === '1';
             }
+            $details = RegistrationStatus::detect($match['registration'] ?? $match[0]);
+            $extra['registered'] ??= RegistrationStatus::registered($details);
+            $extra['registration_status'] = RegistrationStatus::registered($details) === $extra['registered']
+                ? $details : RegistrationStatus::fromBoolean($extra['registered']);
 
             $rows[] = $this->row($match[0], $match['model'], $this->field('color', $match, $markers),
                 $price > 0 ? $price : null, $this->field('battery', $match, $markers), $extra);

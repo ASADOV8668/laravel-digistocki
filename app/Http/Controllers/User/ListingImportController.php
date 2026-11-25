@@ -15,6 +15,7 @@ use App\Services\ListingImport\ListingImportParserRegistry;
 use App\Services\ListingMediaService;
 use App\Services\ListingRules;
 use App\Support\PersianDigits;
+use App\Support\RegistrationStatus;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -123,10 +124,20 @@ class ListingImportController extends Controller
                 }
                 $registrationId = array_search('registered', $attributeSlugs, true);
                 $statusId = array_search('registration_status', $attributeSlugs, true);
-                if ($registrationId !== false && $statusId !== false
-                    && (string) ($row['attributes'][$registrationId] ?? '') !== (string) ($source['attributes'][$registrationId] ?? '')
-                    && ($row['attributes'][$statusId] ?? null) === ($source['attributes'][$statusId] ?? null)) {
-                    unset($row['attributes'][$statusId]);
+                if ($registrationId !== false && $statusId !== false) {
+                    $selectedStatus = $submitted['attributes'][$statusId] ?? null;
+                    if (is_string($selectedStatus) && in_array($selectedStatus, [
+                        RegistrationStatus::REGISTERED, RegistrationStatus::OWNER, RegistrationStatus::OTHER, RegistrationStatus::UNREGISTERED, RegistrationStatus::UNKNOWN,
+                    ], true)) {
+                        $registered = RegistrationStatus::registered($selectedStatus);
+                        unset($row['attributes'][$registrationId]);
+                        if ($registered !== null) {
+                            $row['attributes'][$registrationId] = (int) $registered;
+                        }
+                    } elseif ((string) ($row['attributes'][$registrationId] ?? '') !== (string) ($source['attributes'][$registrationId] ?? '')) {
+                        $registered = $row['attributes'][$registrationId] ?? null;
+                        $row['attributes'][$statusId] = RegistrationStatus::fromBoolean($registered === null ? null : (bool) $registered);
+                    }
                 }
                 if ($row['price'] === null) {
                     throw ValidationException::withMessages(['rows.'.$index.'.price' => 'قیمت این ردیف نامعتبر است.']);
@@ -204,6 +215,14 @@ class ListingImportController extends Controller
                 ])
                 ->values()
                 ->all() ?? [];
+
+            $registration = collect($row['attribute_definitions'])->firstWhere('slug', 'registration_status');
+            if ($registration !== null) {
+                $detected = $row['attributes'][$registration['id']] ?? null;
+                if (! in_array($detected, $registration['options'], true)) {
+                    $row['attributes'][$registration['id']] = RegistrationStatus::fromBoolean($row['registered'] ?? null);
+                }
+            }
 
             if (($row['color'] ?? null) === 'آبی') {
                 $color = collect($row['attribute_definitions'])->firstWhere('slug', 'color');

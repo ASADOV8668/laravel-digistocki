@@ -59,7 +59,7 @@
                                     <label class="block"><span class="mb-1 block text-xs font-bold text-slate-500">توضیحات</span><input type="text" name="rows[{{ $index }}][description]" value="{{ $row['description'] }}" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"></label>
                             </div>
                                 <div x-show="rows[{{ $index }}].attribute_definitions.length" class="mt-4 grid gap-3 sm:grid-cols-2">
-                                    <template x-for="attribute in rows[{{ $index }}].attribute_definitions" :key="`import-attribute-${attribute.id}`">
+                                    <template x-for="attribute in visibleAttributes(rows[{{ $index }}])" :key="`import-attribute-${attribute.id}`">
                                         <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-800/70">
                                             <div class="mb-2 flex items-center justify-between gap-2">
                                                 <span class="text-xs font-black text-neutral dark:text-slate-100" x-text="attribute.name"></span>
@@ -139,6 +139,10 @@
                 return {
                     rows: initialRows.map(row => ({...row, attributes: row.attributes || {}, attribute_definitions: row.attribute_definitions || [], media_id: row.media_id || null, media_url: row.media_url || '', upload_name: ''})),
                     colorOptions, mediaEndpoint, mediaItems: [], mediaOpen: false, activeRow: null,
+                    visibleAttributes(row) {
+                        const hasRegistrationStatus = row.attribute_definitions.some(attribute => attribute.slug === 'registration_status');
+                        return row.attribute_definitions.filter(attribute => !hasRegistrationStatus || attribute.slug !== 'registered');
+                    },
                     attributeValues(row, attribute) {
                         const value = row.attributes?.[attribute.id] ?? '';
                         return Array.isArray(value) ? value.map(String) : (value === '' || value === null ? [] : [String(value)]);

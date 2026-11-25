@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use App\Enums\AttributeType;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Support\RegistrationStatus;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -33,18 +34,18 @@ class Attribute extends Model
             ->with(['modelAttributes' => fn ($relation) => $relation->where('phone_model_id', $phoneModelId)])
             ->whereHas('phoneModels', fn (Builder $modelQuery) => $modelQuery->whereKey($phoneModelId))
             ->where(function (Builder $query) use ($phoneModelId): void {
-            $query->where('visibility_rule', 'all')
-                ->orWhere(function (Builder $query) use ($phoneModelId): void {
-                    $query->where('visibility_rule', 'include')
-                        ->whereJsonContains('visibility_model_ids', $phoneModelId);
-                })
-                ->orWhere(function (Builder $query) use ($phoneModelId): void {
-                    $query->where('visibility_rule', 'exclude')
-                        ->where(function (Builder $query) use ($phoneModelId): void {
-                            $query->whereNull('visibility_model_ids')
-                                ->orWhereJsonDoesntContain('visibility_model_ids', $phoneModelId);
-                        });
-                });
+                $query->where('visibility_rule', 'all')
+                    ->orWhere(function (Builder $query) use ($phoneModelId): void {
+                        $query->where('visibility_rule', 'include')
+                            ->whereJsonContains('visibility_model_ids', $phoneModelId);
+                    })
+                    ->orWhere(function (Builder $query) use ($phoneModelId): void {
+                        $query->where('visibility_rule', 'exclude')
+                            ->where(function (Builder $query) use ($phoneModelId): void {
+                                $query->whereNull('visibility_model_ids')
+                                    ->orWhereJsonDoesntContain('visibility_model_ids', $phoneModelId);
+                            });
+                    });
             });
     }
 
@@ -71,6 +72,15 @@ class Attribute extends Model
 
     /** @return array<int, string> */
     public function optionsForModel(?int $phoneModelId = null): array
+    {
+        $options = $this->configuredOptionsForModel($phoneModelId);
+
+        return $this->slug === 'registration_status'
+            ? array_values(array_unique([RegistrationStatus::REGISTERED, ...$options, RegistrationStatus::UNREGISTERED, RegistrationStatus::UNKNOWN]))
+            : $options;
+    }
+
+    private function configuredOptionsForModel(?int $phoneModelId): array
     {
         $options = array_values(array_map('strval', $this->options ?? []));
 

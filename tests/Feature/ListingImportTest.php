@@ -174,7 +174,7 @@ class ListingImportTest extends TestCase
             ."‼️17 Pro Max 512 ZAA‼️\n🔋100% 🔵465.000(✅)\n93🔋 🤍475.000(🚫)\n"
             ."📱15 Pro Max 512G 🟦\nZAA 89bt cycle: 62\n💵244,900\nرجیستر ✅\n"
             ."🔷 iPhone 14 Pro 256 GB 91🔋 ✅ 💰170,000,000 تومان\n"
-            .'iPhone 14 Pro 256 GB آبی اقیانوسی 94BT 💰180,000,000 تومان';
+            .'iPhone 14 Pro 256 GB آبی اقیانوسی 94BT 💰180,000,000 تومان رجیستر شده به نام دیگران';
 
         $response = $this->actingAs($user)->post(route('listings.import.preview'), ['text' => $text])->assertOk();
         $rows = $response->viewData('rows');
@@ -182,7 +182,11 @@ class ListingImportTest extends TestCase
 
         $this->assertCount(6, $rows);
         $this->assertSame([172000000, 465000000, 475000000, 244900000, 170000000, 180000000], array_column($rows, 'price'));
-        $this->assertSame([null, true, false, true, true, null], array_column($rows, 'registered'));
+        $this->assertSame([null, true, false, true, true, true], array_column($rows, 'registered'));
+        $this->assertSame(['نامشخص', 'رجیستر شده', 'رجیستر نشده', 'رجیستر شده', 'رجیستر شده', 'رجیستر شده به نام دیگران'],
+            array_map(fn (array $row) => $row['attributes'][$attributes['registration_status']], $rows));
+        $registrationField = collect($rows[1]['attribute_definitions'])->firstWhere('slug', 'registration_status');
+        $this->assertContains('رجیستر شده', $registrationField['options']);
         $this->assertSame(['آبی', 'آبی', 'سفید', 'آبی', 'آبی', 'آبی'], array_column($rows, 'color'));
         $this->assertSame([92, 100, 93, 89, 91, 94], array_map(fn (array $row) => $row['attributes'][$attributes['battery_health']], $rows));
         $this->assertSame([256, 512, 512, 512, 256, 256], array_map(fn (array $row) => $row['attributes'][$attributes['storage']], $rows));
@@ -260,7 +264,7 @@ class ListingImportTest extends TestCase
                 'description' => 'واردشده از موجودی فروشگاه',
                 'attributes' => [
                     $attributes['battery_health'] => '۹۱',
-                    $attributes['registered'] => '0',
+                    $attributes['registration_status'] => 'رجیستر نشده',
                 ],
             ]],
             'uploads' => [UploadedFile::fake()->create('phone.webp', 100, 'image/webp')],
@@ -272,6 +276,7 @@ class ListingImportTest extends TestCase
         $this->assertSame('2026-11-18', $listing->created_at->toDateString());
         $this->assertDatabaseHas('listing_attribute_values', ['listing_id' => $listing->id, 'attribute_id' => $attributes['battery_health'], 'value_integer' => 91]);
         $this->assertDatabaseHas('listing_attribute_values', ['listing_id' => $listing->id, 'attribute_id' => $attributes['registered'], 'value_boolean' => false]);
+        $this->assertDatabaseHas('listing_attribute_values', ['listing_id' => $listing->id, 'attribute_id' => $attributes['registration_status'], 'value_string' => 'رجیستر نشده']);
         $this->assertDatabaseHas('listing_attribute_values', ['listing_id' => $listing->id, 'attribute_id' => $attributes['color'], 'value_string' => 'آبی']);
     }
 
