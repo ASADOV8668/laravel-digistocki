@@ -24,8 +24,8 @@
             </div>
             <div class="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
                 <div>
-                    <label for="listing-date" class="mb-2 block text-sm font-bold text-neutral dark:text-slate-100">تاریخ آگهی <span class="text-xs font-normal text-slate-400">اگر در متن نبود</span></label>
-                    <input id="listing-date" type="date" name="listing_date" value="{{ old('listing_date') }}" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800">
+                    <label for="listing-date" class="mb-2 block text-sm font-bold text-neutral dark:text-slate-100">تاریخ آگهی</label>
+                    <input id="listing-date" type="date" name="listing_date" value="{{ old('listing_date', $listingDate) }}" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800">
                 </div>
                 <button class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-magnifying-glass class="h-5 w-5" />ساخت پیش‌نمایش</button>
             </div>

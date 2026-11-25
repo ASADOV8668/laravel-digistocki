@@ -13,6 +13,7 @@ use App\Services\ListingImport\ListingImportParserRegistry;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -222,18 +223,25 @@ class ListingImportTest extends TestCase
 
     public function test_supported_preview_rows_can_be_created_with_an_uploaded_image(): void
     {
+        $this->travelTo(Carbon::parse('2026-11-24 21:00:00', 'UTC'));
         Storage::fake('public');
         $this->seed(CatalogSeeder::class);
         $user = User::factory()->create(['can_post_listings' => true]);
         $this->createImportStore($user);
         $parser = ListingImportParser::query()->where('key', 'at_kala')->firstOrFail();
         $user->forceFill(['listing_import_parser_id' => $parser->id])->save();
-        $text = "💙13Pro 256g CH 92Bt\n💰165/000m";
+        $text = "1405/08/01\n💙13Pro 256g CH 92Bt\n💰165/000m";
 
-        $preview = $this->actingAs($user)->post(route('listings.import.preview'), [
+        $this->actingAs($user)->get(route('listings.import.create'))
+            ->assertOk()->assertViewHas('listingDate', '2026-11-25');
+        $this->post(route('listings.import.preview'), ['text' => $text])
+            ->assertOk()->assertViewHas('listingDate', '2026-11-25');
+
+        $preview = $this->post(route('listings.import.preview'), [
             'text' => $text,
             'listing_date' => '2026-11-17',
         ])->assertOk()
+            ->assertViewHas('listingDate', '2026-11-17')
             ->assertSee('attribute_definitions')
             ->assertSee('toggleAttribute')
             ->assertDontSee('<select', false)
@@ -244,7 +252,7 @@ class ListingImportTest extends TestCase
         $attributes = Attribute::query()->pluck('id', 'slug');
         $this->actingAs($user)->post(route('listings.import.store'), [
             'token' => $token,
-            'listing_date' => '2026-11-17',
+            'listing_date' => '2026-11-18',
             'rows' => [[
                 'enabled' => 1,
                 'price' => $row['price'],
@@ -261,6 +269,7 @@ class ListingImportTest extends TestCase
         $this->assertDatabaseHas('listings', ['user_id' => $user->id, 'price' => 165000000]);
         $this->assertDatabaseCount('listing_images', 1);
         $listing = Listing::query()->where('user_id', $user->id)->sole();
+        $this->assertSame('2026-11-18', $listing->created_at->toDateString());
         $this->assertDatabaseHas('listing_attribute_values', ['listing_id' => $listing->id, 'attribute_id' => $attributes['battery_health'], 'value_integer' => 91]);
         $this->assertDatabaseHas('listing_attribute_values', ['listing_id' => $listing->id, 'attribute_id' => $attributes['registered'], 'value_boolean' => false]);
         $this->assertDatabaseHas('listing_attribute_values', ['listing_id' => $listing->id, 'attribute_id' => $attributes['color'], 'value_string' => 'آبی']);

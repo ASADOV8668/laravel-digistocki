@@ -28,21 +28,23 @@ class ListingImportController extends Controller
     {
         $parser = $this->parser($request);
         $colorOptions = Attribute::query()->where('slug', 'color')->value('options') ?? [];
+        $listingDate = today('Asia/Tehran')->toDateString();
 
-        return view('listings.import', compact('parser', 'colorOptions'));
+        return view('listings.import', compact('parser', 'colorOptions', 'listingDate'));
     }
 
     public function preview(Request $request, ListingImportParserRegistry $registry): RedirectResponse|View
     {
         $parser = $this->parser($request);
-        $validated = $request->validate(['text' => ['required', 'string', 'min:10', 'max:200000'], 'listing_date' => ['nullable', 'date']]);
-        $result = $registry->make($parser)->parse($validated['text'], $validated['listing_date'] ?? null);
+        $validated = $request->validate(['text' => ['required', 'string', 'min:10', 'max:200000'], 'listing_date' => ['nullable', 'date_format:Y-m-d']]);
+        $listingDate = $validated['listing_date'] ?? today('Asia/Tehran')->toDateString();
+        $result = $registry->make($parser)->parse($validated['text'], $listingDate);
         $rows = $result['items'];
         if ($rows === []) {
             return back()->withErrors(['text' => 'از متن واردشده هیچ ردیف قابل تشخیصی پیدا نشد.'])->withInput();
         }
         $token = bin2hex(random_bytes(16));
-        $request->session()->put('listing_import.preview.'.$token, ['parser_id' => $parser->id, 'rows' => $rows, 'text' => $validated['text'], 'date' => $result['detected_date'] ?? $validated['listing_date'] ?? null]);
+        $request->session()->put('listing_import.preview.'.$token, ['parser_id' => $parser->id, 'rows' => $rows, 'text' => $validated['text'], 'date' => $listingDate]);
         $colorOptions = Attribute::query()->where('slug', 'color')->value('options') ?? [];
         $rows = $this->withAttributeDefinitions($rows, $request->user());
         $request->session()->put('listing_import.preview.'.$token.'.rows', $rows);
@@ -51,8 +53,7 @@ class ListingImportController extends Controller
             'parser' => $parser,
             'rows' => $rows,
             'token' => $token,
-            'listingDate' => $result['detected_date'] ?? $validated['listing_date'] ?? null,
-            'dateRequired' => (bool) $result['date_required'],
+            'listingDate' => $listingDate,
             'colorOptions' => $colorOptions,
         ]);
     }
@@ -69,8 +70,8 @@ class ListingImportController extends Controller
         }
 
         $date = PersianDigits::toEnglish((string) $request->input('listing_date'));
-        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-            return back()->withErrors(['listing_date' => 'تاریخ آگهی را وارد کنید.'])->withInput();
+        if (Validator::make(['listing_date' => $date], ['listing_date' => ['required', 'date_format:Y-m-d']])->fails()) {
+            return back()->withErrors(['listing_date' => 'تاریخ معتبر آگهی را وارد کنید.'])->withInput();
         }
         $rows = $request->input('rows', []);
         $originalRows = $preview['rows'] ?? [];
