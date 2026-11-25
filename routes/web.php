@@ -128,6 +128,7 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::get('/brands', [AdminBrandController::class, 'index'])->name('admin.brands.index');
     Route::post('/brands', [AdminBrandController::class, 'store'])->name('admin.brands.store');
     Route::patch('/brands/{brand}', [AdminBrandController::class, 'update'])->name('admin.brands.update');
+    Route::delete('/brands/{brand}', [AdminBrandController::class, 'destroy'])->name('admin.brands.destroy');
     Route::patch('/brands/{brand}/toggle', [AdminBrandController::class, 'toggle'])->name('admin.brands.toggle');
     Route::patch('/brands/{brand}/posting-toggle', [AdminBrandController::class, 'togglePosting'])->name('admin.brands.posting-toggle');
     Route::get('/brands/{brand}/wizard-steps', [AdminBrandController::class, 'wizardSteps'])->name('admin.brands.wizard-steps.index');

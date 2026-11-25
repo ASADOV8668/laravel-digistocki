@@ -4,14 +4,15 @@
                 class="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent"><x-heroicon-o-device-phone-mobile
                     class="h-6 w-6" /></span>
             <div>
-                <h2 class="text-xl font-black text-slate-900">کاتالوگ گوشی</h2>
+                <h2 class="text-xl font-black text-slate-900">کاتالوگ گوشی · {{ \App\Models\PhoneModel::DEVICE_TYPES[$deviceType] }}</h2>
                 <p class="mt-1 text-xs text-slate-400">مدیریت برندها، مدل‌ها و ویژگی‌های فیلترپذیر</p>
             </div>
         </div>
     </x-slot>
-    <section class="space-y-6"><x-admin.feedback /><x-admin.catalog-tabs active="brands" />
+    <section class="space-y-6"><x-admin.feedback /><x-admin.catalog-tabs active="brands" :device-type="$deviceType" />
         <form method="GET" action="{{ route('admin.brands.index') }}"
             class="admin-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+            <input type="hidden" name="device_type" value="{{ $deviceType }}">
             <div class="relative flex-1"><x-heroicon-o-magnifying-glass
                     class="pointer-events-none absolute right-3 top-2.5 h-5 w-5 text-slate-400" /><input name="q"
                     value="{{ request('q') }}" placeholder="جستجوی نام فارسی یا انگلیسی برند"
@@ -20,7 +21,7 @@
             <div class="flex gap-2"><button
                     class="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-accent">جستجو</button>
                 @if (request('q'))
-                    <a href="{{ route('admin.brands.index') }}"
+                    <a href="{{ route('admin.brands.index', ['device_type' => $deviceType]) }}"
                         class="rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-600">پاک‌کردن</a>
                 @endif
             </div>
@@ -29,6 +30,7 @@
             <form method="POST" action="{{ route('admin.brands.store') }}" enctype="multipart/form-data"
                 data-file-upload data-max-image-mb="{{ app(\App\Services\SystemOptions::class)->maxImageUploadMb() }}"
                 class="admin-card h-fit space-y-4 p-5">@csrf
+                <input type="hidden" name="device_type" value="{{ $deviceType }}">
                 <div class="flex items-center gap-2"><span
                         class="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/10 text-accent"><x-heroicon-o-plus
                             class="h-5 w-5" /></span>
@@ -80,7 +82,7 @@
                                             {{ number_format($brand->phone_models_count) }} مدل</p>
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-2">
+                                <div class="flex flex-wrap items-center gap-2">
                                     <form method="POST" action="{{ route('admin.brands.toggle', $brand) }}">@csrf
                                         @method('PATCH')<button
                                             class="rounded-full px-3 py-1.5 text-[11px] font-black transition {{ $brand->is_active ? 'bg-success/10 text-success hover:bg-success/20' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">{{ $brand->is_active ? 'فعال' : 'غیرفعال' }}</button>
@@ -89,6 +91,15 @@
                                         <button class="rounded-full px-3 py-1.5 text-[11px] font-black transition {{ $brand->can_post_listings ? 'bg-info/10 text-info hover:bg-info/20' : 'bg-warning/10 text-warning hover:bg-warning/20' }}">{{ $brand->can_post_listings ? 'ثبت آگهی مجاز' : 'ثبت آگهی بسته' }}</button>
                                     </form>
                                     <a href="{{ route('admin.brands.wizard-steps.index', $brand) }}" class="rounded-lg bg-accent/10 px-3 py-2 text-[11px] font-bold text-accent hover:bg-accent/20">مرحله‌ساز</a>
+                                    @if ($brand->listings_exists)
+                                        <span class="text-[11px] text-slate-500">آگهی وابسته دارد</span>
+                                    @else
+                                        <form method="POST" action="{{ route('admin.brands.destroy', $brand) }}"
+                                            onsubmit="return confirm('این برند و سری‌ها و مدل‌های آن برای همیشه حذف شوند؟')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="rounded-lg bg-red-50 px-3 py-2 text-[11px] font-bold text-red-700 hover:bg-red-100">حذف برند</button>
+                                        </form>
+                                    @endif
                                     <details>
                                         <summary
                                             class="cursor-pointer list-none rounded-lg bg-slate-100 p-2 text-slate-500 hover:bg-slate-200"

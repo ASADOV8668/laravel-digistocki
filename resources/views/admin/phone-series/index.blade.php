@@ -1,16 +1,17 @@
 <x-admin-layout title="سری‌های محصول">
     <x-slot name="header">
         <div>
-            <h2 class="text-xl font-black text-slate-900">سری‌های محصول</h2>
+            <h2 class="text-xl font-black text-slate-900">سری‌های محصول · {{ \App\Models\PhoneModel::DEVICE_TYPES[$deviceType] }}</h2>
             <p class="mt-1 text-xs text-slate-400">سری‌ها را برای کوتاه‌کردن مسیر انتخاب مدل مدیریت کنید.</p>
         </div>
     </x-slot>
     <section class="space-y-6">
         <x-admin.feedback />
-        <x-admin.catalog-tabs active="series" />
+        <x-admin.catalog-tabs active="series" :device-type="$deviceType" />
         <div class="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
             <form method="POST" action="{{ route('admin.phone-series.store') }}" class="admin-card h-fit space-y-4 p-5">
                 @csrf
+                <input type="hidden" name="device_type" value="{{ $deviceType }}">
                 <h3 class="text-sm font-black text-slate-900">افزودن سری</h3>
                 <select name="brand_id" required class="w-full rounded-xl border-slate-200 text-sm">
                     <option value="">برند را انتخاب کنید</option>

@@ -4,22 +4,15 @@
                 class="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent"><x-heroicon-o-device-phone-mobile
                     class="h-6 w-6" /></span>
             <div>
-                <h2 class="text-xl font-black text-slate-900">کاتالوگ مدل‌های محصول</h2>
+                <h2 class="text-xl font-black text-slate-900">کاتالوگ مدل‌های محصول · {{ \App\Models\PhoneModel::DEVICE_TYPES[$deviceType] }}</h2>
                 <p class="mt-1 text-xs text-slate-400">مدل‌های دوزبانه را برای جستجو و ثبت آگهی مدیریت کنید.</p>
             </div>
         </div>
     </x-slot>
-    <section class="space-y-6"><x-admin.feedback /><x-admin.catalog-tabs active="models" />
-        <nav class="flex flex-wrap gap-2" aria-label="نوع محصول">
-            @foreach (['' => 'همه محصولات'] + \App\Models\PhoneModel::DEVICE_TYPES as $type => $label)
-                <a href="{{ route('admin.phone-models.index', array_filter(['device_type' => $type, ...request()->only('q', 'brand_id')])) }}"
-                    @if (($deviceType ?? '') === $type) aria-current="page" @endif
-                    @class(['rounded-xl border px-4 py-2 text-xs font-bold', 'border-accent bg-accent text-white' => ($deviceType ?? '') === $type, 'border-slate-200 bg-white text-slate-700' => ($deviceType ?? '') !== $type])>{{ $label }}</a>
-            @endforeach
-        </nav>
+    <section class="space-y-6"><x-admin.feedback /><x-admin.catalog-tabs active="models" :device-type="$deviceType" />
         <form method="GET" action="{{ route('admin.phone-models.index') }}"
             class="admin-card grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_220px_auto]">
-            @if ($deviceType)<input type="hidden" name="device_type" value="{{ $deviceType }}">@endif
+            <input type="hidden" name="device_type" value="{{ $deviceType }}">
             <div class="relative"><x-heroicon-o-magnifying-glass
                     class="pointer-events-none absolute right-3 top-2.5 h-5 w-5 text-slate-400" /><input name="q"
                     value="{{ request('q') }}" placeholder="جستجوی نام فارسی یا انگلیسی مدل"
@@ -34,7 +27,7 @@
             <div class="flex gap-2"><button
                     class="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-accent">جستجو</button>
                 @if (request()->hasAny(['q', 'brand_id']))
-                    <a href="{{ route('admin.phone-models.index', $deviceType ? ['device_type' => $deviceType] : []) }}"
+                    <a href="{{ route('admin.phone-models.index', ['device_type' => $deviceType]) }}"
                         class="rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-600">پاک‌کردن</a>
                 @endif
             </div>
@@ -42,7 +35,7 @@
 
         <div class="grid gap-6 xl:grid-cols-[390px_minmax(0,1fr)]">
             <form method="POST" action="{{ route('admin.phone-models.store') }}"
-                class="admin-card h-fit space-y-4 p-5">@csrf
+                class="admin-card h-fit space-y-4 p-5" x-data="{ brandId: '' }">@csrf
                 <div class="flex items-center gap-2"><span
                         class="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/10 text-accent"><x-heroicon-o-plus
                             class="h-5 w-5" /></span>
@@ -51,22 +44,18 @@
                         <p class="mt-1 text-[11px] text-slate-400">اطلاعات فارسی و انگلیسی مدل را کامل کنید.</p>
                     </div>
                 </div>
-                <select name="brand_id" required
+                <select name="brand_id" required x-model="brandId" @change="$refs.series.value = ''"
                     class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent">
                     <option value="">برند را انتخاب کنید</option>
                     @foreach ($brands as $brand)
                         <option value="{{ $brand->id }}">{{ $brand->name }} / {{ $brand->name_en }}</option>
                     @endforeach
                 </select>
-                <select name="device_type" aria-label="نوع کالا" class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent">
-                    @foreach (\App\Models\PhoneModel::DEVICE_TYPES as $type => $label)
-                        <option value="{{ $type }}" @selected(old('device_type', $deviceType ?? 'mobile') === $type)>{{ $label }}</option>
-                    @endforeach
-                </select>
-                <select name="phone_series_id" class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent">
+                <input type="hidden" name="device_type" value="{{ $deviceType }}">
+                <select name="phone_series_id" x-ref="series" class="w-full rounded-xl border-slate-200 text-sm focus:border-accent focus:ring-accent">
                     <option value="">بدون سری</option>
                     @foreach ($series as $item)
-                        <option value="{{ $item->id }}">{{ $item->brand->name ?? '' }} · {{ $item->name_fa ?: $item->name }}</option>
+                        <option value="{{ $item->id }}" x-show="brandId == {{ $item->brand_id }}" :disabled="brandId != {{ $item->brand_id }}">{{ $item->brand->name ?? '' }} · {{ $item->name_fa ?: $item->name }}</option>
                     @endforeach
                 </select>
                 <input name="name" required placeholder="نام داخلی مدل"
@@ -111,12 +100,12 @@
                                         <summary
                                             class="cursor-pointer list-none rounded-lg bg-slate-100 p-2 text-slate-500 hover:bg-slate-200"
                                             title="ویرایش مدل"><x-heroicon-o-pencil-square class="h-4 w-4" /></summary>
-                                        <form method="POST" action="{{ route('admin.phone-models.update', $model) }}"
+                                        <form method="POST" action="{{ route('admin.phone-models.update', $model) }}" x-data="{ brandId: '{{ $model->brand_id }}' }"
                                             class="mt-4 space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
                                             @csrf @method('PATCH')<div class="grid gap-3 sm:grid-cols-2">
                                                 <div><label
                                                         class="mb-1 block text-[11px] font-bold text-slate-600">برند</label><select
-                                                        name="brand_id" required
+                                                        name="brand_id" required x-model="brandId" @change="$refs.series.value = ''"
                                                         class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">
                                                         @foreach ($brands as $brand)
                                                             <option value="{{ $brand->id }}"
@@ -125,18 +114,11 @@
                                                         @endforeach
                                                     </select>
                                                 </div>
-                                                <div><label class="mb-1 block text-[11px] font-bold text-slate-600">نوع کالا
-                                                    <select name="device_type" class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">
-                                                        @foreach (\App\Models\PhoneModel::DEVICE_TYPES as $type => $label)
-                                                            <option value="{{ $type }}" @selected($model->device_type === $type)>{{ $label }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </label></div>
                                                 <div><label class="mb-1 block text-[11px] font-bold text-slate-600">سری</label><select
-                                                        name="phone_series_id" class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">
+                                                        name="phone_series_id" x-ref="series" class="w-full rounded-lg border-slate-200 text-sm focus:border-accent focus:ring-accent">
                                                         <option value="">بدون سری</option>
-                                                        @foreach ($series->where('brand_id', $model->brand_id) as $item)
-                                                            <option value="{{ $item->id }}" @selected($model->phone_series_id === $item->id)>{{ $item->name_fa ?: $item->name }}</option>
+                                                        @foreach ($series as $item)
+                                                            <option value="{{ $item->id }}" x-show="brandId == {{ $item->brand_id }}" :disabled="brandId != {{ $item->brand_id }}" @selected($model->phone_series_id === $item->id)>{{ $item->name_fa ?: $item->name }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
