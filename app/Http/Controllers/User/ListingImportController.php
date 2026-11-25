@@ -203,6 +203,19 @@ class ListingImportController extends Controller
                 ->values()
                 ->all() ?? [];
 
+            if (($row['color'] ?? null) === 'آبی') {
+                $color = collect($row['attribute_definitions'])->firstWhere('slug', 'color');
+                $options = $color['options'] ?? [];
+                if (! in_array('آبی', $options, true)) {
+                    $shades = array_filter($options, fn ($option): bool => is_string($option) && preg_match('/آبی|\bblue\b/iu', $option));
+                    $exactShade = collect($shades)->first(fn (string $shade): bool => str_contains($row['raw'], $shade));
+                    $selected = $exactShade ?? (count($shades) === 1 ? reset($shades) : null);
+                    if ($selected !== null) {
+                        $row['attributes'][$color['id']] = $row['color'] = $selected;
+                    }
+                }
+            }
+
             $key = ($row['brand_id'] ?? 0).':'.$modelId;
             $primaryImage = $latestPrimaryImages->get($key)?->primaryImage;
             $row['media_id'] = $primaryImage?->media_id;

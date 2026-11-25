@@ -22,13 +22,14 @@ abstract class AbstractListingImportParser implements ListingImportParser
     private array $modelCache = [];
 
     protected const COLORS = [
-        '💙' => 'آبی', '🔵' => 'آبی', '💚' => 'سبز', '🟢' => 'سبز',
+        '💙' => 'آبی', '🔵' => 'آبی', '🟦' => 'آبی', '🔷' => 'آبی', '🔹' => 'آبی',
+        '💚' => 'سبز', '🟢' => 'سبز', '🟩' => 'سبز',
         '🩷' => 'صورتی', '🩷️' => 'صورتی', '💗' => 'صورتی',
         '🖤' => 'مشکی', '⚫' => 'مشکی', '⚫️' => 'مشکی',
         '🤍' => 'سفید', '⚪' => 'سفید', '⚪️' => 'سفید',
         '💛' => 'زرد', '🟡' => 'زرد', '💜' => 'بنفش', '🟣' => 'بنفش',
         '🍊' => 'نارنجی', '🟤' => 'قهوه‌ای', '🩶' => 'خاکستری',
-        '🔴' => 'قرمز', '❤️' => 'قرمز',
+        '🔴' => 'قرمز', '🟥' => 'قرمز', '❤️' => 'قرمز', '❤' => 'قرمز',
     ];
 
     protected function clean(string $text): string
@@ -155,6 +156,10 @@ abstract class AbstractListingImportParser implements ListingImportParser
             }
         }
 
+        if (preg_match('/آبی(?:\s+(?:آسمانی|اقیانوسی|کم[\s‌-]*رنگ))?|\b(?:sky|ocean|light)[ -]+blue\b/iu', $value)) {
+            return 'آبی';
+        }
+
         $map = ['blue' => 'آبی', 'black' => 'مشکی', 'white' => 'سفید', 'green' => 'سبز', 'pink' => 'صورتی', 'orange' => 'نارنجی', 'purple' => 'بنفش', 'yellow' => 'زرد', 'red' => 'قرمز', 'gray' => 'خاکستری', 'grey' => 'خاکستری', 'brown' => 'قهوه‌ای'];
         foreach ($map as $needle => $label) {
             if (stripos($value, $needle) !== false) {
@@ -167,8 +172,14 @@ abstract class AbstractListingImportParser implements ListingImportParser
 
     protected function battery(string $value): ?int
     {
-        return preg_match('/(?<!\d)(\d{1,3})\s*(?:%|٪|bt)(?![\pL\pN])/iu', PersianDigits::toEnglish($value), $match)
-            && (int) $match[1] <= 100 ? (int) $match[1] : null;
+        $value = PersianDigits::toEnglish($value);
+        if (! preg_match('/(?<![\d.,])(\d{1,3})\h*(?:%|٪|bt(?![\pL\pN])|🔋)|🔋\x{FE0F}?\h*(\d{1,3})(?![\d.,])/iu', $value, $match)) {
+            return null;
+        }
+
+        $battery = (int) ($match[2] ?? $match[1]);
+
+        return $battery <= 100 ? $battery : null;
     }
 
     protected function storage(string $value): ?int

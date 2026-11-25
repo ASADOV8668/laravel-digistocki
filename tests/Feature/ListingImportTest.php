@@ -6,6 +6,7 @@ use App\Models\Attribute;
 use App\Models\Listing;
 use App\Models\ListingImage;
 use App\Models\ListingImportParser;
+use App\Models\PhoneModel;
 use App\Models\SellerStore;
 use App\Models\User;
 use App\Services\ListingImport\ListingImportParserRegistry;
@@ -141,6 +142,35 @@ class ListingImportTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)->get(route('listings.import.create'))->assertForbidden();
+    }
+
+    public function test_unified_import_recognizes_the_three_formats_in_a_single_price_list(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $parser = ListingImportParser::query()->where('key', 'unified_price_list')->sole();
+        $user = User::factory()->create(['can_post_listings' => true, 'listing_import_parser_id' => $parser->id]);
+        $text = "💙13Pro 256g CH 92BT\n💰172/000m\n"
+            ."‼️17 Pro Max 512 ZAA‼️\n🔋100% 🔵465.000(✅)\n93🔋 🤍475.000(🚫)\n"
+            ."📱15 Pro Max 512G 🟦\nZAA 89bt cycle: 62\n💵244,900\nرجیستر ✅\n"
+            ."🔷 iPhone 14 Pro 256 GB 91🔋 ✅ 💰170,000,000 تومان\n"
+            .'iPhone 14 Pro 256 GB آبی اقیانوسی 94BT 💰180,000,000 تومان';
+
+        $response = $this->actingAs($user)->post(route('listings.import.preview'), ['text' => $text])->assertOk();
+        $rows = $response->viewData('rows');
+        $attributes = Attribute::query()->pluck('id', 'slug');
+
+        $this->assertCount(6, $rows);
+        $this->assertSame([172000000, 465000000, 475000000, 244900000, 170000000, 180000000], array_column($rows, 'price'));
+        $this->assertSame([null, true, false, true, true, null], array_column($rows, 'registered'));
+        $this->assertSame(['آبی', 'آبی', 'سفید', 'آبی', 'آبی', 'آبی'], array_column($rows, 'color'));
+        $this->assertSame([92, 100, 93, 89, 91, 94], array_map(fn (array $row) => $row['attributes'][$attributes['battery_health']], $rows));
+        $this->assertSame([256, 512, 512, 512, 256, 256], array_map(fn (array $row) => $row['attributes'][$attributes['storage']], $rows));
+
+        $model = PhoneModel::query()->findOrFail($rows[5]['phone_model_id']);
+        $model->modelAttributes()->where('attribute_id', $attributes['color'])->firstOrFail()
+            ->update(['custom_options' => ['آبی آسمانی', 'آبی اقیانوسی', 'سفید']]);
+        $response = $this->post(route('listings.import.preview'), ['text' => $text])->assertOk();
+        $this->assertSame('آبی اقیانوسی', $response->viewData('rows')[5]['attributes'][$attributes['color']]);
     }
 
     public function test_supported_preview_rows_can_be_created_with_an_uploaded_image(): void
