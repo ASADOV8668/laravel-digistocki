@@ -73,6 +73,47 @@ class ListingImportTest extends TestCase
         $this->assertSame(62, $bamatelResult['items'][0]['cycle']);
     }
 
+    public function test_admin_can_create_and_edit_the_price_list_pattern(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $sample = "iPhone 13 Pro 256GB | آبی\nقیمت: ۱۶۵٬۰۰۰٬۰۰۰ تومان";
+        $data = [
+            'key' => 'custom-shop',
+            'title' => 'قالب فروشگاه',
+            'pattern' => "{model} | {color}\nقیمت: {price} تومان",
+            'sample_text' => $sample,
+            'is_active' => 1,
+        ];
+
+        $this->actingAs($admin)->get(route('admin.listing-imports.create'))->assertOk();
+        $this->post(route('admin.listing-imports.store'), $data)
+            ->assertRedirect(route('admin.listing-imports.index', ['parser' => 'custom-shop']));
+        $parser = ListingImportParser::query()->where('key', 'custom-shop')->firstOrFail();
+        $this->get(route('admin.listing-imports.edit', $parser))->assertOk();
+
+        $registry = app(ListingImportParserRegistry::class);
+        $result = $registry->make($parser)->parse($sample);
+        $this->assertCount(1, $result['items']);
+        $this->assertTrue($result['items'][0]['supported']);
+        $this->assertSame(165000000, $result['items'][0]['price']);
+
+        $this->put(route('admin.listing-imports.update', $parser), array_replace($data, ['pattern' => '{model}']))
+            ->assertSessionHasErrors('pattern');
+
+        $updatedSample = 'iPhone 13 Pro 256GB - 170,000,000 تومان';
+        $this->put(route('admin.listing-imports.update', $parser), array_replace($data, [
+            'pattern' => '{model} - {price} تومان',
+            'sample_text' => $updatedSample,
+            'is_active' => 0,
+        ]))->assertSessionHasNoErrors()->assertRedirect();
+
+        $parser->refresh();
+        $this->assertFalse($parser->is_active);
+        $result = $registry->make($parser)->parse($updatedSample);
+        $this->assertSame(170000000, $result['items'][0]['price']);
+    }
+
     public function test_import_page_is_not_available_without_an_assigned_parser(): void
     {
         $this->seed(CatalogSeeder::class);

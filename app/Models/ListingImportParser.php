@@ -10,7 +10,7 @@ class ListingImportParser extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['key', 'title', 'class_name', 'sample_text', 'description', 'is_active'];
+    protected $fillable = ['key', 'title', 'class_name', 'pattern', 'sample_text', 'description', 'is_active'];
 
     protected function casts(): array
     {

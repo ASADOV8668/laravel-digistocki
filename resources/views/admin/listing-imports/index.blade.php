@@ -5,7 +5,7 @@
                 <p class="text-xs font-bold text-info">مدیریت داده‌های ورودی</p>
                 <h1 class="mt-1 text-xl font-black text-slate-900">ایمپورت آگهی</h1>
             </div>
-            <span class="rounded-full bg-info/10 px-3 py-2 text-xs font-bold text-info">{{ $parsers->count() }} قالب فعال</span>
+            <a href="{{ route('admin.listing-imports.create') }}" class="rounded-xl bg-info px-4 py-2 text-sm font-bold text-white">ایجاد قالب</a>
         </div>
     </x-slot>
 
@@ -42,7 +42,10 @@
                             <p class="text-xs font-bold text-info">نمونه متن ورودی</p>
                             <h2 class="mt-1 text-lg font-black text-slate-900">{{ $selected->title }}</h2>
                         </div>
-                        <span class="rounded-full bg-success/10 px-3 py-1.5 text-xs font-bold text-success">آماده استفاده</span>
+                        <div class="flex items-center gap-3">
+                            <span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700">{{ $selected->is_active ? 'فعال' : 'غیرفعال' }}</span>
+                            <a href="{{ route('admin.listing-imports.edit', $selected) }}" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-info">ویرایش قالب</a>
+                        </div>
                     </div>
                     <p class="mt-3 text-sm leading-7 text-slate-500">{{ $selected->description }}</p>
                 </div>
