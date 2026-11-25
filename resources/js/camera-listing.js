@@ -131,13 +131,8 @@ export function cameraListing() {
             return stage.type === 'attribute' ? String(stage.attribute.id) : stage.type;
         },
 
-        cameraStageOptions(stage) {
-            if (stage.attribute?.type === 'boolean') return [{ id: '1', label: 'بله' }, { id: '0', label: 'خیر' }];
-            return this.fastStageOptions(stage);
-        },
-
         cameraStageLabel(stage, value) {
-            const option = this.cameraStageOptions(stage).find(({ id }) => String(id) === String(value));
+            const option = this.fastStageOptions(stage).find(({ id }) => String(id) === String(value));
             const label = (stage.type === 'model' ? option?.secondary : null) || option?.label || value;
             return stage.attribute?.unit === '%' ? `${label}٪` : label;
         },
@@ -170,7 +165,7 @@ export function cameraListing() {
             const selected = new Set(this.cameraSummary().map(({ key }) => key));
             const next = this.fastStages().find((stage) => {
                 const key = this.cameraStageKey(stage);
-                const hasInput = this.cameraStageOptions(stage).length > 0 || this.cameraStageAcceptsText(stage);
+                const hasInput = this.fastStageOptions(stage).length > 0 || this.cameraStageAcceptsText(stage);
                 return !selected.has(key) && (stage.required || (hasInput && !this.cameraSkipped[key]));
             });
             this.cameraStep = next ? this.cameraStageKey(next) : this.fastComplete() ? null : 'brand';
@@ -223,7 +218,7 @@ export function cameraListing() {
                             const id = item.attribute.id;
                             const value = previous[id];
                             if (value === '' || value == null) return [];
-                            const options = this.cameraStageOptions(item);
+                            const options = this.fastStageOptions(item);
                             if (!options.length && this.cameraStageAcceptsText(item)) return [[id, value]];
                             const isAvailable = (entry) => options.some(({ id }) => String(id) === String(entry));
                             if (Array.isArray(value)) {

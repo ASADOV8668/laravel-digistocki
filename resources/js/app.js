@@ -1571,6 +1571,7 @@ window.listingWizard = () => ({
     fastStageOptions(stage) {
         if (stage.type === 'series') return this.wizardConfig?.series || [];
         if (stage.type === 'model') return this.wizardConfig?.models || [];
+        if (stage.attribute?.type === 'boolean') return [{ id: '1', label: 'بله' }, { id: '0', label: 'خیر' }];
         return (stage.attribute?.options || []).map((value) => ({ id: value, label: value }));
     },
 
@@ -1614,7 +1615,7 @@ window.listingWizard = () => ({
         window.setTimeout(() => { delete this.fastSwiperSuppressed[key]; }, 350);
     },
 
-    syncFastSwiper(container, stage) {
+    syncFastSwiper(container, stage, selectFocused = true) {
         if (stage.display_type !== 'swiper' || !container) return;
 
         const key = this.fastSwiperKey(stage);
@@ -1635,7 +1636,7 @@ window.listingWizard = () => ({
             if (!option) return;
 
             this.fastSwiperFocus[key] = String(option.id);
-            if (String(this.fastStageValue(stage)) !== String(option.id)) {
+            if (selectFocused && String(this.fastStageValue(stage)) !== String(option.id)) {
                 this.selectFastStage(stage, option);
             }
         }, 100);

@@ -106,7 +106,7 @@
                     <div x-data="{ draft: Array.isArray(fastStageValue(stage)) ? [...fastStageValue(stage)] : [] }"
                         class="space-y-2">
                         <div class="flex gap-2 overflow-x-auto p-1">
-                            <template x-for="option in cameraStageOptions(stage)" :key="option.id">
+                            <template x-for="option in fastStageOptions(stage)" :key="option.id">
                                 <label class="flex shrink-0 items-center gap-2 rounded-full border border-slate-200 px-3 py-2 text-sm">
                                     <input type="checkbox" x-model="draft" :value="option.id"><bdi x-text="option.label"></bdi>
                                 </label>
@@ -116,12 +116,19 @@
                             class="rounded-full bg-primary px-4 py-2 text-sm font-bold text-white">ادامه</button>
                     </div>
                 </template>
-                <div x-show="stage.attribute?.type !== 'multi_select'" class="flex gap-2 overflow-x-auto p-1">
-                    <template x-for="option in cameraStageOptions(stage)" :key="option.id">
+                <div x-show="stage.attribute?.type !== 'multi_select'" class="flex gap-2 p-1"
+                    :class="stage.display_type === 'swiper' ? 'min-h-16 flex-nowrap snap-x snap-mandatory items-center overflow-x-auto overscroll-x-contain' : 'flex-wrap'"
+                    :style="stage.display_type === 'swiper' ? 'padding-inline: calc(50% - 2.5rem); scroll-padding-inline: 50%;' : ''"
+                    x-effect="cameraStep === cameraStageKey(stage) && stage.display_type === 'swiper' && $nextTick(() => centerFastSwiper($el, stage, fastStageValue(stage)))"
+                    @scroll.passive="syncFastSwiper($el, stage, false)">
+                    <template x-for="(option, optionIndex) in fastStageOptions(stage)" :key="option.id">
                         <button type="button" @click="chooseCameraStage(stage, option)" :disabled="cameraStepBusy"
+                            :data-fast-swiper-option="stage.display_type === 'swiper' ? 'true' : null"
+                            :data-fast-swiper-index="optionIndex"
+                            :data-fast-swiper-value="String(option.id)"
                             :aria-pressed="String(fastStageValue(stage)) === String(option.id)"
-                            :class="String(fastStageValue(stage)) === String(option.id) ? 'border-primary bg-primary-50 text-primary' : 'border-slate-200 bg-white'"
-                            class="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-bold">
+                            :class="(stage.display_type === 'swiper' ? fastSwiperIsFocused(stage, option) : String(fastStageValue(stage)) === String(option.id)) ? 'border-primary bg-primary-50 text-primary' : 'border-slate-200 bg-white'"
+                            class="flex shrink-0 snap-center items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-bold">
                             <span x-show="stage.attribute?.slug === 'color'" class="h-4 w-4 rounded-full border border-slate-300"
                                 :style="{backgroundColor: fastColorHex(option.label)}"></span>
                             <bdi x-text="stage.type === 'model' ? (option.secondary || option.label) : stage.attribute?.unit === '%' ? option.label + '٪' : option.label"></bdi>
@@ -130,7 +137,7 @@
                 </div>
                 <button type="button" x-show="!stage.required" @click="chooseCameraStage(stage, { id: '' })"
                     class="mt-2 rounded-full border border-slate-200 px-4 py-2 text-sm">رد کردن</button>
-                <template x-if="cameraStep === cameraStageKey(stage) && !cameraStageOptions(stage).length && cameraStageAcceptsText(stage)">
+                <template x-if="cameraStep === cameraStageKey(stage) && !fastStageOptions(stage).length && cameraStageAcceptsText(stage)">
                     <div class="flex gap-2">
                         <input :type="stage.attribute.type === 'string' ? 'text' : 'number'" :step="stage.attribute.type === 'decimal' ? 'any' : '1'"
                             :value="fastStageValue(stage)" :aria-label="fastStageLabel(stage)"

@@ -2,9 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\Brand;
-use App\Models\BrandListingWizardStep;
 use App\Models\Attribute;
+use App\Models\Brand;
 use App\Models\Listing;
 use App\Models\ListingAttributeValue;
 use App\Models\PhoneModel;
@@ -77,7 +76,7 @@ class BrandListingWizardTest extends TestCase
         $this->seed(CatalogSeeder::class);
         $admin = User::factory()->create(['role' => 'admin']);
         $brand = Brand::query()->where('name_en', 'Apple')->firstOrFail();
-        $attribute = \App\Models\Attribute::query()->where('slug', 'color')->firstOrFail();
+        $attribute = Attribute::query()->where('slug', 'color')->firstOrFail();
 
         $this->actingAs($admin)
             ->post(route('admin.brands.wizard-steps.store', $brand), [
@@ -128,10 +127,13 @@ class BrandListingWizardTest extends TestCase
             ->assertJsonPath('models.0.id', $watch->id);
 
         $config = route('listings.wizard.config', [$brand, 'device_type' => 'smartwatch', 'model_id' => $watch->id]);
-        $this->getJson($config)->assertOk()
-            ->assertJsonPath('steps.1.attribute.options', ['آبی یخی', 'مشکی مات'])
-            ->assertJsonPath('steps.1.required', true)
-            ->assertJsonPath('steps.2.attribute.options', ['41', '45']);
+        $cameraSteps = $this->getJson($config)->assertOk()->json('steps');
+        $manualSteps = $this->getJson(route('listings.wizard.config', [$brand, 'model_id' => $watch->id]))->assertOk()->json('steps');
+        $this->assertSame($manualSteps, $cameraSteps);
+        $stepsByAttribute = collect($cameraSteps)->keyBy('attribute.slug');
+        $this->assertSame(['آبی یخی', 'مشکی مات'], $stepsByAttribute['color']['attribute']['options']);
+        $this->assertTrue($stepsByAttribute['color']['required']);
+        $this->assertSame(['41', '45'], $stepsByAttribute['case-size']['attribute']['options']);
         $validator = app(ListingAttributeValidator::class);
         $this->assertSame([], $validator->errors($watch, [$color->id => 'آبی یخی', $caseSize->id => '41']));
         $this->assertArrayHasKey('attributes.'.$caseSize->id, $validator->errors($watch, [$color->id => 'آبی یخی', $caseSize->id => '42']));
@@ -143,7 +145,8 @@ class BrandListingWizardTest extends TestCase
         $this->patch(route('admin.phone-models.update', $watch), [
             ...$payload, 'attribute_options' => [$color->id => ''],
         ])->assertRedirect()->assertSessionHasNoErrors();
-        $this->getJson($config)->assertOk()->assertJsonPath('steps.1.attribute.options', $color->optionsForModel($watch->id));
+        $stepsByAttribute = collect($this->getJson($config)->assertOk()->json('steps'))->keyBy('attribute.slug');
+        $this->assertSame($color->optionsForModel($watch->id), $stepsByAttribute['color']['attribute']['options']);
     }
 
     public function test_camera_catalog_filters_device_type_and_series_and_orders_model_choices(): void
@@ -172,8 +175,14 @@ class BrandListingWizardTest extends TestCase
         }
         $inactive = Attribute::create(['slug' => 'inactive-camera-feature', 'name' => 'Inactive camera feature', 'type' => 'string', 'is_active' => false]);
         $tablet->attributes()->attach($inactive->id, ['is_required' => true]);
+        $brand->wizardSteps()->createMany([
+            ['step_type' => 'series', 'display_type' => 'swiper', 'is_required' => true, 'sort_order' => 1],
+            ['step_type' => 'model', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => 2],
+            ['step_type' => 'attribute', 'attribute_id' => Attribute::where('slug', 'color')->value('id'), 'display_type' => 'swiper', 'is_required' => true, 'sort_order' => 3],
+            ['step_type' => 'attribute', 'attribute_id' => Attribute::where('slug', 'storage')->value('id'), 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => 4],
+        ]);
 
-        $this->getJson(route('listings.wizard.config', [$brand, 'device_type' => 'tablet', 'series_id' => $series->id, 'model_id' => $tablet->id]))
+        $camera = $this->getJson(route('listings.wizard.config', [$brand, 'device_type' => 'tablet', 'series_id' => $series->id, 'model_id' => $tablet->id]))
             ->assertOk()
             ->assertJsonCount(2, 'series')
             ->assertJsonPath('series.0.id', $series->id)
@@ -182,11 +191,15 @@ class BrandListingWizardTest extends TestCase
             ->assertJsonPath('models.0.id', $tablet->id)
             ->assertJsonPath('steps.0.type', 'series')
             ->assertJsonPath('steps.1.type', 'model')
-            ->assertJsonPath('steps.2.attribute.slug', 'storage')
-            ->assertJsonPath('steps.2.attribute.options', ['128', '256'])
-            ->assertJsonPath('steps.3.attribute.slug', 'color')
-            ->assertJsonPath('steps.3.attribute.options', ['آبی'])
+            ->assertJsonPath('steps.0.display_type', 'swiper')
+            ->assertJsonPath('steps.2.attribute.slug', 'color')
+            ->assertJsonPath('steps.2.display_type', 'swiper')
+            ->assertJsonPath('steps.2.attribute.options', ['آبی'])
+            ->assertJsonPath('steps.3.attribute.slug', 'storage')
+            ->assertJsonPath('steps.3.attribute.options', ['128', '256'])
             ->assertJsonMissing(['slug' => 'inactive-camera-feature']);
+        $manual = $this->getJson(route('listings.wizard.config', [$brand, 'series_id' => $series->id, 'model_id' => $tablet->id]))->assertOk();
+        $this->assertSame($manual->json('steps'), $camera->json('steps'));
 
         $this->getJson(route('listings.wizard.config', [$brand, 'device_type' => 'tablet', 'series_id' => $mobile->phone_series_id]))
             ->assertOk()

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Listing;
 use App\Models\PhoneModel;
@@ -142,20 +141,8 @@ class StoreListingRequest extends FormRequest
                 return;
             }
 
-            if ($this->boolean('camera_listing') && $this->filled('device_type')) {
-                if ($model->device_type !== $this->input('device_type')) {
-                    $validator->errors()->add('device_type', 'مدل انتخاب‌شده با نوع کالا مطابقت ندارد.');
-                }
-
-                $choices = Attribute::query()->where('is_active', true)->visibleForModel($model->id)
-                    ->whereIn('slug', ['storage', 'color'])->with('optionRestrictions')->get();
-                foreach ($choices as $attribute) {
-                    $options = $attribute->optionsForModel($model->id);
-                    $value = $this->input('attributes.'.$attribute->id);
-                    if ($options !== [] && (! is_scalar($value) || ! in_array((string) $value, $options, true))) {
-                        $validator->errors()->add('attributes.'.$attribute->id, 'یکی از گزینه‌های تعریف‌شده برای این مدل را انتخاب کنید.');
-                    }
-                }
+            if ($this->boolean('camera_listing') && $model->device_type !== $this->input('device_type')) {
+                $validator->errors()->add('device_type', 'مدل انتخاب‌شده با نوع کالا مطابقت ندارد.');
             }
 
             $errors = app(ListingAttributeValidator::class)->errors($model, (array) $this->input('attributes', []));

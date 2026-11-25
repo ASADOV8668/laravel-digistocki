@@ -249,6 +249,12 @@ class ListingController extends Controller
             ->orderBy('name_fa')
             ->get();
 
+        $attributes = $model
+            ? Attribute::query()->where('is_active', true)->visibleForModel($model->id)->with('optionRestrictions')->orderBy('sort_order')->get()->keyBy('id')
+            : collect();
+        $requiredByModel = $model?->attributes()->pluck('model_attributes.is_required', 'attributes.id') ?? collect();
+        $requiredIds = $attributes->filter(fn (Attribute $attribute): bool => (bool) $requiredByModel->get($attribute->id, $attribute->is_required))->keys()->all();
+
         $steps = $brand->wizardSteps()->with('attribute')->get();
         if ($steps->isEmpty()) {
             $steps = collect();
@@ -257,21 +263,11 @@ class ListingController extends Controller
             }
             $steps->push((object) ['step_type' => 'model', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => 2, 'attribute' => null]);
             if ($model) {
-                $attributes = Attribute::query()
-                    ->where('is_active', true)
-                    ->visibleForModel($model->id)
-                    ->with('optionRestrictions')
-                    ->orderBy('sort_order')
-                    ->get();
-                foreach ($attributes as $index => $attribute) {
-                    $steps->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => (bool) $attribute->is_required, 'sort_order' => $index + 3, 'attribute' => $attribute]);
+                foreach ($attributes as $attribute) {
+                    $steps->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => in_array($attribute->id, $requiredIds, true), 'attribute' => $attribute]);
                 }
             }
         }
-
-        $attributes = $model
-            ? Attribute::query()->where('is_active', true)->visibleForModel($model->id)->with('optionRestrictions')->orderBy('sort_order')->get()->keyBy('id')
-            : collect();
 
         // A brand-level stage may exist for another model of the same brand.
         // Once the model is known, only attributes selected for that model
@@ -287,48 +283,26 @@ class ListingController extends Controller
         // attribute from the form. Append missing required model attributes
         // after the admin-defined stages so the submitted listing remains valid.
         if ($model && $steps->isNotEmpty()) {
-            $requiredIds = $model->attributes()
-                ->where('attributes.is_active', true)
-                ->get()
-                ->filter(fn (Attribute $attribute): bool => (bool) ($attribute->pivot->is_required ?? $attribute->is_required))
-                ->pluck('id')
-                ->map(fn ($id): int => (int) $id)
-                ->all();
             $configuredIds = $steps
                 ->filter(fn ($step): bool => $step->step_type === 'attribute' && $step->attribute?->id)
                 ->map(fn ($step): int => (int) $step->attribute->id)
                 ->all();
-            $nextSort = (int) $steps->max('sort_order') + 1;
             foreach (array_diff($requiredIds, $configuredIds) as $attributeId) {
                 if (! $attributes->has($attributeId)) {
                     continue;
                 }
-                $steps->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => $nextSort++, 'attribute' => $attributes->get($attributeId)]);
+                $steps->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => true, 'attribute' => $attributes->get($attributeId)]);
             }
         }
 
-        if ($deviceType) {
-            $ordered = collect();
-            if ($series->isNotEmpty()) {
-                $ordered->push((object) ['step_type' => 'series', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => 1, 'attribute' => null]);
-            }
-            $ordered->push((object) ['step_type' => 'model', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => 2, 'attribute' => null]);
-            if ($model) {
-                $required = $model->attributes()->pluck('model_attributes.is_required', 'attributes.id');
-                foreach (['storage', 'color'] as $slug) {
-                    $attribute = $attributes->firstWhere('slug', $slug);
-                    if ($attribute) {
-                        $ordered->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => $attribute->optionsForModel($model->id) !== [] || (bool) ($required[$attribute->id] ?? $attribute->is_required), 'sort_order' => $ordered->count() + 3, 'attribute' => $attribute]);
-                    }
-                }
-                foreach ($attributes as $attribute) {
-                    if (in_array($attribute->slug, ['storage', 'color'], true)) {
-                        continue;
-                    }
-                    $ordered->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => (bool) ($required[$attribute->id] ?? $attribute->is_required), 'sort_order' => $ordered->count() + 3, 'attribute' => $attribute]);
-                }
-            }
-            $steps = $ordered;
+        if ($deviceType && $series->isEmpty()) {
+            $steps = $steps->reject(fn ($step): bool => $step->step_type === 'series')->values();
+        }
+        if (! $steps->contains('step_type', 'model')) {
+            $seriesStep = $steps->search(fn ($step): bool => $step->step_type === 'series');
+            $steps->splice($seriesStep === false ? 0 : $seriesStep + 1, 0, [
+                (object) ['step_type' => 'model', 'display_type' => 'buttons', 'is_required' => true, 'attribute' => null],
+            ]);
         }
 
         $seriesOptions = $series->map(fn ($item) => ['id' => $item->id, 'label' => $item->name_fa ?: $item->name, 'secondary' => $item->name_en ?: $item->name])->values();
@@ -340,7 +314,7 @@ class ListingController extends Controller
             'brand' => ['id' => $brand->id, 'label' => $brand->name, 'secondary' => $brand->name_en, 'image' => $brand->featuredImageUrl()],
             'series' => $seriesOptions,
             'models' => $models->map(fn (PhoneModel $item) => ['id' => $item->id, 'series_id' => $unclassified ? null : $item->phone_series_id, 'label' => $item->name_fa ?: $item->name, 'secondary' => $item->name_en ?: $item->name])->values(),
-            'steps' => $steps->sortBy('sort_order')->values()->map(function ($step) use ($attributes, $model): array {
+            'steps' => $steps->values()->map(function ($step) use ($attributes, $model, $requiredIds): array {
                 $attribute = $step->attribute?->id ? ($attributes->get($step->attribute->id) ?: $step->attribute) : null;
 
                 return [
@@ -350,7 +324,7 @@ class ListingController extends Controller
                     'display_type' => in_array($step->attribute?->slug, ['battery_health', 'ram'], true)
                         ? 'swiper'
                         : $step->display_type,
-                    'required' => (bool) $step->is_required,
+                    'required' => (bool) $step->is_required || ($attribute !== null && in_array($attribute->id, $requiredIds, true)),
                     'attribute' => $attribute ? [
                         'id' => $attribute->id,
                         'name' => $attribute->name,
