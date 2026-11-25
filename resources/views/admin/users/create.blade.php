@@ -79,20 +79,7 @@
                         </select></div><label
                         class="flex items-center gap-2 self-end rounded-xl bg-slate-50 p-3 text-sm font-bold text-slate-700"><input
                             type="checkbox" name="is_active" value="1" autocomplete="off" @checked(old('is_active', true))
-                            class="rounded border-slate-300 text-info focus:ring-info"> حساب فعال باشد</label><label
-                        class="flex items-center gap-2 self-end rounded-xl bg-slate-50 p-3 text-sm font-bold text-slate-700"><input
-                            type="checkbox" name="can_post_listings" value="1" autocomplete="off" @checked(old('can_post_listings', true))
-                            class="rounded border-slate-300 text-info focus:ring-info"> اجازه ثبت آگهی</label>
-                </div>
-                <div class="mt-4 max-w-xl">
-                    <label class="mb-2 block text-sm font-bold text-slate-700">دسترسی به ایمپورت آگهی</label>
-                    <select name="listing_import_parser_id" autocomplete="off"
-                        class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info">
-                        <option value="">ایمپورت ندارد</option>
-                        @foreach ($importParsers as $parser)
-                            <option value="{{ $parser->id }}" @selected((string) old('listing_import_parser_id') === (string) $parser->id)>{{ $parser->title }}</option>
-                        @endforeach
-                    </select>
+                            class="rounded border-slate-300 text-info focus:ring-info"> حساب فعال باشد</label>
                 </div>
             </div>
             <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end"><a

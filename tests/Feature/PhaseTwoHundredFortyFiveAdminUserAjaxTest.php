@@ -10,7 +10,7 @@ class PhaseTwoHundredFortyFiveAdminUserAjaxTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_can_toggle_user_status_role_and_listing_permission_with_json(): void
+    public function test_admin_can_toggle_user_status_and_role_with_json(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $user = User::factory()->create([
@@ -30,13 +30,12 @@ class PhaseTwoHundredFortyFiveAdminUserAjaxTest extends TestCase
             ->assertJson(['role' => 'admin']);
 
         $this->actingAs($admin)
-            ->patchJson(route('admin.users.toggle-listing-permission', $user), [])
-            ->assertOk()
-            ->assertJson(['can_post_listings' => true]);
+            ->patchJson('/admin/users/'.$user->id.'/toggle-listing-permission', [])
+            ->assertNotFound();
 
         $this->assertFalse($user->refresh()->is_active);
         $this->assertTrue($user->isAdmin());
-        $this->assertTrue($user->can_post_listings);
+        $this->assertFalse($user->can_post_listings);
     }
 
     public function test_admin_cannot_toggle_own_account_with_json(): void

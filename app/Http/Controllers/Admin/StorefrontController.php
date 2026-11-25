@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateStorefrontRequest;
 use App\Models\Listing;
+use App\Models\ListingImportParser;
 use App\Models\SellerStore;
 use App\Models\User;
 use App\Notifications\StorefrontStatusNotification;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Sadegh19b\LaravelIranCities\Models\Province;
@@ -147,6 +149,8 @@ class StorefrontController extends Controller
             'store' => $user->storefront,
             'provinces' => Province::query()->orderBy('name')->get(['id', 'name']),
             'maxImageUploadMb' => $options->maxImageUploadMb(),
+            'importParsers' => ListingImportParser::query()
+                ->where('is_active', true)->orWhere('id', $user->listing_import_parser_id)->orderBy('title')->get(),
         ]);
     }
 
@@ -294,13 +298,15 @@ class StorefrontController extends Controller
             'rejection_reason' => $validated['approval_status'] === 'rejected' ? $validated['rejection_reason'] : null,
         ];
 
-        if ($store) {
-            $store->update($payload);
-        } else {
-            SellerStore::create($payload);
-        }
+        $store = DB::transaction(function () use ($user, $store, $payload, $validated): SellerStore {
+            $store = $store ? tap($store)->update($payload) : SellerStore::create($payload);
+            $permissions = array_intersect_key($validated, array_flip(['can_post_listings', 'listing_import_parser_id']));
+            if ($permissions !== []) {
+                $user->update($permissions);
+            }
 
-        $store = $store ?: $user->fresh('storefront')->storefront;
+            return $store;
+        });
         if ($previousApprovalStatus !== $store->approval_status && in_array($store->approval_status, ['approved', 'rejected'], true)) {
             $user->notify(new StorefrontStatusNotification($store, $store->approval_status, $store->rejection_reason));
         }

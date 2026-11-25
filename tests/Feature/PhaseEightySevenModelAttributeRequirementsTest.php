@@ -51,7 +51,7 @@ class PhaseEightySevenModelAttributeRequirementsTest extends TestCase
             'user_id' => $seller->id,
             'slug' => 'required-attribute-store',
             'name' => 'فروشگاه ویژگی اجباری',
-            'approval_status' => 'pending',
+            'approval_status' => 'approved',
             'is_enabled' => false,
         ]);
 

@@ -33,7 +33,7 @@ class PhaseTwoHundredThirtySixDuplicateListingFeedbackTest extends TestCase
             'user_id' => $user->id,
             'slug' => 'duplicate-listing-store',
             'name' => 'فروشگاه تست تکراری',
-            'approval_status' => 'pending',
+            'approval_status' => 'approved',
         ]);
         $brand = Brand::firstOrFail();
         $model = $brand->phoneModels()->firstOrFail();
@@ -71,7 +71,7 @@ class PhaseTwoHundredThirtySixDuplicateListingFeedbackTest extends TestCase
             'user_id' => $user->id,
             'slug' => 'unlimited-duplicate-store',
             'name' => 'فروشگاه بدون محدودیت',
-            'approval_status' => 'pending',
+            'approval_status' => 'approved',
         ]);
         $brand = Brand::firstOrFail();
         $model = $brand->phoneModels()->firstOrFail();

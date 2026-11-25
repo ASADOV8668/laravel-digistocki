@@ -59,10 +59,11 @@ class ListingImportController extends Controller
 
     public function store(Request $request, ImportedListingService $service, ListingRules $rules, ImageService $imageService, ListingMediaService $mediaService): RedirectResponse
     {
+        $parser = $this->parser($request);
         $token = (string) $request->input('token');
         $preview = $request->session()->get('listing_import.preview.'.$token);
         abort_unless(is_array($preview), 419);
-        abort_unless($request->user()->listing_import_parser_id === ($preview['parser_id'] ?? null), 403);
+        abort_unless($parser->id === ($preview['parser_id'] ?? null), 403);
         if (! $rules->canCreate($request->user())) {
             return redirect()->route('home')->with('status', 'ثبت آگهی برای این حساب در حال حاضر فعال نیست.');
         }
@@ -152,10 +153,10 @@ class ListingImportController extends Controller
 
     private function parser(Request $request): ListingImportParser
     {
-        $parser = $request->user()?->listingImportParser;
-        abort_unless($parser?->is_active === true, 403);
+        $user = $request->user();
+        abort_unless($user?->canImportListings(), 403);
 
-        return $parser;
+        return $user->listingImportParser;
     }
 
     /** @param array<int, array<string, mixed>> $rows */

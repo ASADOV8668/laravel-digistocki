@@ -79,21 +79,7 @@
                         </select></div><label
                         class="flex items-center gap-2 self-end rounded-xl bg-slate-50 p-3 text-sm font-bold text-slate-700"><input
                             type="checkbox" name="is_active" value="1" autocomplete="off" @checked(old('is_active', $user->is_active))
-                            class="rounded border-slate-300 text-info focus:ring-info"> حساب فعال</label><label
-                        class="flex items-center gap-2 self-end rounded-xl bg-slate-50 p-3 text-sm font-bold text-slate-700"><input
-                            type="checkbox" name="can_post_listings" value="1" autocomplete="off" @checked(old('can_post_listings', $user->can_post_listings))
-                        class="rounded border-slate-300 text-info focus:ring-info"> اجازه ثبت آگهی</label>
-                </div>
-                <div class="mt-4 max-w-xl">
-                    <label class="mb-2 block text-sm font-bold text-slate-700">دسترسی به ایمپورت آگهی</label>
-                    <select name="listing_import_parser_id" autocomplete="off"
-                        class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info">
-                        <option value="">ایمپورت ندارد</option>
-                        @foreach ($importParsers as $parser)
-                            <option value="{{ $parser->id }}" @selected((string) old('listing_import_parser_id', $user->listing_import_parser_id) === (string) $parser->id)>{{ $parser->title }}</option>
-                        @endforeach
-                    </select>
-                    <p class="mt-1 text-xs text-slate-400">کاربر پس از انتخاب Parser، گزینهٔ «ایمپورت آگهی» را در پنل خود می‌بیند.</p>
+                            class="rounded border-slate-300 text-info focus:ring-info"> حساب فعال</label>
                 </div>
             </div>
             <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end"><a

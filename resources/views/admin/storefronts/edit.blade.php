@@ -233,13 +233,30 @@
                         <option value="rejected" @selected(old('approval_status', $store?->approval_status) === 'rejected')>ردشده</option>
                     </select></div>
                 <div>
-                    <label for="admin-listing-approval-mode" class="mb-2 block text-sm font-bold text-slate-700">مجوز ثبت آگهی</label>
+                    <label for="admin-listing-approval-mode" class="mb-2 block text-sm font-bold text-slate-700">نحوهٔ انتشار آگهی</label>
                     <select id="admin-listing-approval-mode" name="listing_approval_mode"
                         class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">
                         <option value="manual" @selected(old('listing_approval_mode', $store?->listing_approval_mode ?? \App\Models\SellerStore::LISTING_APPROVAL_MANUAL) === \App\Models\SellerStore::LISTING_APPROVAL_MANUAL)>با تأیید مدیریت</option>
                         <option value="free" @selected(old('listing_approval_mode', $store?->listing_approval_mode ?? \App\Models\SellerStore::LISTING_APPROVAL_MANUAL) === \App\Models\SellerStore::LISTING_APPROVAL_FREE)>ثبت آزاد (بدون تأیید مدیریت)</option>
                     </select>
                     <p class="mt-1 text-[11px] text-slate-400">در حالت ثبت آزاد، آگهی‌های جدید این فروشگاه مستقیم منتشر می‌شوند.</p>
+                </div>
+                <div>
+                    <label for="admin-store-posting" class="mb-2 block text-sm font-bold text-slate-700">مجوز ثبت آگهی</label>
+                    <select id="admin-store-posting" name="can_post_listings" class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">
+                        <option value="1" @selected((bool) old('can_post_listings', $user->can_post_listings))>فعال</option>
+                        <option value="0" @selected(! old('can_post_listings', $user->can_post_listings))>غیرفعال</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="admin-store-import-parser" class="mb-2 block text-sm font-bold text-slate-700">دسترسی به ایمپورت آگهی</label>
+                    <select id="admin-store-import-parser" name="listing_import_parser_id" class="w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary">
+                        <option value="">غیرفعال</option>
+                        @foreach ($importParsers as $parser)
+                            <option value="{{ $parser->id }}" @selected((string) old('listing_import_parser_id', $user->listing_import_parser_id) === (string) $parser->id)>{{ $parser->title }}{{ $parser->is_active ? '' : ' (قالب غیرفعال)' }}</option>
+                        @endforeach
+                    </select>
+                    <p class="mt-1 text-xs text-slate-500">انتخاب قالب، ایمپورت را برای فروشگاه تأییدشده‌ای که اجازهٔ ثبت آگهی دارد فعال می‌کند.</p>
                 </div>
                 <div><label for="admin-sort-order" class="mb-2 block text-sm font-bold text-slate-700">اولویت نمایش
                         (Sort)</label><input id="admin-sort-order" name="sort_order" type="number" min="0"

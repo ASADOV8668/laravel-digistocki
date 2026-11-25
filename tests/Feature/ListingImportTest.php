@@ -35,28 +35,46 @@ class ListingImportTest extends TestCase
         $this->assertTrue($result['date_required']);
     }
 
-    public function test_admin_can_assign_an_import_parser_to_a_user_and_parser_menu_shows_sample(): void
+    public function test_admin_manages_import_access_through_storefront_settings(): void
     {
         $this->seed(CatalogSeeder::class);
         $admin = User::factory()->create(['role' => 'admin']);
         $user = User::factory()->create();
         $parser = ListingImportParser::query()->where('key', 'bamatel')->firstOrFail();
 
-        $this->actingAs($admin)->put(route('admin.users.update', $user), [
+        $store = $this->createImportStore($user);
+        $this->actingAs($admin)->get(route('admin.users.edit', $user))
+            ->assertOk()->assertDontSee('name="listing_import_parser_id"', false);
+        $this->get(route('admin.storefronts.edit', $user))
+            ->assertOk()->assertSee('name="listing_import_parser_id"', false);
+        $this->put(route('admin.storefronts.update', $user), [
+            'name' => $store->name,
+            'slug' => $store->slug,
+            'listing_import_parser_id' => $parser->id,
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $this->put(route('admin.users.update', $user), [
             'name' => $user->name,
             'mobile' => '0912'.str_pad((string) $user->id, 7, '0', STR_PAD_LEFT),
             'email' => $user->email,
             'role' => 'user',
             'is_active' => 1,
-            'can_post_listings' => 1,
-            'listing_import_parser_id' => $parser->id,
+            'can_post_listings' => 0,
+            'listing_import_parser_id' => null,
         ])->assertRedirect();
 
-        $this->assertDatabaseHas('users', ['id' => $user->id, 'listing_import_parser_id' => $parser->id]);
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'listing_import_parser_id' => $parser->id, 'can_post_listings' => true]);
         $this->actingAs($admin)->get(route('admin.listing-imports.index', ['parser' => 'bamatel']))
             ->assertOk()
             ->assertSeeText('باماتل')
             ->assertSeeText('لیست قیمت کارکرده‌ باماتل');
+
+        $this->put(route('admin.storefronts.update', $user), [
+            'name' => $store->name,
+            'slug' => $store->slug,
+            'listing_import_parser_id' => null,
+        ])->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'listing_import_parser_id' => null]);
     }
 
     public function test_fratel_and_bamatel_parsers_keep_price_and_do_not_confuse_battery_or_cycle(): void
@@ -120,6 +138,7 @@ class ListingImportTest extends TestCase
 
         $parser->refresh();
         $user = User::factory()->create(['can_post_listings' => true, 'listing_import_parser_id' => $parser->id]);
+        $this->createImportStore($user);
         $response = $this->actingAs($user)->post(route('listings.import.preview'), ['text' => $updatedSample])
             ->assertOk()
             ->assertSee('وضعیت رجیستری');
@@ -149,6 +168,7 @@ class ListingImportTest extends TestCase
         $this->seed(CatalogSeeder::class);
         $parser = ListingImportParser::query()->where('key', 'unified_price_list')->sole();
         $user = User::factory()->create(['can_post_listings' => true, 'listing_import_parser_id' => $parser->id]);
+        $this->createImportStore($user);
         $text = "💙13Pro 256g CH 92BT\n💰172/000m\n"
             ."‼️17 Pro Max 512 ZAA‼️\n🔋100% 🔵465.000(✅)\n93🔋 🤍475.000(🚫)\n"
             ."📱15 Pro Max 512G 🟦\nZAA 89bt cycle: 62\n💵244,900\nرجیستر ✅\n"
@@ -173,12 +193,39 @@ class ListingImportTest extends TestCase
         $this->assertSame('آبی اقیانوسی', $response->viewData('rows')[5]['attributes'][$attributes['color']]);
     }
 
+    public function test_user_without_an_approved_store_cannot_submit_or_import_listings(): void
+    {
+        $parser = ListingImportParser::query()->where('key', 'at_kala')->sole();
+        $user = User::factory()->create(['listing_import_parser_id' => $parser->id]);
+
+        $this->actingAs($user)->get(route('listings.import.create'))->assertForbidden();
+        $this->get(route('listings.create'))->assertRedirect(route('storefront.edit'));
+        $this->post(route('listings.store'))->assertRedirect(route('home'));
+
+        $store = $this->createImportStore($user);
+        $store->update(['approval_status' => 'pending']);
+        $this->actingAs($user->fresh())->post(route('listings.import.preview'))->assertForbidden();
+        $this->post(route('listings.import.store'))->assertForbidden();
+        $this->post(route('listings.store'))->assertRedirect(route('home'));
+        $this->assertDatabaseCount('listings', 0);
+    }
+
+    private function createImportStore(User $user): SellerStore
+    {
+        return $user->storefront()->create([
+            'slug' => 'import-store-'.$user->id,
+            'name' => 'فروشگاه ایمپورت',
+            'approval_status' => 'approved',
+            'logo_path' => 'stores/logo.webp',
+        ]);
+    }
+
     public function test_supported_preview_rows_can_be_created_with_an_uploaded_image(): void
     {
         Storage::fake('public');
         $this->seed(CatalogSeeder::class);
         $user = User::factory()->create(['can_post_listings' => true]);
-        SellerStore::create(['user_id' => $user->id, 'slug' => 'import-store-'.$user->id, 'name' => 'فروشگاه ایمپورت', 'is_active' => true]);
+        $this->createImportStore($user);
         $parser = ListingImportParser::query()->where('key', 'at_kala')->firstOrFail();
         $user->forceFill(['listing_import_parser_id' => $parser->id])->save();
         $text = "💙13Pro 256g CH 92Bt\n💰165/000m";
@@ -224,7 +271,7 @@ class ListingImportTest extends TestCase
         Storage::fake('public');
         $this->seed(CatalogSeeder::class);
         $user = User::factory()->create(['can_post_listings' => true]);
-        SellerStore::create(['user_id' => $user->id, 'slug' => 'import-store-media-'.$user->id, 'name' => 'فروشگاه رسانه', 'is_active' => true]);
+        $this->createImportStore($user);
         $parser = ListingImportParser::query()->where('key', 'at_kala')->firstOrFail();
         $user->forceFill(['listing_import_parser_id' => $parser->id])->save();
         $parsed = app(ListingImportParserRegistry::class)->make($parser)->parse("💙13Pro 256g CH 92Bt\n💰165/000m");

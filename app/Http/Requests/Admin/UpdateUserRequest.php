@@ -20,7 +20,6 @@ class UpdateUserRequest extends FormRequest
             'mobile' => MobileNumber::normalize($this->input('mobile')),
             'national_id' => PersianDigits::toEnglish($this->input('national_id')),
             'is_active' => $this->boolean('is_active'),
-            'can_post_listings' => $this->boolean('can_post_listings'),
         ]);
     }
 
@@ -36,8 +35,6 @@ class UpdateUserRequest extends FormRequest
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'role' => ['required', Rule::in(['user', 'admin'])],
             'is_active' => ['boolean'],
-            'can_post_listings' => ['boolean'],
-            'listing_import_parser_id' => ['nullable', 'integer', Rule::exists('listing_import_parsers', 'id')->where('is_active', true)],
         ];
     }
 }

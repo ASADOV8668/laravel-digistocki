@@ -88,13 +88,19 @@ class PhaseElevenSystemSettingsTest extends TestCase
         $this->assertSame(30 * 1440, config('session.lifetime'));
     }
 
-    public function test_regular_user_cannot_access_settings_and_admin_can_disable_specific_user_listing_permission(): void
+    public function test_regular_user_cannot_access_settings_and_admin_can_disable_store_listing_permission(): void
     {
         $user = User::factory()->create();
-        $this->storeApplication($user);
+        $store = $this->storeApplication($user);
+        $store->update(['logo_path' => 'stores/logo.webp']);
         $this->actingAs($user)->get(route('admin.settings.edit'))->assertForbidden();
 
-        $this->actingAs($this->admin)->patch(route('admin.users.toggle-listing-permission', $user))->assertRedirect();
+        $this->actingAs($this->admin)->put(route('admin.storefronts.update', $user), [
+            'name' => $store->name,
+            'slug' => $store->slug,
+            'store_enabled' => 1,
+            'can_post_listings' => 0,
+        ])->assertSessionHasNoErrors()->assertRedirect();
         $this->assertFalse($user->refresh()->can_post_listings);
         $this->actingAs($user)->get(route('listings.create'))->assertRedirect(route('home'))->assertSessionHas('status');
     }

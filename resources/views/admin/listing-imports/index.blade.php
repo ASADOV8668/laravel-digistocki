@@ -13,7 +13,7 @@
         <div class="admin-card overflow-hidden">
             <div class="border-b border-slate-100 p-5">
                 <h2 class="font-black text-slate-900">قالب‌های Parse</h2>
-                <p class="mt-1 text-xs text-slate-400">قالبی که در ویرایش کاربر انتخاب شود، در پنل همان کاربر فعال خواهد شد.</p>
+                <p class="mt-1 text-xs text-slate-400">برای فعال‌سازی ایمپورت، قالب را در صفحهٔ ویرایش فروشگاه انتخاب کنید.</p>
             </div>
             <div class="divide-y divide-slate-100">
                 @foreach ($parsers as $parser)

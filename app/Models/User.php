@@ -82,7 +82,16 @@ class User extends Authenticatable implements HasMedia
 
     public function canImportListings(): bool
     {
-        return $this->listingImportParser?->is_active === true;
+        return $this->hasSellerListingAccess() && $this->listingImportParser?->is_active === true;
+    }
+
+    public function hasSellerListingAccess(): bool
+    {
+        $store = $this->storefront;
+
+        return $this->is_active && $this->can_post_listings
+            && $store?->isApproved() && ! $store->is_admin_disabled
+            && (! $store->business_license_expires_at || ! $store->business_license_expires_at->isBefore(today()));
     }
 
     /**

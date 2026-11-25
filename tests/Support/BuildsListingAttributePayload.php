@@ -15,7 +15,7 @@ trait BuildsListingAttributePayload
             'user_id' => $user->id,
             'slug' => 'test-store-'.$user->id,
             'name' => 'فروشگاه تست',
-            'approval_status' => 'pending',
+            'approval_status' => 'approved',
             'is_enabled' => true,
         ]);
     }

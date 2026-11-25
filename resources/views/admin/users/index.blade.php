@@ -7,7 +7,7 @@
                         class="h-6 w-6" /></span>
                 <div>
                     <h2 class="text-xl font-black text-slate-900">مدیریت کاربران</h2>
-                    <p class="mt-1 text-xs text-slate-400">مدیریت نقش، وضعیت حساب و مجوز ثبت آگهی</p>
+                    <p class="mt-1 text-xs text-slate-400">مدیریت نقش و وضعیت حساب</p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -26,7 +26,7 @@
             <div class="flex items-center gap-2 rounded-2xl border border-success/15 bg-success/10 px-4 py-3 text-sm font-bold text-success"
                 role="status"><x-heroicon-o-check-circle class="h-5 w-5 shrink-0" />{{ session('status') }}</div>
         @endif
-        <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
             <div class="admin-card flex items-center gap-3 p-4"><span
                     class="flex h-10 w-10 items-center justify-center rounded-2xl bg-info/10 text-info"><x-heroicon-o-users
                         class="h-5 w-5" /></span><span><strong
@@ -42,11 +42,6 @@
                         class="h-5 w-5" /></span><span><strong
                         class="block text-lg font-black text-slate-900">{{ number_format($userStats['admins']) }}</strong><span
                         class="text-[11px] font-bold text-slate-500">مدیر سیستم</span></span></div>
-            <div class="admin-card flex items-center gap-3 p-4"><span
-                    class="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary"><x-heroicon-o-pencil-square
-                        class="h-5 w-5" /></span><span><strong
-                        class="block text-lg font-black text-slate-900">{{ number_format($userStats['can_post']) }}</strong><span
-                        class="text-[11px] font-bold text-slate-500">مجاز به ثبت آگهی</span></span></div>
         </div>
 
         <div class="admin-card p-5">
@@ -113,8 +108,7 @@
                                 <td class="px-5 py-4">
                                     <div class="flex max-w-[190px] flex-wrap gap-1.5"><span
                                             class="rounded-full px-2.5 py-1 text-[10px] font-black {{ $user->isAdmin() ? 'bg-accent/10 text-accent' : 'bg-slate-100 text-slate-600' }}">{{ $user->isAdmin() ? 'مدیر' : 'کاربر' }}</span><span
-                                            class="rounded-full px-2.5 py-1 text-[10px] font-black {{ $user->is_active ? 'bg-success/10 text-success' : 'bg-error/10 text-error' }}">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</span><span
-                                            class="rounded-full px-2.5 py-1 text-[10px] font-black {{ $user->can_post_listings ? 'bg-info/10 text-info' : 'bg-warning/10 text-warning' }}">{{ $user->can_post_listings ? 'ثبت آگهی مجاز' : 'ثبت آگهی مسدود' }}</span>
+                                            class="rounded-full px-2.5 py-1 text-[10px] font-black {{ $user->is_active ? 'bg-success/10 text-success' : 'bg-error/10 text-error' }}">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</span>
                                     </div>
                                 </td>
                                 <td class="px-5 py-4"><strong
@@ -127,11 +121,6 @@
                                         <form method="POST" action="{{ route('admin.users.toggle-active', $user) }}">
                                             @csrf @method('PATCH')<button
                                                 class="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-200">{{ $user->is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی' }}</button>
-                                        </form>
-                                        <form method="POST"
-                                            action="{{ route('admin.users.toggle-listing-permission', $user) }}">@csrf
-                                            @method('PATCH')<button
-                                                class="rounded-lg bg-info/10 px-3 py-2 text-xs font-bold text-info transition hover:bg-info/20">{{ $user->can_post_listings ? 'بستن ثبت آگهی' : 'اجازه ثبت آگهی' }}</button>
                                         </form>
                                         <form method="POST" action="{{ route('admin.users.toggle-role', $user) }}">
                                             @csrf @method('PATCH')<button

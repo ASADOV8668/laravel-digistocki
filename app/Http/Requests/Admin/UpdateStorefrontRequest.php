@@ -57,6 +57,12 @@ class UpdateStorefrontRequest extends FormRequest
             'admin_disabled' => ['boolean'],
             'approval_status' => ['required', 'in:pending,approved,rejected'],
             'listing_approval_mode' => ['required', 'in:manual,free'],
+            'can_post_listings' => ['sometimes', 'boolean'],
+            'listing_import_parser_id' => [
+                'sometimes', 'nullable', 'integer',
+                Rule::exists('listing_import_parsers', 'id')->where(fn ($query) => $query
+                    ->where(fn ($allowed) => $allowed->where('is_active', true)->orWhere('id', $user?->listing_import_parser_id))),
+            ],
             'rejection_reason' => ['nullable', 'string', 'max:1000'],
             'first_name' => ['nullable', 'string', 'max:80'],
             'last_name' => ['nullable', 'string', 'max:100'],

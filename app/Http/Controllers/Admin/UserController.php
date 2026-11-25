@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
-use App\Models\ListingImportParser;
 use App\Models\User;
 use App\Services\ImageService;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,9 +19,7 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $importParsers = ListingImportParser::query()->where('is_active', true)->orderBy('title')->get();
-
-        return view('admin.users.edit', compact('user', 'importParsers'));
+        return view('admin.users.edit', compact('user'));
     }
 
     public function update(UpdateUserRequest $request, User $user)
@@ -32,7 +29,7 @@ class UserController extends Controller
         abort_if($user->isAdmin() && $request->input('role') !== 'admin' && User::query()->where('role', 'admin')->count() <= 1, 422, 'حداقل یک مدیر باید در سیستم باقی بماند.');
 
         $validated = $request->validated();
-        $data = collect($validated)->except(['password', 'role', 'is_active', 'can_post_listings'])->all();
+        $data = collect($validated)->except(['password', 'role', 'is_active'])->all();
         if (! empty($validated['password'])) {
             $data['password'] = $validated['password'];
             $data['password_set_at'] = now();
@@ -41,8 +38,6 @@ class UserController extends Controller
         $user->forceFill([
             'role' => $validated['role'],
             'is_active' => (bool) ($validated['is_active'] ?? false),
-            'can_post_listings' => (bool) ($validated['can_post_listings'] ?? false),
-            'listing_import_parser_id' => $validated['listing_import_parser_id'] ?? null,
         ])->save();
 
         return redirect()->route('admin.users.index')->with('status', 'اطلاعات کاربر به‌روزرسانی شد.');
@@ -72,9 +67,7 @@ class UserController extends Controller
 
     public function create()
     {
-        $importParsers = ListingImportParser::query()->where('is_active', true)->orderBy('title')->get();
-
-        return view('admin.users.create', compact('importParsers'));
+        return view('admin.users.create');
     }
 
     public function store(StoreUserRequest $request)
@@ -91,8 +84,6 @@ class UserController extends Controller
         $user->forceFill([
             'role' => $validated['role'],
             'is_active' => (bool) ($validated['is_active'] ?? false),
-            'can_post_listings' => (bool) ($validated['can_post_listings'] ?? false),
-            'listing_import_parser_id' => $validated['listing_import_parser_id'] ?? null,
             'mobile_verified_at' => now(),
         ])->save();
 
@@ -110,7 +101,6 @@ class UserController extends Controller
             'total' => User::query()->count(),
             'active' => User::query()->where('is_active', true)->count(),
             'admins' => User::query()->where('role', 'admin')->count(),
-            'can_post' => User::query()->where('can_post_listings', true)->count(),
         ];
 
         $users = User::query()
@@ -154,18 +144,6 @@ class UserController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json(['message' => $message, 'role' => $user->role]);
-        }
-
-        return back()->with('status', $message);
-    }
-
-    public function toggleListingPermission(Request $request, User $user): RedirectResponse|JsonResponse
-    {
-        $user->forceFill(['can_post_listings' => ! $user->can_post_listings])->save();
-        $message = $user->can_post_listings ? 'اجازه ثبت آگهی برای کاربر فعال شد.' : 'اجازه ثبت آگهی برای کاربر غیرفعال شد.';
-
-        if ($request->expectsJson()) {
-            return response()->json(['message' => $message, 'can_post_listings' => $user->can_post_listings]);
         }
 
         return back()->with('status', $message);
