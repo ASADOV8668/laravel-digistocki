@@ -68,11 +68,19 @@ class NaturalListingSearch
                 ->where(fn (Builder $storage) => $storage->where('value_integer', $criteria['storage'])->orWhere('value_string', (string) $criteria['storage'])));
         }
         if (isset($criteria['color'])) {
-            $query->whereHas('attributeValues', fn (Builder $values) => $values->whereRelation('attribute', 'slug', 'color')
-                ->where('value_string', $criteria['color'] === 'آبی' ? 'like' : '=', $criteria['color'] === 'آبی' ? 'آبی%' : $criteria['color']));
+            $query->whereHas('attributeValues', function (Builder $values) use ($criteria): void {
+                $values->whereRelation('attribute', 'slug', 'color');
+                if ($criteria['color'] === 'آبی') {
+                    $values->where(fn (Builder $blue) => $blue->where('value_string', 'like', 'آبی%')->orWhereRaw('LOWER(value_string) LIKE ?', ['%blue%']));
+                } else {
+                    $values->where('value_string', $criteria['color']);
+                }
+            });
         }
         if (isset($criteria['registered'])) {
-            $statuses = $criteria['registered'] ? [RegistrationStatus::REGISTERED, RegistrationStatus::OWNER, RegistrationStatus::OTHER] : [RegistrationStatus::UNREGISTERED];
+            $statuses = $criteria['registered']
+                ? [RegistrationStatus::REGISTERED, RegistrationStatus::OWNER, RegistrationStatus::OTHER, 'رجیستر شرکتی', 'Registered']
+                : [RegistrationStatus::UNREGISTERED, 'بدون رجیستر', 'بدون رجیستری', 'Unregistered'];
             $query->where(fn (Builder $registry) => $registry
                 ->whereHas('attributeValues', fn (Builder $value) => $value->whereRelation('attribute', 'slug', 'registered')->where('value_boolean', $criteria['registered']))
                 ->orWhereHas('attributeValues', fn (Builder $value) => $value->whereRelation('attribute', 'slug', 'registration_status')->whereIn('value_string', $statuses)));

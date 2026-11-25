@@ -208,7 +208,7 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
     public function test_dashboard_clone_page_is_prefilled_from_the_owner_listing(): void
     {
         $user = User::factory()->create();
-        SellerStore::create(['user_id' => $user->id, 'slug' => 'clone-store-'.$user->id, 'name' => 'فروشگاه کپی']);
+        SellerStore::create(['user_id' => $user->id, 'slug' => 'clone-store-'.$user->id, 'name' => 'فروشگاه کپی', 'approval_status' => 'approved']);
         $brand = Brand::firstOrFail();
         $listing = Listing::create(['user_id' => $user->id, 'brand_id' => $brand->id, 'phone_model_id' => $brand->phoneModels()->first()->id, 'title' => 'آگهی قابل کپی', 'slug' => Str::uuid(), 'price' => 1000000, 'status' => ListingStatus::Approved]);
         $listing->images()->create(['path' => 'listings/source-phone.webp', 'thumbnail_path' => 'listings/thumbs/source-phone.webp', 'is_primary' => true, 'sort_order' => 1]);
@@ -226,7 +226,7 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
     {
         Storage::fake('public');
         $user = User::factory()->create();
-        SellerStore::create(['user_id' => $user->id, 'slug' => 'clone-images-'.$user->id, 'name' => 'فروشگاه تصاویر کپی']);
+        SellerStore::create(['user_id' => $user->id, 'slug' => 'clone-images-'.$user->id, 'name' => 'فروشگاه تصاویر کپی', 'approval_status' => 'approved']);
         $brand = Brand::firstOrFail();
         $model = $brand->phoneModels()->firstOrFail();
         $source = Listing::create([
@@ -266,7 +266,7 @@ class PhaseTwoHundredFortyOneDashboardListingActionsTest extends TestCase
     public function test_dashboard_clone_page_prefills_the_source_listing_attributes(): void
     {
         $user = User::factory()->create();
-        SellerStore::create(['user_id' => $user->id, 'slug' => 'clone-attributes-'.$user->id, 'name' => 'فروشگاه ویژگی کپی']);
+        SellerStore::create(['user_id' => $user->id, 'slug' => 'clone-attributes-'.$user->id, 'name' => 'فروشگاه ویژگی کپی', 'approval_status' => 'approved']);
         $brand = Brand::firstOrFail();
         $model = $brand->phoneModels()->firstOrFail();
         $memory = $model->attributes()->where('slug', 'storage')->first() ?? $model->attributes()->where('type', 'integer')->firstOrFail();

@@ -12,6 +12,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -68,6 +69,18 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(Listing::class, ListingPolicy::class);
         Gate::policy(ChatConversation::class, ChatConversationPolicy::class);
+
+        Vite::createAssetPathsUsing(static function (string $path, ?bool $secure = null): string {
+            $url = asset($path, $secure);
+            $assetHost = parse_url($url, PHP_URL_HOST);
+            $requestHost = request()->getHost();
+            if (is_string($assetHost) && $assetHost !== $requestHost
+                && preg_replace('/^www\./i', '', $assetHost) === preg_replace('/^www\./i', '', $requestHost)) {
+                return parse_url($url, PHP_URL_PATH) ?: $url;
+            }
+
+            return $url;
+        });
 
         // Apache serves the local project from /app while Laravel's front
         // controller lives in /app/public. Preserve that base path in route

@@ -13,6 +13,7 @@ use Database\Seeders\CatalogSeeder;
 use Database\Seeders\DemoListingSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class HomeSearchTest extends TestCase
@@ -32,6 +33,14 @@ class HomeSearchTest extends TestCase
             ->assertSee('آخرین آگهی‌ها')
             ->assertSee('آیفون ۱۳ پرو تمیز و سالم')
             ->assertSee('storage/listings/demo-iphone.svg');
+    }
+
+    public function test_frontend_scripts_are_served_from_the_current_host_alias(): void
+    {
+        URL::useAssetOrigin('https://digistocki.com');
+
+        $this->get('https://www.digistocki.com/')
+            ->assertOk()->assertSee('src="/build/assets/app-', false);
     }
 
     public function test_autocomplete_returns_matching_approved_listings(): void
