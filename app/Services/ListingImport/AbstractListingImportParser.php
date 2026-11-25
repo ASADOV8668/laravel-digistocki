@@ -74,13 +74,13 @@ abstract class AbstractListingImportParser implements ListingImportParser
             if ($color !== null && ($id = $this->attributeId('color'))) {
                 $attributes[$id] = $color;
             }
-            if (($storage = $this->storage($modelText)) !== null && ($id = $this->attributeId('storage'))) {
+            if (($storage = $extra['storage'] ?? $this->storage($modelText)) !== null && ($id = $this->attributeId('storage'))) {
                 $attributes[$id] = $storage;
             }
             if ($battery !== null && ($id = $this->attributeId('battery_health'))) {
                 $attributes[$id] = $battery;
             }
-            if (array_key_exists('registered', $extra) && ($id = $this->attributeId('registered'))) {
+            if (isset($extra['registered']) && ($id = $this->attributeId('registered'))) {
                 $attributes[$id] = $extra['registered'] ? 1 : 0;
             }
             if (! empty($extra['registration_status']) && ($id = $this->attributeId('registration_status'))) {
@@ -167,7 +167,8 @@ abstract class AbstractListingImportParser implements ListingImportParser
 
     protected function battery(string $value): ?int
     {
-        return preg_match('/(?<!\d)(\d{1,3})\s*(?:%|bt)\b/iu', PersianDigits::toEnglish($value), $match) ? (int) $match[1] : null;
+        return preg_match('/(?<!\d)(\d{1,3})\s*(?:%|٪|bt)(?![\pL\pN])/iu', PersianDigits::toEnglish($value), $match)
+            && (int) $match[1] <= 100 ? (int) $match[1] : null;
     }
 
     protected function storage(string $value): ?int

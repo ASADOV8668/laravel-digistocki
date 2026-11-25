@@ -10,11 +10,11 @@ class ListingImportParser extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['key', 'title', 'class_name', 'pattern', 'sample_text', 'description', 'is_active'];
+    protected $fillable = ['key', 'title', 'class_name', 'pattern', 'symbol_map', 'sample_text', 'description', 'is_active'];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'symbol_map' => 'array'];
     }
 
     public function users(): HasMany

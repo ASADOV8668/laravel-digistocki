@@ -26,11 +26,17 @@ class FratelParser extends AbstractListingImportParser
             }
             $battery = $this->battery($line);
             $modelText = preg_match('/\b(?:s\d|a\d|redmi|poco|galaxy)\b/i', $header) ? $header : 'iphone '.$header;
-            $mark = str_contains($line, '✅') ? '✅' : (str_contains($line, '🚫') ? '🚫' : null);
+            $positive = str_contains($line, '✅');
+            $negative = str_contains($line, '🚫');
+            $registered = $positive === $negative ? null : $positive;
             $note = trim(str_replace([$match['price'], '✅', '🚫', '🔋'], '', $withoutBattery));
             $items[] = $this->row($line, $modelText, $this->color($withoutBattery), $this->price($match['price']), $battery, [
-                'registered' => $mark === '✅',
-                'registration_status' => $mark === '✅' ? 'رجیستر شده' : ($mark === '🚫' ? 'رجیستر نشده' : null),
+                'registered' => $registered,
+                'registration_status' => match ($registered) {
+                    true => 'رجیستر شده',
+                    false => 'رجیستر نشده',
+                    null => null,
+                },
                 'description' => $note,
             ]);
         }

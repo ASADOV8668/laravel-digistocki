@@ -58,6 +58,8 @@ class ListingImportParserController extends Controller
             'sample_text' => [Rule::requiredIf($request->filled('pattern') || $custom), 'nullable', 'string', 'max:12000'],
             'pattern' => [Rule::requiredIf($custom), 'nullable', 'string', 'max:1000'],
             'is_active' => ['required', 'boolean'],
+            'symbols' => ['sometimes', 'array:registration,storage,color,battery'],
+            'symbols.*' => ['nullable', 'string', 'max:3000'],
         ]);
 
         if ($data['pattern'] ?? null) {
@@ -70,7 +72,42 @@ class ListingImportParserController extends Controller
             }
         }
 
+        if (array_key_exists('symbols', $data)) {
+            $data['symbol_map'] = $this->symbolMap($data['symbols'], $data['pattern'] ?? null);
+            unset($data['symbols']);
+        }
+
         return $data;
+    }
+
+    private function symbolMap(array $fields, ?string $pattern): array
+    {
+        $map = [];
+        foreach ($fields as $field => $rules) {
+            foreach (preg_split('/\R/u', $rules ?? '', -1, PREG_SPLIT_NO_EMPTY) as $rule) {
+                if (trim($rule) === '') {
+                    continue;
+                }
+                [$symbol, $value] = array_pad(explode('=', $rule, 2), 2, '');
+                $symbol = PatternParser::normalizeSymbol($symbol);
+                $value = $field === 'color' ? trim($value) : PatternParser::normalizeSymbol($value);
+                $valid = match ($field) {
+                    'registration' => in_array($value, ['0', '1'], true),
+                    'storage' => preg_match('/^[1-9][0-9]{0,3}$/D', $value),
+                    'battery' => preg_match('/^(?:100|[0-9]{1,2})$/D', $value),
+                    'color' => $value !== '' && mb_strlen($value) <= 40,
+                };
+                if (! $pattern || (! str_contains($pattern, '{'.$field.'}') && ! str_contains($pattern, '{markers}'))) {
+                    throw ValidationException::withMessages(['symbols.'.$field => 'جای این نشانه را با فیلد مربوط یا {markers} در الگو مشخص کنید.']);
+                }
+                if (! $valid || $symbol === '' || mb_strlen($symbol) > 40 || isset($map[$field][$symbol])) {
+                    throw ValidationException::withMessages(['symbols.'.$field => 'هر سطر باید یک نشانهٔ یکتا و یک مقدار معتبر به شکل نشانه=مقدار داشته باشد.']);
+                }
+                $map[$field][$symbol] = $value;
+            }
+        }
+
+        return $map;
     }
 
     private function saved(ListingImportParser $parser): RedirectResponse

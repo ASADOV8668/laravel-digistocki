@@ -25,7 +25,7 @@
                     <input id="preview-listing-date" type="date" name="listing_date" value="{{ $listingDate }}" required class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800">
                     @if ($dateRequired)<p class="mt-1 text-xs font-bold text-warning">تاریخ در متن پیدا نشد؛ لطفاً تاریخ آگهی را انتخاب کنید.</p>@endif
                 </div>
-                <p class="text-xs leading-6 text-slate-500 dark:text-slate-400">ردیف‌های خاکستری محصولاتی هستند که فعلاً در کاتالوگ گوشی پشتیبانی نمی‌شوند و ثبت نخواهند شد.</p>
+                <p class="text-xs leading-6 text-slate-500 dark:text-slate-400">مقادیر تشخیص‌داده‌شده را بررسی کنید و هر فیلدی را که لازم است اصلاح کنید. ردیف‌های خاکستری ثبت نمی‌شوند.</p>
             </div>
 
             <div class="space-y-4">
@@ -66,7 +66,18 @@
                                                 <span class="text-xs font-black text-neutral dark:text-slate-100" x-text="attribute.name"></span>
                                                 <span x-show="attribute.unit" class="text-[10px] font-bold text-slate-400" x-text="attribute.unit"></span>
                                             </div>
-                                            <template x-if="attribute.type === 'boolean'">
+                                            <template x-if="attribute.slug === 'registered' && attribute.type === 'boolean'">
+                                                <div role="group" aria-label="وضعیت رجیستری" class="flex flex-wrap items-center gap-1.5">
+                                                    <template x-for="option in [{value: '1', text: 'رجیستر شده'}, {value: '0', text: 'رجیستر نشده'}, {value: '', text: 'نامشخص'}]" :key="option.value">
+                                                        <button type="button"
+                                                            @click="setAttributeValue({{ $index }}, attribute, option.value)"
+                                                            :aria-pressed="(attributeValue(rows[{{ $index }}], attribute) === option.value).toString()"
+                                                            :class="attributeValue(rows[{{ $index }}], attribute) === option.value ? 'border-primary bg-primary text-white' : 'border-slate-200 bg-white text-slate-600 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200'"
+                                                            class="rounded-lg border px-2.5 py-1.5 text-xs font-bold" x-text="option.text"></button>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                            <template x-if="attribute.slug !== 'registered' && attribute.type === 'boolean'">
                                                 <button type="button"
                                                     @click="setAttributeValue({{ $index }}, attribute, attributeValue(rows[{{ $index }}], attribute) === '1' ? '' : '1')"
                                                     :aria-pressed="(attributeValue(rows[{{ $index }}], attribute) === '1').toString()"
@@ -89,8 +100,12 @@
                                                     </template>
                                                 </div>
                                             </template>
-                                            <template x-if="attribute.type !== 'boolean' && !attribute.options.length">
-                                                <input type="text" :value="attributeValue(rows[{{ $index }}], attribute)" @input="setAttributeValue({{ $index }}, attribute, $event.target.value)" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-900">
+                                            <template x-if="attribute.type !== 'boolean' && (!attribute.options.length || ['storage', 'battery_health', 'color'].includes(attribute.slug))">
+                                                <input type="text" :aria-label="attribute.name"
+                                                    :inputmode="['storage', 'battery_health'].includes(attribute.slug) ? 'numeric' : 'text'"
+                                                    :value="attributeValue(rows[{{ $index }}], attribute)"
+                                                    @input="setAttributeValue({{ $index }}, attribute, $event.target.value)"
+                                                    class="mt-2 w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-900">
                                             </template>
                                             <template x-if="attribute.type === 'multi_select'">
                                                 <template x-for="value in attributeValues(rows[{{ $index }}], attribute)" :key="`${attribute.id}-hidden-${value}`">

@@ -71,6 +71,9 @@ class ListingImportTest extends TestCase
         $this->assertSame('آبی', $fratelResult['items'][0]['color']);
         $this->assertSame(499900000, $bamatelResult['items'][0]['price']);
         $this->assertSame(62, $bamatelResult['items'][0]['cycle']);
+        $this->assertTrue($bamatelResult['items'][0]['registered']);
+        $batteryId = Attribute::query()->where('slug', 'battery_health')->value('id');
+        $this->assertSame(100, $bamatelResult['items'][0]['attributes'][$batteryId]);
     }
 
     public function test_admin_can_create_and_edit_the_price_list_pattern(): void
@@ -101,17 +104,35 @@ class ListingImportTest extends TestCase
         $this->put(route('admin.listing-imports.update', $parser), array_replace($data, ['pattern' => '{model}']))
             ->assertSessionHasErrors('pattern');
 
-        $updatedSample = 'iPhone 13 Pro 256GB - 170,000,000 تومان';
+        $updatedSample = "iPhone 13 Pro | 🟢 💾 🟦 🔋 | 170,000,000 تومان\niPhone 13 Pro | ❌ ۵۱۲ گیگ 🔴 91% | 175,000,000 تومان\niPhone 13 Pro | ✅ ❌ 256GB | 180,000,000 تومان";
         $this->put(route('admin.listing-imports.update', $parser), array_replace($data, [
-            'pattern' => '{model} - {price} تومان',
+            'pattern' => '{model} | {markers} | {price} تومان',
             'sample_text' => $updatedSample,
-            'is_active' => 0,
+            'symbols' => [
+                'registration' => '🟢=۱',
+                'storage' => '💾=۲۵۶',
+                'color' => '🟦=آبی',
+                'battery' => '🔋=95',
+            ],
+            'is_active' => 1,
         ]))->assertSessionHasNoErrors()->assertRedirect();
 
         $parser->refresh();
-        $this->assertFalse($parser->is_active);
-        $result = $registry->make($parser)->parse($updatedSample);
-        $this->assertSame(170000000, $result['items'][0]['price']);
+        $user = User::factory()->create(['can_post_listings' => true, 'listing_import_parser_id' => $parser->id]);
+        $response = $this->actingAs($user)->post(route('listings.import.preview'), ['text' => $updatedSample])
+            ->assertOk()
+            ->assertSee('وضعیت رجیستری');
+        $rows = $response->viewData('rows');
+        $this->assertSame(170000000, $rows[0]['price']);
+        $this->assertTrue($rows[0]['registered']);
+        $this->assertContains('registered', array_column($rows[0]['attribute_definitions'], 'slug'));
+        $this->assertSame('آبی', $rows[0]['color']);
+        $attributes = Attribute::query()->pluck('id', 'slug');
+        $this->assertSame(256, $rows[0]['attributes'][$attributes['storage']]);
+        $this->assertSame(95, $rows[0]['attributes'][$attributes['battery_health']]);
+        $this->assertFalse($rows[1]['registered']);
+        $this->assertSame(512, $rows[1]['attributes'][$attributes['storage']]);
+        $this->assertNull($rows[2]['registered']);
     }
 
     public function test_import_page_is_not_available_without_an_assigned_parser(): void
@@ -132,7 +153,7 @@ class ListingImportTest extends TestCase
         $user->forceFill(['listing_import_parser_id' => $parser->id])->save();
         $text = "💙13Pro 256g CH 92Bt\n💰165/000m";
 
-        $this->actingAs($user)->post(route('listings.import.preview'), [
+        $preview = $this->actingAs($user)->post(route('listings.import.preview'), [
             'text' => $text,
             'listing_date' => '2026-11-17',
         ])->assertOk()
@@ -141,10 +162,9 @@ class ListingImportTest extends TestCase
             ->assertDontSee('<select', false)
             ->assertSee('dir="ltr"', false);
 
-        $parserRows = app(ListingImportParserRegistry::class)->make($parser)->parse($text, '2026-11-17');
-        $token = 'test-import-token';
-        $row = $parserRows['items'][0];
-        $this->withSession(['listing_import.preview.'.$token => ['parser_id' => $parser->id, 'rows' => $parserRows['items'], 'date' => '2026-11-17']]);
+        $token = $preview->viewData('token');
+        $row = $preview->viewData('rows')[0];
+        $attributes = Attribute::query()->pluck('id', 'slug');
         $this->actingAs($user)->post(route('listings.import.store'), [
             'token' => $token,
             'listing_date' => '2026-11-17',
@@ -153,12 +173,20 @@ class ListingImportTest extends TestCase
                 'price' => $row['price'],
                 'color' => 'آبی',
                 'description' => 'واردشده از موجودی فروشگاه',
+                'attributes' => [
+                    $attributes['battery_health'] => '۹۱',
+                    $attributes['registered'] => '0',
+                ],
             ]],
             'uploads' => [UploadedFile::fake()->create('phone.webp', 100, 'image/webp')],
         ])->assertRedirect(route('dashboard'));
 
         $this->assertDatabaseHas('listings', ['user_id' => $user->id, 'price' => 165000000]);
         $this->assertDatabaseCount('listing_images', 1);
+        $listing = Listing::query()->where('user_id', $user->id)->sole();
+        $this->assertDatabaseHas('listing_attribute_values', ['listing_id' => $listing->id, 'attribute_id' => $attributes['battery_health'], 'value_integer' => 91]);
+        $this->assertDatabaseHas('listing_attribute_values', ['listing_id' => $listing->id, 'attribute_id' => $attributes['registered'], 'value_boolean' => false]);
+        $this->assertDatabaseHas('listing_attribute_values', ['listing_id' => $listing->id, 'attribute_id' => $attributes['color'], 'value_string' => 'آبی']);
     }
 
     public function test_preview_prefills_latest_primary_media_for_the_same_user_and_model(): void

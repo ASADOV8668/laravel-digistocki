@@ -39,18 +39,44 @@
                 @if ($field === 'pattern')
                     <p class="mt-2 text-xs leading-6 text-slate-600">
                         متن ثابت هر آگهی را عیناً بنویسید. از <bdi>{model}</bdi> و <bdi>{price}</bdi> برای مدل و قیمت به تومان استفاده کنید.
-                        <bdi>{color}</bdi>، <bdi>{battery}</bdi> و <bdi>{description}</bdi> اختیاری هستند.
+                        <bdi>{color}</bdi>، <bdi>{battery}</bdi>، <bdi>{storage}</bdi>، <bdi>{registration}</bdi> و <bdi>{description}</bdi> اختیاری هستند.
+                        اگر همهٔ نشانه‌ها در یک قسمت هستند، از <bdi>{markers}</bdi> استفاده کنید و بین نشانه‌ها فاصله بگذارید.
                         @if ($parser->exists && $parser->class_name !== \App\Services\ListingImport\Parsers\PatternParser::class)
                             برای استفاده از الگوی پیش‌فرض این قالب، فیلد را خالی بگذارید.
                         @endif
                     </p>
-                    <code dir="ltr" class="mt-1 block text-left text-xs text-slate-700">{model} | {color} | {battery}% | {price} تومان</code>
+                    <code dir="ltr" class="mt-1 block text-left text-xs text-slate-700">{model} | {markers} | {price} تومان</code>
                 @endif
                 @error($field)
                     <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
                 @enderror
             </div>
         @endforeach
+
+        <fieldset class="space-y-4 rounded-xl border border-slate-200 p-4">
+            <legend class="px-2 text-sm font-bold text-slate-900">معنی نشانه‌های لیست قیمت</legend>
+            <p class="text-xs leading-6 text-slate-600">برای هر نشانه یک سطر به شکل «نشانه=مقدار» وارد کنید. نشانه باید در متن کپی‌شده وجود داشته باشد. برای رجیستری ۱ به معنی رجیستر شده و ۰ به معنی رجیستر نشده است.</p>
+            @foreach ([
+                'registration' => ['رجیستری', '🟢=1'],
+                'storage' => ['حافظه (گیگابایت)', '💾=256'],
+                'color' => ['رنگ', '🟦=آبی'],
+                'battery' => ['سلامت باتری (درصد)', '🔋=95'],
+            ] as $field => [$label, $example])
+                @php
+                    $rules = [];
+                    foreach (($parser->symbol_map ?? [])[$field] ?? [] as $symbol => $value) {
+                        $rules[] = $symbol.'='.$value;
+                    }
+                @endphp
+                <div>
+                    <label for="symbols_{{ $field }}" class="mb-2 block text-sm font-bold text-slate-900">{{ $label }}</label>
+                    <textarea id="symbols_{{ $field }}" name="symbols[{{ $field }}]" rows="2" dir="ltr" placeholder="{{ $example }}" class="w-full rounded-xl border-slate-200">{{ old('symbols.'.$field, implode("\n", $rules)) }}</textarea>
+                    @error('symbols.'.$field)
+                        <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
+                    @enderror
+                </div>
+            @endforeach
+        </fieldset>
 
         <button type="submit" class="rounded-xl bg-info px-5 py-2.5 text-sm font-bold text-white">ذخیره قالب</button>
     </form>

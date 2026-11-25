@@ -19,6 +19,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class ListingImportController extends Controller
@@ -92,11 +93,38 @@ class ListingImportController extends Controller
                 $row['price'] = $this->normalizePrice($submitted['price'] ?? $source['price'] ?? null, (int) ($source['price'] ?? 0));
                 $row['description'] = trim((string) ($submitted['description'] ?? $source['description'] ?? ''));
                 $row['attributes'] = (array) ($source['attributes'] ?? []);
+                $attributeSlugs = array_column($source['attribute_definitions'] ?? [], 'slug', 'id');
                 foreach ((array) ($submitted['attributes'] ?? []) as $attributeId => $attributeValue) {
+                    $rulesForValue = match ($attributeSlugs[$attributeId] ?? null) {
+                        'storage' => ['nullable', 'integer', 'between:1,9999'],
+                        'battery_health' => ['nullable', 'integer', 'between:0,100'],
+                        'color' => ['nullable', 'string', 'max:40'],
+                        'registered' => ['nullable', 'boolean'],
+                        default => null,
+                    };
+                    if ($rulesForValue !== null) {
+                        $attributeValue = PersianDigits::toEnglish($attributeValue);
+                        $key = 'rows.'.$index.'.attributes.'.$attributeId;
+                        if (Validator::make(['value' => $attributeValue], ['value' => $rulesForValue])->fails()) {
+                            throw ValidationException::withMessages([$key => 'مقدار واردشده برای این ویژگی معتبر نیست.']);
+                        }
+                        if ($attributeValue === '' || $attributeValue === null) {
+                            unset($row['attributes'][(int) $attributeId]);
+
+                            continue;
+                        }
+                    }
                     if ($attributeValue === '' || $attributeValue === [] || $attributeValue === null) {
                         continue;
                     }
                     $row['attributes'][(int) $attributeId] = $attributeValue;
+                }
+                $registrationId = array_search('registered', $attributeSlugs, true);
+                $statusId = array_search('registration_status', $attributeSlugs, true);
+                if ($registrationId !== false && $statusId !== false
+                    && (string) ($row['attributes'][$registrationId] ?? '') !== (string) ($source['attributes'][$registrationId] ?? '')
+                    && ($row['attributes'][$statusId] ?? null) === ($source['attributes'][$statusId] ?? null)) {
+                    unset($row['attributes'][$statusId]);
                 }
                 if ($row['price'] === null) {
                     throw ValidationException::withMessages(['rows.'.$index.'.price' => 'قیمت این ردیف نامعتبر است.']);
