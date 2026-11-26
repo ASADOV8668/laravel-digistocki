@@ -15,14 +15,17 @@ class BaleAdminReport
         $time = now('Asia/Tehran');
         $start = $time->copy()->startOfDay()->setTimezone(config('app.timezone'));
         $end = $time->copy()->addDay()->startOfDay()->setTimezone(config('app.timezone'));
+        $pending = Listing::where('status', 'pending');
+        $oldest = (clone $pending)->min('created_at');
 
-        return implode("\n", [
+        return implode("\n", array_filter([
             'گزارش دیجی استوکی | '.PersianDate::format($time, 'Y/m/d H:i'),
             'کاربران جدید امروز: '.User::where('created_at', '>=', $start)->where('created_at', '<', $end)->count(),
             'آگهی‌های جدید امروز: '.Listing::where('created_at', '>=', $start)->where('created_at', '<', $end)->count(),
-            'آگهی‌های در انتظار تأیید: '.Listing::where('status', 'pending')->count(),
+            'آگهی‌های در انتظار تأیید: '.$pending->count(),
+            $oldest ? 'قدیمی‌ترین آگهی در صف: '.PersianDate::human($oldest) : null,
             'فروشگاه‌های در انتظار تأیید: '.SellerStore::where('approval_status', 'pending')->count(),
             'گزارش‌های باز کاربران: '.Report::where('status', 'pending')->count(),
-        ]);
+        ]));
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Services\BaleAdminMenu;
 use App\Services\BaleAdminReport;
 use App\Services\BaleBot;
 use Illuminate\Foundation\Inspiring;
@@ -38,7 +39,7 @@ Artisan::command('bale:register-webhook', function (BaleBot $bot) {
     return 0;
 })->purpose('Register the production webhook with Bale');
 
-Artisan::command('bale:daily-report', function (BaleBot $bot, BaleAdminReport $report) {
+Artisan::command('bale:daily-report', function (BaleBot $bot, BaleAdminReport $report, BaleAdminMenu $menu) {
     if (! $bot->enabled()) {
         return 0;
     }
@@ -49,7 +50,7 @@ Artisan::command('bale:daily-report', function (BaleBot $bot, BaleAdminReport $r
     $failed = 0;
     foreach (DB::table('bale_admin_connections')->whereNotNull('user_id')->cursor() as $connection) {
         $user = User::find($connection->user_id);
-        if ($user?->isAdmin() && $user->is_active && ! $bot->send($connection->chat_id, $text ??= $report->text())) {
+        if ($user?->isAdmin() && $user->is_active && ! $bot->send($connection->chat_id, $text ??= $report->text(), $menu->reportButtons())) {
             $failed++;
         }
     }

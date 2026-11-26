@@ -13,9 +13,18 @@ class BaleBot
             && preg_match('/\A[a-f0-9]{64}\z/', (string) config('services.bale.webhook_secret')) === 1;
     }
 
-    public function send(string $chatId, string $text): bool
+    public function send(string $chatId, string $text, array $buttons = [], ?string $messageId = null): bool
     {
-        return $this->call('sendMessage', ['chat_id' => $chatId, 'text' => $text]);
+        $payload = ['chat_id' => $chatId, 'text' => $text];
+        if ($buttons !== []) {
+            $payload['reply_markup'] = ['inline_keyboard' => $buttons];
+        }
+
+        if ($messageId !== null && $this->call('editMessageText', $payload + ['message_id' => $messageId])) {
+            return true;
+        }
+
+        return $this->call('sendMessage', $payload);
     }
 
     public function call(string $method, array $payload): bool

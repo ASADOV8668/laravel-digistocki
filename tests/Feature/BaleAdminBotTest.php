@@ -9,6 +9,7 @@ use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -102,6 +103,54 @@ class BaleAdminBotTest extends TestCase
         $this->assertSame("https://stage.example.test/integrations/bale/{$this->secret}", Http::recorded()->sole()[0]['url']);
     }
 
+    public function test_buttons_review_the_queue_and_require_confirmation_from_the_connected_chat(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $brand = Brand::firstOrFail();
+        $seller = User::factory()->create();
+        $listings = collect(['آگهی اول', 'آگهی دوم'])->map(fn ($title) => Listing::create([
+            'user_id' => $seller->id,
+            'brand_id' => $brand->id,
+            'phone_model_id' => $brand->phoneModels()->firstOrFail()->id,
+            'title' => $title,
+            'slug' => Str::uuid(),
+            'status' => ListingStatus::Pending,
+        ]));
+        [$first, $second] = $listings;
+        $admin = User::factory()->create(['role' => 'admin']);
+        DB::table('bale_admin_connections')->insert(['bale_user_id' => '7', 'chat_id' => '8', 'user_id' => $admin->id]);
+
+        $this->update('/start', 1)->assertNoContent();
+        $this->assertStringContainsString('آگهی‌های منتظر', $this->lastMessage()['reply_markup']['inline_keyboard'][0][0]['text']);
+        $this->tap('queue', 2)->assertNoContent();
+        $this->assertStringContainsString($first->title, $this->lastReply());
+        $this->assertSame('99', $this->lastMessage()['message_id']);
+        Http::assertSent(fn (Request $request) => str_ends_with($request->url(), '/answerCallbackQuery') && $request['callback_query_id'] === 'callback-2');
+        $this->tap("queue:{$first->id}", 3)->assertNoContent();
+        $this->assertStringContainsString($second->title, $this->lastReply());
+
+        $this->tap("approve:{$first->id}", 4)->assertNoContent();
+        $approve = $this->lastMessage()['reply_markup']['inline_keyboard'][0][0]['callback_data'];
+        $this->assertSame(ListingStatus::Pending, $first->refresh()->status);
+        $this->tap($approve, 5, chat: 12)->assertNoContent();
+        $this->tap("commit:{$first->id}:approve:invalid", 6)->assertNoContent();
+        $this->assertSame(ListingStatus::Pending, $first->refresh()->status);
+        $this->tap($approve, 7)->assertNoContent();
+        $this->assertSame(ListingStatus::Approved, $first->refresh()->status);
+        $this->tap($approve, 8)->assertNoContent();
+        $this->assertStringContainsString('وضعیت فعلی', $this->lastReply());
+
+        $this->tap("reject:{$second->id}", 9)->assertNoContent();
+        $reason = $this->lastMessage()['reply_markup']['inline_keyboard'][0][0]['callback_data'];
+        $this->tap($reason, 10)->assertNoContent();
+        $reject = $this->lastMessage()['reply_markup']['inline_keyboard'][0][0]['callback_data'];
+        $this->assertSame(ListingStatus::Pending, $second->refresh()->status);
+        $this->tap($reject, 11)->assertNoContent();
+        $this->assertSame(ListingStatus::Rejected, $second->refresh()->status);
+        $this->assertSame('عکس آگهی نامناسب است.', $second->rejection_reason);
+        $this->assertDatabaseCount('bale_admin_actions', 2);
+    }
+
     public function test_expired_codes_are_rejected_and_disconnect_stops_reports(): void
     {
         $admin = User::factory()->create();
@@ -135,6 +184,24 @@ class BaleAdminBotTest extends TestCase
 
     private function lastReply(): string
     {
-        return Http::recorded()->last()[0]['text'];
+        return $this->lastMessage()['text'];
+    }
+
+    private function lastMessage(): Request
+    {
+        return Http::recorded()->last()[0];
+    }
+
+    private function tap(string $data, int $update, int $chat = 8)
+    {
+        return $this->postJson(route('bale.webhook', ['secret' => $this->secret]), [
+            'update_id' => $update,
+            'callback_query' => [
+                'id' => "callback-{$update}",
+                'from' => ['id' => 7],
+                'data' => $data,
+                'message' => ['message_id' => 99, 'chat' => ['id' => $chat, 'type' => 'private']],
+            ],
+        ]);
     }
 }
