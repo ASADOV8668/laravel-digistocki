@@ -76,7 +76,9 @@
                             class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info">
                             <option value="user" @selected(old('role', 'user') === 'user')>کاربر عادی</option>
                             @if (auth()->user()->isSeniorAdmin())
-                                <option value="admin" @selected(old('role') === 'admin')>مدیر سیستم</option>
+                                @foreach (\Illuminate\Support\Arr::except(\App\Models\User::ADMINISTRABLE_ROLES, 'user') as $value => $label)
+                                    <option value="{{ $value }}" @selected(old('role') === $value)>{{ $label }}</option>
+                                @endforeach
                             @endif
                         </select></div><label
                         class="flex items-center gap-2 self-end rounded-xl bg-slate-50 p-3 text-sm font-bold text-slate-700"><input

@@ -34,7 +34,7 @@ class UserController extends Controller
         abort_if($user->isAdmin() && $request->input('role') !== 'admin' && User::query()->where('role', 'admin')->count() <= 1, 422, 'حداقل یک مدیر باید در سیستم باقی بماند.');
 
         $validated = $request->validated();
-        abort_unless($validated['role'] === $user->role || $request->user()->isSeniorAdmin(), 403);
+        abort_unless($validated['role'] === $user->administrationRole() || $request->user()->isSeniorAdmin(), 403);
         $data = collect($validated)->except(['password', 'role', 'is_active', 'can_post_listings'])->all();
         if (! empty($validated['password'])) {
             $data['password'] = $validated['password'];
@@ -42,7 +42,7 @@ class UserController extends Controller
         }
         $user->update($data);
         $user->forceFill([
-            'role' => $validated['role'],
+            ...User::attributesForAdministrationRole($validated['role']),
             'is_active' => (bool) ($validated['is_active'] ?? false),
             'can_post_listings' => (bool) ($validated['can_post_listings'] ?? false),
             'listing_import_parser_id' => $validated['listing_import_parser_id'] ?? null,
@@ -84,7 +84,7 @@ class UserController extends Controller
     public function store(StoreUserRequest $request)
     {
         $validated = $request->validated();
-        abort_if($validated['role'] === 'admin' && ! $request->user()->isSeniorAdmin(), 403);
+        abort_if($validated['role'] !== 'user' && ! $request->user()->isSeniorAdmin(), 403);
         $user = User::create([
             'name' => $validated['name'],
             'mobile' => $validated['mobile'],
@@ -94,7 +94,7 @@ class UserController extends Controller
             'password_set_at' => now(),
         ]);
         $user->forceFill([
-            'role' => $validated['role'],
+            ...User::attributesForAdministrationRole($validated['role']),
             'is_active' => (bool) ($validated['is_active'] ?? false),
             'can_post_listings' => (bool) ($validated['can_post_listings'] ?? false),
             'listing_import_parser_id' => $validated['listing_import_parser_id'] ?? null,
@@ -109,7 +109,7 @@ class UserController extends Controller
         $perPage = $this->adminPerPage($request);
         $perPageOptions = $this->adminPerPageOptions();
         $role = $request->input('role');
-        $role = is_string($role) && in_array($role, ['user', 'admin'], true) ? $role : null;
+        $role = is_string($role) && array_key_exists($role, User::ADMINISTRABLE_ROLES) ? $role : null;
 
         $userStats = [
             'total' => User::query()->count(),
@@ -128,7 +128,13 @@ class UserController extends Controller
                         ->orWhere('email', 'like', $term);
                 });
             })
-            ->when($role !== null, fn (Builder $query) => $query->where('role', $role))
+            ->when($role !== null, function (Builder $query) use ($role) {
+                $attributes = User::attributesForAdministrationRole($role);
+                $query->where('role', $attributes['role']);
+                if ($role !== 'admin') {
+                    $query->where('department_role', $attributes['department_role']);
+                }
+            })
             ->latest()
             ->paginate($perPage)
             ->withQueryString();
@@ -155,13 +161,15 @@ class UserController extends Controller
         abort_if($user->isSeniorAdmin(), 403);
         abort_unless($request->user()->isSeniorAdmin(), 403);
         abort_if($request->user()->is($user), 422, 'نقش حساب خودتان را نمی‌توانید تغییر دهید.');
-        abort_if($user->isAdmin() && User::query()->where('role', 'admin')->count() <= 1, 422, 'حداقل یک مدیر باید در سیستم باقی بماند.');
+        $data = $request->validate(['role' => ['sometimes', 'required', \Illuminate\Validation\Rule::in(array_keys(User::ADMINISTRABLE_ROLES))]]);
+        $role = $data['role'] ?? ($user->isAdmin() ? 'user' : 'admin');
+        abort_if($role !== 'admin' && $user->isAdmin() && User::query()->where('role', 'admin')->count() <= 1, 422, 'حداقل یک مدیر باید در سیستم باقی بماند.');
 
-        $user->forceFill(['role' => $user->isAdmin() ? 'user' : 'admin'])->save();
-        $message = $user->isAdmin() ? 'کاربر به مدیر ارتقا یافت.' : 'نقش مدیر به کاربر عادی تغییر کرد.';
+        $user->forceFill(User::attributesForAdministrationRole($role))->save();
+        $message = 'نقش کاربر به «'.User::ADMINISTRABLE_ROLES[$role].'» تغییر کرد.';
 
         if ($request->expectsJson()) {
-            return response()->json(['message' => $message, 'role' => $user->role]);
+            return response()->json(['message' => $message, 'role' => $user->administrationRole()]);
         }
 
         return back()->with('status', $message);

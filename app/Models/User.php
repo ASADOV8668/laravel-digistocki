@@ -40,6 +40,26 @@ class User extends Authenticatable implements HasMedia
         'listing_import_parser_id',
     ];
 
+    public const ADMINISTRABLE_ROLES = [
+        'user' => 'کاربر عادی',
+        'admin' => 'مدیر سیستم',
+        'technical' => 'مدیر فنی',
+        'accounting' => 'مدیر حسابداری',
+    ];
+
+    public function administrationRole(): string
+    {
+        return $this->isAdmin() ? 'admin' : ($this->department_role ?? 'user');
+    }
+
+    public static function attributesForAdministrationRole(string $role): array
+    {
+        return [
+            'role' => $role === 'admin' ? 'admin' : 'user',
+            'department_role' => in_array($role, ['technical', 'accounting'], true) ? $role : null,
+        ];
+    }
+
     public function isAdmin(): bool
     {
         return ($this->role ?? 'user') === 'admin';

@@ -131,6 +131,7 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('admin.users.update');
     Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
     Route::patch('/users/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('admin.users.toggle-active');
+    Route::patch('/users/{user}/role', [AdminUserController::class, 'toggleRole'])->name('admin.users.role.update');
     Route::patch('/users/{user}/toggle-role', [AdminUserController::class, 'toggleRole'])->name('admin.users.toggle-role');
     Route::patch('/users/{user}/toggle-listing-permission', [AdminUserController::class, 'toggleListingPermission'])->name('admin.users.toggle-listing-permission');
     Route::get('/reports', [AdminReportController::class, 'index'])->name('admin.reports.index');

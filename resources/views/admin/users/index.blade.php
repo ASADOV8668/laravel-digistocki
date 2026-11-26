@@ -65,8 +65,9 @@
                 </div><select name="role"
                     class="rounded-xl border-slate-200 py-3 text-sm focus:border-info focus:ring-info">
                     <option value="">همه نقش‌ها</option>
-                    <option value="user" @selected(request('role') === 'user')>کاربر</option>
-                    <option value="admin" @selected(request('role') === 'admin')>مدیر</option>
+                    @foreach (\App\Models\User::ADMINISTRABLE_ROLES as $value => $label)
+                        <option value="{{ $value }}" @selected(request('role') === $value)>{{ $label }}</option>
+                    @endforeach
                 </select>
                 <div class="flex gap-2"><button
                         class="flex-1 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-info">اعمال
@@ -116,7 +117,7 @@
                                 </td>
                                 <td class="px-5 py-4">
                                     <div class="flex max-w-[190px] flex-wrap gap-1.5"><span
-                                            class="rounded-full px-2.5 py-1 text-[10px] font-black {{ $user->isAdmin() ? 'bg-accent/10 text-accent' : 'bg-slate-100 text-slate-600' }}">{{ $user->isSeniorAdmin() ? 'مدیر ارشد' : ($user->isAdmin() ? 'مدیر' : 'کاربر') }}</span><span
+                                            class="rounded-full px-2.5 py-1 text-[10px] font-black {{ $user->isAdmin() ? 'bg-accent/10 text-accent' : 'bg-slate-100 text-slate-600' }}">{{ $user->isSeniorAdmin() ? 'مدیر ارشد' : \App\Models\User::ADMINISTRABLE_ROLES[$user->administrationRole()] }}</span><span
                                             class="rounded-full px-2.5 py-1 text-[10px] font-black {{ $user->is_active ? 'bg-success/10 text-success' : 'bg-error/10 text-error' }}">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</span><span
                                             class="rounded-full px-2.5 py-1 text-[10px] font-black {{ $user->can_post_listings ? 'bg-info/10 text-info' : 'bg-warning/10 text-warning' }}">{{ $user->can_post_listings ? 'ثبت آگهی مجاز' : 'ثبت آگهی مسدود' }}</span>
                                     </div>
@@ -139,9 +140,15 @@
                                                     class="rounded-lg bg-info/10 px-3 py-2 text-xs font-bold text-info transition hover:bg-info/20">{{ $user->can_post_listings ? 'بستن ثبت آگهی' : 'اجازه ثبت آگهی' }}</button>
                                             </form>
                                             @if (auth()->user()->isSeniorAdmin())
-                                                <form method="POST" action="{{ route('admin.users.toggle-role', $user) }}">
-                                                    @csrf @method('PATCH')<button
-                                                        class="rounded-lg bg-accent/10 px-3 py-2 text-xs font-bold text-accent transition hover:bg-accent/20">{{ $user->isAdmin() ? 'تبدیل به کاربر' : 'ارتقا به مدیر' }}</button>
+                                                <form method="POST" action="{{ route('admin.users.role.update', $user) }}">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <select name="role" aria-label="نقش {{ $user->name }}" class="rounded-lg border-slate-200 py-2 text-xs">
+                                                        @foreach (\App\Models\User::ADMINISTRABLE_ROLES as $value => $label)
+                                                            <option value="{{ $value }}" @selected($user->administrationRole() === $value)>{{ $label }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <button class="rounded-lg bg-accent/10 px-3 py-2 text-xs font-bold text-accent">ذخیره نقش</button>
                                                 </form>
                                             @endif
                                             @if ($user->listings_count === 0 && ! auth()->user()->is($user))

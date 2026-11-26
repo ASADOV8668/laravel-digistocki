@@ -32,7 +32,7 @@ class StoreUserRequest extends FormRequest
             'national_id' => ['nullable', 'digits:10', 'unique:users,national_id'],
             'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'role' => ['required', Rule::in(['user', 'admin'])],
+            'role' => ['required', Rule::in(array_keys(\App\Models\User::ADMINISTRABLE_ROLES))],
             'is_active' => ['boolean'],
             'can_post_listings' => ['boolean'],
             'listing_import_parser_id' => ['nullable', 'integer', Rule::exists('listing_import_parsers', 'id')->where('is_active', true)],

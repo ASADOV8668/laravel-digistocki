@@ -73,12 +73,13 @@
                 <h2 class="text-base font-black text-slate-900">دسترسی‌ها</h2>
                 <div class="mt-4 grid gap-4 md:grid-cols-3">
                     <div><label class="mb-2 block text-sm font-bold text-slate-700">نقش</label>@if (! auth()->user()->isSeniorAdmin())
-                            <input type="hidden" name="role" value="{{ $user->role }}">
+                            <input type="hidden" name="role" value="{{ $user->administrationRole() }}">
                         @endif
                         <select name="role" autocomplete="off" @disabled(! auth()->user()->isSeniorAdmin())
                             class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info">
-                            <option value="user" @selected(old('role', $user->role) === 'user')>کاربر عادی</option>
-                            <option value="admin" @selected(old('role', $user->role) === 'admin')>مدیر سیستم</option>
+                            @foreach (\App\Models\User::ADMINISTRABLE_ROLES as $value => $label)
+                                <option value="{{ $value }}" @selected(old('role', $user->administrationRole()) === $value)>{{ $label }}</option>
+                            @endforeach
                         </select></div><label
                         class="flex items-center gap-2 self-end rounded-xl bg-slate-50 p-3 text-sm font-bold text-slate-700"><input
                             type="checkbox" name="is_active" value="1" autocomplete="off" @checked(old('is_active', $user->is_active))
