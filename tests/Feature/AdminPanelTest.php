@@ -106,14 +106,26 @@ class AdminPanelTest extends TestCase
         $this->assertDatabaseHas('brands', ['id' => $brand->id, 'name' => 'برند ویرایش‌شده', 'name_en' => 'Updated Brand']);
         $this->actingAs($this->admin)->post(route('admin.phone-models.store'), ['brand_id' => $brand->id, 'name' => 'Test Phone', 'release_year' => 2026])->assertRedirect();
         $this->actingAs($this->admin)->post(route('admin.phone-models.store'), ['brand_id' => $brand->id, 'name' => 'Test Phone', 'release_year' => 2026])->assertRedirect();
-        $this->actingAs($this->admin)->post(route('admin.attributes.store'), ['name' => 'ویژگی تست', 'type' => 'string', 'unit' => 'واحد', 'is_filterable' => 1])->assertRedirect();
+        $this->actingAs($this->admin)->post(route('admin.attributes.store'), [
+            'name' => 'ویژگی تست',
+            'type' => 'string',
+            'unit' => 'واحد',
+            'is_filterable' => 1,
+            'visibility_rule' => 'all',
+        ])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertDatabaseHas('phone_models', ['brand_id' => $brand->id, 'name' => 'Test Phone']);
         $this->assertSame(2, $brand->phoneModels()->where('name', 'Test Phone')->count());
         $this->assertNotSame($brand->phoneModels()->where('name', 'Test Phone')->first()->slug, $brand->phoneModels()->where('name', 'Test Phone')->latest('id')->first()->slug);
-        $this->assertDatabaseHas('attributes', ['name' => 'ویژگی تست', 'is_filterable' => 1]);
+        $this->assertDatabaseHas('attributes', ['name' => 'ویژگی تست', 'is_filterable' => 1, 'visibility_rule' => 'all']);
         $attribute = Attribute::where('name', 'ویژگی تست')->firstOrFail();
-        $this->actingAs($this->admin)->patch(route('admin.attributes.update', $attribute), ['name' => 'ویژگی ویرایش‌شده', 'type' => 'string', 'unit' => 'واحد جدید', 'is_filterable' => 1])->assertRedirect();
-        $this->assertDatabaseHas('attributes', ['id' => $attribute->id, 'name' => 'ویژگی ویرایش‌شده', 'unit' => 'واحد جدید']);
+        $this->actingAs($this->admin)->patch(route('admin.attributes.update', $attribute), [
+            'name' => 'ویژگی ویرایش‌شده',
+            'type' => 'string',
+            'unit' => 'واحد جدید',
+            'is_filterable' => 1,
+            'visibility_rule' => 'all',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('attributes', ['id' => $attribute->id, 'name' => 'ویژگی ویرایش‌شده', 'unit' => 'واحد جدید', 'visibility_rule' => 'all']);
         $model = $brand->phoneModels()->where('name', 'Test Phone')->firstOrFail();
         $this->actingAs($this->admin)->patch(route('admin.phone-models.update', $model), ['brand_id' => $brand->id, 'name' => 'Updated Phone', 'name_fa' => 'مدل به‌روزشده', 'name_en' => 'Updated Phone', 'release_year' => 2027, 'attribute_ids' => [$attribute->id]])->assertRedirect();
         $this->assertDatabaseHas('phone_models', ['id' => $model->id, 'name' => 'Updated Phone', 'release_year' => 2027]);
