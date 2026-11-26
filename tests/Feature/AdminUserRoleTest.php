@@ -31,6 +31,31 @@ class AdminUserRoleTest extends TestCase
         $this->assertFalse($user->fresh()->isSeniorAdmin());
     }
 
+    public function test_summary_cards_link_to_filtered_user_lists(): void
+    {
+        $senior = User::factory()->create(['role' => 'admin', 'is_senior_admin' => true, 'is_active' => true]);
+        $systemAdmin = User::factory()->create(['role' => 'admin', 'is_active' => false]);
+        User::factory()->create(['name' => 'حساب نمونه', 'is_active' => true]);
+        User::factory()->create(['name' => 'حساب نمونه غیرفعال', 'is_active' => false]);
+
+        $this->actingAs($senior)->get(route('admin.users.index'))
+            ->assertOk()
+            ->assertSee(route('admin.users.index', ['active' => '1']))
+            ->assertSee(route('admin.users.index', ['role' => 'admin']))
+            ->assertViewHas('users', fn ($users) => $users->total() === 4);
+
+        $this->get(route('admin.users.index', ['active' => '1', 'q' => 'حساب نمونه', 'per_page' => 25]))
+            ->assertOk()
+            ->assertSee('aria-current="true"', false)
+            ->assertSee(route('admin.users.index', ['q' => 'حساب نمونه', 'per_page' => 25]))
+            ->assertViewHas('users', fn ($users) => $users->total() === 1 && $users->items()[0]->is_active);
+
+        $this->get(route('admin.users.index', ['role' => 'admin']))
+            ->assertOk()
+            ->assertViewHas('users', fn ($users) => $users->total() === 1 && $users->items()[0]->is($systemAdmin))
+            ->assertViewHas('userStats', fn ($stats) => $stats['admins'] === 1);
+    }
+
     public function test_regular_admin_cannot_change_role_using_general_edit_form(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

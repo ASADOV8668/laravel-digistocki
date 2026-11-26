@@ -111,10 +111,12 @@ class UserController extends Controller
         $role = $request->input('role');
         $role = is_string($role) && array_key_exists($role, User::ADMINISTRABLE_ROLES) ? $role : null;
 
+        $activeOnly = $request->input('active') === '1';
+
         $userStats = [
             'total' => User::query()->count(),
             'active' => User::query()->where('is_active', true)->count(),
-            'admins' => User::query()->where('role', 'admin')->count(),
+            'admins' => User::query()->where('role', 'admin')->where('is_senior_admin', false)->count(),
             'can_post' => User::query()->where('can_post_listings', true)->count(),
         ];
 
@@ -128,10 +130,13 @@ class UserController extends Controller
                         ->orWhere('email', 'like', $term);
                 });
             })
+            ->when($activeOnly, fn (Builder $query) => $query->where('is_active', true))
             ->when($role !== null, function (Builder $query) use ($role) {
                 $attributes = User::attributesForAdministrationRole($role);
                 $query->where('role', $attributes['role']);
-                if ($role !== 'admin') {
+                if ($role === 'admin') {
+                    $query->where('is_senior_admin', false);
+                } else {
                     $query->where('department_role', $attributes['department_role']);
                 }
             })
@@ -139,7 +144,7 @@ class UserController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.users.index', compact('users', 'userStats', 'perPageOptions'));
+        return view('admin.users.index', compact('users', 'userStats', 'perPageOptions', 'activeOnly', 'role'));
     }
 
     public function toggleActive(Request $request, User $user): RedirectResponse|JsonResponse

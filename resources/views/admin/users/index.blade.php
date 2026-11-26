@@ -26,22 +26,29 @@
             <div class="flex items-center gap-2 rounded-2xl border border-success/15 bg-success/10 px-4 py-3 text-sm font-bold text-success"
                 role="status"><x-heroicon-o-check-circle class="h-5 w-5 shrink-0" />{{ session('status') }}</div>
         @endif
+        @php($cardQuery = request()->only(['q', 'per_page']))
         <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
-            <div class="admin-card flex items-center gap-3 p-4"><span
+            <a href="{{ route('admin.users.index', $cardQuery) }}"
+                @if (! $activeOnly && $role === null) aria-current="true" @endif
+                @class(['admin-card flex items-center gap-3 p-4 transition hover:ring-2 hover:ring-info/30 focus-visible:ring-2 focus-visible:ring-info', 'ring-2 ring-info' => ! $activeOnly && $role === null])><span
                     class="flex h-10 w-10 items-center justify-center rounded-2xl bg-info/10 text-info"><x-heroicon-o-users
                         class="h-5 w-5" /></span><span><strong
                         class="block text-lg font-black text-slate-900">{{ number_format($userStats['total']) }}</strong><span
-                        class="text-[11px] font-bold text-slate-500">کل کاربران</span></span></div>
-            <div class="admin-card flex items-center gap-3 p-4"><span
+                        class="text-[11px] font-bold text-slate-500">کل کاربران</span></span></a>
+            <a href="{{ route('admin.users.index', $cardQuery + ['active' => '1']) }}"
+                @if ($activeOnly && $role === null) aria-current="true" @endif
+                @class(['admin-card flex items-center gap-3 p-4 transition hover:ring-2 hover:ring-info/30 focus-visible:ring-2 focus-visible:ring-info', 'ring-2 ring-info' => $activeOnly && $role === null])><span
                     class="flex h-10 w-10 items-center justify-center rounded-2xl bg-success/10 text-success"><x-heroicon-o-check-circle
                         class="h-5 w-5" /></span><span><strong
                         class="block text-lg font-black text-slate-900">{{ number_format($userStats['active']) }}</strong><span
-                        class="text-[11px] font-bold text-slate-500">حساب فعال</span></span></div>
-            <div class="admin-card flex items-center gap-3 p-4"><span
+                        class="text-[11px] font-bold text-slate-500">حساب فعال</span></span></a>
+            <a href="{{ route('admin.users.index', $cardQuery + ['role' => 'admin']) }}"
+                @if (! $activeOnly && $role === 'admin') aria-current="true" @endif
+                @class(['admin-card flex items-center gap-3 p-4 transition hover:ring-2 hover:ring-info/30 focus-visible:ring-2 focus-visible:ring-info', 'ring-2 ring-info' => ! $activeOnly && $role === 'admin'])><span
                     class="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10 text-accent"><x-heroicon-o-shield-check
                         class="h-5 w-5" /></span><span><strong
                         class="block text-lg font-black text-slate-900">{{ number_format($userStats['admins']) }}</strong><span
-                        class="text-[11px] font-bold text-slate-500">مدیر سیستم</span></span></div>
+                        class="text-[11px] font-bold text-slate-500">مدیر سیستم</span></span></a>
             <div class="admin-card flex items-center gap-3 p-4"><span
                     class="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary"><x-heroicon-o-pencil-square
                         class="h-5 w-5" /></span><span><strong
@@ -58,6 +65,9 @@
                 </div>
             </div>
             <form method="GET" class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto]">
+                @if ($activeOnly)
+                    <input type="hidden" name="active" value="1">
+                @endif
                 <div class="relative"><x-heroicon-o-magnifying-glass
                         class="pointer-events-none absolute right-3 top-3 h-5 w-5 text-slate-400" /><input
                         name="q" value="{{ request('q') }}" placeholder="نام، موبایل یا ایمیل"
@@ -72,7 +82,7 @@
                 <div class="flex gap-2"><button
                         class="flex-1 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-info">اعمال
                         فیلتر</button>
-                    @if (request()->hasAny(['q', 'role']))
+                    @if (request()->hasAny(['q', 'role', 'active']))
                         <a href="{{ route('admin.users.index') }}"
                             class="inline-flex items-center justify-center rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-200">پاک‌کردن</a>
                     @endif
