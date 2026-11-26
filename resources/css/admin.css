@@ -12,6 +12,43 @@
 
 [x-cloak] { display: none !important; }
 
+.admin-viewport {
+    height: 100vh;
+    height: 100dvh;
+}
+
+.admin-sidebar {
+    width: 290px;
+}
+
+.admin-sidebar[data-collapsed='true'] {
+    width: 90px;
+}
+
+@media (max-width: 1023.98px) {
+    .admin-sidebar {
+        width: min(20rem, calc(100% - 2.5rem));
+        padding-bottom: env(safe-area-inset-bottom);
+        visibility: hidden;
+        transform: translateX(100%);
+    }
+
+    .admin-sidebar[data-open='true'] {
+        visibility: visible;
+        transform: translateX(0);
+    }
+
+    .admin-sidebar-nav .menu-item {
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 1023.98px) and (prefers-reduced-motion: no-preference) {
+    .admin-sidebar {
+        transition: transform 180ms ease-out;
+    }
+}
+
 @layer base {
     html { direction: rtl; }
     body { @apply bg-gray-50 text-gray-800; font-family: 'Vazirmatn', sans-serif; font-synthesis: none; }

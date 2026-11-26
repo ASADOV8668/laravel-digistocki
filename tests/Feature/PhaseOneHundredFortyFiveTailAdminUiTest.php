@@ -20,9 +20,8 @@ class PhaseOneHundredFortyFiveTailAdminUiTest extends TestCase
             ->assertSee('tailadmin-shell')
             ->assertSee('tailadmin-v2')
             ->assertSee('sidebarCollapsed')
-            ->assertSee('admin-sidebar-collapsed')
+            ->assertSee('adminLayout()')
             ->assertSee('menu-item-active')
-            ->assertSee('admin-dark-mode')
             ->assertDontSee('جستجو در پنل مدیریت');
 
         $this->actingAs($admin)

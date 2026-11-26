@@ -13,6 +13,64 @@ window.Alpine = Alpine;
 window.Chart = Chart;
 window.$ = window.jQuery = $;
 
+window.adminLayout = () => {
+    const desktop = window.matchMedia('(min-width: 1024px)');
+    const readPreference = (key) => {
+        try {
+            return localStorage.getItem(key) === 'true';
+        } catch {
+            return false;
+        }
+    };
+    const savePreference = (key, value) => {
+        try {
+            localStorage.setItem(key, String(value));
+        } catch {
+            // Keep the preference for this page when storage is unavailable.
+        }
+    };
+    let updateViewport;
+
+    return {
+        darkMode: readPreference('admin-dark-mode'),
+        desktopCollapsed: readPreference('admin-sidebar-collapsed'),
+        isDesktop: desktop.matches,
+        sidebarOpen: false,
+
+        get sidebarCollapsed() {
+            return this.isDesktop && this.desktopCollapsed;
+        },
+
+        init() {
+            updateViewport = (event) => {
+                this.isDesktop = event.matches;
+                this.sidebarOpen = false;
+            };
+            desktop.addEventListener('change', updateViewport);
+            this.$watch('darkMode', (value) => savePreference('admin-dark-mode', value));
+            this.$watch('desktopCollapsed', (value) => savePreference('admin-sidebar-collapsed', value));
+        },
+
+        destroy() {
+            desktop.removeEventListener('change', updateViewport);
+        },
+
+        openSidebar() {
+            if (this.isDesktop || this.sidebarOpen) return;
+            this.sidebarOpen = true;
+            this.$nextTick(() => {
+                if (this.sidebarOpen) this.$refs.sidebarClose.focus();
+            });
+        },
+
+        closeSidebar(restoreFocus = true) {
+            if (!this.sidebarOpen) return;
+            this.sidebarOpen = false;
+            if (restoreFocus) this.$nextTick(() => this.$refs.sidebarToggle.focus());
+        },
+    };
+};
+
 window.adminToast = () => ({
     visible: false,
     title: '',

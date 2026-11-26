@@ -1,12 +1,8 @@
 @php($systemOptions = app(\App\Services\SystemOptions::class))
 @php($unreadNotifications = auth()->user()->unreadNotifications()->count())
 <!DOCTYPE html>
-<html lang="fa" dir="rtl" x-data="{ loaded: true, darkMode: false, sidebarOpen: false, sidebarCollapsed: false }" x-init="const storedTheme = localStorage.getItem('admin-dark-mode');
-const storedSidebar = localStorage.getItem('admin-sidebar-collapsed');
-darkMode = storedTheme ? JSON.parse(storedTheme) : false;
-sidebarCollapsed = storedSidebar ? JSON.parse(storedSidebar) : false;
-$watch('darkMode', value => localStorage.setItem('admin-dark-mode', JSON.stringify(value)));
-$watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapsed', JSON.stringify(value)))" :class="darkMode ? 'dark' : ''">
+<html lang="fa" dir="rtl" x-data="adminLayout()" :class="darkMode ? 'dark' : ''"
+    @keydown.escape.window="closeSidebar()" @pageshow.window="closeSidebar(false)">
 
 <head>
     <meta charset="utf-8">
@@ -31,16 +27,15 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                 class="mt-1 block text-xs font-medium text-slate-500 dark:text-slate-300"
                 x-text="message"></span></span>
     </div>
-    <div x-cloak x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-[9998] bg-gray-900/50 lg:hidden"
-        @click="sidebarOpen = false" aria-hidden="true"></div>
+    <div x-cloak x-show="sidebarOpen" class="fixed inset-0 z-[9998] bg-gray-900/50 lg:hidden"
+        @click="closeSidebar()" aria-hidden="true"></div>
 
     <div class="tailadmin-shell" data-admin-ui="tailadmin-v2">
-        <div class="flex h-screen overflow-hidden">
+        <div class="admin-viewport flex overflow-hidden">
             <aside id="admin-sidebar" role="navigation" aria-label="منوی مدیریت"
-                :class="[sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0', sidebarCollapsed ? 'lg:w-[90px]' :
-                    'lg:w-[290px]'
-                ]"
-                class="fixed inset-y-0 right-0 z-[9999] flex w-[290px] flex-col overflow-y-auto border-l border-gray-200 bg-white px-5 shadow-xl transition-all duration-300 dark:border-gray-800 dark:bg-gray-900 lg:static lg:shadow-none">
+                :data-open="sidebarOpen ? 'true' : null"
+                :data-collapsed="sidebarCollapsed ? 'true' : null"
+                class="admin-sidebar fixed inset-y-0 right-0 z-[9999] flex shrink-0 flex-col border-l border-gray-200 bg-white px-5 shadow-xl dark:border-gray-800 dark:bg-gray-900 lg:static lg:shadow-none">
                 <div
                     class="flex h-20 shrink-0 items-center justify-between border-b border-gray-100 dark:border-gray-800">
                     <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 items-center gap-3"
@@ -53,14 +48,15 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                             <span class="block truncate text-[10px] font-medium text-gray-400">پنل مدیریت سامانه</span>
                         </span>
                     </a>
-                    <button type="button" @click="sidebarOpen = false"
-                        class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/5 dark:hover:text-white lg:hidden"
+                    <button type="button" x-ref="sidebarClose" @click="closeSidebar()"
+                        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/5 dark:hover:text-white lg:hidden"
                         aria-label="بستن منو">
                         <x-heroicon-o-x-mark class="h-5 w-5" />
                     </button>
                 </div>
 
-                <nav class="flex-1 overflow-y-auto py-6" aria-label="ناوبری مدیریت">
+                <nav class="admin-sidebar-nav min-h-0 flex-1 overflow-y-auto overscroll-contain py-4 lg:py-6"
+                    aria-label="ناوبری مدیریت">
                     <p x-show="!sidebarCollapsed"
                         class="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-400">نمای کلی</p>
                     <a href="{{ route('admin.dashboard') }}" title="داشبورد"
@@ -154,7 +150,7 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                     </a>
                 </nav>
 
-                <div class="border-t border-gray-100 py-4 dark:border-gray-800">
+                <div class="shrink-0 border-t border-gray-100 py-3 dark:border-gray-800 lg:py-4">
                     <div class="flex items-center gap-3 rounded-xl bg-gray-50 p-3 dark:bg-white/5"
                         :class="sidebarCollapsed ? 'justify-center' : ''">
                         <div
@@ -174,7 +170,7 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                                     class="h-5 w-5" /></button>
                         </form>
                     </div>
-                    <button type="button" @click="sidebarCollapsed = !sidebarCollapsed"
+                    <button type="button" @click="desktopCollapsed = !desktopCollapsed"
                         class="mt-3 hidden w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/5 dark:hover:text-white lg:flex"
                         :title="sidebarCollapsed ? 'باز کردن منو' : 'جمع کردن منو'">
                         <x-heroicon-o-chevron-double-left class="h-4 w-4 transition-transform"
@@ -184,17 +180,17 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                 </div>
             </aside>
 
-            <div class="relative flex min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto">
+            <div :inert="sidebarOpen ? true : null" class="relative flex min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto">
                 <header
-                    class="sticky top-0 z-40 flex h-20 w-full shrink-0 items-center border-b border-gray-200 bg-white/90 px-4 backdrop-blur dark:border-gray-800 dark:bg-gray-900/90 sm:px-6 lg:px-8">
-                    <div class="flex min-w-0 flex-1 items-center gap-4">
-                        <button type="button" @click="sidebarOpen = true" :aria-expanded="sidebarOpen.toString()"
+                    class="sticky top-0 z-40 flex h-16 w-full shrink-0 items-center border-b border-gray-200 bg-white/90 px-3 backdrop-blur dark:border-gray-800 dark:bg-gray-900/90 sm:h-20 sm:px-6 lg:px-8">
+                    <div class="flex min-w-0 flex-1 items-center gap-2 pe-2 sm:gap-4">
+                        <button type="button" x-ref="sidebarToggle" @click="openSidebar()" :aria-expanded="sidebarOpen.toString()"
                             aria-controls="admin-sidebar"
-                            class="rounded-lg border border-gray-200 p-2 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:hover:bg-white/5 dark:hover:text-white lg:hidden"
+                            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:hover:bg-white/5 dark:hover:text-white lg:hidden"
                             aria-label="باز کردن منو"><x-heroicon-o-bars-3 class="h-5 w-5" /></button>
-                        <div class="hidden min-w-0 md:block">
-                            <p class="text-xs font-medium text-gray-400">خوش آمدید، {{ auth()->user()->name }}</p>
-                            <h1 class="mt-1 truncate text-lg font-black text-gray-900 dark:text-white">
+                        <div class="min-w-0">
+                            <p class="hidden text-xs font-medium text-gray-400 md:block">خوش آمدید، {{ auth()->user()->name }}</p>
+                            <h1 class="truncate text-sm font-black text-gray-900 dark:text-white md:mt-1 md:text-lg">
                                 {{ $title ?? 'پنل مدیریت' }}</h1>
                         </div>
                     </div>
