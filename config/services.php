@@ -31,6 +31,12 @@ return [
         ],
     ],
 
+    'bale' => [
+        'token' => env('BALE_BOT_TOKEN'),
+        'webhook_secret' => env('BALE_WEBHOOK_SECRET'),
+        'webhook_origin' => env('BALE_WEBHOOK_ORIGIN'),
+    ],
+
     'sms' => [
         'url' => env('SMS_API_URL', 'https://edge.ippanel.com/v1/api/send'),
         'authorization' => env('SMS_AUTHORIZATION', env('SMS_API_TOKEN')),

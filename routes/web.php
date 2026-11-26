@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AttributeController as AdminAttributeController;
+use App\Http\Controllers\Admin\BaleConnectionController;
 use App\Http\Controllers\Admin\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ListingController as AdminListingController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\StorefrontController as AdminStorefrontController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\BaleWebhookController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\User\ChatController;
@@ -27,6 +29,11 @@ use App\Http\Controllers\User\SavedListingSearchController;
 use App\Http\Controllers\User\StorefrontController;
 use App\Http\Controllers\User\SupportController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/integrations/bale/{secret}', BaleWebhookController::class)
+    ->where('secret', '[a-f0-9]{64}')
+    ->withoutMiddleware('web')
+    ->name('bale.webhook');
 
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
@@ -96,6 +103,9 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function () {
     Route::get('/', DashboardController::class)->name('admin.dashboard');
+    Route::get('/bale', [BaleConnectionController::class, 'show'])->name('admin.bale.show');
+    Route::post('/bale', [BaleConnectionController::class, 'store'])->middleware('throttle:10,1')->name('admin.bale.store');
+    Route::delete('/bale', [BaleConnectionController::class, 'destroy'])->name('admin.bale.destroy');
     Route::get('/listings', [AdminListingController::class, 'index'])->name('admin.listings.index');
     Route::get('/listings/create', [AdminListingController::class, 'create'])->name('admin.listings.create');
     Route::post('/listings', [AdminListingController::class, 'store'])->name('admin.listings.store');

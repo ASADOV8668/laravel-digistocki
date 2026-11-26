@@ -1,5 +1,8 @@
 <x-admin-layout title="داشبورد مدیریت">
     <section class="space-y-6">
+        @if (app(\App\Services\BaleBot::class)->enabled())
+            <a href="{{ route('admin.bale.show') }}" class="inline-block font-bold text-primary">اتصال ربات بله</a>
+        @endif
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             @foreach ([['کاربران', $usersCount, 'text-info', 'bg-info/10', 'users'], ['کل آگهی‌ها', $listingsCount, 'text-slate-900', 'bg-slate-100', 'listings'], ['تأییدشده', $approvedListingsCount, 'text-success', 'bg-success/10', 'check'], ['ردشده', $rejectedListingsCount, 'text-error', 'bg-error/10', 'x'], ['منقضی‌شده', $expiredListingsCount, 'text-slate-500', 'bg-slate-100', 'clock']] as [$label, $value, $color, $background, $icon])
                 <div
