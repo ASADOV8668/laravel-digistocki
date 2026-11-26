@@ -34,9 +34,21 @@
                     تغییر شماره موبایل
                 </a>
             </div>
-            <div><x-input-label for="password" value="رمز عبور" /><x-text-input id="password"
-                    aria-describedby="password-error" class="mt-2 block w-full" type="password" name="password" required
-                    autofocus autocomplete="current-password" /><x-input-error id="password-error" :messages="$errors->get('password')" class="mt-2" /></div>
+            <div>
+                <x-input-label for="password" value="رمز عبور" />
+                <div class="relative mt-2" x-data="{ visible: false }">
+                    <x-text-input id="password" aria-describedby="password-error" class="block w-full pl-12"
+                        type="password" x-bind:type="visible ? 'text' : 'password'" name="password"
+                        required autofocus autocomplete="current-password" />
+                    <button type="button" x-cloak @click="visible = !visible" aria-controls="password"
+                        aria-label="نمایش رمز عبور" x-bind:aria-pressed="visible"
+                        class="absolute inset-y-0 left-0 flex w-11 items-center justify-center rounded-lg text-slate-500 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                        <x-heroicon-o-eye class="h-5 w-5" aria-hidden="true" x-show="!visible" />
+                        <x-heroicon-o-eye-slash class="h-5 w-5" aria-hidden="true" x-show="visible" />
+                    </button>
+                </div>
+                <x-input-error id="password-error" :messages="$errors->get('password')" class="mt-2" />
+            </div>
             <label class="flex items-center gap-2 text-xs font-bold text-slate-500"><input type="checkbox"
                     class="public-check" name="remember"><span>مرا به خاطر بسپار</span></label>
             <x-primary-button class="w-full"><x-heroicon-o-lock-closed class="h-5 w-5" />ورود با رمز
