@@ -21,6 +21,9 @@ class ListingImportParserRegistry
         if (in_array($class, [AtKalaParser::class, BamaTelParser::class, FratelParser::class], true)) {
             $class = UnifiedParser::class;
         }
+        if ($class === UnifiedParser::class) {
+            return new UnifiedParser(($parser->symbol_map ?? [])['color'] ?? []);
+        }
 
         abort_unless(is_a($class, ListingImportParser::class, true), 500, 'کلاس Parser ایمپورت معتبر نیست.');
 
