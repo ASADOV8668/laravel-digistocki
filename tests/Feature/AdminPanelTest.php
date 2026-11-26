@@ -46,6 +46,7 @@ class AdminPanelTest extends TestCase
         $this->actingAs($this->admin)->get(route('admin.users.index'))->assertOk()->assertSee($user->name);
         $this->actingAs($this->admin)->patch(route('admin.users.toggle-active', $user))->assertRedirect();
         $this->assertFalse($user->refresh()->is_active);
+        $this->admin->forceFill(['is_senior_admin' => true])->save();
         $this->actingAs($this->admin)->patch(route('admin.users.toggle-role', $user))->assertRedirect();
         $this->assertTrue($user->refresh()->isAdmin());
         $this->actingAs($this->admin)->patch(route('admin.users.toggle-active', $this->admin))->assertStatus(422);

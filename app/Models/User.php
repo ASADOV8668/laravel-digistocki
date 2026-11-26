@@ -45,6 +45,11 @@ class User extends Authenticatable implements HasMedia
         return ($this->role ?? 'user') === 'admin';
     }
 
+    public function isSeniorAdmin(): bool
+    {
+        return $this->isAdmin() && $this->is_senior_admin;
+    }
+
     public function isUser(): bool
     {
         return ! $this->isAdmin();
@@ -106,6 +111,7 @@ class User extends Authenticatable implements HasMedia
             'email_verified_at' => 'datetime',
             'mobile_verified_at' => 'datetime',
             'is_active' => 'boolean',
+            'is_senior_admin' => 'boolean',
             'can_post_listings' => 'boolean',
             'password' => 'hashed',
             'password_set_at' => 'datetime',

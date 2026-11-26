@@ -1,6 +1,11 @@
 <x-admin-layout title="استان‌ها و شهرها">
     <x-slot name="header">
-        <h2 class="text-xl font-black text-slate-900">استان‌ها و شهرها</h2>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 class="text-xl font-black text-slate-900">استان‌ها و شهرها</h2>
+            <a href="{{ route('admin.locations.deletion-requests.index') }}" class="text-sm font-bold text-primary">
+                {{ auth()->user()->isSeniorAdmin() ? 'درخواست‌های در انتظار تأیید' : 'درخواست‌های حذف من' }}
+            </a>
+        </div>
     </x-slot>
 
     <section class="space-y-6">
@@ -44,11 +49,12 @@
                         </label>
                         <button class="rounded-lg bg-accent px-4 py-2 text-sm font-bold text-white">ذخیره استان</button>
                     </form>
-                    <form method="POST" action="{{ route('admin.locations.provinces.destroy', $province) }}"
-                        onsubmit="return confirm('استان انتخاب‌شده حذف شود؟')">
+                    <form method="POST" action="{{ route('admin.locations.deletion-requests.store', $province) }}" class="space-y-2">
                         @csrf
-                        @method('DELETE')
-                        <button class="rounded-lg border border-error/30 px-4 py-2 text-sm font-bold text-error">حذف استان</button>
+                        <label class="block text-sm">دلیل درخواست حذف
+                            <textarea name="reason" required maxlength="1000" class="mt-1 w-full rounded-xl border-slate-200">{{ old('reason') }}</textarea>
+                        </label>
+                        <button class="rounded-lg border border-error/30 px-4 py-2 text-sm font-bold text-error">ثبت درخواست حذف استان</button>
                     </form>
                 </div>
             @endif

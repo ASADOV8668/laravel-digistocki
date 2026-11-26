@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ProvinceDeletionRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Sadegh19b\LaravelIranCities\Models\City;
@@ -42,19 +43,86 @@ class AdminLocationTest extends TestCase
             ->assertExactJson([['id' => $city->id, 'name' => 'شهر ویرایش‌شده', 'province_id' => $province->id]]);
     }
 
-    public function test_only_unused_provinces_can_be_deleted(): void
+    public function test_deletion_requires_a_different_senior_admin_and_keeps_audit_history(): void
     {
-        $this->actingAs(User::factory()->create(['role' => 'admin']));
+        $admin = User::factory()->create(['role' => 'admin']);
+        $senior = User::factory()->create(['role' => 'admin', 'is_senior_admin' => true]);
+        $province = Province::query()->create(['name' => 'استان خالی', 'tel_prefix' => '022']);
+        $otherProvince = Province::query()->create(['name' => 'استان دیگر', 'tel_prefix' => '023']);
+        $store = route('admin.locations.deletion-requests.store', $province);
+
+        $this->actingAs($admin)->post($store, ['reason' => 'استان تکراری'])->assertSessionHasNoErrors();
+        $this->post($store, ['reason' => 'درخواست دوباره'])->assertSessionHasErrors('province');
+        $this->assertModelExists($province);
+        $deletion = ProvinceDeletionRequest::query()->sole();
+        $review = route('admin.locations.deletion-requests.review', $deletion);
+
+        $this->patch($review, ['decision' => 'approve'])->assertForbidden();
+        $this->get(route('admin.locations.deletion-requests.index'))->assertOk()->assertSee('استان تکراری');
+        $this->actingAs($senior)
+            ->post(route('admin.locations.deletion-requests.store', $otherProvince), ['reason' => 'درخواست خود مدیر ارشد'])
+            ->assertSessionHasNoErrors();
+        $own = ProvinceDeletionRequest::query()->where('province_id', $otherProvince->id)->sole();
+        $this->patch(route('admin.locations.deletion-requests.review', $own), ['decision' => 'approve'])->assertForbidden();
+        $this->get(route('admin.locations.deletion-requests.index'))->assertOk()->assertSee('تأیید حذف');
+        $this->patch($review, ['decision' => 'approve'])->assertSessionHasNoErrors();
+        $this->assertModelMissing($province);
+        $this->assertDatabaseHas('province_deletion_requests', [
+            'id' => $deletion->id, 'status' => 'approved', 'requested_by' => $admin->id, 'reviewed_by' => $senior->id,
+        ]);
+        $this->patch($review, ['decision' => 'approve'])->assertConflict();
+    }
+
+    public function test_review_rechecks_dependencies_and_can_reject_a_request(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $senior = User::factory()->create(['role' => 'admin', 'is_senior_admin' => true]);
         $province = Province::query()->create(['name' => 'استان دارای شهر', 'tel_prefix' => '021']);
+        $store = route('admin.locations.deletion-requests.store', $province);
+
+        $this->actingAs($admin)->post($store, ['reason' => 'بررسی'])->assertSessionHasNoErrors();
         $this->post(route('admin.locations.cities.store', $province), [
             'name' => 'شهر آزمایشی', 'county' => 'شهرستان آزمایشی',
         ])->assertSessionHasNoErrors();
-        $this->delete(route('admin.locations.provinces.destroy', $province))->assertSessionHasErrors('province');
-        $this->assertModelExists($province);
+        $deletion = ProvinceDeletionRequest::query()->sole();
 
-        $emptyProvince = Province::query()->create(['name' => 'استان خالی', 'tel_prefix' => '022']);
-        $this->delete(route('admin.locations.provinces.destroy', $emptyProvince))->assertSessionHasNoErrors();
-        $this->assertModelMissing($emptyProvince);
+        $this->actingAs($senior)->patch(route('admin.locations.deletion-requests.review', $deletion), [
+            'decision' => 'approve',
+        ])->assertSessionHasNoErrors();
+        $this->assertModelExists($province);
+        $this->assertSame('blocked', $deletion->fresh()->status);
+
+        $this->actingAs($admin)->post($store, ['reason' => 'بررسی مجدد'])->assertSessionHasNoErrors();
+        $deletion = ProvinceDeletionRequest::query()->latest('id')->firstOrFail();
+        $this->actingAs($senior)->patch(route('admin.locations.deletion-requests.review', $deletion), [
+            'decision' => 'reject',
+        ])->assertSessionHasNoErrors();
+        $this->assertSame('rejected', $deletion->fresh()->status);
+    }
+
+    public function test_system_admin_cannot_change_admin_roles_or_edit_senior_accounts(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $senior = User::factory()->create(['role' => 'admin', 'is_senior_admin' => true]);
+        $user = User::factory()->create();
+
+        $this->actingAs($admin)->get(route('admin.users.edit', $senior))->assertForbidden();
+        $this->patch(route('admin.users.toggle-active', $senior))->assertForbidden();
+        $this->delete(route('admin.users.destroy', $senior))->assertForbidden();
+        $this->patch(route('admin.users.toggle-role', $user))->assertForbidden();
+        $this->actingAs($senior)->patch(route('admin.users.toggle-role', $user))->assertRedirect();
+        $this->assertTrue($user->fresh()->isAdmin());
+    }
+
+    public function test_console_can_promote_an_existing_active_account(): void
+    {
+        $user = User::factory()->create(['mobile' => '09121234567']);
+
+        $this->artisan('admin:grant-senior', ['user' => $user->id])
+            ->expectsConfirmation("Grant senior administrator permissions to account #{$user->id} ({$user->name})?", 'yes')
+            ->assertSuccessful();
+
+        $this->assertTrue($user->fresh()->isSeniorAdmin());
     }
 
     public function test_regular_user_cannot_manage_locations(): void

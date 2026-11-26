@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\LocationController as AdminLocationController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\PhoneModelController as AdminPhoneModelController;
 use App\Http\Controllers\Admin\PhoneSeriesController as AdminPhoneSeriesController;
+use App\Http\Controllers\Admin\ProvinceDeletionRequestController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\StorefrontController as AdminStorefrontController;
@@ -95,7 +96,9 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::get('/locations', [AdminLocationController::class, 'index'])->name('admin.locations.index');
     Route::post('/locations/provinces', [AdminLocationController::class, 'storeProvince'])->name('admin.locations.provinces.store');
     Route::patch('/locations/provinces/{province}', [AdminLocationController::class, 'updateProvince'])->name('admin.locations.provinces.update');
-    Route::delete('/locations/provinces/{province}', [AdminLocationController::class, 'destroyProvince'])->name('admin.locations.provinces.destroy');
+    Route::post('/locations/provinces/{province}/deletion-requests', [ProvinceDeletionRequestController::class, 'store'])->name('admin.locations.deletion-requests.store');
+    Route::get('/locations/deletion-requests', [ProvinceDeletionRequestController::class, 'index'])->name('admin.locations.deletion-requests.index');
+    Route::patch('/locations/deletion-requests/{deletionRequest}', [ProvinceDeletionRequestController::class, 'review'])->name('admin.locations.deletion-requests.review');
     Route::post('/locations/provinces/{province}/cities', [AdminLocationController::class, 'storeCity'])->name('admin.locations.cities.store');
     Route::patch('/locations/cities/{city}', [AdminLocationController::class, 'updateCity'])->name('admin.locations.cities.update');
     Route::get('/listings', [AdminListingController::class, 'index'])->name('admin.listings.index');

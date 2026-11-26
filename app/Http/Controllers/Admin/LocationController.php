@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Listing;
-use App\Models\SellerStore;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -57,24 +55,6 @@ class LocationController extends Controller
         $province->save();
 
         return $this->backToProvince($province->id, 'استان به‌روزرسانی شد.');
-    }
-
-    public function destroyProvince(Province $province): RedirectResponse
-    {
-        return DB::transaction(function () use ($province) {
-            $province = Province::query()->lockForUpdate()->findOrFail($province->id);
-
-            if ($province->cities()->exists()
-                || Listing::query()->where('province_id', $province->id)->exists()
-                || SellerStore::query()->where('province_id', $province->id)->exists()) {
-                return to_route('admin.locations.index', ['province' => $province->id])
-                    ->withErrors(['province' => 'این استان شهر، آگهی یا فروشگاه وابسته دارد و قابل حذف نیست.']);
-            }
-
-            $province->delete();
-
-            return to_route('admin.locations.index')->with('status', 'استان حذف شد.');
-        });
     }
 
     public function storeCity(Request $request, Province $province): RedirectResponse
