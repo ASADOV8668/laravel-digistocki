@@ -21,7 +21,8 @@ window.listingTitleGenerator = {
     generateCamera(model, definitions, values) {
         if (!model) return '';
         const storage = englishDigits(attributeValue(definitions, values, 'storage'));
-        const part = String(attributeValue(definitions, values, 'part_number')).trim().toUpperCase();
+        const part = String(attributeValue(definitions, values, 'part_number')).trim().toUpperCase()
+            .replace(/^([A-Z]+)\/A$/, '$1A');
         const battery = englishDigits(attributeValue(definitions, values, 'battery_health'));
         const color = String(attributeValue(definitions, values, 'color')).trim();
         const modelName = (model.secondary || model.label).replace(/^(iPhone .+) Pro Max$/i, '$1 Promax');

@@ -104,16 +104,28 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
         $model = $brand->phoneModels()->where('name_en', 'iPhone 16 Pro Max')->firstOrFail();
         $migration = require database_path('migrations/2026_11_26_000100_enable_iphone_part_numbers.php');
         $migration->up();
-        $part = Attribute::where('slug', 'part_number')->firstOrFail();
+        $extraPart = Attribute::where('slug', 'part_number')->firstOrFail();
+        $part = Attribute::create(['name' => 'پارت نامبر', 'type' => 'select', 'options' => ['CH/A', 'ZA/A']]);
+        $model->attributes()->attach($part->id);
         $brand->wizardSteps()->create([
             'step_type' => 'model', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => 1,
         ]);
+        $brand->wizardSteps()->create([
+            'step_type' => 'attribute', 'attribute_id' => $part->id, 'display_type' => 'swiper', 'is_required' => true, 'sort_order' => 2,
+        ]);
+        $correction = require database_path('migrations/2026_11_26_000200_use_configured_part_number_attribute.php');
+        $correction->up();
         $wizard = $this->getJson(route('listings.wizard.config', [
             $brand, 'device_type' => 'mobile', 'model_id' => $model->id,
         ]))->assertOk();
-        $partStage = collect($wizard->json('steps'))->firstWhere('attribute.slug', 'part_number');
-        $this->assertSame($part->id, data_get($partStage, 'attribute.id'));
-        $this->assertFalse($partStage['required']);
+        $stages = collect($wizard->json('steps'));
+        $partStage = $stages->sole('attribute.slug', 'part_number');
+        $this->assertSame($part->id, $partStage['attribute']['id']);
+        $this->assertSame(['CH/A', 'ZA/A'], $partStage['attribute']['options']);
+        $this->assertSame('swiper', $partStage['display_type']);
+        $this->assertTrue($partStage['required']);
+        $this->assertFalse($stages->contains('attribute.id', $extraPart->id));
+        $this->assertFalse($extraPart->refresh()->is_active);
         $battery = Attribute::where('slug', 'battery_health')->firstOrFail();
         $battery->update(['options' => [...$battery->options, '95']]);
         $storage = Attribute::where('slug', 'storage')->firstOrFail();
@@ -128,7 +140,7 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
             'price' => 210000000,
             'attributes' => array_replace($this->requiredAttributeValues($model), [
                 $storage->id => '256',
-                $part->id => 'zaa',
+                $part->id => 'ZA/A',
                 $battery->id => '95',
                 $color->id => 'Deser Titanium',
             ]),
@@ -172,6 +184,7 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
         ])->assertRedirect()->assertSessionHas('status', 'آگهی شما برای بررسی ارسال شد.');
 
         $listing = Listing::where('title', 'iPhone 16 Promax 256GB ZAA 95% Desert')->sole();
+        $this->assertSame('ZA/A', $listing->attributeValues()->where('attribute_id', $part->id)->value('value_string'));
         $this->assertSame(ListingStatus::Pending, $listing->status);
         $this->assertEquals(210000000, $listing->price);
         $this->assertNull($listing->published_at);

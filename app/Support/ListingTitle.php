@@ -133,6 +133,7 @@ final class ListingTitle
             ->whereIn('slug', ['storage', 'part_number', 'battery_health', 'color'])->get()->keyBy('slug');
         $storage = self::englishDigits((string) self::value($values, $attributes->get('storage')));
         $part = strtoupper(trim((string) self::value($values, $attributes->get('part_number'))));
+        $part = preg_replace('~^([A-Z]+)/A$~D', '$1A', $part);
         $battery = self::englishDigits((string) self::value($values, $attributes->get('battery_health')));
         $color = self::englishAttributeValue('color', trim((string) self::value($values, $attributes->get('color'))));
         $modelName = preg_replace('/^(iPhone .+) Pro Max$/i', '$1 Promax', $model->name_en ?: $model->name);

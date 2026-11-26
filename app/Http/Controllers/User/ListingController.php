@@ -264,9 +264,6 @@ class ListingController extends Controller
             $steps->push((object) ['step_type' => 'model', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => 2, 'attribute' => null]);
             if ($model) {
                 foreach ($attributes as $attribute) {
-                    if (! $deviceType && $attribute->slug === 'part_number' && ! in_array($attribute->id, $requiredIds, true)) {
-                        continue;
-                    }
                     $steps->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => in_array($attribute->id, $requiredIds, true), 'attribute' => $attribute]);
                 }
             }
@@ -284,24 +281,17 @@ class ListingController extends Controller
 
         // A custom stage builder must not be able to hide a required catalog
         // attribute from the form. Append missing required model attributes
-        // after the admin-defined stages, along with the camera part-number field.
+        // after the admin-defined stages so the submitted listing remains valid.
         if ($model && $steps->isNotEmpty()) {
             $configuredIds = $steps
                 ->filter(fn ($step): bool => $step->step_type === 'attribute' && $step->attribute?->id)
                 ->map(fn ($step): int => (int) $step->attribute->id)
                 ->all();
-            $additionalIds = $requiredIds;
-            if ($deviceType) {
-                $partNumber = $attributes->firstWhere('slug', 'part_number');
-                if ($partNumber) {
-                    $additionalIds[] = $partNumber->id;
-                }
-            }
-            foreach (array_unique(array_diff($additionalIds, $configuredIds)) as $attributeId) {
+            foreach (array_diff($requiredIds, $configuredIds) as $attributeId) {
                 if (! $attributes->has($attributeId)) {
                     continue;
                 }
-                $steps->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => in_array($attributeId, $requiredIds, true), 'attribute' => $attributes->get($attributeId)]);
+                $steps->push((object) ['step_type' => 'attribute', 'display_type' => 'buttons', 'is_required' => true, 'attribute' => $attributes->get($attributeId)]);
             }
         }
 
