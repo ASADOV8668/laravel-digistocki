@@ -35,6 +35,8 @@ return [
         'token' => env('BALE_BOT_TOKEN'),
         'webhook_secret' => env('BALE_WEBHOOK_SECRET'),
         'webhook_origin' => env('BALE_WEBHOOK_ORIGIN'),
+        'executive_admin_id' => env('BALE_EXECUTIVE_ADMIN_ID'),
+        'technical_admin_id' => env('BALE_TECHNICAL_ADMIN_ID'),
     ],
 
     'sms' => [

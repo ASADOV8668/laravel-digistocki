@@ -17,13 +17,13 @@ class BaleAdminMenu
         'duplicate' => 'آگهی تکراری است.',
     ];
 
-    public function home(): array
+    public function home(bool $showManagementInbox = false): array
     {
         $pending = Listing::where('status', ListingStatus::Pending)->count();
         $stores = SellerStore::where('approval_status', 'pending')->count();
         $reports = Report::where('status', 'pending')->count();
 
-        return ["مدیریت دیجی استوکی\nیکی از بخش‌ها را انتخاب کنید.", [
+        $buttons = [
             [['text' => 'آگهی‌های منتظر ('.PersianNumber::digits($pending).')', 'callback_data' => 'queue']],
             [
                 ['text' => 'فروشگاه‌ها ('.PersianNumber::digits($stores).')', 'url' => route('admin.storefronts.index', ['approval_status' => 'pending'])],
@@ -33,7 +33,12 @@ class BaleAdminMenu
                 ['text' => 'خلاصه امروز', 'callback_data' => 'report'],
                 ['text' => 'پنل مدیریت', 'url' => route('admin.dashboard')],
             ],
-        ]];
+        ];
+        if ($showManagementInbox) {
+            array_unshift($buttons, [['text' => 'صندوق مشترک مدیران', 'callback_data' => 'work:inbox']]);
+        }
+
+        return ["مدیریت دیجی استوکی\nیکی از بخش‌ها را انتخاب کنید.", $buttons];
     }
 
     public function queue(?string $after = null): array

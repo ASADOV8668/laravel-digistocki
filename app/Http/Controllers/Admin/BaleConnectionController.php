@@ -5,19 +5,43 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\BaleBot;
+use App\Services\BaleManagementRequests;
+use App\Services\SystemOptions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class BaleConnectionController extends Controller
 {
-    public function show(Request $request, BaleBot $bot)
+    public function show(Request $request, BaleBot $bot, BaleManagementRequests $work)
     {
         abort_unless($bot->enabled(), 404);
 
+        $canEditRoles = $work->isExecutive($request->user());
+
         return view('admin.bale', [
             'connected' => DB::table('bale_admin_connections')->where('user_id', $request->user()->id)->exists(),
+            'canEditRoles' => $canEditRoles,
+            'technicalId' => $canEditRoles ? $work->technicalId() : null,
+            'eligibleAdmins' => $canEditRoles
+                ? User::query()->whereKeyNot($request->user()->id)->where('role', 'admin')->where('is_active', true)->orderBy('name')->get(['id', 'name'])
+                : [],
         ]);
+    }
+
+    public function updateManagementRole(Request $request, BaleBot $bot, BaleManagementRequests $work, SystemOptions $options)
+    {
+        abort_unless($bot->enabled(), 404);
+        abort_unless($work->isExecutive($request->user()), 403);
+
+        $validated = $request->validate([
+            'technical_admin_id' => ['nullable', 'integer', Rule::notIn([$request->user()->id]),
+                Rule::exists('users', 'id')->where('role', 'admin')->where('is_active', true)],
+        ]);
+        $options->set(BaleManagementRequests::TECHNICAL_ADMIN_OPTION, (int) ($validated['technical_admin_id'] ?? 0));
+
+        return back()->with('status', 'سمت مدیر فنی برای صندوق مشترک به‌روز شد.');
     }
 
     public function store(Request $request, BaleBot $bot)

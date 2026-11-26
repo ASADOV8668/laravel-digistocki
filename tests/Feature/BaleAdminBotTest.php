@@ -103,6 +103,52 @@ class BaleAdminBotTest extends TestCase
         $this->assertSame("https://stage.example.test/integrations/bale/{$this->secret}", Http::recorded()->sole()[0]['url']);
     }
 
+    public function test_management_inbox_is_shared_by_two_roles_and_only_the_executive_can_edit_it(): void
+    {
+        $executive = User::factory()->create(['role' => 'admin']);
+        $technical = User::factory()->create(['role' => 'admin']);
+        $other = User::factory()->create(['role' => 'admin']);
+        config(['services.bale.executive_admin_id' => $executive->id]);
+        DB::table('bale_admin_connections')->insert([
+            ['bale_user_id' => '7', 'chat_id' => '8', 'user_id' => $executive->id],
+            ['bale_user_id' => '9', 'chat_id' => '10', 'user_id' => $technical->id],
+            ['bale_user_id' => '11', 'chat_id' => '12', 'user_id' => $other->id],
+        ]);
+
+        $route = route('admin.bale.management-role.update');
+        $this->actingAs($technical)->patch($route, ['technical_admin_id' => $other->id])->assertForbidden();
+        $this->actingAs($executive)->patch($route, ['technical_admin_id' => $executive->id])->assertSessionHasErrors('technical_admin_id');
+        $this->actingAs($executive)->patch($route, ['technical_admin_id' => $technical->id])->assertSessionHasNoErrors();
+
+        $this->update('/start', 1)->assertNoContent();
+        $this->assertSame('work:inbox', $this->lastMessage()['reply_markup']['inline_keyboard'][0][0]['callback_data']);
+        $this->update("/request خطای بارگذاری\nصفحه را بررسی کنید.", 2)->assertNoContent();
+        $this->update("/request خطای بارگذاری\nصفحه را بررسی کنید.", 2)->assertNoContent();
+        $row = DB::table('bale_management_requests')->sole();
+        $this->assertSame($executive->id, (int) $row->sender_id);
+        $this->assertSame($technical->id, (int) $row->recipient_id);
+
+        $this->tap("work:thread:{$row->id}", 3, chat: 12, sender: 11)->assertNoContent();
+        $this->assertStringNotContainsString('خطای بارگذاری', $this->lastReply());
+        $this->tap('work:inbox', 4, chat: 10, sender: 9)->assertNoContent();
+        $this->assertSame("work:thread:{$row->id}", $this->lastMessage()['reply_markup']['inline_keyboard'][0][0]['callback_data']);
+        $this->tap("work:status:{$row->id}:done", 5, chat: 10, sender: 9)->assertNoContent();
+        $this->assertSame('open', DB::table('bale_management_requests')->value('status'));
+
+        $this->update("/reply {$row->id} بررسی شد", 6, sender: 9, chat: 10)->assertNoContent();
+        $this->update("/reply {$row->id} بررسی شد", 6, sender: 9, chat: 10)->assertNoContent();
+        $this->assertDatabaseCount('bale_management_replies', 1);
+        $this->tap("work:status:{$row->id}:done", 7)->assertNoContent();
+        $this->assertSame('done', DB::table('bale_management_requests')->value('status'));
+        $this->assertStringContainsString('بررسی شد', $this->lastReply());
+
+        $this->patch($route, ['technical_admin_id' => $other->id])->assertSessionHasNoErrors();
+        $this->tap("work:thread:{$row->id}", 8, chat: 10, sender: 9)->assertNoContent();
+        $this->assertStringNotContainsString('خطای بارگذاری', $this->lastReply());
+        $this->tap("work:thread:{$row->id}", 9, chat: 12, sender: 11)->assertNoContent();
+        $this->assertStringNotContainsString('خطای بارگذاری', $this->lastReply());
+    }
+
     public function test_buttons_review_the_queue_and_require_confirmation_from_the_connected_chat(): void
     {
         $this->seed(CatalogSeeder::class);
@@ -174,11 +220,11 @@ class BaleAdminBotTest extends TestCase
         Http::assertSentCount(3);
     }
 
-    private function update(string $text, int $updateId, string $type = 'private', ?string $secret = null)
+    private function update(string $text, int $updateId, string $type = 'private', ?string $secret = null, int $sender = 7, int $chat = 8)
     {
         return $this->postJson(route('bale.webhook', ['secret' => $secret ?? $this->secret]), [
             'update_id' => $updateId,
-            'message' => ['from' => ['id' => 7], 'chat' => ['id' => 8, 'type' => $type], 'text' => $text],
+            'message' => ['from' => ['id' => $sender], 'chat' => ['id' => $chat, 'type' => $type], 'text' => $text],
         ]);
     }
 
@@ -192,13 +238,13 @@ class BaleAdminBotTest extends TestCase
         return Http::recorded()->last()[0];
     }
 
-    private function tap(string $data, int $update, int $chat = 8)
+    private function tap(string $data, int $update, int $chat = 8, int $sender = 7)
     {
         return $this->postJson(route('bale.webhook', ['secret' => $this->secret]), [
             'update_id' => $update,
             'callback_query' => [
                 'id' => "callback-{$update}",
-                'from' => ['id' => 7],
+                'from' => ['id' => $sender],
                 'data' => $data,
                 'message' => ['message_id' => 99, 'chat' => ['id' => $chat, 'type' => 'private']],
             ],

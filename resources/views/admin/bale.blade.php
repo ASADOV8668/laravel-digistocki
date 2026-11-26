@@ -27,4 +27,25 @@
             </form>
         @endif
     </section>
+    @if ($canEditRoles)
+        <section class="admin-card mt-5 max-w-lg space-y-4 p-5">
+            <h2 class="text-lg font-bold">سمت‌های صندوق مشترک مدیران</h2>
+            <p class="text-sm text-slate-600">مدیر فنی را از میان مدیران فعال سایت انتخاب کنید.</p>
+            <form method="POST" action="{{ route('admin.bale.management-role.update') }}" class="space-y-3">
+                @csrf
+                @method('PATCH')
+                <label for="bale-technical-admin" class="block font-bold">مدیر فنی</label>
+                <select id="bale-technical-admin" name="technical_admin_id" class="block w-full rounded-lg border-slate-300">
+                    <option value="">بدون مدیر فنی</option>
+                    @foreach ($eligibleAdmins as $admin)
+                        <option value="{{ $admin->id }}" @selected((string) old('technical_admin_id', $technicalId) === (string) $admin->id)>{{ $admin->name }} (#{{ $admin->id }})</option>
+                    @endforeach
+                </select>
+                @error('technical_admin_id')
+                    <p role="alert" class="text-red-700">{{ $message }}</p>
+                @enderror
+                <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 font-bold text-white">ذخیره سمت</button>
+            </form>
+        </section>
+    @endif
 </x-admin-layout>

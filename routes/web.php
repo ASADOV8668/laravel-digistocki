@@ -106,6 +106,7 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::get('/bale', [BaleConnectionController::class, 'show'])->name('admin.bale.show');
     Route::post('/bale', [BaleConnectionController::class, 'store'])->middleware('throttle:10,1')->name('admin.bale.store');
     Route::delete('/bale', [BaleConnectionController::class, 'destroy'])->name('admin.bale.destroy');
+    Route::patch('/bale/management-role', [BaleConnectionController::class, 'updateManagementRole'])->name('admin.bale.management-role.update');
     Route::get('/listings', [AdminListingController::class, 'index'])->name('admin.listings.index');
     Route::get('/listings/create', [AdminListingController::class, 'create'])->name('admin.listings.create');
     Route::post('/listings', [AdminListingController::class, 'store'])->name('admin.listings.store');

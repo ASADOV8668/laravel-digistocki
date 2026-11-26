@@ -9,6 +9,7 @@ use App\Notifications\ListingStatusNotification;
 use App\Services\BaleAdminMenu;
 use App\Services\BaleAdminReport;
 use App\Services\BaleBot;
+use App\Services\BaleManagementRequests;
 use App\Services\ListingRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Gate;
 
 class BaleWebhookController extends Controller
 {
-    public function __invoke(Request $request, string $secret, BaleBot $bot, BaleAdminReport $report, BaleAdminMenu $menu)
+    public function __invoke(Request $request, string $secret, BaleBot $bot, BaleAdminReport $report, BaleAdminMenu $menu, BaleManagementRequests $work)
     {
         abort_unless($bot->enabled() && hash_equals(config('services.bale.webhook_secret'), $secret), 404);
 
@@ -52,24 +53,28 @@ class BaleWebhookController extends Controller
 
         if ($callback) {
             $bot->call('answerCallbackQuery', ['callback_query_id' => $callbackId]);
-            [$reply, $buttons] = $this->button($admin, $sender, $chat, $update, $text, $menu, $report);
+        }
+        if ($work->handles($callback ? $text : (string) $command, $callback)) {
+            [$reply, $buttons] = $work->respond($admin, $update, $text, $callback);
+        } elseif ($callback) {
+            [$reply, $buttons] = $this->button($admin, $sender, $chat, $update, $text, $menu, $report, $work);
         } else {
             [$reply, $buttons] = match ($command) {
                 '/report' => [$report->text(), $menu->reportButtons()],
                 '/pending' => [$this->pending(), $menu->reportButtons()],
                 '/approve', '/reject' => [$this->moderate($admin, $sender, $chat, $update, $command, $listingId, $reason), $menu->reportButtons()],
-                default => $menu->home(),
+                default => $menu->home(isset($work->members()[$admin->id])),
             };
         }
 
         return response()->noContent($bot->send($chat, $reply, $buttons, $messageId) ? 204 : 503);
     }
 
-    private function button(User $admin, string $sender, string $chat, string $update, string $data, BaleAdminMenu $menu, BaleAdminReport $report): array
+    private function button(User $admin, string $sender, string $chat, string $update, string $data, BaleAdminMenu $menu, BaleAdminReport $report, BaleManagementRequests $work): array
     {
         [$action, $listingId, $reasonKey, $signature] = array_pad(explode(':', $data, 4), 4, null);
         if ($data === 'menu') {
-            return $menu->home();
+            return $menu->home(isset($work->members()[$admin->id]));
         }
         if ($data === 'report') {
             return [$report->text(), $menu->reportButtons()];
