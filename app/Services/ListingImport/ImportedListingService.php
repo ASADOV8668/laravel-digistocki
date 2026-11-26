@@ -30,6 +30,9 @@ class ImportedListingService
         $title = ListingTitle::generate($brand->id, $model->id, $attributes, partNumber: $row['part_number'] ?? null)
             ?: trim($brand->name.' '.$model->name);
         $autoPublish = $user->storefront?->allowsFreeListing() ?? false;
+        if ($autoPublish) {
+            $title = ListingTitle::withoutSelectedColor($title, $attributes);
+        }
         $listingDate = $date && Carbon::hasFormat($date, 'Y-m-d') ? Carbon::parse($date) : now();
         $createdMedia = null;
 

@@ -89,5 +89,14 @@ class ListingTitleLanguageTest extends TestCase
         $migration->up();
         $this->assertSame('iPhone 16 Pro Max 256GB ZAA 98% Black', $listing->refresh()->title);
         $this->assertSame('existing-part-number-order', $listing->slug);
+
+        $listing->update(['status' => 'approved']);
+        $listing->attributeValues()->create(['attribute_id' => Attribute::where('slug', 'color')->value('id'), 'value_string' => 'مشکی']);
+        $migration = require database_path('migrations/2026_11_26_000300_remove_color_from_published_listing_titles.php');
+        $migration->up();
+        $this->assertSame('iPhone 16 Pro Max 256GB ZAA 98%', $listing->refresh()->title);
+        $this->assertSame('existing-part-number-order', $listing->slug);
+        $this->assertSame('Apple iPhone 13 Pro Max 256 GB', ListingTitle::withoutColor('Apple iPhone 13 Pro Max Blue 256 GB', 'آبی'));
+        $this->assertSame('Black Shark 5 Pro 256 GB', ListingTitle::withoutColor('Black Shark 5 Pro 256 GB', 'Black'));
     }
 }

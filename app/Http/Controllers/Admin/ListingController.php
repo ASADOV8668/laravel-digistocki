@@ -20,6 +20,7 @@ use App\Services\ListingRules;
 use App\Services\ListingMediaService;
 use App\Services\NotificationReadService;
 use App\Services\SystemOptions;
+use App\Support\ListingTitle;
 use App\Support\MobileNumber;
 use App\Support\PersianDate;
 use App\Support\PersianSearch;
@@ -108,6 +109,9 @@ class ListingController extends Controller
                 $data = $validated;
                 unset($data['attributes'], $data['images'], $data['user_id'], $data['status'], $data['primary_image_index'], $data['primary_image_id'], $data['media_ids'], $data['media_primary_id']);
                 $status = $validated['status'];
+                if ($status === 'approved') {
+                    $data['title'] = ListingTitle::withoutSelectedColor($data['title'], (array) ($validated['attributes'] ?? []));
+                }
                 $listing->update([...$data, 'user_id' => $validated['user_id'], 'status' => $status, 'published_at' => $status === 'approved' ? now() : $listing->published_at, 'expires_at' => $status === 'approved' ? app(ListingRules::class)->expiryDate() : ($status === 'expired' ? now()->subSecond() : $listing->expires_at), 'rejection_reason' => $status === 'rejected' ? ($listing->rejection_reason ?: 'رد توسط مدیریت') : null]);
                 $listing->attributeValues()->delete();
                 $this->saveAttributeValues($listing, $model, (array) ($validated['attributes'] ?? []));

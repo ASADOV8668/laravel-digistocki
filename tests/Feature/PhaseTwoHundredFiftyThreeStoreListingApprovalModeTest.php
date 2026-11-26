@@ -11,6 +11,7 @@ use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Storage;
 use Sadegh19b\LaravelIranCities\Models\City;
 use Sadegh19b\LaravelIranCities\Models\County;
@@ -191,6 +192,15 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
         $this->assertSame(1, $listing->images()->count());
         $this->assertEquals($province->id, $listing->province_id);
         $this->assertEquals($city->id, $listing->city_id);
+        $this->actingAs(User::factory()->create(['role' => 'admin']))
+            ->patch(route('admin.listings.approve', $listing))->assertRedirect();
+        $listing->refresh();
+        $this->assertSame(ListingStatus::Approved, $listing->status);
+        $this->assertSame('iPhone 16 Promax 256GB ZAA 95%', $listing->title);
+        $this->assertSame('Deser Titanium', $listing->attributeValues()->where('attribute_id', $color->id)->value('value_string'));
+        $card = Blade::render('<x-listing-card :listing="$listing" />', ['listing' => $listing]);
+        $this->assertMatchesRegularExpression('~<h3[^>]*>iPhone 16 Promax 256GB ZAA 95%</h3>~', $card);
+        $this->assertStringContainsString('Deser Titanium', $card);
     }
 
     public function test_free_listing_store_can_edit_approved_listing_without_review(): void

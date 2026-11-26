@@ -24,6 +24,7 @@ use App\Services\LocationResolver;
 use App\Services\NaturalListingSearch;
 use App\Services\NotificationReadService;
 use App\Services\SystemOptions;
+use App\Support\ListingTitle;
 use App\Support\PersianNumber;
 use App\Support\PersianSearch;
 use Illuminate\Database\Eloquent\Builder;
@@ -768,10 +769,13 @@ class ListingController extends Controller
             $listing = DB::transaction(function () use ($validated, $request, $model, $imageService, $mediaService, $options, $rules, $autoPublish, &$storedFiles, &$createdMedia) {
                 $listingData = $validated;
                 unset($listingData['camera_listing'], $listingData['device_type'], $listingData['attributes'], $listingData['images'], $listingData['primary_image_index'], $listingData['primary_image_id'], $listingData['media_ids'], $listingData['media_primary_id']);
+                if ($autoPublish) {
+                    $listingData['title'] = ListingTitle::withoutSelectedColor($listingData['title'], (array) ($validated['attributes'] ?? []));
+                }
                 $listing = Listing::create([
                     ...$listingData,
                     'user_id' => $request->user()->id,
-                    'slug' => Str::slug($validated['title']).'-'.Str::lower(Str::random(8)),
+                    'slug' => Str::slug($listingData['title']).'-'.Str::lower(Str::random(8)),
                     'status' => $autoPublish ? 'approved' : 'pending',
                     'published_at' => $autoPublish ? now() : null,
                     'expires_at' => $autoPublish ? $rules->expiryDate() : null,
@@ -965,6 +969,9 @@ class ListingController extends Controller
             DB::transaction(function () use ($validated, $listing, $model, $imageService, $mediaService, $rules, $autoPublish, &$storedFiles, &$createdMedia) {
                 $listingData = $validated;
                 unset($listingData['attributes'], $listingData['images'], $listingData['primary_image_index'], $listingData['primary_image_id'], $listingData['media_ids'], $listingData['media_primary_id']);
+                if ($autoPublish) {
+                    $listingData['title'] = ListingTitle::withoutSelectedColor($listingData['title'], (array) ($validated['attributes'] ?? []));
+                }
                 $listing->update([
                     ...$listingData,
                     'status' => $autoPublish ? 'approved' : 'pending',

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\ListingStatus;
 use App\Models\Listing;
 use App\Models\User;
+use App\Support\ListingTitle;
 use Carbon\CarbonInterface;
 
 class ListingRules
@@ -54,6 +55,8 @@ class ListingRules
 
     public function publish(Listing $listing): Listing
     {
+        $color = $listing->attributeValues()->whereHas('attribute', fn ($query) => $query->where('slug', 'color'))->value('value_string');
+        $listing->title = ListingTitle::withoutColor($listing->title, $color);
         $listing->forceFill(['status' => ListingStatus::Approved, 'published_at' => now(), 'expires_at' => $this->expiryDate()])->save();
 
         return $listing->refresh();

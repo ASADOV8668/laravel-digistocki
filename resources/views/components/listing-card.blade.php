@@ -29,7 +29,7 @@
             ];
         })
         ->filter(fn($item) => filled($item['name']) && filled($item['value']));
-    $cardAttributes = collect(['storage', 'battery_health', 'registration_status', 'color'])
+    $cardAttributes = collect(['color', 'storage', 'battery_health', 'registration_status'])
         ->map(fn ($slug) => $allCardAttributes->firstWhere('slug', $slug))
         ->filter();
     if (!$cardAttributes->contains('slug', 'registration_status') && ($registered = $allCardAttributes->firstWhere('slug', 'registered'))) {
@@ -66,7 +66,7 @@
         @if ($cardAttributes->isNotEmpty())
             <div dir="{{ $isEnglishTitle ? 'ltr' : 'rtl' }}" class="mt-2 flex flex-wrap gap-x-2 gap-y-1 text-[11px] text-slate-500">
                 @foreach ($cardAttributes as $attribute)
-                    <p class="flex items-center gap-1.5 truncate"><span
+                    <p @class(['flex items-center gap-1.5 truncate', 'rounded-md bg-slate-100 px-1.5 py-0.5 text-slate-700' => $attribute['slug'] === 'color'])><span
                             class="h-3 w-3 shrink-0 rounded-full border border-slate-300"
                             @if ($attribute['color']) style="background-color: {{ $attribute['color'] }}" @else style="background-color: rgb(148 163 184 / .8)" @endif></span><span
                             class="font-bold">{{ $attribute['name'] }}:</span><span

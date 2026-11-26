@@ -122,6 +122,29 @@ final class ListingTitle
             && preg_match('/[\x{0600}-\x{06FF}]/u', (string) $title) !== 1;
     }
 
+    public static function withoutSelectedColor(string $title, array $values): string
+    {
+        $colorId = Attribute::query()->where('slug', 'color')->value('id');
+
+        return self::withoutColor($title, $values[$colorId] ?? null);
+    }
+
+    public static function withoutColor(string $title, mixed $color): string
+    {
+        if (! is_scalar($color) || ($color = trim((string) $color)) === '') {
+            return $title;
+        }
+
+        $labels = [$color, self::englishAttributeValue('color', $color)];
+        if (in_array(strtolower($color), ['deser titanium', 'desert titanium'], true)) {
+            $labels = ['Deser Titanium', 'Desert Titanium', 'Desert'];
+        }
+        $pattern = implode('|', array_map(fn (string $label) => preg_quote($label, '~'), array_unique($labels)));
+
+        // Generated titles place color at the end or immediately before the storage suffix.
+        return preg_replace('~\h+(?:'.$pattern.')(?=\h+(?:[0-9۰-۹٠-٩]{2,4}\h*(?:GB|گیگابایت|گیگ)|[0-9۰-۹٠-٩]+\h*TB)\z|\z)~iu', '', $title, 1) ?? $title;
+    }
+
     public static function generateForCamera(int $brandId, int $modelId, array $values): ?string
     {
         $model = PhoneModel::query()->where('brand_id', $brandId)->where('is_active', true)->find($modelId);
