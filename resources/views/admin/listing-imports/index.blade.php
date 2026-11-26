@@ -5,7 +5,11 @@
                 <p class="text-xs font-bold text-info">مدیریت داده‌های ورودی</p>
                 <h1 class="mt-1 text-xl font-black text-slate-900">ایمپورت آگهی</h1>
             </div>
-            <span class="rounded-full bg-info/10 px-3 py-2 text-xs font-bold text-info">{{ $parsers->count() }} قالب فعال</span>
+            <div class="flex flex-wrap items-center gap-3">
+                <span class="rounded-full bg-info/10 px-3 py-2 text-xs font-bold text-info">{{ $parsers->count() }} قالب فعال</span>
+                <a href="{{ route('admin.listing-imports.terms.index') }}"
+                    class="rounded-xl bg-info/10 px-4 py-2 text-sm font-bold text-info hover:bg-info/20">اصطلاحات</a>
+            </div>
         </div>
     </x-slot>
 

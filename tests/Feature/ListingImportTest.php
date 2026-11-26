@@ -6,6 +6,7 @@ use App\Models\Attribute;
 use App\Models\Listing;
 use App\Models\ListingImage;
 use App\Models\ListingImportParser;
+use App\Models\ListingImportTerm;
 use App\Models\SellerStore;
 use App\Models\User;
 use App\Services\ListingImport\ListingImportParserRegistry;
@@ -81,6 +82,42 @@ class ListingImportTest extends TestCase
         $this->actingAs($user)->get(route('listings.import.create'))->assertForbidden();
     }
 
+    public function test_admin_terms_prefill_catalog_options_for_complete_words_in_the_import_preview(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $activation = Attribute::query()->where('slug', 'activation_status')->firstOrFail();
+        $target = json_encode([$activation->id, 'نات اکتیو'], JSON_UNESCAPED_UNICODE);
+
+        $this->actingAs($admin)->post(route('admin.listing-imports.terms.store'), [
+            'emoji' => 'nat', 'meaning' => 'فعال نشده', 'target' => $target,
+        ])->assertSessionHasNoErrors()->assertRedirect(route('admin.listing-imports.terms.index'));
+        $this->assertDatabaseHas('listing_import_terms', [
+            'emoji' => 'nat', 'attribute_id' => $activation->id, 'attribute_value' => 'نات اکتیو',
+        ]);
+
+        $longSource = str_repeat('🟥📱', 40);
+        $this->actingAs($admin)->post(route('admin.listing-imports.terms.store'), [
+            'emoji' => $longSource, 'meaning' => 'نشانه ترکیبی',
+        ])->assertSessionHasNoErrors();
+        $this->assertSame($longSource, ListingImportTerm::query()->latest('id')->firstOrFail()->emoji);
+        $this->get(route('admin.listing-imports.terms.index'))->assertOk()
+            ->assertSeeText('وضعیت فعال‌سازی')->assertSeeText('نات اکتیو');
+
+        $parser = ListingImportParser::query()->where('key', 'at_kala')->firstOrFail();
+        $user = User::factory()->create(['listing_import_parser_id' => $parser->id]);
+        $response = $this->actingAs($user)->post(route('listings.import.preview'), [
+            'text' => "۱۴۰۵/۰۹/۰۵\n🟥iphone 18 promax 256GB CH NAT\n💰165/000m\n🟥iphone 18 promax 256GB CH native\n💰165/000m",
+        ])->assertOk()->assertSee('۱۴۰۵/۰۹/۰۵');
+
+        $rows = $response->viewData('rows');
+        $this->assertCount(2, $rows);
+        $this->assertTrue($rows[0]['supported']);
+        $this->assertSame('iPhone 18 Pro Max', $rows[0]['model_name']);
+        $this->assertSame('نات اکتیو', $rows[0]['attributes'][$activation->id]);
+        $this->assertArrayNotHasKey($activation->id, $rows[1]['attributes']);
+    }
+
     public function test_supported_preview_rows_can_be_created_with_an_uploaded_image(): void
     {
         Storage::fake('public');
@@ -106,7 +143,7 @@ class ListingImportTest extends TestCase
         $this->withSession(['listing_import.preview.'.$token => ['parser_id' => $parser->id, 'rows' => $parserRows['items'], 'date' => '2026-11-17']]);
         $this->actingAs($user)->post(route('listings.import.store'), [
             'token' => $token,
-            'listing_date' => '2026-11-17',
+            'listing_date' => '۱۴۰۵/۰۸/۲۶',
             'rows' => [[
                 'enabled' => 1,
                 'price' => $row['price'],
@@ -116,7 +153,7 @@ class ListingImportTest extends TestCase
             'uploads' => [UploadedFile::fake()->create('phone.webp', 100, 'image/webp')],
         ])->assertRedirect(route('dashboard'));
 
-        $this->assertDatabaseHas('listings', ['user_id' => $user->id, 'price' => 165000000]);
+        $this->assertDatabaseHas('listings', ['user_id' => $user->id, 'price' => 165000000, 'created_at' => '2026-11-17 00:00:00']);
         $this->assertDatabaseCount('listing_images', 1);
     }
 

@@ -53,7 +53,7 @@ class CatalogSeeder extends Seeder
 
                 $modelAttributes = $nameEn === 'Apple'
                     ? collect($attributes)->reject(fn (Attribute $attribute): bool => in_array($attribute->slug, ['ram', 'infrared'], true))
-                    : collect($attributes);
+                    : collect($attributes)->where('slug', '!=', 'activation_status');
 
                 foreach ($modelAttributes as $attribute) {
                     $model->modelAttributes()->updateOrCreate(
@@ -78,7 +78,9 @@ class CatalogSeeder extends Seeder
             };
         }
 
-        if (! $definition) return null;
+        if (! $definition) {
+            return null;
+        }
 
         return PhoneSeries::firstOrCreate(
             ['brand_id' => $brand->id, 'slug' => Str::slug($definition['name'])],
@@ -94,6 +96,7 @@ class CatalogSeeder extends Seeder
             ['name' => 'رم', 'slug' => 'ram', 'type' => 'integer', 'unit' => 'GB', 'options' => [2, 3, 4, 6, 8, 12, 16, 24, 32, 64, 128, 256], 'is_filterable' => true, 'is_required' => true, 'sort_order' => 2],
             ['name' => 'رنگ', 'slug' => 'color', 'type' => 'select', 'options' => ['مشکی', 'سفید', 'طلایی', 'نقره‌ای', 'آبی', 'سبز', 'بنفش', 'خاکستری', 'قرمز', 'صورتی', 'نارنجی', 'سرمه‌ای', 'مسی', 'تیفانی', 'کرم', 'زرد'], 'is_filterable' => true, 'is_required' => true, 'sort_order' => 3],
             ['name' => 'وضعیت دستگاه', 'slug' => 'condition', 'type' => 'select', 'options' => ['نو', 'در حد نو', 'کارکرده', 'نیاز به تعمیر'], 'is_filterable' => true, 'is_required' => true, 'sort_order' => 4],
+            ['name' => 'وضعیت فعال‌سازی', 'slug' => 'activation_status', 'type' => 'select', 'options' => ['اکتیو', 'نات اکتیو'], 'is_filterable' => false, 'is_required' => false, 'sort_order' => 46],
             ['name' => 'سلامت باتری', 'slug' => 'battery_health', 'type' => 'integer', 'unit' => '%', 'options' => array_values(array_unique(array_merge(range(0, 50, 10), range(55, 100, 5)))), 'is_filterable' => true, 'is_required' => false, 'sort_order' => 5],
             ['name' => 'وضعیت صفحه‌نمایش', 'slug' => 'screen_condition', 'type' => 'select', 'options' => ['سالم', 'خط و خش جزئی', 'خط و خش عمیق', 'شکسته', 'تعویض شده'], 'is_filterable' => true, 'is_required' => false, 'sort_order' => 6],
             ['name' => 'وضعیت بدنه', 'slug' => 'body_condition', 'type' => 'select', 'options' => ['سالم', 'خط و خش جزئی', 'خط و خش عمیق', 'ضربه‌خورده', 'تعویض شده'], 'is_filterable' => false, 'is_required' => false, 'sort_order' => 7],

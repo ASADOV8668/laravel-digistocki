@@ -21,9 +21,11 @@
             <input type="hidden" name="token" value="{{ $token }}">
             <div class="flex flex-wrap items-end gap-4 rounded-lg bg-white p-4 shadow-sm dark:bg-slate-900">
                 <div class="min-w-[220px] flex-1">
-                    <label for="preview-listing-date" class="mb-2 block text-sm font-bold text-neutral dark:text-slate-100">تاریخ آگهی</label>
-                    <input id="preview-listing-date" type="date" name="listing_date" value="{{ $listingDate }}" required class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800">
-                    @if ($dateRequired)<p class="mt-1 text-xs font-bold text-warning">تاریخ در متن پیدا نشد؛ لطفاً تاریخ آگهی را انتخاب کنید.</p>@endif
+                    <label for="preview-listing-date" class="mb-2 block text-sm font-bold text-neutral dark:text-slate-100">تاریخ شمسی آگهی</label>
+                    <input id="preview-listing-date" type="text" name="listing_date" dir="ltr" required maxlength="10" placeholder="۱۴۰۵/۰۹/۰۵"
+                        value="{{ \App\Support\PersianNumber::digits(\App\Support\PersianDate::format($listingDate)) }}"
+                        class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800">
+                    @if ($dateRequired)<p class="mt-1 text-xs font-bold text-warning">تاریخ در متن پیدا نشد؛ لطفاً آن را به صورت سال/ماه/روز وارد کنید.</p>@endif
                 </div>
                 <p class="text-xs leading-6 text-slate-500 dark:text-slate-400">ردیف‌های خاکستری محصولاتی هستند که فعلاً در کاتالوگ گوشی پشتیبانی نمی‌شوند و ثبت نخواهند شد.</p>
             </div>

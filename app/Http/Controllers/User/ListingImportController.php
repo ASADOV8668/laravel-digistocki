@@ -14,6 +14,7 @@ use App\Services\ListingImport\ImportedListingService;
 use App\Services\ListingImport\ListingImportParserRegistry;
 use App\Services\ListingMediaService;
 use App\Services\ListingRules;
+use App\Support\PersianDate;
 use App\Support\PersianDigits;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -66,9 +67,22 @@ class ListingImportController extends Controller
             return redirect()->route('home')->with('status', 'ثبت آگهی برای این حساب در حال حاضر فعال نیست.');
         }
 
-        $date = PersianDigits::toEnglish((string) $request->input('listing_date'));
-        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-            return back()->withErrors(['listing_date' => 'تاریخ آگهی را وارد کنید.'])->withInput();
+        $submittedDate = PersianDigits::toEnglish(trim($request->string('listing_date')->toString()));
+        $date = null;
+        if (preg_match('~^\d{4}/\d{1,2}/\d{1,2}$~D', $submittedDate)) {
+            $canonicalDate = PersianDate::fromParts(...explode('/', $submittedDate));
+            $parsedDate = PersianDate::parseDate($canonicalDate);
+            if ($parsedDate && PersianDigits::toEnglish(PersianDate::format($parsedDate)) === $canonicalDate) {
+                $date = $parsedDate->toDateString();
+            }
+        } elseif (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/D', $submittedDate, $parts)
+            && checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1])) {
+            $date = $submittedDate;
+        }
+        if ($date === null) {
+            return redirect()->route('listings.import.create')
+                ->withErrors(['listing_date' => 'تاریخ آگهی معتبر نیست. پس از پیش‌نمایش دوباره، آن را به صورت شمسی و با قالب سال/ماه/روز وارد کنید.'])
+                ->withInput(['text' => $preview['text'] ?? '']);
         }
         $rows = $request->input('rows', []);
         $originalRows = $preview['rows'] ?? [];

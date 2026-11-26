@@ -2,12 +2,15 @@
 
 namespace App\Services\ListingImport;
 
+use App\Enums\AttributeType;
 use App\Models\Attribute;
 use App\Models\Brand;
+use App\Models\ListingImportTerm;
 use App\Models\PhoneModel;
 use App\Support\PersianDigits;
 use Carbon\Carbon;
 use Hekmatinasser\Verta\Verta;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 abstract class AbstractListingImportParser implements ListingImportParser
@@ -20,6 +23,10 @@ abstract class AbstractListingImportParser implements ListingImportParser
 
     /** @var array<int, PhoneModel> */
     private array $modelCache = [];
+
+    private ?Collection $terms = null;
+
+    private array $termAttributes = [];
 
     protected const COLORS = [
         '💙' => 'آبی', '🔵' => 'آبی', '💚' => 'سبز', '🟢' => 'سبز',
@@ -86,6 +93,11 @@ abstract class AbstractListingImportParser implements ListingImportParser
             if (! empty($extra['registration_status']) && ($id = $this->attributeId('registration_status'))) {
                 $attributes[$id] = $extra['registration_status'];
             }
+
+            $attributes = array_replace($attributes, $this->termValues($model, explode("\n", $raw, 2)[0]."\n".$modelText));
+            if ($id = $this->attributeId('color')) {
+                $color = $attributes[$id] ?? $color;
+            }
         }
 
         $supported = $model !== null && in_array($this->brandKey($model->brand_id), ['apple', 'samsung', 'xiaomi'], true);
@@ -130,6 +142,67 @@ abstract class AbstractListingImportParser implements ListingImportParser
         $row['dedupe_key'] = $this->dedupeKey($row);
 
         return $row;
+    }
+
+    private function termValues(PhoneModel $model, string $text): array
+    {
+        $this->terms ??= ListingImportTerm::query()->whereNotNull('attribute_id')
+            ->whereNotNull('attribute_value')->orderBy('id')->get()
+            ->sortByDesc(fn (ListingImportTerm $term): int => mb_strlen($term->emoji));
+
+        if ($this->terms->isEmpty()) {
+            return [];
+        }
+
+        $this->termAttributes[$model->id] ??= Attribute::query()->where('is_active', true)
+            ->visibleForModel($model->id)->with('optionRestrictions')
+            ->whereIn('id', $this->terms->pluck('attribute_id')->unique())->get()->keyBy('id');
+
+        $text = mb_strtolower($this->clean($text));
+        $values = [];
+        foreach ($this->terms as $term) {
+            $attribute = $this->termAttributes[$model->id]->get($term->attribute_id);
+            if (! $attribute || ! $this->containsTerm($text, mb_strtolower($this->clean($term->emoji)))
+                || ! in_array($term->attribute_value, $attribute->optionsForModel($model->id), true)) {
+                continue;
+            }
+
+            if ($attribute->type === AttributeType::MultiSelect) {
+                if (! in_array($term->attribute_value, $values[$attribute->id] ?? [], true)) {
+                    $values[$attribute->id][] = $term->attribute_value;
+                }
+            } else {
+                $values[$attribute->id] ??= $attribute->type === AttributeType::Integer
+                    ? (int) $term->attribute_value
+                    : $term->attribute_value;
+            }
+        }
+
+        return $values;
+    }
+
+    private function containsTerm(string $text, string $term): bool
+    {
+        if ($term === '') {
+            return false;
+        }
+
+        $word = '/[\p{L}\p{N}\p{M}_\x{200C}]/u';
+        $startsWithWord = preg_match($word, mb_substr($term, 0, 1));
+        $endsWithWord = preg_match($word, mb_substr($term, -1));
+        $length = mb_strlen($term);
+        $offset = 0;
+
+        while (($start = mb_strpos($text, $term, $offset)) !== false) {
+            $end = $start + $length;
+            if ((! $startsWithWord || $start === 0 || ! preg_match($word, mb_substr($text, $start - 1, 1)))
+                && (! $endsWithWord || ! preg_match($word, mb_substr($text, $end, 1)))) {
+                return true;
+            }
+            $offset = $start + 1;
+        }
+
+        return false;
     }
 
     protected function price(?string $value): ?int

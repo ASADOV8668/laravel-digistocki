@@ -4,6 +4,9 @@ use App\Http\Controllers\Admin\AttributeController as AdminAttributeController;
 use App\Http\Controllers\Admin\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ListingController as AdminListingController;
+use App\Http\Controllers\Admin\ListingImportParserController as AdminListingImportParserController;
+use App\Http\Controllers\Admin\ListingImportTermController;
+use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\PhoneModelController as AdminPhoneModelController;
 use App\Http\Controllers\Admin\PhoneSeriesController as AdminPhoneSeriesController;
@@ -11,19 +14,18 @@ use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\StorefrontController as AdminStorefrontController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Admin\ListingImportParserController as AdminListingImportParserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SeoController;
-use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use App\Http\Controllers\User\ChatController;
+use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use App\Http\Controllers\User\FavoriteController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\ListingController;
+use App\Http\Controllers\User\ListingImportController;
 use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\User\ReportController as UserReportController;
 use App\Http\Controllers\User\StorefrontController;
 use App\Http\Controllers\User\SupportController;
-use App\Http\Controllers\User\ListingImportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
@@ -95,10 +97,13 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::get('/listings/create', [AdminListingController::class, 'create'])->name('admin.listings.create');
     Route::post('/listings', [AdminListingController::class, 'store'])->name('admin.listings.store');
     Route::get('/listings/media', [AdminListingController::class, 'media'])->name('admin.listings.media.index');
-    Route::get('/media', [\App\Http\Controllers\Admin\MediaController::class, 'index'])->name('admin.media.index');
+    Route::get('/media', [MediaController::class, 'index'])->name('admin.media.index');
     Route::get('/listing-imports', [AdminListingImportParserController::class, 'index'])->name('admin.listing-imports.index');
-    Route::post('/media', [\App\Http\Controllers\Admin\MediaController::class, 'store'])->name('admin.media.store');
-    Route::delete('/media/{media}', [\App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('admin.media.destroy');
+    Route::resource('listing-imports/terms', ListingImportTermController::class)
+        ->only(['index', 'store', 'edit', 'update', 'destroy'])
+        ->names('admin.listing-imports.terms');
+    Route::post('/media', [MediaController::class, 'store'])->name('admin.media.store');
+    Route::delete('/media/{media}', [MediaController::class, 'destroy'])->name('admin.media.destroy');
     Route::get('/listings/{listing}/edit', [AdminListingController::class, 'edit'])->name('admin.listings.edit');
     Route::put('/listings/{listing}', [AdminListingController::class, 'update'])->name('admin.listings.update');
     Route::delete('/listings/{listing}/images/{image}', [AdminListingController::class, 'deleteImage'])->name('admin.listings.images.destroy');

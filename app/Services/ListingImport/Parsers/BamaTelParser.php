@@ -12,7 +12,7 @@ class BamaTelParser extends AbstractListingImportParser
         $items = [];
         for ($i = 0; $i < count($lines); $i++) {
             $line = $lines[$i];
-            if (! preg_match('/^(?:📱\s*)?(?<model>(?:iphone\s*)?\d{1,2}.*|iphone.*)$/iu', $line, $match)) {
+            if (! preg_match('/^(?<prefix>[^\pL\pN]+)?(?<model>(?:iphone\s*)?\d{1,2}.*|iphone.*)$/iu', $line, $match)) {
                 continue;
             }
             $rawLines = [$line];
@@ -30,7 +30,7 @@ class BamaTelParser extends AbstractListingImportParser
                 $rawLines[] = $lines[$j];
             }
             $modelText = preg_match('/\b(?:s\d|a\d|redmi|poco|galaxy|watch|airpods|ps5|vertu)\b/i', $match['model']) ? $match['model'].' '.$details : 'iphone '.$match['model'].' '.$details;
-            $items[] = $this->row(implode("\n", $rawLines), $modelText, $this->color($details), $price, $this->battery($details), [
+            $items[] = $this->row(implode("\n", $rawLines), $modelText, $this->color($details) ?? $this->color($match['prefix'] ?? ''), $price, $this->battery($details), [
                 'registered' => str_contains($details, '✅'),
                 'registration_status' => str_contains($details, '✅') ? 'رجیستر شده' : null,
                 'cycle' => preg_match('/cycle\s*:\s*(\d+)/i', $details, $cycle) ? (int) $cycle[1] : null,
