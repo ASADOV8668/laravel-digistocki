@@ -250,6 +250,11 @@ abstract class AbstractListingImportParser implements ListingImportParser
         }
 
         $canonical = $this->canonicalIphone($value);
+        if ($canonical === 'duo') {
+            $matches = $models->filter(fn (PhoneModel $model): bool => $this->canonicalIphone($model->name_en ?: $model->name) === 'duo');
+
+            return $matches->count() === 1 ? $matches->first() : null;
+        }
         if ($canonical) {
             foreach ($models as $model) {
                 $modelName = Str::lower(implode(' ', array_filter([$model->name_en, $model->name, $model->name_fa])));
@@ -284,6 +289,9 @@ abstract class AbstractListingImportParser implements ListingImportParser
 
     private function canonicalIphone(string $value): ?string
     {
+        if (preg_match('/\A(?:iphone\s*)?(?:\d{1,2}\s+)?duo\b/i', $value)) {
+            return 'duo';
+        }
         if (! preg_match('/(?:iphone\s*)?(\d{1,2}|xs\s*max|se(?:\s*2020)?)\s*(pro\s*max|promax|pro|plus|mini)?/i', $value, $match)) {
             return null;
         }

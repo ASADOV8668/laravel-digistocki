@@ -127,6 +127,11 @@ TEXT
             ['iPhone 18 Pro Max', 256, 'ZAA', 'سفید', 418000000, 'Active', null],
             ['iPhone 18 Pro Max', 512, 'CH', 'مشکی', 500000000, 'NotACT', null],
         ], array_map($fields, $grouped));
+
+        PhoneModel::where('name_en', 'iPhone Duo')->firstOrFail()->update([
+            'name' => 'iPhone 18 Duo', 'name_en' => 'iPhone 18 Duo', 'name_fa' => 'آیفون ۱۸ دوو', 'slug' => 'iphone-18-duo',
+        ]);
+        $this->assertSame('iPhone 18 Duo', $parser->parse('🤍Duo 512 zaa not$ 763/000')['items'][0]['model_name']);
     }
 
     public function test_import_preview_uses_the_selected_models_catalog_values_for_emoji_rows(): void
