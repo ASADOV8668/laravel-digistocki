@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AttributeController as AdminAttributeController;
 use App\Http\Controllers\Admin\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ListingController as AdminListingController;
+use App\Http\Controllers\Admin\LocationController as AdminLocationController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\PhoneModelController as AdminPhoneModelController;
 use App\Http\Controllers\Admin\PhoneSeriesController as AdminPhoneSeriesController;
@@ -91,6 +92,12 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function () {
     Route::get('/', DashboardController::class)->name('admin.dashboard');
+    Route::get('/locations', [AdminLocationController::class, 'index'])->name('admin.locations.index');
+    Route::post('/locations/provinces', [AdminLocationController::class, 'storeProvince'])->name('admin.locations.provinces.store');
+    Route::patch('/locations/provinces/{province}', [AdminLocationController::class, 'updateProvince'])->name('admin.locations.provinces.update');
+    Route::delete('/locations/provinces/{province}', [AdminLocationController::class, 'destroyProvince'])->name('admin.locations.provinces.destroy');
+    Route::post('/locations/provinces/{province}/cities', [AdminLocationController::class, 'storeCity'])->name('admin.locations.cities.store');
+    Route::patch('/locations/cities/{city}', [AdminLocationController::class, 'updateCity'])->name('admin.locations.cities.update');
     Route::get('/listings', [AdminListingController::class, 'index'])->name('admin.listings.index');
     Route::get('/listings/create', [AdminListingController::class, 'create'])->name('admin.listings.create');
     Route::post('/listings', [AdminListingController::class, 'store'])->name('admin.listings.store');
