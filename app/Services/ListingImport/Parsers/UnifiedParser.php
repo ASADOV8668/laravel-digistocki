@@ -7,7 +7,7 @@ use App\Support\RegistrationStatus;
 
 class UnifiedParser extends AbstractListingImportParser
 {
-    private const MODEL = '/^(?:[\p{Extended_Pictographic}\x{FE0F}\s]+)?(?<model>(?:apple\s+)?(?:(?:iphone|آیفون|ایفون)\s*)?(?:\d{1,2}(?!\d|[.,\/%٪])(?=\s|$|pro|plus|mini|normal|max)|xs(?:\s*max)?\b|xr\b|se\b).*|(?:galaxy|samsung|xiaomi|redmi|poco)\b.*)/iu';
+    private const MODEL = '/^(?:[\p{Extended_Pictographic}\x{FE0F}\s]+)?(?<model>(?:apple\s+)?(?:(?:iphone|آیفون|ایفون)\s*)?(?:\d{1,2}(?!\d|[.,\/%٪])(?=\s|$|pro|plus|mini|normal|max)|xs(?:\s*max)?\b|xr\b|se\b|duo\b).*|(?:galaxy|samsung|xiaomi|redmi|poco)\b.*)/iu';
 
     private const PRICE = '/(?<!\d)(\d{1,4}(?:[.,٬،\/]\d{3}){1,3}|\d{5,12})(?:\s*(m|تومان))?(?!\d)/iu';
 
@@ -16,8 +16,20 @@ class UnifiedParser extends AbstractListingImportParser
         $items = [];
         $header = null;
         $record = null;
+        $priceBlock = null;
 
         foreach ($this->lines($this->clean($text)) as $line) {
+            if (str_starts_with($line, '📱') && str_contains($line, '|') && preg_match(self::MODEL, $line, $model) && $this->linePrice($line) === null) {
+                $this->appendRecord($items, $record);
+                $record = $header = null;
+                $priceBlock = ['model' => $model['model'], 'heading' => $line, 'activation' => null, 'status_line' => null];
+                continue;
+            }
+            if ($priceBlock !== null && $this->readPriceBlock($items, $priceBlock, $line)) {
+                continue;
+            }
+            $priceBlock = null;
+
             $heading = preg_match('/^‼️?\s*(.*?)\s*‼️?$/u', $line, $title);
             $modelLine = preg_match(self::MODEL, $heading ? $title[1] : $line, $model);
             $price = $heading ? null : $this->linePrice($line);
@@ -46,6 +58,33 @@ class UnifiedParser extends AbstractListingImportParser
         return $this->result($items, $text, $defaultDate);
     }
 
+    private function readPriceBlock(array &$items, array &$block, string $line): bool
+    {
+        if (preg_match('/^(?:[🔒🔓]\x{FE0F}?\s*)?(not\s+active|active)$/iu', $line, $status)) {
+            $block['activation'] = mb_strtolower($status[1]) === 'active' ? 'Active' : 'NotACT';
+            $block['status_line'] = $line;
+
+            return true;
+        }
+
+        $pairs = [];
+        foreach (explode('|', $line) as $segment) {
+            $segment = trim($segment);
+            if (! preg_match('/^\p{Extended_Pictographic}\x{FE0F}?\h*\d/u', $segment) || ($price = $this->linePrice($segment)) === null) {
+                return false;
+            }
+            $pairs[] = [$segment, $price];
+        }
+        foreach ($pairs as [$segment, $price]) {
+            $this->appendRecord($items, [
+                'model' => $block['model'], 'lines' => array_filter([$block['heading'], $block['status_line'], $segment]), 'price' => $price,
+                'activation' => $block['activation'], 'color' => $this->color($segment),
+            ]);
+        }
+
+        return true;
+    }
+
     private function appendRecord(array &$items, ?array $record): void
     {
         if ($record === null) {
@@ -60,6 +99,10 @@ class UnifiedParser extends AbstractListingImportParser
                 'پرو مکس' => 'Pro Max', 'پرومکس' => 'Pro Max', 'پرو' => 'Pro', 'پلاس' => 'Plus', 'مینی' => 'Mini',
             ]);
         $details = str_replace(["\u{FE0E}", "\u{FE0F}"], '', $raw);
+        $activation = $record['activation'] ?? null;
+        if ($activation === null && preg_match('/\b(not\s+active|not|active)\h*\$/iu', $details, $status)) {
+            $activation = mb_strtolower($status[1]) === 'active' ? 'Active' : 'NotACT';
+        }
         $registration = RegistrationStatus::detect($details);
         $part = preg_match('/\b(ZAA|ZA|CHA|CH|LLA|LL|JPA|JAP|JP|AE|AH|HN|B|KH|TA|TH|VN)\b/i', $model.' '.$details, $partNumber)
             ? strtoupper($partNumber[1]) : null;
@@ -71,11 +114,13 @@ class UnifiedParser extends AbstractListingImportParser
         }
 
         preg_match_all('/\(([^()]*[\pL][^()]*)\)/u', $details, $notes);
-        $items[] = $this->row($raw, $modelText, $this->color($details) ?? $this->color($model), $record['price'], $this->battery($details), [
+        $color = array_key_exists('color', $record) ? $record['color'] : ($this->color($details) ?? $this->color($model));
+        $items[] = $this->row($raw, $modelText, $color, $record['price'], $this->battery($details), [
             'storage' => $storage,
             'registered' => RegistrationStatus::registered($registration),
             'registration_status' => $registration,
             'part_number' => $part,
+            'activation_status' => $activation,
             'cycle' => preg_match('/\bcycle\s*:?\s*(\d+)/i', $details, $cycle) ? (int) $cycle[1] : null,
             'description' => implode(' ', $notes[1]),
         ]);
