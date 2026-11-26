@@ -69,7 +69,14 @@ class PatternParser extends AbstractListingImportParser
             $extra['registration_status'] = RegistrationStatus::registered($details) === $extra['registered']
                 ? $details : RegistrationStatus::fromBoolean($extra['registered']);
 
-            $rows[] = $this->row($match[0], $match['model'], $this->field('color', $match, $markers),
+            $color = $this->field('color', $match, $markers);
+            foreach (isset($match['color']) ? [$match['color']] : $markers as $marker) {
+                if ($color !== null && ($this->symbols['color'][self::normalizeSymbol($marker)] ?? null) === $color) {
+                    $extra['configured_color'] = $color;
+                    break;
+                }
+            }
+            $rows[] = $this->row($match[0], $match['model'], $color,
                 $price > 0 ? $price : null, $this->field('battery', $match, $markers), $extra);
         }
 

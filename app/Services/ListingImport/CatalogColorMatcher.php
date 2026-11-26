@@ -28,10 +28,14 @@ final class CatalogColorMatcher
         'قهوه‌ای' => ['قهوه ای', 'brown'],
     ];
 
-    public function match(string $raw, ?string $detected, array $options): ?string
+    public function match(string $raw, ?string $detected, array $options, ?string $configured = null): ?string
     {
         if ($options === []) {
-            return $detected;
+            return $configured ?? $detected;
+        }
+        if ($configured !== null) {
+            $raw = $configured;
+            $detected = null;
         }
 
         $text = $this->normalize($raw);
@@ -40,7 +44,7 @@ final class CatalogColorMatcher
             $labels[$option] = $this->normalize($option);
         }
 
-        $exact = array_filter($labels, fn ($label) => $this->contains($text, $label));
+        $exact = array_filter($labels, fn ($label) => $configured !== null ? $text === $label : $this->contains($text, $label));
         if ($exact !== []) {
             // Keep the longer label when a generic option is part of a more specific one.
             $exact = array_filter($exact, fn ($label) => ! array_filter($exact, fn ($other) => $other !== $label && $this->contains($other, $label)));
@@ -62,7 +66,7 @@ final class CatalogColorMatcher
         if ($detected === null) {
             $families = array_filter(self::FAMILIES, fn ($aliases) => $this->hasAlias($text, $aliases));
             if ($families === []) {
-                return count($labels) === 1 ? array_key_first($labels) : null;
+                return $configured === null && count($labels) === 1 ? array_key_first($labels) : null;
             }
             if (count($families) !== 1) {
                 return null;

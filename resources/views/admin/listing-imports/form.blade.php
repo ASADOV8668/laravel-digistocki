@@ -59,7 +59,7 @@
             @foreach ([
                 'registration' => ['رجیستری', '🟢=1'],
                 'storage' => ['حافظه (گیگابایت)', '💾=256'],
-                'color' => ['رنگ', '🟦=آبی'],
+                'color' => ['ایموجی رنگ', "🩵=آبی آسمانی\n🍒=قرمز آلبالویی"],
                 'battery' => ['سلامت باتری (درصد)', '🔋=95'],
             ] as $field => [$label, $example])
                 @php
@@ -70,7 +70,10 @@
                 @endphp
                 <div>
                     <label for="symbols_{{ $field }}" class="mb-2 block text-sm font-bold text-slate-900">{{ $label }}</label>
-                    <textarea id="symbols_{{ $field }}" name="symbols[{{ $field }}]" rows="2" dir="ltr" placeholder="{{ $example }}" class="w-full rounded-xl border-slate-200">{{ old('symbols.'.$field, implode("\n", $rules)) }}</textarea>
+                    @if ($field === 'color')
+                        <p id="symbols-color-help" class="mb-2 text-xs leading-6 text-slate-600">یک ایموجی و نام رنگ در هر سطر بنویسید. این تنظیم با الگوی پیش‌فرض هم کار می‌کند و ایمپورتر نزدیک‌ترین گزینهٔ معتبر را از رنگ‌های مدل انتخاب می‌کند.</p>
+                    @endif
+                    <textarea id="symbols_{{ $field }}" name="symbols[{{ $field }}]" rows="{{ $field === 'color' ? 4 : 2 }}" dir="ltr" @if ($field === 'color') aria-describedby="symbols-color-help" @endif placeholder="{{ $example }}" class="w-full rounded-xl border-slate-200">{{ old('symbols.'.$field, implode("\n", $rules)) }}</textarea>
                     @error('symbols.'.$field)
                         <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
                     @enderror

@@ -97,8 +97,12 @@ class ListingImportParserController extends Controller
                     'battery' => preg_match('/^(?:100|[0-9]{1,2})$/D', $value),
                     'color' => $value !== '' && mb_strlen($value) <= 40,
                 };
-                if (! $pattern || (! str_contains($pattern, '{'.$field.'}') && ! str_contains($pattern, '{markers}'))) {
+                if ((! $pattern && $field !== 'color') || ($pattern && ! str_contains($pattern, '{'.$field.'}') && ! str_contains($pattern, '{markers}'))) {
                     throw ValidationException::withMessages(['symbols.'.$field => 'جای این نشانه را با فیلد مربوط یا {markers} در الگو مشخص کنید.']);
+                }
+                if (! $pattern && (preg_match('/\A\X\z/uD', $symbol) !== 1
+                    || preg_match('/[\p{Extended_Pictographic}\p{Regional_Indicator}\x{20E3}]/u', $symbol) !== 1)) {
+                    throw ValidationException::withMessages(['symbols.color' => 'در قالب بدون الگو، برای هر سطر یک ایموجی وارد کنید.']);
                 }
                 if (! $valid || $symbol === '' || mb_strlen($symbol) > 40 || isset($map[$field][$symbol])) {
                     throw ValidationException::withMessages(['symbols.'.$field => 'هر سطر باید یک نشانهٔ یکتا و یک مقدار معتبر به شکل نشانه=مقدار داشته باشد.']);

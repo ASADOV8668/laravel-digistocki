@@ -7,9 +7,13 @@ use App\Support\RegistrationStatus;
 
 class UnifiedParser extends AbstractListingImportParser
 {
-    private const MODEL = '/^(?:[\p{Extended_Pictographic}\x{FE0F}\s]+)?(?<model>(?:apple\s+)?(?:(?:iphone|آیفون|ایفون)\s*)?(?:\d{1,2}(?!\d|[.,\/%٪])(?=\s|$|pro|plus|mini|normal|max)|xs(?:\s*max)?\b|xr\b|se\b|duo\b).*|(?:galaxy|samsung|xiaomi|redmi|poco)\b.*)/iu';
+    private const EMOJI = '(?:(?=[\p{Extended_Pictographic}\p{Regional_Indicator}]|[0-9#*]\x{FE0F}?\x{20E3})\X)';
+
+    private const MODEL = '/^(?:'.self::EMOJI.'|\s)*(?<model>(?:apple\s+)?(?:(?:iphone|آیفون|ایفون)\s*)?(?:\d{1,2}(?!\d|[.,\/%٪])(?=\s|$|pro|plus|mini|normal|max)|xs(?:\s*max)?\b|xr\b|se\b|duo\b).*|(?:galaxy|samsung|xiaomi|redmi|poco)\b.*)/iu';
 
     private const PRICE = '/(?<!\d)(\d{1,4}(?:[.,٬،\/]\d{3}){1,3}|\d{5,12})(?:\s*(m|تومان))?(?!\d)/iu';
+
+    public function __construct(private readonly array $colorSymbols = []) {}
 
     public function parse(string $text, ?string $defaultDate = null): array
     {
@@ -70,7 +74,7 @@ class UnifiedParser extends AbstractListingImportParser
         $pairs = [];
         foreach (explode('|', $line) as $segment) {
             $segment = trim($segment);
-            if (! preg_match('/^\p{Extended_Pictographic}\x{FE0F}?\h*\d/u', $segment) || ($price = $this->linePrice($segment)) === null) {
+            if (! preg_match('/^'.self::EMOJI.'\h*\d/u', $segment) || ($price = $this->linePrice($segment)) === null) {
                 return false;
             }
             $pairs[] = [$segment, $price];
@@ -78,7 +82,7 @@ class UnifiedParser extends AbstractListingImportParser
         foreach ($pairs as [$segment, $price]) {
             $this->appendRecord($items, [
                 'model' => $block['model'], 'lines' => array_filter([$block['heading'], $block['status_line'], $segment]), 'price' => $price,
-                'activation' => $block['activation'], 'color' => $this->color($segment),
+                'activation' => $block['activation'], 'color' => $this->color($segment), 'color_source' => $segment,
             ]);
         }
 
@@ -114,16 +118,34 @@ class UnifiedParser extends AbstractListingImportParser
         }
 
         preg_match_all('/\(([^()]*[\pL][^()]*)\)/u', $details, $notes);
-        $color = array_key_exists('color', $record) ? $record['color'] : ($this->color($details) ?? $this->color($model));
+        $configuredColor = $this->configuredColor($record['color_source'] ?? $details);
+        $color = $configuredColor ?? (array_key_exists('color', $record) ? $record['color'] : ($this->color($details) ?? $this->color($model)));
         $items[] = $this->row($raw, $modelText, $color, $record['price'], $this->battery($details), [
             'storage' => $storage,
             'registered' => RegistrationStatus::registered($registration),
             'registration_status' => $registration,
             'part_number' => $part,
             'activation_status' => $activation,
+            'configured_color' => $configuredColor,
             'cycle' => preg_match('/\bcycle\s*:?\s*(\d+)/i', $details, $cycle) ? (int) $cycle[1] : null,
             'description' => implode(' ', $notes[1]),
         ]);
+    }
+
+    private function configuredColor(string $text): ?string
+    {
+        if ($this->colorSymbols === []) {
+            return null;
+        }
+        preg_match_all('/\X/u', $text, $tokens);
+        foreach ($tokens[0] as $token) {
+            $color = $this->colorSymbols[PatternParser::normalizeSymbol($token)] ?? null;
+            if ($color !== null) {
+                return $color;
+            }
+        }
+
+        return null;
     }
 
     private function linePrice(string $line): ?int

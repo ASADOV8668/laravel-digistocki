@@ -132,6 +132,7 @@ abstract class AbstractListingImportParser implements ListingImportParser
             'unsupported' => ! $supported,
             'part_number' => $extra['part_number'] ?? null,
             'activation_status' => $extra['activation_status'] ?? null,
+            'configured_color' => $extra['configured_color'] ?? null,
             'registered' => $extra['registered'] ?? null,
             'cycle' => $extra['cycle'] ?? null,
         ];

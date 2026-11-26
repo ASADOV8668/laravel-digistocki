@@ -275,7 +275,7 @@ class ListingImportController extends Controller
             $definitions = collect($row['attribute_definitions']);
             $color = $definitions->firstWhere('slug', 'color');
             if ($color) {
-                $selected = $colors->match($row['raw'], $row['color'], $color['options']);
+                $selected = $colors->match($row['raw'], $row['color'], $color['options'], $row['configured_color'] ?? null);
                 if ($selected !== null) {
                     $row['attributes'][$color['id']] = $row['color'] = $selected;
                     $row['issues'] = array_values(array_diff($row['issues'], [CatalogColorMatcher::MISSING_COLOR_ISSUE]));
