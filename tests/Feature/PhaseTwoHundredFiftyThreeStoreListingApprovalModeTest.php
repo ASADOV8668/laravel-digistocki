@@ -101,13 +101,24 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
             'city_id' => $city->id,
         ]);
         $brand = Brand::where('name_en', 'Apple')->firstOrFail();
-        $model = $brand->phoneModels()->where('name_en', 'iPhone 13 Pro Max')->firstOrFail();
-        $part = Attribute::create(['slug' => 'part_number', 'name' => 'پارت نامبر', 'type' => 'string', 'is_active' => true]);
-        $model->attributes()->attach($part->id, ['is_required' => false]);
+        $model = $brand->phoneModels()->where('name_en', 'iPhone 16 Pro Max')->firstOrFail();
+        $migration = require database_path('migrations/2026_11_26_000100_enable_iphone_part_numbers.php');
+        $migration->up();
+        $part = Attribute::where('slug', 'part_number')->firstOrFail();
+        $brand->wizardSteps()->create([
+            'step_type' => 'model', 'display_type' => 'buttons', 'is_required' => true, 'sort_order' => 1,
+        ]);
+        $wizard = $this->getJson(route('listings.wizard.config', [
+            $brand, 'device_type' => 'mobile', 'model_id' => $model->id,
+        ]))->assertOk();
+        $partStage = collect($wizard->json('steps'))->firstWhere('attribute.slug', 'part_number');
+        $this->assertSame($part->id, data_get($partStage, 'attribute.id'));
+        $this->assertFalse($partStage['required']);
         $battery = Attribute::where('slug', 'battery_health')->firstOrFail();
-        $battery->update(['options' => [...$battery->options, '86']]);
+        $battery->update(['options' => [...$battery->options, '95']]);
         $storage = Attribute::where('slug', 'storage')->firstOrFail();
         $color = Attribute::where('slug', 'color')->firstOrFail();
+        $color->update(['options' => [...$color->options, 'Deser Titanium']]);
         $payload = [
             'camera_listing' => '1',
             'device_type' => 'mobile',
@@ -117,9 +128,9 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
             'price' => 210000000,
             'attributes' => array_replace($this->requiredAttributeValues($model), [
                 $storage->id => '256',
-                $part->id => 'cha',
-                $battery->id => '86',
-                $color->id => 'مشکی',
+                $part->id => 'zaa',
+                $battery->id => '95',
+                $color->id => 'Deser Titanium',
             ]),
         ];
 
@@ -160,7 +171,7 @@ class PhaseTwoHundredFiftyThreeStoreListingApprovalModeTest extends TestCase
             'images' => [UploadedFile::fake()->create('product.jpg', 10, 'image/jpeg')],
         ])->assertRedirect()->assertSessionHas('status', 'آگهی شما برای بررسی ارسال شد.');
 
-        $listing = Listing::where('title', 'iPhone 13 Pro Max 256GB CHA 86% Black')->sole();
+        $listing = Listing::where('title', 'iPhone 16 Promax 256GB ZAA 95% Desert')->sole();
         $this->assertSame(ListingStatus::Pending, $listing->status);
         $this->assertEquals(210000000, $listing->price);
         $this->assertNull($listing->published_at);

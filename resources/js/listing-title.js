@@ -24,12 +24,14 @@ window.listingTitleGenerator = {
         const part = String(attributeValue(definitions, values, 'part_number')).trim().toUpperCase();
         const battery = englishDigits(attributeValue(definitions, values, 'battery_health'));
         const color = String(attributeValue(definitions, values, 'color')).trim();
+        const modelName = (model.secondary || model.label).replace(/^(iPhone .+) Pro Max$/i, '$1 Promax');
+        const colorName = /^desert? titanium$/i.test(color) ? 'Desert' : (englishColors[color] || color);
         return [
-            model.secondary || model.label,
+            modelName,
             storage !== '' ? `${storage}GB` : '',
             part,
             battery !== '' ? `${battery}%` : '',
-            englishColors[color] || color,
+            colorName,
         ].filter(Boolean).join(' ').slice(0, 160);
     },
 

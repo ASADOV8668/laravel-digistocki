@@ -76,7 +76,7 @@ class ListingTitleLanguageTest extends TestCase
         ];
 
         $this->assertSame('Apple iPhone 16 Pro Max 256GB ZAA 98%', ListingTitle::generate($brand->id, $model->id, $values, 'en'));
-        $this->assertSame('iPhone 16 Pro Max 256GB ZAA 98%', ListingTitle::generateForCamera($brand->id, $model->id, $values));
+        $this->assertSame('iPhone 16 Promax 256GB ZAA 98%', ListingTitle::generateForCamera($brand->id, $model->id, $values));
         $this->assertSame('iPhone 16 Pro Max 256GB ZAA 98% Black', ListingTitle::alignSubmittedTitle('iPhone 16 Pro Max 98% 256 GB CH Black', $values, [$part->id => 'CH']));
         $this->assertSame('آیفون ۱۶ پرو مکس ۲۵۶ گیگابایت ZAA ۹۸٪', ListingTitle::alignSubmittedTitle('آیفون ۱۶ پرو مکس ۲۵۶ گیگابایت ۹۸٪ zaa', $values));
 

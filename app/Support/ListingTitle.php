@@ -135,12 +135,13 @@ final class ListingTitle
         $part = strtoupper(trim((string) self::value($values, $attributes->get('part_number'))));
         $battery = self::englishDigits((string) self::value($values, $attributes->get('battery_health')));
         $color = self::englishAttributeValue('color', trim((string) self::value($values, $attributes->get('color'))));
+        $modelName = preg_replace('/^(iPhone .+) Pro Max$/i', '$1 Promax', $model->name_en ?: $model->name);
         $parts = [
-            $model->name_en ?: $model->name,
+            $modelName,
             $storage === '' ? '' : $storage.'GB',
             $part,
             $battery === '' ? '' : $battery.'%',
-            $color,
+            in_array(strtolower($color), ['deser titanium', 'desert titanium'], true) ? 'Desert' : $color,
         ];
 
         return mb_substr(implode(' ', array_filter($parts, fn (string $part): bool => $part !== '')), 0, 160);
