@@ -93,9 +93,13 @@
                                     <div class="flex items-center gap-3"><span
                                             class="flex h-11 w-11 items-center justify-center rounded-full bg-info/10 font-black text-info">{{ mb_substr($user->name, 0, 1) }}</span>
                                         <div>
-                                            <p class="font-black text-slate-800"><a
-                                                    href="{{ route('admin.users.edit', $user) }}"
-                                                    class="transition hover:text-info">{{ $user->name }}</a></p>
+                                            <p class="font-black text-slate-800">
+                                                @if ($user->isSeniorAdmin())
+                                                    {{ $user->name }}
+                                                @else
+                                                    <a href="{{ route('admin.users.edit', $user) }}" class="transition hover:text-info">{{ $user->name }}</a>
+                                                @endif
+                                            </p>
                                             <p class="mt-1 text-xs text-slate-400">
                                                 {{ $user->mobile ?: $user->email ?: 'بدون اطلاعات تماس' }}</p>
                                         </div>
@@ -107,7 +111,7 @@
                                 </td>
                                 <td class="px-5 py-4">
                                     <div class="flex max-w-[190px] flex-wrap gap-1.5"><span
-                                            class="rounded-full px-2.5 py-1 text-[10px] font-black {{ $user->isAdmin() ? 'bg-accent/10 text-accent' : 'bg-slate-100 text-slate-600' }}">{{ $user->isAdmin() ? 'مدیر' : 'کاربر' }}</span><span
+                                            class="rounded-full px-2.5 py-1 text-[10px] font-black {{ $user->isAdmin() ? 'bg-accent/10 text-accent' : 'bg-slate-100 text-slate-600' }}">{{ $user->isSeniorAdmin() ? 'مدیر ارشد' : ($user->isAdmin() ? 'مدیر' : 'کاربر') }}</span><span
                                             class="rounded-full px-2.5 py-1 text-[10px] font-black {{ $user->is_active ? 'bg-success/10 text-success' : 'bg-error/10 text-error' }}">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</span>
                                     </div>
                                 </td>
@@ -118,32 +122,36 @@
                                     <div class="flex min-w-[330px] flex-wrap justify-end gap-2"><a
                                             href="{{ route('admin.storefronts.edit', $user) }}"
                                             class="rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary transition hover:bg-primary/20">فروشگاه</a>
-                                        <form method="POST" action="{{ route('admin.users.toggle-active', $user) }}">
-                                            @csrf @method('PATCH')<button
-                                                class="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-200">{{ $user->is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی' }}</button>
-                                        </form>
-                                        <form method="POST" action="{{ route('admin.users.toggle-role', $user) }}">
-                                            @csrf @method('PATCH')<button
-                                                class="rounded-lg bg-accent/10 px-3 py-2 text-xs font-bold text-accent transition hover:bg-accent/20">{{ $user->isAdmin() ? 'تبدیل به کاربر' : 'ارتقا به مدیر' }}</button>
-                                        </form>
-                                        @if ($user->listings_count === 0 && ! auth()->user()->is($user))
-                                            <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
-                                                onsubmit="return confirm('این کاربر بدون آگهی به‌طور کامل حذف شود؟')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button
-                                                    class="rounded-lg bg-error/10 px-3 py-2 text-xs font-bold text-error transition hover:bg-error/20">
-                                                    <x-heroicon-o-trash class="inline-block h-4 w-4 align-text-bottom" />
-                                                    حذف کاربر
-                                                </button>
+                                        @unless ($user->isSeniorAdmin())
+                                            <form method="POST" action="{{ route('admin.users.toggle-active', $user) }}">
+                                                @csrf @method('PATCH')<button
+                                                    class="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-200">{{ $user->is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی' }}</button>
                                             </form>
-                                        @elseif ($user->listings_count > 0)
-                                            <span class="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-400"
-                                                title="کاربر دارای آگهی است">
-                                                <x-heroicon-o-lock-closed class="h-4 w-4" />
-                                                دارای آگهی
-                                            </span>
-                                        @endif
+                                            @if (auth()->user()->isSeniorAdmin())
+                                                <form method="POST" action="{{ route('admin.users.toggle-role', $user) }}">
+                                                    @csrf @method('PATCH')<button
+                                                        class="rounded-lg bg-accent/10 px-3 py-2 text-xs font-bold text-accent transition hover:bg-accent/20">{{ $user->isAdmin() ? 'تبدیل به کاربر' : 'ارتقا به مدیر' }}</button>
+                                                </form>
+                                            @endif
+                                            @if ($user->listings_count === 0 && ! auth()->user()->is($user))
+                                                <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
+                                                    onsubmit="return confirm('این کاربر بدون آگهی به‌طور کامل حذف شود؟')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button
+                                                        class="rounded-lg bg-error/10 px-3 py-2 text-xs font-bold text-error transition hover:bg-error/20">
+                                                        <x-heroicon-o-trash class="inline-block h-4 w-4 align-text-bottom" />
+                                                        حذف کاربر
+                                                    </button>
+                                                </form>
+                                            @elseif ($user->listings_count > 0)
+                                                <span class="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-400"
+                                                    title="کاربر دارای آگهی است">
+                                                    <x-heroicon-o-lock-closed class="h-4 w-4" />
+                                                    دارای آگهی
+                                                </span>
+                                            @endif
+                                        @endunless
                                     </div>
                                 </td>
                             </tr>

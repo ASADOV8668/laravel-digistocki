@@ -26,6 +26,11 @@ class PhaseTwoHundredFortyFiveAdminUserAjaxTest extends TestCase
 
         $this->actingAs($admin)
             ->patchJson(route('admin.users.toggle-role', $user), [])
+            ->assertForbidden();
+
+        $admin->forceFill(['is_senior_admin' => true])->save();
+        $this->actingAs($admin)
+            ->patchJson(route('admin.users.toggle-role', $user), [])
             ->assertOk()
             ->assertJson(['role' => 'admin']);
 

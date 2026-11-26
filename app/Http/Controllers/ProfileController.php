@@ -43,6 +43,8 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request, ImageService $imageService): RedirectResponse
     {
+        abort_if($request->user()->isSeniorAdmin(), 403);
+
         $request->validateWithBag('userDeletion', [
             'password' => ['required', 'current_password'],
         ]);

@@ -72,7 +72,10 @@
             <div class="border-t border-slate-100 pt-5">
                 <h2 class="text-base font-black text-slate-900">دسترسی‌ها</h2>
                 <div class="mt-4 grid gap-4 md:grid-cols-3">
-                    <div><label class="mb-2 block text-sm font-bold text-slate-700">نقش</label><select name="role" autocomplete="off"
+                    <div><label class="mb-2 block text-sm font-bold text-slate-700">نقش</label>@if (! auth()->user()->isSeniorAdmin())
+                            <input type="hidden" name="role" value="{{ $user->role }}">
+                        @endif
+                        <select name="role" autocomplete="off" @disabled(! auth()->user()->isSeniorAdmin())
                             class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info">
                             <option value="user" @selected(old('role', $user->role) === 'user')>کاربر عادی</option>
                             <option value="admin" @selected(old('role', $user->role) === 'admin')>مدیر سیستم</option>

@@ -104,6 +104,14 @@
                             class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.storefronts.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
                         <span x-show="!sidebarCollapsed">فروشگاه‌ها</span>
                     </a>
+                    <a href="{{ route('admin.locations.index') }}" title="استان‌ها و شهرها"
+                        class="menu-item group {{ request()->routeIs('admin.locations.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
+                        :class="sidebarCollapsed ? 'justify-center' : ''"
+                        @if (request()->routeIs('admin.locations.*')) aria-current="page" @endif>
+                        <x-heroicon-o-map-pin
+                            class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.locations.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
+                        <span x-show="!sidebarCollapsed">استان‌ها و شهرها</span>
+                    </a>
                     <a href="{{ route('admin.reports.index') }}" title="گزارش‌ها"
                         class="menu-item group {{ request()->routeIs('admin.reports.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         :class="sidebarCollapsed ? 'justify-center' : ''">

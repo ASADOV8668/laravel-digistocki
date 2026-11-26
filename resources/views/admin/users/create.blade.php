@@ -75,7 +75,9 @@
                             name="role" autocomplete="off"
                             class="w-full rounded-xl border-slate-200 text-sm focus:border-info focus:ring-info">
                             <option value="user" @selected(old('role', 'user') === 'user')>کاربر عادی</option>
-                            <option value="admin" @selected(old('role') === 'admin')>مدیر سیستم</option>
+                            @if (auth()->user()->isSeniorAdmin())
+                                <option value="admin" @selected(old('role') === 'admin')>مدیر سیستم</option>
+                            @endif
                         </select></div><label
                         class="flex items-center gap-2 self-end rounded-xl bg-slate-50 p-3 text-sm font-bold text-slate-700"><input
                             type="checkbox" name="is_active" value="1" autocomplete="off" @checked(old('is_active', true))
