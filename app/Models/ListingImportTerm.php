@@ -7,7 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ListingImportTerm extends Model
 {
-    protected $fillable = ['emoji', 'meaning', 'attribute_id', 'attribute_value'];
+    protected $fillable = ['emoji', 'meaning', 'attribute_id', 'attribute_value', 'color_candidates'];
+
+    protected function casts(): array
+    {
+        return ['color_candidates' => 'array'];
+    }
 
     protected static function booted(): void
     {

@@ -76,6 +76,7 @@ abstract class AbstractListingImportParser implements ListingImportParser
         $model = $this->resolveModel($modelText);
         $attributes = [];
         $issues = [];
+        $colorCandidatesMatched = false;
 
         if ($model) {
             if ($color !== null && ($id = $this->attributeId('color'))) {
@@ -94,9 +95,21 @@ abstract class AbstractListingImportParser implements ListingImportParser
                 $attributes[$id] = $extra['registration_status'];
             }
 
-            $attributes = array_replace($attributes, $this->termValues($model, explode("\n", $raw, 2)[0]."\n".$modelText));
+            $termText = $raw."\n".$modelText;
+            $attributes = array_replace($attributes, $this->termValues($model, $termText));
             if ($id = $this->attributeId('color')) {
                 $color = $attributes[$id] ?? $color;
+                $candidates = $this->colorCandidates($termText);
+                $colorAttribute = ($this->termAttributes[$model->id] ?? null)?->get($id);
+                if ($candidates !== [] && $colorAttribute) {
+                    $colorCandidatesMatched = true;
+                    $color = (new ColorCandidateMatcher)->match($termText, $candidates, $colorAttribute->optionsForModel($model->id));
+                    if ($color === null) {
+                        unset($attributes[$id]);
+                    } else {
+                        $attributes[$id] = $color;
+                    }
+                }
             }
         }
 
@@ -110,7 +123,9 @@ abstract class AbstractListingImportParser implements ListingImportParser
             $issues[] = 'قیمت از متن تشخیص داده نشد.';
         }
         if ($color === null && $model && $this->attributeId('color')) {
-            $issues[] = 'رنگ تشخیص داده نشد؛ لطفاً در پیش‌نمایش انتخاب کنید.';
+            $issues[] = $colorCandidatesMatched
+                ? 'رنگ این ایموجی برای این مدل قطعی نیست؛ لطفاً رنگ را انتخاب کنید.'
+                : 'رنگ تشخیص داده نشد؛ لطفاً در پیش‌نمایش انتخاب کنید.';
         }
 
         $description = trim((string) ($extra['description'] ?? ''));
@@ -130,6 +145,7 @@ abstract class AbstractListingImportParser implements ListingImportParser
             'model_name' => $model?->name_en ?: $model?->name,
             'attributes' => $attributes,
             'color' => $color,
+            'color_candidates_matched' => $colorCandidatesMatched,
             'price' => $price,
             'price_on_request' => false,
             'description' => $description,
@@ -146,8 +162,9 @@ abstract class AbstractListingImportParser implements ListingImportParser
 
     private function termValues(PhoneModel $model, string $text): array
     {
-        $this->terms ??= ListingImportTerm::query()->whereNotNull('attribute_id')
-            ->whereNotNull('attribute_value')->orderBy('id')->get()
+        $this->terms ??= ListingImportTerm::query()
+            ->where(fn ($query) => $query->whereNotNull('attribute_id')->whereNotNull('attribute_value'))
+            ->orWhereNotNull('color_candidates')->orderBy('id')->get()
             ->sortByDesc(fn (ListingImportTerm $term): int => mb_strlen($term->emoji));
 
         if ($this->terms->isEmpty()) {
@@ -156,7 +173,9 @@ abstract class AbstractListingImportParser implements ListingImportParser
 
         $this->termAttributes[$model->id] ??= Attribute::query()->where('is_active', true)
             ->visibleForModel($model->id)->with('optionRestrictions')
-            ->whereIn('id', $this->terms->pluck('attribute_id')->unique())->get()->keyBy('id');
+            ->where(fn ($query) => $query->where('slug', 'color')
+                ->orWhereIn('id', $this->terms->pluck('attribute_id')->filter()->unique()))
+            ->get()->keyBy('id');
 
         $text = mb_strtolower($this->clean($text));
         $values = [];
@@ -179,6 +198,16 @@ abstract class AbstractListingImportParser implements ListingImportParser
         }
 
         return $values;
+    }
+
+    private function colorCandidates(string $text): array
+    {
+        $normalize = fn (string $value): string => str_replace(["\u{FE0E}", "\u{FE0F}"], '', mb_strtolower($this->clean($value)));
+        $text = $normalize($text);
+
+        return $this->terms->filter(fn (ListingImportTerm $term): bool => $term->color_candidates
+            && $this->containsTerm($text, $normalize($term->emoji)))
+            ->flatMap(fn (ListingImportTerm $term): array => $term->color_candidates)->unique()->values()->all();
     }
 
     private function containsTerm(string $text, string $term): bool

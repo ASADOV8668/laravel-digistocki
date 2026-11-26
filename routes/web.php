@@ -99,6 +99,8 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::get('/listings/media', [AdminListingController::class, 'media'])->name('admin.listings.media.index');
     Route::get('/media', [MediaController::class, 'index'])->name('admin.media.index');
     Route::get('/listing-imports', [AdminListingImportParserController::class, 'index'])->name('admin.listing-imports.index');
+    Route::post('/listing-imports/terms/bulk', [ListingImportTermController::class, 'storeBulk'])
+        ->name('admin.listing-imports.terms.bulk.store');
     Route::resource('listing-imports/terms', ListingImportTermController::class)
         ->only(['index', 'store', 'edit', 'update', 'destroy'])
         ->names('admin.listing-imports.terms');

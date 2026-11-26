@@ -47,6 +47,14 @@
                 </select>
                 @error('target') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
+            @if ($term)
+                <div class="w-full">
+                    <label for="candidate_lines" class="mb-2 block text-sm font-bold text-slate-700">رنگ‌های احتمالی، هر رنگ در یک خط</label>
+                    <textarea id="candidate_lines" name="candidate_lines" rows="4" dir="auto"
+                        class="w-full rounded-xl border-slate-200">{{ old('candidate_lines', implode(PHP_EOL, $term->color_candidates ?? [])) }}</textarea>
+                    @error('candidate_lines') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+            @endif
             <button type="submit" class="rounded-xl bg-info px-4 py-2.5 text-sm font-bold text-white">
                 {{ $term ? 'ذخیره تغییرات' : 'ثبت اصطلاح' }}
             </button>
@@ -57,6 +65,35 @@
     </section>
 
     @if (!$term)
+        <section class="admin-card mb-6 p-5">
+            <h2 class="mb-4 font-black text-slate-900">ورود گروهی اصطلاحات</h2>
+            <form method="POST" action="{{ route('admin.listing-imports.terms.bulk.store') }}" class="space-y-3"
+                x-data="{ mode: @js(old('bulk_mode', 'colors')) }">
+                @csrf
+                <label for="bulk_mode" class="block text-sm font-bold text-slate-700">نوع لیست</label>
+                <select id="bulk_mode" name="bulk_mode" x-model="mode" class="rounded-xl border-slate-200">
+                    <option value="colors" @selected(old('bulk_mode', 'colors') === 'colors')>رنگ‌ها</option>
+                    <option value="terms" @selected(old('bulk_mode') === 'terms')>اصطلاحات و معنی فارسی</option>
+                </select>
+                <div x-show="mode === 'terms'" x-cloak>
+                    <label for="bulk_attribute" class="mb-2 block text-sm font-bold text-slate-700">ویژگی مرحله‌ساز</label>
+                    <select id="bulk_attribute" name="bulk_attribute" :disabled="mode !== 'terms'" class="rounded-xl border-slate-200">
+                        <option value="">تشخیص خودکار از روی معنی</option>
+                        @foreach ($targets as $group)
+                            <option value="{{ $group['id'] }}" @selected((string) old('bulk_attribute') === (string) $group['id'])>{{ $group['label'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <label for="bulk_lines" class="block text-sm font-bold text-slate-700">هر خط را به شکل اصطلاح=مقدار وارد کنید. اصطلاح می‌تواند کلمه، عبارت یا ایموجی باشد.</label>
+                <textarea id="bulk_lines" name="bulk_lines" rows="5" dir="auto" required
+                    :placeholder="mode === 'colors' ? '🟡=Yellow\n🟡=Gold\nblk=Black' : 'nat=نات اکتیو\nact=اکتیو'"
+                    class="w-full rounded-xl border-slate-200">{{ old('bulk_lines') }}</textarea>
+                @error('bulk_lines') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+                @error('bulk_mode') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+                @error('bulk_attribute') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+                <button type="submit" class="rounded-xl bg-info px-4 py-2.5 text-sm font-bold text-white">ثبت لیست</button>
+            </form>
+        </section>
         <section class="admin-card overflow-hidden">
             <h2 class="border-b border-slate-100 p-5 font-black text-slate-900">اصطلاحات تعریف‌شده</h2>
             <ul class="divide-y divide-slate-100">
@@ -67,6 +104,9 @@
                             <p>{{ $item->meaning }}</p>
                             @if ($item->attribute)
                                 <p class="mt-1 text-xs text-slate-500">{{ $item->attribute->name }} ← {{ $item->attribute_value }}</p>
+                            @endif
+                            @if ($item->color_candidates)
+                                <p class="mt-1 text-xs text-slate-500">{{ implode('، ', $item->color_candidates) }}</p>
                             @endif
                         </div>
                         <a href="{{ route('admin.listing-imports.terms.edit', $item) }}" class="font-bold text-info">ویرایش</a>

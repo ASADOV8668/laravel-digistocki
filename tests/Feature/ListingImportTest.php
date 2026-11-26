@@ -7,6 +7,7 @@ use App\Models\Listing;
 use App\Models\ListingImage;
 use App\Models\ListingImportParser;
 use App\Models\ListingImportTerm;
+use App\Models\ModelAttribute;
 use App\Models\SellerStore;
 use App\Models\User;
 use App\Services\ListingImport\ListingImportParserRegistry;
@@ -87,10 +88,8 @@ class ListingImportTest extends TestCase
         $this->seed(CatalogSeeder::class);
         $admin = User::factory()->create(['role' => 'admin']);
         $activation = Attribute::query()->where('slug', 'activation_status')->firstOrFail();
-        $target = json_encode([$activation->id, 'نات اکتیو'], JSON_UNESCAPED_UNICODE);
-
-        $this->actingAs($admin)->post(route('admin.listing-imports.terms.store'), [
-            'emoji' => 'nat', 'meaning' => 'فعال نشده', 'target' => $target,
+        $this->actingAs($admin)->post(route('admin.listing-imports.terms.bulk.store'), [
+            'bulk_mode' => 'terms', 'bulk_lines' => "nat=فعال نشده\nact=اکتیو",
         ])->assertSessionHasNoErrors()->assertRedirect(route('admin.listing-imports.terms.index'));
         $this->assertDatabaseHas('listing_import_terms', [
             'emoji' => 'nat', 'attribute_id' => $activation->id, 'attribute_value' => 'نات اکتیو',
@@ -116,6 +115,33 @@ class ListingImportTest extends TestCase
         $this->assertSame('iPhone 18 Pro Max', $rows[0]['model_name']);
         $this->assertSame('نات اکتیو', $rows[0]['attributes'][$activation->id]);
         $this->assertArrayNotHasKey($activation->id, $rows[1]['attributes']);
+    }
+
+    public function test_bulk_color_terms_use_model_options_and_leave_ambiguous_colors_unselected(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $route = route('admin.listing-imports.terms.bulk.store');
+        $this->actingAs($admin)->post($route, ['bulk_mode' => 'colors', 'bulk_lines' => "🟡=Yellow\n🟡=Gold\n🟡=yellow\ngld=Gold"])
+            ->assertSessionHasNoErrors()->assertRedirect(route('admin.listing-imports.terms.index'));
+        $term = ListingImportTerm::query()->where('emoji', '🟡')->sole();
+        $this->assertSame(['Yellow', 'Gold'], $term->color_candidates);
+        $this->post($route, ['bulk_mode' => 'colors', 'bulk_lines' => "🟡=Blue\ninvalid"])->assertSessionHasErrors('bulk_lines');
+        $this->assertSame(['Yellow', 'Gold'], $term->fresh()->color_candidates);
+
+        $parser = ListingImportParser::query()->where('key', 'at_kala')->firstOrFail();
+        $registry = app(ListingImportParserRegistry::class);
+        $colorId = Attribute::query()->where('slug', 'color')->value('id');
+        $result = $registry->make($parser)->parse("🟡13Pro 256g CH 92Bt\n💰165/000m\n🟡13Pro 256g CH 92Bt gold\n💰166/000m\n13Pro 256g CH 92Bt GLD\n💰167/000m");
+        $this->assertNull($result['items'][0]['color']);
+        $this->assertArrayNotHasKey($colorId, $result['items'][0]['attributes']);
+        $this->assertSame('طلایی', $result['items'][1]['attributes'][$colorId]);
+        $this->assertSame('طلایی', $result['items'][2]['attributes'][$colorId]);
+
+        ModelAttribute::query()->where('phone_model_id', $result['items'][0]['phone_model_id'])
+            ->where('attribute_id', $colorId)->update(['custom_options' => ['طلایی', 'آبی']]);
+        $result = $registry->make($parser)->parse("🟡13Pro 256g CH 92Bt\n💰165/000m");
+        $this->assertSame('طلایی', $result['items'][0]['attributes'][$colorId]);
     }
 
     public function test_supported_preview_rows_can_be_created_with_an_uploaded_image(): void
