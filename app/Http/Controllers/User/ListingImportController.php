@@ -10,6 +10,7 @@ use App\Models\PhoneModel;
 use App\Models\User;
 use App\Notifications\PendingListingNotification;
 use App\Services\ImageService;
+use App\Services\ListingImport\CatalogColorMatcher;
 use App\Services\ListingImport\ImportedListingService;
 use App\Services\ListingImport\InventoryMatch;
 use App\Services\ListingImport\ListingImportParserRegistry;
@@ -60,7 +61,7 @@ class ListingImportController extends Controller
         return view('listings.import', compact('parser', 'colorOptions', 'listingDate'));
     }
 
-    public function preview(Request $request, ListingImportParserRegistry $registry, InventoryMatch $inventory): RedirectResponse|View
+    public function preview(Request $request, ListingImportParserRegistry $registry, InventoryMatch $inventory, CatalogColorMatcher $colors): RedirectResponse|View
     {
         $parser = $this->parser($request);
         $validated = $request->validate(['text' => ['required', 'string', 'min:10', 'max:200000'], 'listing_date' => ['nullable', 'date_format:Y-m-d']]);
@@ -72,7 +73,7 @@ class ListingImportController extends Controller
         }
         $token = bin2hex(random_bytes(16));
         $colorOptions = Attribute::query()->where('slug', 'color')->value('options') ?? [];
-        $rows = $this->withAttributeDefinitions($rows, $request->user());
+        $rows = $this->withAttributeDefinitions($rows, $request->user(), $colors);
         [$rows, $unmatchedListings] = $inventory->preview($request->user(), $rows);
         $request->session()->put('listing_import.preview.'.$token, [
             'parser_id' => $parser->id, 'rows' => $rows, 'date' => $listingDate, 'unmatchedListings' => $unmatchedListings,
@@ -219,7 +220,7 @@ class ListingImportController extends Controller
     }
 
     /** @param array<int, array<string, mixed>> $rows */
-    private function withAttributeDefinitions(array $rows, User $user): array
+    private function withAttributeDefinitions(array $rows, User $user, CatalogColorMatcher $colors): array
     {
         $modelIds = collect($rows)->pluck('phone_model_id')->filter()->map(fn ($id): int => (int) $id)->unique()->values();
         if ($modelIds->isEmpty()) {
@@ -246,7 +247,7 @@ class ListingImportController extends Controller
             ->unique(fn (Listing $listing): string => $listing->brand_id.':'.$listing->phone_model_id)
             ->keyBy(fn (Listing $listing): string => $listing->brand_id.':'.$listing->phone_model_id);
 
-        return array_map(function (array $row) use ($models, $latestPrimaryImages): array {
+        return array_map(function (array $row) use ($models, $latestPrimaryImages, $colors): array {
             $modelId = (int) ($row['phone_model_id'] ?? 0);
             $model = $models->get($modelId);
 
@@ -273,20 +274,12 @@ class ListingImportController extends Controller
 
             $definitions = collect($row['attribute_definitions']);
             $color = $definitions->firstWhere('slug', 'color');
-            $colorPattern = match ($row['color'] ?? null) {
-                'آبی' => '/آبی|\bblue\b/iu',
-                'قرمز' => '/قرمز|آلبالویی|\b(?:red|cherry)\b/iu',
-                'مشکی' => '/مشکی|سیاه|\bblack\b/iu',
-                'سفید' => '/سفید|\bwhite\b/iu',
-                default => null,
-            };
-            if ($color && $colorPattern && ! in_array($row['color'], $color['options'], true)) {
-                $shades = array_filter($color['options'], fn ($option) => preg_match($colorPattern, $option));
-                $exactShade = collect($shades)->first(fn ($shade) => mb_stripos($row['raw'], $shade) !== false);
-                $selected = $exactShade ?? (count($shades) === 1 ? reset($shades) : null);
+            if ($color) {
+                $selected = $colors->match($row['raw'], $row['color'], $color['options']);
                 if ($selected !== null) {
                     $row['attributes'][$color['id']] = $row['color'] = $selected;
-                } elseif (filled($row['activation_status'] ?? null) && $color['options'] !== []) {
+                    $row['issues'] = array_values(array_diff($row['issues'], [CatalogColorMatcher::MISSING_COLOR_ISSUE]));
+                } elseif ($row['color'] !== null) {
                     unset($row['attributes'][$color['id']]);
                     $row['color'] = null;
                     $row['issues'][] = 'رنگ متن با گزینه‌های کاتالوگ تطبیق قطعی ندارد؛ در پیش‌نمایش انتخاب کنید.';

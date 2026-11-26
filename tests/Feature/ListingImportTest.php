@@ -9,6 +9,7 @@ use App\Models\ListingImportParser;
 use App\Models\PhoneModel;
 use App\Models\SellerStore;
 use App\Models\User;
+use App\Services\ListingImport\CatalogColorMatcher;
 use App\Services\ListingImport\ListingImportParserRegistry;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -134,7 +135,7 @@ TEXT
         $model = PhoneModel::where('name_en', 'iPhone 18 Pro Max')->firstOrFail();
         $color = Attribute::where('slug', 'color')->firstOrFail();
         $model->modelAttributes()->where('attribute_id', $color->id)->firstOrFail()
-            ->update(['custom_options' => ['Black Titanium', 'White Titanium', 'Light Blue', 'Cherry Red']]);
+            ->update(['custom_options' => ['Black Titanium', 'White Titanium', 'Light Blue', 'Ocean Blue', 'Red', 'Cherry Red']]);
         $part = Attribute::create(['name' => 'پارت نامبر', 'slug' => 'part_number', 'type' => 'select', 'options' => ['ZA/A', 'CH/A']]);
         $activation = Attribute::create(['name' => 'وضعیت(ACT/NOT)', 'type' => 'select', 'options' => ['Active', 'NotACT']]);
         $model->attributes()->attach([$part->id, $activation->id]);
@@ -149,6 +150,21 @@ TEXT
         $this->assertSame([445000000, 427500000, 418000000], array_column($rows, 'price'));
         $this->assertSame(['CH/A', 'CH/A', 'CH/A'], array_map(fn ($row) => $row['attributes'][$part->id], $rows));
         $this->assertSame(['NotACT', 'NotACT', 'Active'], array_map(fn ($row) => $row['attributes'][$activation->id], $rows));
+    }
+
+    public function test_catalog_color_matcher_resolves_specific_shades_and_leaves_true_ties_unset(): void
+    {
+        $matcher = new CatalogColorMatcher();
+        $blues = ['Light Blue', 'Ocean Blue', 'Black Titanium'];
+        $this->assertSame('Light Blue', $matcher->match('🩵 418.000', 'آبی', $blues));
+        $this->assertSame('Ocean Blue', $matcher->match('ابي اقيانوسي', 'آبی', $blues));
+        $this->assertSame('Ocean Blue', $matcher->match('🩵 آبی اقیانوسی', 'آبی', $blues));
+        $this->assertNull($matcher->match('🔵 418.000', 'آبی', $blues));
+        $this->assertSame('Cherry Red', $matcher->match('🍒 445.000', 'قرمز', ['Red', 'Cherry Red']));
+        $this->assertSame('Cherry Red', $matcher->match('CHERRY-RED', 'قرمز', ['Red', 'Cherry Red']));
+        $this->assertNull($matcher->match('🖤 445.000', 'مشکی', ['White Titanium']));
+        $this->assertSame('White Titanium', $matcher->match('iPhone 18 Pro 256GB', null, ['White Titanium']));
+        $this->assertNull($matcher->match('Redmi Note 13', null, ['Red', 'Blue']));
     }
 
     public function test_fratel_and_bamatel_parsers_keep_price_and_do_not_confuse_battery_or_cycle(): void

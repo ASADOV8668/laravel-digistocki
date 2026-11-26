@@ -102,7 +102,7 @@ abstract class AbstractListingImportParser implements ListingImportParser
             $issues[] = 'قیمت از متن تشخیص داده نشد.';
         }
         if ($color === null && $model && $this->attributeId('color')) {
-            $issues[] = 'رنگ تشخیص داده نشد؛ لطفاً در پیش‌نمایش انتخاب کنید.';
+            $issues[] = CatalogColorMatcher::MISSING_COLOR_ISSUE;
         }
 
         $description = trim((string) ($extra['description'] ?? ''));
@@ -169,7 +169,7 @@ abstract class AbstractListingImportParser implements ListingImportParser
 
         $map = ['blue' => 'آبی', 'black' => 'مشکی', 'white' => 'سفید', 'green' => 'سبز', 'pink' => 'صورتی', 'orange' => 'نارنجی', 'purple' => 'بنفش', 'yellow' => 'زرد', 'red' => 'قرمز', 'gray' => 'خاکستری', 'grey' => 'خاکستری', 'brown' => 'قهوه‌ای'];
         foreach ($map as $needle => $label) {
-            if (stripos($value, $needle) !== false) {
+            if (preg_match('/(?<!\pL)'.$needle.'(?!\pL)/iu', $value)) {
                 return $label;
             }
         }
