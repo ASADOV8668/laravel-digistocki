@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Attribute;
 use App\Models\ListingImportTerm;
+use App\Support\PersianSearch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -107,7 +108,7 @@ class ListingImportTermController extends Controller
 
     private function optionKey(string $value, bool $activation): string
     {
-        $value = strtr(mb_strtolower($value), ['ي' => 'ی', 'ك' => 'ک']);
+        $value = mb_strtolower(PersianSearch::normalize($value));
         $key = preg_replace('/[^\pL\pN]+/u', '', $value) ?? $value;
 
         return $activation ? match ($key) {

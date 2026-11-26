@@ -89,7 +89,7 @@ class ListingImportTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $activation = Attribute::query()->where('slug', 'activation_status')->firstOrFail();
         $this->actingAs($admin)->post(route('admin.listing-imports.terms.bulk.store'), [
-            'bulk_mode' => 'terms', 'bulk_lines' => "nat=فعال نشده\nact=اکتیو",
+            'bulk_mode' => 'terms', 'bulk_lines' => "nat=فعال نشده\nact=اکتیو\nنات‌اکتیو=نات اکتیو",
         ])->assertSessionHasNoErrors()->assertRedirect(route('admin.listing-imports.terms.index'));
         $this->assertDatabaseHas('listing_import_terms', [
             'emoji' => 'nat', 'attribute_id' => $activation->id, 'attribute_value' => 'نات اکتیو',
@@ -101,20 +101,21 @@ class ListingImportTest extends TestCase
         ])->assertSessionHasNoErrors();
         $this->assertSame($longSource, ListingImportTerm::query()->latest('id')->firstOrFail()->emoji);
         $this->get(route('admin.listing-imports.terms.index'))->assertOk()
-            ->assertSeeText('وضعیت فعال‌سازی')->assertSeeText('نات اکتیو');
+            ->assertSeeText('وضعیت فعال‌سازی')->assertSeeText('نات اکتیو')->assertSeeText('لیست کلمه‌ای (فارسی و انگلیسی)');
 
         $parser = ListingImportParser::query()->where('key', 'at_kala')->firstOrFail();
         $user = User::factory()->create(['listing_import_parser_id' => $parser->id]);
         $response = $this->actingAs($user)->post(route('listings.import.preview'), [
-            'text' => "۱۴۰۵/۰۹/۰۵\n🟥iphone 18 promax 256GB CH NAT\n💰165/000m\n🟥iphone 18 promax 256GB CH native\n💰165/000m",
+            'text' => "۱۴۰۵/۰۹/۰۵\n🟥iphone 18 promax 256GB CH NAT\n💰165/000m\n🟥iphone 18 promax 256GB CH native\n💰165/000m\n🟥iphone 18 promax 256GB CH نات اكتیو\n💰166/000m",
         ])->assertOk()->assertSee('۱۴۰۵/۰۹/۰۵');
 
         $rows = $response->viewData('rows');
-        $this->assertCount(2, $rows);
+        $this->assertCount(3, $rows);
         $this->assertTrue($rows[0]['supported']);
         $this->assertSame('iPhone 18 Pro Max', $rows[0]['model_name']);
         $this->assertSame('نات اکتیو', $rows[0]['attributes'][$activation->id]);
         $this->assertArrayNotHasKey($activation->id, $rows[1]['attributes']);
+        $this->assertSame('نات اکتیو', $rows[2]['attributes'][$activation->id]);
     }
 
     public function test_bulk_color_terms_use_model_options_and_leave_ambiguous_colors_unselected(): void

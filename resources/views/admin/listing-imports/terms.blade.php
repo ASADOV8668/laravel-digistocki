@@ -73,7 +73,7 @@
                 <label for="bulk_mode" class="block text-sm font-bold text-slate-700">نوع لیست</label>
                 <select id="bulk_mode" name="bulk_mode" x-model="mode" class="rounded-xl border-slate-200">
                     <option value="colors" @selected(old('bulk_mode', 'colors') === 'colors')>رنگ‌ها</option>
-                    <option value="terms" @selected(old('bulk_mode') === 'terms')>اصطلاحات و معنی فارسی</option>
+                    <option value="terms" @selected(old('bulk_mode') === 'terms')>لیست کلمه‌ای (فارسی و انگلیسی)</option>
                 </select>
                 <div x-show="mode === 'terms'" x-cloak>
                     <label for="bulk_attribute" class="mb-2 block text-sm font-bold text-slate-700">ویژگی مرحله‌ساز</label>
@@ -84,9 +84,9 @@
                         @endforeach
                     </select>
                 </div>
-                <label for="bulk_lines" class="block text-sm font-bold text-slate-700">هر خط را به شکل اصطلاح=مقدار وارد کنید. اصطلاح می‌تواند کلمه، عبارت یا ایموجی باشد.</label>
+                <label for="bulk_lines" class="block text-sm font-bold text-slate-700">هر خط را به شکل اصطلاح=مقدار وارد کنید. در لیست کلمه‌ای، اصطلاح ورودی می‌تواند فارسی یا انگلیسی باشد.</label>
                 <textarea id="bulk_lines" name="bulk_lines" rows="5" dir="auto" required
-                    :placeholder="mode === 'colors' ? '🟡=Yellow\n🟡=Gold\nblk=Black' : 'nat=نات اکتیو\nact=اکتیو'"
+                    :placeholder="mode === 'colors' ? '🟡=Yellow\n🟡=Gold\nblk=Black' : 'نات‌اکتیو=نات اکتیو\nفعال شده=اکتیو\nnat=نات اکتیو'"
                     class="w-full rounded-xl border-slate-200">{{ old('bulk_lines') }}</textarea>
                 @error('bulk_lines') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
                 @error('bulk_mode') <p class="text-xs text-red-600">{{ $message }}</p> @enderror

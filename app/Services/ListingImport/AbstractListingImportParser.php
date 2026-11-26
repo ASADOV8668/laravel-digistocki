@@ -8,6 +8,7 @@ use App\Models\Brand;
 use App\Models\ListingImportTerm;
 use App\Models\PhoneModel;
 use App\Support\PersianDigits;
+use App\Support\PersianSearch;
 use Carbon\Carbon;
 use Hekmatinasser\Verta\Verta;
 use Illuminate\Support\Collection;
@@ -177,11 +178,11 @@ abstract class AbstractListingImportParser implements ListingImportParser
                 ->orWhereIn('id', $this->terms->pluck('attribute_id')->filter()->unique()))
             ->get()->keyBy('id');
 
-        $text = mb_strtolower($this->clean($text));
+        $text = $this->normalizeTermText($text);
         $values = [];
         foreach ($this->terms as $term) {
             $attribute = $this->termAttributes[$model->id]->get($term->attribute_id);
-            if (! $attribute || ! $this->containsTerm($text, mb_strtolower($this->clean($term->emoji)))
+            if (! $attribute || ! $this->containsTerm($text, $this->normalizeTermText($term->emoji))
                 || ! in_array($term->attribute_value, $attribute->optionsForModel($model->id), true)) {
                 continue;
             }
@@ -202,12 +203,19 @@ abstract class AbstractListingImportParser implements ListingImportParser
 
     private function colorCandidates(string $text): array
     {
-        $normalize = fn (string $value): string => str_replace(["\u{FE0E}", "\u{FE0F}"], '', mb_strtolower($this->clean($value)));
+        $normalize = fn (string $value): string => str_replace(["\u{FE0E}", "\u{FE0F}"], '', $this->normalizeTermText($value));
         $text = $normalize($text);
 
         return $this->terms->filter(fn (ListingImportTerm $term): bool => $term->color_candidates
             && $this->containsTerm($text, $normalize($term->emoji)))
             ->flatMap(fn (ListingImportTerm $term): array => $term->color_candidates)->unique()->values()->all();
+    }
+
+    private function normalizeTermText(string $text): string
+    {
+        $text = mb_strtolower(PersianSearch::normalize($this->clean($text)));
+
+        return preg_replace('/[\h\x{200C}]+/u', ' ', $text) ?? $text;
     }
 
     private function containsTerm(string $text, string $term): bool
