@@ -191,6 +191,60 @@ TEXT
         $this->assertSame('طلایی', $result['items'][0]['attributes'][$colorId]);
     }
 
+    public function test_import_saves_terabyte_storage_as_the_models_catalog_option(): void
+    {
+        Storage::fake('public');
+        $this->seed(CatalogSeeder::class);
+        $storage = Attribute::where('slug', 'storage')->firstOrFail();
+        $storage->update(['type' => 'select', 'options' => ['256', '512', '2T', '1T']]);
+        $parser = ListingImportParser::where('key', 'at_kala')->firstOrFail();
+        $seller = User::factory()->create(['listing_import_parser_id' => $parser->id, 'can_post_listings' => true]);
+        SellerStore::create(['user_id' => $seller->id, 'slug' => 'storage-import-'.$seller->id, 'name' => 'فروشگاه', 'is_active' => true]);
+        $preview = $this->actingAs($seller)->post(route('listings.import.preview'), [
+            'listing_date' => '2026-11-26',
+            'text' => <<<'TEXT'
+📱 18 Pro | 1TB | ZAA
+▫️ Not Active
+🍒 632,000
+
+📱 18 Pro | 512GB | ZAA
+▫️ Not Active
+🩵 481,500
+🍒 481,000
+🖤 475,500
+
+▫️ Active
+🍒 469,000
+
+📱 18 Pro | 512GB | CH
+▫️ Not Active
+🤍 527,000
+
+📱 18 Pro | 256GB | ZAA
+▫️ Not Active
+🍒 412,000
+🤍 409,000
+TEXT
+            ,
+        ])->assertOk();
+        $rows = $preview->viewData('rows');
+        $this->assertSame(['1T', '512', '512', '512', '512', '512', '256', '256'],
+            array_map(fn (array $row) => $row['attributes'][$storage->id], $rows));
+
+        $this->post(route('listings.import.store'), [
+            'token' => $preview->viewData('token'),
+            'listing_date' => '۱۴۰۵/۰۹/۰۵',
+            'rows' => array_map(fn (array $row) => [
+                'action' => 'new', 'price' => $row['price'], 'attributes' => $row['attributes'],
+            ], $rows),
+            'uploads' => array_map(fn () => UploadedFile::fake()->create('phone.webp', 20, 'image/webp'), $rows),
+        ])->assertSessionHasNoErrors()->assertRedirect(route('dashboard'));
+
+        $this->assertDatabaseCount('listings', 8);
+        $listing = Listing::where('price', 632000000)->sole();
+        $this->assertDatabaseHas('listing_attribute_values', ['listing_id' => $listing->id, 'attribute_id' => $storage->id, 'value_string' => '1T']);
+    }
+
     public function test_supported_preview_rows_can_be_created_with_an_uploaded_image(): void
     {
         Storage::fake('public');

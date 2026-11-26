@@ -16,6 +16,7 @@ use App\Services\ListingMediaService;
 use App\Services\ListingRules;
 use App\Support\PersianDate;
 use App\Support\PersianDigits;
+use App\Support\StorageCapacity;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -106,7 +107,23 @@ class ListingImportController extends Controller
                 $row['price'] = $this->normalizePrice($submitted['price'] ?? $source['price'] ?? null, (int) ($source['price'] ?? 0));
                 $row['description'] = trim((string) ($submitted['description'] ?? $source['description'] ?? ''));
                 $row['attributes'] = (array) ($source['attributes'] ?? []);
-                foreach ((array) ($submitted['attributes'] ?? []) as $attributeId => $attributeValue) {
+                $submittedAttributes = (array) ($submitted['attributes'] ?? []);
+                $storage = collect($source['attribute_definitions'] ?? [])->firstWhere('slug', 'storage');
+                if ($storage) {
+                    $id = $storage['id'];
+                    $value = array_key_exists($id, $submittedAttributes) ? $submittedAttributes[$id] : ($row['attributes'][$id] ?? null);
+                    unset($submittedAttributes[$id], $row['attributes'][$id]);
+                    if ($value !== null && $value !== '') {
+                        $capacity = StorageCapacity::forAttribute($value, $storage);
+                        if ($capacity === null) {
+                            throw ValidationException::withMessages([
+                                'rows.'.$index.'.attributes.'.$id => 'حافظه ردیف '.($index + 1).' معتبر نیست. گزینه حافظه مدل یا مقداری مانند 512GB یا 1TB را وارد کنید.',
+                            ]);
+                        }
+                        $row['attributes'][$id] = $capacity;
+                    }
+                }
+                foreach ($submittedAttributes as $attributeId => $attributeValue) {
                     if ($attributeValue === '' || $attributeValue === [] || $attributeValue === null) {
                         continue;
                     }
@@ -188,6 +205,11 @@ class ListingImportController extends Controller
                 ])
                 ->values()
                 ->all() ?? [];
+
+            $storage = collect($row['attribute_definitions'])->firstWhere('slug', 'storage');
+            if ($storage && isset($row['attributes'][$storage['id']])) {
+                $row['attributes'][$storage['id']] = StorageCapacity::forAttribute($row['attributes'][$storage['id']], $storage);
+            }
 
             $key = ($row['brand_id'] ?? 0).':'.$modelId;
             $primaryImage = $latestPrimaryImages->get($key)?->primaryImage;

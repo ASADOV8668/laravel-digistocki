@@ -38,6 +38,7 @@ final class ListingTitle
         }
 
         $storage = self::value($values, $attributes->get('storage'));
+        $storage = StorageCapacity::gigabytes($storage) ?? $storage;
         if (filled($storage)) {
             $parts[] = $english
                 ? self::englishDigits((string) $storage).' GB'
