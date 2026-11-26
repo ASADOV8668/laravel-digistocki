@@ -11,6 +11,7 @@ use App\Models\ModelAttribute;
 use App\Models\SellerStore;
 use App\Models\User;
 use App\Services\ListingImport\ListingImportParserRegistry;
+use Carbon\Carbon;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -189,6 +190,32 @@ TEXT
             ->where('attribute_id', $colorId)->update(['custom_options' => ['طلایی', 'آبی']]);
         $result = $registry->make($parser)->parse("🟡13Pro 256g CH 92Bt\n💰165/000m");
         $this->assertSame('طلایی', $result['items'][0]['attributes'][$colorId]);
+    }
+
+    public function test_import_uses_tehran_jalali_date_and_shows_errors_on_the_affected_row(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-24 21:00:00', 'UTC'));
+        $this->seed(CatalogSeeder::class);
+        $parser = ListingImportParser::where('key', 'at_kala')->firstOrFail();
+        $seller = User::factory()->create(['listing_import_parser_id' => $parser->id, 'can_post_listings' => true]);
+        SellerStore::create(['user_id' => $seller->id, 'slug' => 'date-import-'.$seller->id, 'name' => 'فروشگاه', 'is_active' => true]);
+
+        $this->actingAs($seller)->get(route('listings.import.create'))
+            ->assertOk()->assertSee('value="۱۴۰۵/۰۹/۰۴"', false);
+        $preview = $this->post(route('listings.import.preview'), [
+            'text' => "📱 18 Pro | 512GB | ZAA\n▫️ Not Active\n🍒 481,000\n🍒 482,000",
+            'listing_date' => '۱۴۰۵/۰۹/۰۵',
+        ])->assertOk()->assertViewHas('listingDate', '2026-11-26')->assertSee('value="new" checked', false);
+        $token = $preview->viewData('token');
+        $resume = route('listings.import.create', ['preview' => $token]);
+
+        $this->post(route('listings.import.store'), [
+            'token' => $token,
+            'listing_date' => '۱۴۰۵/۰۹/۰۵',
+            'rows' => [['action' => 'skip'], ['action' => 'new']],
+        ])->assertRedirect($resume)->assertSessionHasErrors('uploads.1');
+        $this->get($resume)->assertOk()->assertSeeText('ردیف ۲')
+            ->assertSeeText('برای این ردیف یک تصویر');
     }
 
     public function test_import_saves_terabyte_storage_as_the_models_catalog_option(): void

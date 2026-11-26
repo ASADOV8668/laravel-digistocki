@@ -29,6 +29,31 @@ class ListingImportController extends Controller
     {
         $parser = $this->parser($request);
         $colorOptions = Attribute::query()->where('slug', 'color')->value('options') ?? [];
+        $token = $request->query('preview');
+        if (is_string($token) && preg_match('/\A[a-f0-9]{32}\z/', $token)) {
+            $preview = $request->session()->get('listing_import.preview.'.$token);
+            abort_unless(is_array($preview) && $parser->id === $preview['parser_id'], 419);
+            $rows = $preview['rows'];
+            foreach ($rows as $index => &$row) {
+                $submitted = $request->old('rows.'.$index, []);
+                if (! is_array($submitted)) {
+                    continue;
+                }
+                $row['price'] = is_scalar($submitted['price'] ?? null) ? $submitted['price'] : $row['price'];
+                if (is_array($submitted['attributes'] ?? null)) {
+                    $row['attributes'] = array_replace($row['attributes'], $submitted['attributes']);
+                }
+            }
+            unset($row);
+
+            return view('listings.import-preview', [
+                'parser' => $parser,
+                'rows' => $rows,
+                'token' => $token,
+                'listingDate' => $preview['date'],
+                'colorOptions' => $colorOptions,
+            ]);
+        }
 
         return view('listings.import', compact('parser', 'colorOptions'));
     }
@@ -36,14 +61,21 @@ class ListingImportController extends Controller
     public function preview(Request $request, ListingImportParserRegistry $registry): RedirectResponse|View
     {
         $parser = $this->parser($request);
-        $validated = $request->validate(['text' => ['required', 'string', 'min:10', 'max:200000'], 'listing_date' => ['nullable', 'date']]);
-        $result = $registry->make($parser)->parse($validated['text'], $validated['listing_date'] ?? null);
+        $validated = $request->validate(['text' => ['required', 'string', 'min:10', 'max:200000'], 'listing_date' => ['nullable', 'string']]);
+        $inputDate = $validated['listing_date'] ?? null;
+        $listingDate = $inputDate === null ? today('Asia/Tehran')->toDateString() : $this->parseImportDate($inputDate);
+        if ($listingDate === null) {
+            return redirect()->route('listings.import.create')
+                ->withErrors(['listing_date' => 'تاریخ آگهی معتبر نیست. یک تاریخ شمسی با قالب سال/ماه/روز وارد کنید.'])
+                ->withInput();
+        }
+        $result = $registry->make($parser)->parse($validated['text'], $listingDate);
         $rows = $result['items'];
         if ($rows === []) {
             return back()->withErrors(['text' => 'از متن واردشده هیچ ردیف قابل تشخیصی پیدا نشد.'])->withInput();
         }
         $token = bin2hex(random_bytes(16));
-        $request->session()->put('listing_import.preview.'.$token, ['parser_id' => $parser->id, 'rows' => $rows, 'text' => $validated['text'], 'date' => $result['detected_date'] ?? $validated['listing_date'] ?? null]);
+        $request->session()->put('listing_import.preview.'.$token, ['parser_id' => $parser->id, 'rows' => $rows, 'text' => $validated['text'], 'date' => $listingDate]);
         $colorOptions = Attribute::query()->where('slug', 'color')->value('options') ?? [];
         $rows = $this->withAttributeDefinitions($rows, $request->user());
         $request->session()->put('listing_import.preview.'.$token.'.rows', $rows);
@@ -52,8 +84,7 @@ class ListingImportController extends Controller
             'parser' => $parser,
             'rows' => $rows,
             'token' => $token,
-            'listingDate' => $result['detected_date'] ?? $validated['listing_date'] ?? null,
-            'dateRequired' => (bool) $result['date_required'],
+            'listingDate' => $listingDate,
             'colorOptions' => $colorOptions,
         ]);
     }
@@ -68,22 +99,11 @@ class ListingImportController extends Controller
             return redirect()->route('home')->with('status', 'ثبت آگهی برای این حساب در حال حاضر فعال نیست.');
         }
 
-        $submittedDate = PersianDigits::toEnglish(trim($request->string('listing_date')->toString()));
-        $date = null;
-        if (preg_match('~^\d{4}/\d{1,2}/\d{1,2}$~D', $submittedDate)) {
-            $canonicalDate = PersianDate::fromParts(...explode('/', $submittedDate));
-            $parsedDate = PersianDate::parseDate($canonicalDate);
-            if ($parsedDate && PersianDigits::toEnglish(PersianDate::format($parsedDate)) === $canonicalDate) {
-                $date = $parsedDate->toDateString();
-            }
-        } elseif (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/D', $submittedDate, $parts)
-            && checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1])) {
-            $date = $submittedDate;
-        }
+        $date = $this->parseImportDate($request->string('listing_date')->toString());
         if ($date === null) {
-            return redirect()->route('listings.import.create')
-                ->withErrors(['listing_date' => 'تاریخ آگهی معتبر نیست. پس از پیش‌نمایش دوباره، آن را به صورت شمسی و با قالب سال/ماه/روز وارد کنید.'])
-                ->withInput(['text' => $preview['text'] ?? '']);
+            return redirect()->route('listings.import.create', ['preview' => $token])
+                ->withErrors(['listing_date' => 'تاریخ آگهی معتبر نیست. یک تاریخ شمسی با قالب سال/ماه/روز وارد کنید.'])
+                ->withInput();
         }
         $rows = $request->input('rows', []);
         $originalRows = $preview['rows'] ?? [];
@@ -97,6 +117,9 @@ class ListingImportController extends Controller
         try {
             foreach ($rows as $index => $submitted) {
                 if (! is_array($submitted) || ! filter_var($submitted['enabled'] ?? true, FILTER_VALIDATE_BOOLEAN)) {
+                    continue;
+                }
+                if (($submitted['action'] ?? 'new') === 'skip') {
                     continue;
                 }
                 $source = $originalRows[$index] ?? null;
@@ -143,6 +166,9 @@ class ListingImportController extends Controller
             DB::commit();
         } catch (\Throwable $exception) {
             DB::rollBack();
+            if ($exception instanceof ValidationException && ! $request->expectsJson()) {
+                return redirect()->route('listings.import.create', ['preview' => $token])->withErrors($exception->errors())->withInput();
+            }
             throw $exception;
         }
         $request->session()->forget('listing_import.preview.'.$token);
@@ -218,6 +244,24 @@ class ListingImportController extends Controller
 
             return $row;
         }, $rows);
+    }
+
+    private function parseImportDate(string $value): ?string
+    {
+        $submittedDate = PersianDigits::toEnglish(trim($value));
+        $date = null;
+        if (preg_match('~^\d{4}/\d{1,2}/\d{1,2}$~D', $submittedDate)) {
+            $canonicalDate = PersianDate::fromParts(...explode('/', $submittedDate));
+            $parsedDate = PersianDate::parseDate($canonicalDate);
+            if ($parsedDate && PersianDigits::toEnglish(PersianDate::format($parsedDate)) === $canonicalDate) {
+                $date = $parsedDate->toDateString();
+            }
+        } elseif (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/D', $submittedDate, $parts)
+            && checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1])) {
+            $date = $submittedDate;
+        }
+
+        return $date;
     }
 
     private function normalizePrice(mixed $value, ?int $sourcePrice = null): ?int

@@ -23,9 +23,8 @@
                 <div class="min-w-[220px] flex-1">
                     <label for="preview-listing-date" class="mb-2 block text-sm font-bold text-neutral dark:text-slate-100">تاریخ شمسی آگهی</label>
                     <input id="preview-listing-date" type="text" name="listing_date" dir="ltr" required maxlength="10" placeholder="۱۴۰۵/۰۹/۰۵"
-                        value="{{ \App\Support\PersianNumber::digits(\App\Support\PersianDate::format($listingDate)) }}"
+                        value="{{ old('listing_date', \App\Support\PersianNumber::digits(\App\Support\PersianDate::format($listingDate))) }}"
                         class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800">
-                    @if ($dateRequired)<p class="mt-1 text-xs font-bold text-warning">تاریخ در متن پیدا نشد؛ لطفاً آن را به صورت سال/ماه/روز وارد کنید.</p>@endif
                 </div>
                 <p class="text-xs leading-6 text-slate-500 dark:text-slate-400">ردیف‌های خاکستری محصولاتی هستند که فعلاً در کاتالوگ گوشی پشتیبانی نمی‌شوند و ثبت نخواهند شد.</p>
             </div>
@@ -37,6 +36,25 @@
                         <input type="hidden" name="rows[{{ $index }}][price]" :value="rows[{{ $index }}].price">
                         <input type="hidden" name="rows[{{ $index }}][color]" :value="rows[{{ $index }}].color || ''">
                         <input type="hidden" name="media_ids[{{ $index }}]" :value="rows[{{ $index }}].media_id || ''">
+                        @php
+                            $rowErrors = collect($errors->get("rows.$index.*"))->flatten()->merge($errors->get("uploads.$index"))->unique();
+                        @endphp
+                        @if ($rowErrors->isNotEmpty())
+                            <div role="alert" class="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                                <p class="font-bold">ردیف {{ \App\Support\PersianNumber::digits($index + 1) }} · {{ $row['model_name'] }}</p>
+                                @foreach ($rowErrors as $rowError)
+                                    <p class="mt-1">{{ $rowError }}</p>
+                                @endforeach
+                            </div>
+                        @endif
+                        @if ($row['supported'])
+                            @php $selectedAction = old("rows.$index.action", 'new'); @endphp
+                            <fieldset class="mb-3 flex flex-wrap gap-3 text-sm">
+                                <legend class="mb-1 text-xs font-bold text-slate-500">عملیات این ردیف</legend>
+                                <label><input type="radio" name="rows[{{ $index }}][action]" value="skip" @checked($selectedAction === 'skip')> رد کردن</label>
+                                <label><input type="radio" name="rows[{{ $index }}][action]" value="new" @checked($selectedAction === 'new')> ثبت آگهی جدید</label>
+                            </fieldset>
+                        @endif
                         <div class="min-w-0">
                             <div class="flex items-start gap-3">
                                 <div class="flex w-20 shrink-0 flex-col items-center gap-1.5">
@@ -59,7 +77,7 @@
                             </div>
                             <div class="mt-3 grid gap-3 sm:grid-cols-2">
                                     <label class="block"><span class="mb-1 block text-xs font-bold text-slate-500">قیمت (تومان)</span><input type="text" inputmode="numeric" dir="ltr" x-model="rows[{{ $index }}].price" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"></label>
-                                    <label class="block"><span class="mb-1 block text-xs font-bold text-slate-500">توضیحات</span><input type="text" name="rows[{{ $index }}][description]" value="{{ $row['description'] }}" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"></label>
+                                    <label class="block"><span class="mb-1 block text-xs font-bold text-slate-500">توضیحات</span><input type="text" name="rows[{{ $index }}][description]" value="{{ old("rows.$index.description", $row['description']) }}" class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"></label>
                             </div>
                                 <div x-show="rows[{{ $index }}].attribute_definitions.length" class="mt-4 grid gap-3 sm:grid-cols-2">
                                     <template x-for="attribute in rows[{{ $index }}].attribute_definitions" :key="`import-attribute-${attribute.id}`">
