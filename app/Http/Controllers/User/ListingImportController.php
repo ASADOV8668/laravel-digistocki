@@ -271,16 +271,46 @@ class ListingImportController extends Controller
                 }
             }
 
-            if (($row['color'] ?? null) === 'آبی') {
-                $color = collect($row['attribute_definitions'])->firstWhere('slug', 'color');
-                $options = $color['options'] ?? [];
-                if (! in_array('آبی', $options, true)) {
-                    $shades = array_filter($options, fn ($option): bool => is_string($option) && preg_match('/آبی|\bblue\b/iu', $option));
-                    $exactShade = collect($shades)->first(fn (string $shade): bool => str_contains($row['raw'], $shade));
-                    $selected = $exactShade ?? (count($shades) === 1 ? reset($shades) : null);
-                    if ($selected !== null) {
-                        $row['attributes'][$color['id']] = $row['color'] = $selected;
-                    }
+            $definitions = collect($row['attribute_definitions']);
+            $color = $definitions->firstWhere('slug', 'color');
+            $colorPattern = match ($row['color'] ?? null) {
+                'آبی' => '/آبی|\bblue\b/iu',
+                'قرمز' => '/قرمز|آلبالویی|\b(?:red|cherry)\b/iu',
+                'مشکی' => '/مشکی|سیاه|\bblack\b/iu',
+                'سفید' => '/سفید|\bwhite\b/iu',
+                default => null,
+            };
+            if ($color && $colorPattern && ! in_array($row['color'], $color['options'], true)) {
+                $shades = array_filter($color['options'], fn ($option) => preg_match($colorPattern, $option));
+                $exactShade = collect($shades)->first(fn ($shade) => mb_stripos($row['raw'], $shade) !== false);
+                $selected = $exactShade ?? (count($shades) === 1 ? reset($shades) : null);
+                if ($selected !== null) {
+                    $row['attributes'][$color['id']] = $row['color'] = $selected;
+                } elseif (filled($row['activation_status'] ?? null) && $color['options'] !== []) {
+                    unset($row['attributes'][$color['id']]);
+                    $row['color'] = null;
+                    $row['issues'][] = 'رنگ متن با گزینه‌های کاتالوگ تطبیق قطعی ندارد؛ در پیش‌نمایش انتخاب کنید.';
+                }
+            }
+
+            $part = $definitions->firstWhere('slug', 'part_number');
+            if ($part && filled($row['part_number'] ?? null) && $part['options'] !== []) {
+                $code = strtoupper($row['part_number']);
+                $normalize = static fn ($option) => strtoupper(str_replace('/', '', $option));
+                $options = collect($part['options']);
+                $match = $options->first(fn ($option) => $normalize($option) === $code)
+                    ?? $options->first(fn ($option) => $normalize($option) === $code.'A');
+                if ($match !== null) {
+                    $row['attributes'][$part['id']] = $match;
+                }
+            }
+
+            $activation = $definitions->first(fn ($attribute) => $attribute['slug'] === 'activation_status' || $attribute['name'] === 'وضعیت(ACT/NOT)');
+            if ($activation && filled($row['activation_status'] ?? null)) {
+                $aliases = $row['activation_status'] === 'Active' ? ['active'] : ['notact', 'notactive'];
+                $match = collect($activation['options'])->first(fn ($option) => in_array(preg_replace('/[^a-z]/', '', strtolower($option)), $aliases, true));
+                if ($match !== null) {
+                    $row['attributes'][$activation['id']] = $match;
                 }
             }
 

@@ -78,6 +78,79 @@ class ListingImportTest extends TestCase
         $this->assertDatabaseHas('users', ['id' => $user->id, 'listing_import_parser_id' => null]);
     }
 
+    public function test_inline_and_grouped_price_lists_keep_color_price_and_activation_together(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $parser = app(ListingImportParserRegistry::class)->make(ListingImportParser::where('key', 'at_kala')->firstOrFail());
+        $storage = Attribute::where('slug', 'storage')->value('id');
+        $inline = $parser->parse(<<<'TEXT'
+⭕️⭕️⭕️
+🤍Duo 512 zaa not$ 763/000
+🖤Duo 256 zaa active$ 654/000
+🩵18 pro max 1TB zaa not$ 684/000
+🍒18 pro max 512 CH active$ 524/000
+همگی موجود تحویل آنی
+TEXT
+        )['items'];
+        $fields = static fn ($row) => [$row['model_name'], $row['attributes'][$storage], $row['part_number'], $row['color'], $row['price'], $row['activation_status'], $row['registered']];
+        $this->assertSame([
+            ['iPhone Duo', 512, 'ZAA', 'سفید', 763000000, 'NotACT', null],
+            ['iPhone Duo', 256, 'ZAA', 'مشکی', 654000000, 'Active', null],
+            ['iPhone 18 Pro Max', 1024, 'ZAA', 'آبی', 684000000, 'NotACT', null],
+            ['iPhone 18 Pro Max', 512, 'CH', 'قرمز', 524000000, 'Active', null],
+        ], array_map($fields, $inline));
+
+        $grouped = $parser->parse(<<<'TEXT'
+🔴 آیفون استوکی | iPhone Stocki ⚫️
+📱 لیست قیمت آیفون سری ۱۸ | ۴ آذر ۱۴۰۵
+━━━━━━━━━━━━━━
+📱 18 Pro Max 256GB | ZAA 🇸🇬
+🔒 Not Active
+🍒 445.000 | 🖤 427.500
+🤍 427.000 | 🩵 440.000
+
+🔓 Active
+🤍 418.000
+
+📱 18 Pro Max 512GB | CH 🇨🇳
+🔒 Not Active
+🖤 500.000
+━━━━━━━━━━━━━━
+TEXT
+        )['items'];
+        $this->assertSame([
+            ['iPhone 18 Pro Max', 256, 'ZAA', 'قرمز', 445000000, 'NotACT', null],
+            ['iPhone 18 Pro Max', 256, 'ZAA', 'مشکی', 427500000, 'NotACT', null],
+            ['iPhone 18 Pro Max', 256, 'ZAA', 'سفید', 427000000, 'NotACT', null],
+            ['iPhone 18 Pro Max', 256, 'ZAA', 'آبی', 440000000, 'NotACT', null],
+            ['iPhone 18 Pro Max', 256, 'ZAA', 'سفید', 418000000, 'Active', null],
+            ['iPhone 18 Pro Max', 512, 'CH', 'مشکی', 500000000, 'NotACT', null],
+        ], array_map($fields, $grouped));
+    }
+
+    public function test_import_preview_uses_the_selected_models_catalog_values_for_emoji_rows(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $model = PhoneModel::where('name_en', 'iPhone 18 Pro Max')->firstOrFail();
+        $color = Attribute::where('slug', 'color')->firstOrFail();
+        $model->modelAttributes()->where('attribute_id', $color->id)->firstOrFail()
+            ->update(['custom_options' => ['Black Titanium', 'White Titanium', 'Light Blue', 'Cherry Red']]);
+        $part = Attribute::create(['name' => 'پارت نامبر', 'slug' => 'part_number', 'type' => 'select', 'options' => ['ZA/A', 'CH/A']]);
+        $activation = Attribute::create(['name' => 'وضعیت(ACT/NOT)', 'type' => 'select', 'options' => ['Active', 'NotACT']]);
+        $model->attributes()->attach([$part->id, $activation->id]);
+        $parser = ListingImportParser::where('key', 'at_kala')->firstOrFail();
+        $user = User::factory()->create(['listing_import_parser_id' => $parser->id]);
+        $this->createImportStore($user);
+
+        $rows = $this->actingAs($user)->post(route('listings.import.preview'), [
+            'text' => "📱 18 Pro Max 256GB | CH 🇨🇳\n🔒 Not Active\n🍒 445.000 | 🖤 427.500\n🔓 Active\n🩵 418.000",
+        ])->assertOk()->viewData('rows');
+        $this->assertSame(['Cherry Red', 'Black Titanium', 'Light Blue'], array_column($rows, 'color'));
+        $this->assertSame([445000000, 427500000, 418000000], array_column($rows, 'price'));
+        $this->assertSame(['CH/A', 'CH/A', 'CH/A'], array_map(fn ($row) => $row['attributes'][$part->id], $rows));
+        $this->assertSame(['NotACT', 'NotACT', 'Active'], array_map(fn ($row) => $row['attributes'][$activation->id], $rows));
+    }
+
     public function test_fratel_and_bamatel_parsers_keep_price_and_do_not_confuse_battery_or_cycle(): void
     {
         $this->seed(CatalogSeeder::class);

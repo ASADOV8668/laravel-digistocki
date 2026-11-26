@@ -22,14 +22,14 @@ abstract class AbstractListingImportParser implements ListingImportParser
     private array $modelCache = [];
 
     protected const COLORS = [
-        '💙' => 'آبی', '🔵' => 'آبی', '🟦' => 'آبی', '🔷' => 'آبی', '🔹' => 'آبی',
+        '💙' => 'آبی', '🩵' => 'آبی', '🔵' => 'آبی', '🟦' => 'آبی', '🔷' => 'آبی', '🔹' => 'آبی',
         '💚' => 'سبز', '🟢' => 'سبز', '🟩' => 'سبز',
         '🩷' => 'صورتی', '🩷️' => 'صورتی', '💗' => 'صورتی',
         '🖤' => 'مشکی', '⚫' => 'مشکی', '⚫️' => 'مشکی',
         '🤍' => 'سفید', '⚪' => 'سفید', '⚪️' => 'سفید',
         '💛' => 'زرد', '🟡' => 'زرد', '💜' => 'بنفش', '🟣' => 'بنفش',
         '🍊' => 'نارنجی', '🟤' => 'قهوه‌ای', '🩶' => 'خاکستری',
-        '🔴' => 'قرمز', '🟥' => 'قرمز', '❤️' => 'قرمز', '❤' => 'قرمز',
+        '🍒' => 'قرمز', '🔴' => 'قرمز', '🟥' => 'قرمز', '❤️' => 'قرمز', '❤' => 'قرمز',
     ];
 
     protected function clean(string $text): string
@@ -112,6 +112,9 @@ abstract class AbstractListingImportParser implements ListingImportParser
         if ($extra['cycle'] ?? null) {
             $description = trim('Cycle: '.$extra['cycle'].' '.$description);
         }
+        if ($extra['activation_status'] ?? null) {
+            $description = trim($description.' وضعیت فعال‌سازی: '.($extra['activation_status'] === 'Active' ? 'Active' : 'Not Active'));
+        }
 
         $row = [
             'raw' => trim($raw),
@@ -128,6 +131,7 @@ abstract class AbstractListingImportParser implements ListingImportParser
             'issues' => array_values(array_unique($issues)),
             'unsupported' => ! $supported,
             'part_number' => $extra['part_number'] ?? null,
+            'activation_status' => $extra['activation_status'] ?? null,
             'registered' => $extra['registered'] ?? null,
             'cycle' => $extra['cycle'] ?? null,
         ];
