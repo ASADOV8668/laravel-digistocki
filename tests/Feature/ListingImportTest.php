@@ -75,6 +75,52 @@ class ListingImportTest extends TestCase
         $this->assertSame(62, $bamatelResult['items'][0]['cycle']);
     }
 
+    public function test_price_rows_inherit_model_storage_and_activation_from_their_group(): void
+    {
+        $this->seed(CatalogSeeder::class);
+        $parser = app(ListingImportParserRegistry::class)->make(ListingImportParser::where('key', 'at_kala')->firstOrFail());
+        $storage = Attribute::where('slug', 'storage')->value('id');
+        $rows = $parser->parse(<<<'TEXT'
+iPhone 18 Pro
+────────────
+
+📱 18 Pro | 1TB | ZAA
+▫️ Not Active
+🍒 632,000
+
+📱 18 Pro | 512GB | ZAA
+▫️ Not Active
+🩵 481,500
+🍒 481,000
+🖤 475,500
+
+▫️ Active
+🍒 469,000
+TEXT
+        )['items'];
+
+        $this->assertSame(array_fill(0, 5, 'iPhone 18 Pro'), array_column($rows, 'model_name'));
+        $this->assertSame([1024, 512, 512, 512, 512], array_map(fn ($row) => $row['attributes'][$storage], $rows));
+        $this->assertSame(array_fill(0, 5, 'ZAA'), array_column($rows, 'part_number'));
+        $this->assertSame(['قرمز', 'آبی', 'قرمز', 'مشکی', 'قرمز'], array_column($rows, 'color'));
+        $this->assertSame(['NotACT', 'NotACT', 'NotACT', 'NotACT', 'Active'], array_column($rows, 'activation_status'));
+        $this->assertSame([632000000, 481500000, 481000000, 475500000, 469000000], array_column($rows, 'price'));
+
+        $rows = $parser->parse("📱 18 Pro | 1TB | ZAA\n▫️ Active\n🍒 632,000\n512GB\n🖤 475,500\n📱 18 Pro Max | 256GB | CH\n▫️ Not Active\n🩵 520,000")['items'];
+        $this->assertSame(['iPhone 18 Pro', 'iPhone 18 Pro', 'iPhone 18 Pro Max'], array_column($rows, 'model_name'));
+        $this->assertSame(['Active', 'Active', 'NotACT'], array_column($rows, 'activation_status'));
+        $this->assertSame([1024, 512, 256], array_map(fn ($row) => $row['attributes'][$storage], $rows));
+        $this->assertSame(['ZAA', 'ZAA', 'CH'], array_column($rows, 'part_number'));
+
+        $rows = $parser->parse("iPhone 18 Pro 512GB ZAA\n▫️ Not Active\n🍒 481,000\n🩵 481,500\n▫️ Active\n🖤 469,000")['items'];
+        $this->assertSame([512, 512, 512], array_map(fn ($row) => $row['attributes'][$storage], $rows));
+        $this->assertSame(['NotACT', 'NotACT', 'Active'], array_column($rows, 'activation_status'));
+
+        $rows = $parser->parse("iPhone 18 Pro\n512GB | ZAA\n▫️ Not Active\n🍒 481,000\n🩵 481,500")['items'];
+        $this->assertSame([512, 512], array_map(fn ($row) => $row['attributes'][$storage], $rows));
+        $this->assertSame(['ZAA', 'ZAA'], array_column($rows, 'part_number'));
+    }
+
     public function test_import_page_is_not_available_without_an_assigned_parser(): void
     {
         $this->seed(CatalogSeeder::class);

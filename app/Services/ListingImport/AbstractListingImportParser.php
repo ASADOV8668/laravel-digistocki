@@ -30,13 +30,13 @@ abstract class AbstractListingImportParser implements ListingImportParser
     private array $termAttributes = [];
 
     protected const COLORS = [
-        '💙' => 'آبی', '🔵' => 'آبی', '💚' => 'سبز', '🟢' => 'سبز',
+        '💙' => 'آبی', '🩵' => 'آبی', '🔵' => 'آبی', '💚' => 'سبز', '🟢' => 'سبز',
         '🩷' => 'صورتی', '🩷️' => 'صورتی', '💗' => 'صورتی',
         '🖤' => 'مشکی', '⚫' => 'مشکی', '⚫️' => 'مشکی',
         '🤍' => 'سفید', '⚪' => 'سفید', '⚪️' => 'سفید',
         '💛' => 'زرد', '🟡' => 'زرد', '💜' => 'بنفش', '🟣' => 'بنفش',
         '🍊' => 'نارنجی', '🟤' => 'قهوه‌ای', '🩶' => 'خاکستری',
-        '🔴' => 'قرمز', '❤️' => 'قرمز',
+        '🍒' => 'قرمز', '🔴' => 'قرمز', '❤️' => 'قرمز',
     ];
 
     protected function clean(string $text): string
@@ -83,17 +83,20 @@ abstract class AbstractListingImportParser implements ListingImportParser
             if ($color !== null && ($id = $this->attributeId('color'))) {
                 $attributes[$id] = $color;
             }
-            if (($storage = $this->storage($modelText)) !== null && ($id = $this->attributeId('storage'))) {
+            if (($storage = $extra['storage'] ?? $this->storage($modelText)) !== null && ($id = $this->attributeId('storage'))) {
                 $attributes[$id] = $storage;
             }
             if ($battery !== null && ($id = $this->attributeId('battery_health'))) {
                 $attributes[$id] = $battery;
             }
-            if (array_key_exists('registered', $extra) && ($id = $this->attributeId('registered'))) {
+            if (isset($extra['registered']) && ($id = $this->attributeId('registered'))) {
                 $attributes[$id] = $extra['registered'] ? 1 : 0;
             }
             if (! empty($extra['registration_status']) && ($id = $this->attributeId('registration_status'))) {
                 $attributes[$id] = $extra['registration_status'];
+            }
+            if (isset($extra['activation_status']) && ($id = $this->attributeId('activation_status'))) {
+                $attributes[$id] = $extra['activation_status'] === 'Active' ? 'اکتیو' : 'نات اکتیو';
             }
 
             $termText = $raw."\n".$modelText;
@@ -153,6 +156,7 @@ abstract class AbstractListingImportParser implements ListingImportParser
             'issues' => array_values(array_unique($issues)),
             'unsupported' => ! $supported,
             'part_number' => $extra['part_number'] ?? null,
+            'activation_status' => $extra['activation_status'] ?? null,
             'registered' => $extra['registered'] ?? null,
             'cycle' => $extra['cycle'] ?? null,
         ];
@@ -399,7 +403,7 @@ abstract class AbstractListingImportParser implements ListingImportParser
     private function dedupeKey(array $row): string
     {
         return sha1(json_encode([
-            $row['brand_id'], $row['phone_model_id'], $row['price'], $row['color'], $row['part_number'], $row['registered'], $row['cycle'], $row['description'], $row['attributes'],
+            $row['brand_id'], $row['phone_model_id'], $row['price'], $row['color'], $row['part_number'], $row['activation_status'], $row['registered'], $row['cycle'], $row['description'], $row['attributes'],
         ], JSON_UNESCAPED_UNICODE));
     }
 }
