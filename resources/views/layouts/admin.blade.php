@@ -267,6 +267,7 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
             </div>
         </div>
     </div>
+    @stack('scripts')
 </body>
 
 </html>

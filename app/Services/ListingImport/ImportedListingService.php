@@ -22,13 +22,13 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ImportedListingService
 {
-    public function create(User $user, array $row, ?UploadedFile $upload, ?int $mediaId, ?string $date, ListingRules $rules, ImageService $imageService, ListingMediaService $mediaService): Listing
+    public function create(User $user, array $row, ?UploadedFile $upload, ?int $mediaId, ?string $date, ListingRules $rules, ImageService $imageService, ListingMediaService $mediaService, bool $requireReview = false): Listing
     {
         $brand = Brand::query()->whereKey($row['brand_id'] ?? null)->where('is_active', true)->where('can_post_listings', true)->firstOrFail();
         $model = PhoneModel::query()->whereKey($row['phone_model_id'] ?? null)->where('brand_id', $brand->id)->where('is_active', true)->firstOrFail();
         $attributes = (array) ($row['attributes'] ?? []);
         $title = ListingTitle::generate($brand->id, $model->id, $attributes) ?: trim($brand->name.' '.$model->name);
-        $autoPublish = $user->storefront?->allowsFreeListing() ?? false;
+        $autoPublish = ! $requireReview && ($user->storefront?->allowsFreeListing() ?? false);
         $listingDate = $date && Carbon::hasFormat($date, 'Y-m-d') ? Carbon::parse($date) : now();
         $createdMedia = null;
 

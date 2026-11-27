@@ -1,4 +1,13 @@
-<x-app-layout title="پیش‌نمایش ایمپورت آگهی">
+@php
+    $adminImport = request()->routeIs('admin.listing-imports.test.*');
+    $mediaUrl = $adminImport
+        ? route('admin.listings.media.index', ['user_id' => $seller->id])
+        : route('listings.media.index');
+    $storeUrl = $adminImport
+        ? route('admin.listing-imports.test.store', ['seller' => $seller->id])
+        : route('listings.import.store');
+@endphp
+<x-dynamic-component :component="$adminImport ? 'admin-layout' : 'app-layout'" title="پیش‌نمایش ایمپورت آگهی">
     <x-slot name="header">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-3">
@@ -12,11 +21,14 @@
         </div>
     </x-slot>
 
-    <section x-data="listingImportPreview(@js($rows), @js($colorOptions), @js(route('listings.media.index')) )" class="space-y-5 px-4 py-6">
+    @if ($adminImport)
+        <p class="px-4 pt-4 text-sm font-bold">فروشنده: {{ $seller->name }}</p>
+    @endif
+    <section x-data="listingImportPreview(@js($rows), @js($colorOptions), @js($mediaUrl) )" class="space-y-5 px-4 py-6">
         @if ($errors->any())
             <x-flowbite-alert type="danger">{{ $errors->first() }}</x-flowbite-alert>
         @endif
-        <form method="POST" action="{{ route('listings.import.store') }}" enctype="multipart/form-data" class="space-y-5">
+        <form method="POST" action="{{ $storeUrl }}" enctype="multipart/form-data" class="space-y-5">
             @csrf
             <input type="hidden" name="token" value="{{ $token }}">
             <div class="flex flex-wrap items-end gap-4 rounded-lg bg-white p-4 shadow-sm dark:bg-slate-900">
@@ -186,4 +198,4 @@
             }
         </script>
     @endpush
-</x-app-layout>
+</x-dynamic-component>

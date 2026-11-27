@@ -282,7 +282,7 @@ TEXT
         $user->forceFill(['listing_import_parser_id' => $parser->id])->save();
         $text = "💙13Pro 256g CH 92Bt\n💰165/000m";
 
-        $this->actingAs($user)->post(route('listings.import.preview'), [
+        $preview = $this->actingAs($user)->post(route('listings.import.preview'), [
             'text' => $text,
             'listing_date' => '2026-11-17',
         ])->assertOk()
@@ -291,12 +291,9 @@ TEXT
             ->assertDontSee('<select', false)
             ->assertSee('dir="ltr"', false);
 
-        $parserRows = app(ListingImportParserRegistry::class)->make($parser)->parse($text, '2026-11-17');
-        $token = 'test-import-token';
-        $row = $parserRows['items'][0];
-        $this->withSession(['listing_import.preview.'.$token => ['parser_id' => $parser->id, 'rows' => $parserRows['items'], 'date' => '2026-11-17']]);
+        $row = $preview->viewData('rows')[0];
         $this->actingAs($user)->post(route('listings.import.store'), [
-            'token' => $token,
+            'token' => $preview->viewData('token'),
             'listing_date' => '۱۴۰۵/۰۸/۲۶',
             'rows' => [[
                 'enabled' => 1,
@@ -309,6 +306,59 @@ TEXT
 
         $this->assertDatabaseHas('listings', ['user_id' => $user->id, 'price' => 165000000, 'created_at' => '2026-11-17 00:00:00']);
         $this->assertDatabaseCount('listing_images', 1);
+    }
+
+    public function test_admin_import_uses_the_selected_seller_and_requires_review(): void
+    {
+        Storage::fake('public');
+        $this->seed(CatalogSeeder::class);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $parser = ListingImportParser::query()->where('key', 'at_kala')->firstOrFail();
+        $seller = User::factory()->create(['listing_import_parser_id' => $parser->id]);
+        $otherSeller = User::factory()->create(['listing_import_parser_id' => $parser->id]);
+        foreach ([$seller, $otherSeller] as $user) {
+            SellerStore::create([
+                'user_id' => $user->id,
+                'slug' => 'admin-import-'.$user->id,
+                'name' => 'فروشگاه ایمپورت',
+                'approval_status' => 'approved',
+                'listing_approval_mode' => SellerStore::LISTING_APPROVAL_FREE,
+            ]);
+        }
+        $parameters = ['seller' => $seller->id];
+        $this->actingAs($seller)->get(route('admin.listing-imports.test.create', $parameters))->assertForbidden();
+        $this->actingAs($admin)->get(route('admin.listing-imports.test.create'))->assertOk()
+            ->assertSee($seller->name)->assertSeeText('تست ایمپورت آگهی');
+        $this->get(route('admin.listing-imports.test.create', $parameters))->assertOk()->assertSeeText('متن موجودی');
+
+        $preview = $this->post(route('admin.listing-imports.test.preview', $parameters), [
+            'text' => "💙13Pro 256g CH 92Bt\n💰165/000m",
+        ])->assertOk()->assertSee($seller->name)->assertSee('function listingImportPreview', false);
+        $media = $seller->addMedia(UploadedFile::fake()->create('phone.jpg', 100, 'image/jpeg'))
+            ->toMediaCollection('listing-images', 'public');
+        $data = [
+            'token' => $preview->viewData('token'),
+            'listing_date' => $preview->viewData('listingDate'),
+            'rows' => [['enabled' => 1]],
+            'media_ids' => [$media->id],
+        ];
+
+        $this->post(route('admin.listing-imports.test.store', ['seller' => $otherSeller->id]), $data)->assertStatus(419);
+        $seller->update(['can_post_listings' => false]);
+        $this->post(route('admin.listing-imports.test.store', $parameters), $data)
+            ->assertRedirect(route('admin.listing-imports.test.create', $parameters))->assertSessionHasErrors('seller');
+        $this->assertDatabaseCount('listings', 0);
+        $seller->update(['can_post_listings' => true]);
+
+        $this->post(route('admin.listing-imports.test.store', $parameters), $data)
+            ->assertRedirect(route('admin.listings.index'));
+        $this->assertDatabaseHas('listings', [
+            'user_id' => $seller->id,
+            'price' => 165000000,
+            'status' => 'pending',
+            'published_at' => null,
+        ]);
+        $this->assertDatabaseHas('listing_images', ['media_id' => $media->id]);
     }
 
     public function test_preview_prefills_latest_primary_media_for_the_same_user_and_model(): void

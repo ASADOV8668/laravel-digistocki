@@ -25,14 +25,17 @@ use Illuminate\Validation\ValidationException;
 
 class ListingImportController extends Controller
 {
-    public function create(Request $request)
+    public function create(Request $request, ListingRules $rules): View
     {
-        $parser = $this->parser($request);
+        $seller = $this->seller($request);
+        $parser = $seller?->listingImportParser;
         $colorOptions = Attribute::query()->where('slug', 'color')->value('options') ?? [];
+        $adminImport = $request->routeIs('admin.listing-imports.test.*');
+        $restriction = $adminImport && $seller ? $this->restriction($seller, $rules) : null;
         $token = $request->query('preview');
         if (is_string($token) && preg_match('/\A[a-f0-9]{32}\z/', $token)) {
             $preview = $request->session()->get('listing_import.preview.'.$token);
-            abort_unless(is_array($preview) && $parser->id === $preview['parser_id'], 419);
+            abort_unless($parser && $this->matchesPreview($request, $preview, $seller, $parser), 419);
             $rows = $preview['rows'];
             foreach ($rows as $index => &$row) {
                 $submitted = $request->old('rows.'.$index, []);
@@ -48,6 +51,7 @@ class ListingImportController extends Controller
 
             return view('listings.import-preview', [
                 'parser' => $parser,
+                'seller' => $seller,
                 'rows' => $rows,
                 'token' => $token,
                 'listingDate' => $preview['date'],
@@ -55,17 +59,27 @@ class ListingImportController extends Controller
             ]);
         }
 
-        return view('listings.import', compact('parser', 'colorOptions'));
+        $sellers = $adminImport ? User::query()->with('storefront')
+            ->where('role', 'user')->whereHas('storefront', fn ($query) => $query->where('approval_status', 'approved'))
+            ->orderBy('name')->get() : collect();
+
+        return view('listings.import', compact('parser', 'colorOptions', 'seller', 'restriction', 'sellers'));
     }
 
-    public function preview(Request $request, ListingImportParserRegistry $registry): RedirectResponse|View
+    public function preview(Request $request, ListingImportParserRegistry $registry, ListingRules $rules): RedirectResponse|View
     {
-        $parser = $this->parser($request);
+        $seller = $this->seller($request);
+        $parser = $seller?->listingImportParser;
+        abort_unless($seller, 404);
+        if ($request->routeIs('admin.listing-imports.test.*') && ($restriction = $this->restriction($seller, $rules))) {
+            return $this->importPage($request, $seller)->withErrors(['seller' => $restriction])->withInput();
+        }
+        abort_unless($parser?->is_active, 403);
         $validated = $request->validate(['text' => ['required', 'string', 'min:10', 'max:200000'], 'listing_date' => ['nullable', 'string']]);
         $inputDate = $validated['listing_date'] ?? null;
         $listingDate = $inputDate === null ? today('Asia/Tehran')->toDateString() : $this->parseImportDate($inputDate);
         if ($listingDate === null) {
-            return redirect()->route('listings.import.create')
+            return $this->importPage($request, $seller)
                 ->withErrors(['listing_date' => 'تاریخ آگهی معتبر نیست. یک تاریخ شمسی با قالب سال/ماه/روز وارد کنید.'])
                 ->withInput();
         }
@@ -75,13 +89,20 @@ class ListingImportController extends Controller
             return back()->withErrors(['text' => 'از متن واردشده هیچ ردیف قابل تشخیصی پیدا نشد.'])->withInput();
         }
         $token = bin2hex(random_bytes(16));
-        $request->session()->put('listing_import.preview.'.$token, ['parser_id' => $parser->id, 'rows' => $rows, 'text' => $validated['text'], 'date' => $listingDate]);
         $colorOptions = Attribute::query()->where('slug', 'color')->value('options') ?? [];
-        $rows = $this->withAttributeDefinitions($rows, $request->user());
-        $request->session()->put('listing_import.preview.'.$token.'.rows', $rows);
+        $rows = $this->withAttributeDefinitions($rows, $seller);
+        $request->session()->put('listing_import.preview.'.$token, [
+            'actor_id' => $request->user()->id,
+            'seller_id' => $seller->id,
+            'admin' => $request->routeIs('admin.listing-imports.test.*'),
+            'parser_id' => $parser->id,
+            'rows' => $rows,
+            'date' => $listingDate,
+        ]);
 
         return view('listings.import-preview', [
             'parser' => $parser,
+            'seller' => $seller,
             'rows' => $rows,
             'token' => $token,
             'listingDate' => $listingDate,
@@ -91,24 +112,31 @@ class ListingImportController extends Controller
 
     public function store(Request $request, ImportedListingService $service, ListingRules $rules, ImageService $imageService, ListingMediaService $mediaService): RedirectResponse
     {
-        $token = (string) $request->input('token');
+        $seller = $this->seller($request);
+        $parser = $seller?->listingImportParser;
+        $adminImport = $request->routeIs('admin.listing-imports.test.*');
+        $token = $request->input('token');
+        abort_unless(is_string($token) && preg_match('/\A[a-f0-9]{32}\z/', $token), 419);
         $preview = $request->session()->get('listing_import.preview.'.$token);
-        abort_unless(is_array($preview), 419);
-        abort_unless($request->user()->listing_import_parser_id === ($preview['parser_id'] ?? null), 403);
-        if (! $rules->canCreate($request->user())) {
+        abort_unless($parser && $this->matchesPreview($request, $preview, $seller, $parser), 419);
+        if ($adminImport && ($restriction = $this->restriction($seller, $rules))) {
+            return $this->importPage($request, $seller)->withErrors(['seller' => $restriction]);
+        }
+        if (! $adminImport && ! $rules->canCreate($seller)) {
             return redirect()->route('home')->with('status', 'ثبت آگهی برای این حساب در حال حاضر فعال نیست.');
         }
 
         $date = $this->parseImportDate($request->string('listing_date')->toString());
         if ($date === null) {
-            return redirect()->route('listings.import.create', ['preview' => $token])
+            return $this->importPage($request, $seller, ['preview' => $token])
                 ->withErrors(['listing_date' => 'تاریخ آگهی معتبر نیست. یک تاریخ شمسی با قالب سال/ماه/روز وارد کنید.'])
                 ->withInput();
         }
         $rows = $request->input('rows', []);
         $originalRows = $preview['rows'] ?? [];
         if (! is_array($rows) || $rows === []) {
-            return back()->withErrors(['rows' => 'حداقل یک ردیف برای ثبت انتخاب کنید.']);
+            return $this->importPage($request, $seller, ['preview' => $token])
+                ->withErrors(['rows' => 'حداقل یک ردیف برای ثبت انتخاب کنید.']);
         }
 
         $created = 0;
@@ -160,14 +188,17 @@ class ListingImportController extends Controller
                 if (! $upload && ! $mediaId) {
                     throw ValidationException::withMessages(['uploads.'.$index => 'برای این ردیف یک تصویر از رسانه‌ها انتخاب یا تصویر جدیدی آپلود کنید.']);
                 }
-                $createdListings[] = $service->create($request->user(), $row, $upload, $mediaId, $date, $rules, $imageService, $mediaService);
+                $createdListings[] = $service->create($seller, $row, $upload, $mediaId, $date, $rules, $imageService, $mediaService, requireReview: $adminImport);
                 $created++;
+            }
+            if ($adminImport && $created === 0) {
+                throw ValidationException::withMessages(['rows' => 'حداقل یک ردیف قابل ثبت انتخاب کنید.']);
             }
             DB::commit();
         } catch (\Throwable $exception) {
             DB::rollBack();
             if ($exception instanceof ValidationException && ! $request->expectsJson()) {
-                return redirect()->route('listings.import.create', ['preview' => $token])->withErrors($exception->errors())->withInput();
+                return $this->importPage($request, $seller, ['preview' => $token])->withErrors($exception->errors())->withInput();
             }
             throw $exception;
         }
@@ -176,15 +207,60 @@ class ListingImportController extends Controller
             fn ($listing) => User::query()->where('role', 'admin')->get()->each(fn (User $admin) => $admin->notify(new PendingListingNotification($listing))),
         );
 
-        return redirect()->route('dashboard')->with('status', $created.' آگهی از متن واردشده ایجاد شد و برای بررسی ارسال گردید.');
+        return redirect()->route($adminImport ? 'admin.listings.index' : 'dashboard')
+            ->with('status', $created.' آگهی از متن واردشده ایجاد شد و برای بررسی ارسال گردید.');
     }
 
-    private function parser(Request $request): ListingImportParser
+    private function seller(Request $request): ?User
     {
-        $parser = $request->user()?->listingImportParser;
-        abort_unless($parser?->is_active === true, 403);
+        if (! $request->routeIs('admin.listing-imports.test.*')) {
+            $user = $request->user();
+            abort_unless($user?->canImportListings(), 403);
 
-        return $parser;
+            return $user;
+        }
+
+        if (! $request->query->has('seller')) {
+            return null;
+        }
+
+        $seller = User::query()->with(['storefront', 'listingImportParser'])->findOrFail((int) $request->query('seller'));
+        abort_unless($seller->isUser() && $seller->isSeller(), 404);
+
+        return $seller;
+    }
+
+    private function restriction(User $seller, ListingRules $rules): ?string
+    {
+        if (! $seller->canImportListings()) {
+            return 'برای این فروشنده قالب فعال ایمپورت آگهی تعیین نشده است.';
+        }
+
+        if ($rules->canCreate($seller)) {
+            return null;
+        }
+
+        return $rules->activeCount($seller) >= ListingRules::MAX_ACTIVE_LISTINGS
+            ? 'این فروشنده به سقف '.ListingRules::MAX_ACTIVE_LISTINGS.' آگهی فعال رسیده است.'
+            : 'ثبت آگهی برای این فروشنده در حال حاضر فعال نیست.';
+    }
+
+    private function matchesPreview(Request $request, mixed $preview, User $seller, ListingImportParser $parser): bool
+    {
+        return is_array($preview)
+            && ($preview['actor_id'] ?? null) === $request->user()->id
+            && $preview['seller_id'] === $seller->id
+            && $preview['admin'] === $request->routeIs('admin.listing-imports.test.*')
+            && $preview['parser_id'] === $parser->id;
+    }
+
+    private function importPage(Request $request, User $seller, array $parameters = []): RedirectResponse
+    {
+        if ($request->routeIs('admin.listing-imports.test.*')) {
+            return redirect()->route('admin.listing-imports.test.create', ['seller' => $seller->id] + $parameters);
+        }
+
+        return redirect()->route('listings.import.create', $parameters);
     }
 
     /** @param array<int, array<string, mixed>> $rows */

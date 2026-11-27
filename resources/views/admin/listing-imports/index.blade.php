@@ -7,6 +7,8 @@
             </div>
             <div class="flex flex-wrap items-center gap-3">
                 <span class="rounded-full bg-info/10 px-3 py-2 text-xs font-bold text-info">{{ $parsers->count() }} قالب فعال</span>
+                <a href="{{ route('admin.listing-imports.test.create') }}"
+                    class="rounded-xl bg-info/10 px-4 py-2 text-sm font-bold text-info hover:bg-info/20">تست ایمپورت آگهی</a>
                 <a href="{{ route('admin.listing-imports.terms.index') }}"
                     class="rounded-xl bg-info/10 px-4 py-2 text-sm font-bold text-info hover:bg-info/20">اصطلاحات</a>
             </div>
