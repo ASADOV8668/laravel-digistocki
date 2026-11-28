@@ -60,7 +60,7 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                     </button>
                 </div>
 
-                <nav class="flex-1 space-y-1 overflow-y-auto py-6" aria-label="ناوبری مدیریت">
+                <nav class="admin-sidebar-nav min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain py-4 lg:py-6" aria-label="ناوبری مدیریت">
                     @foreach (config('admin-menu') as [$label, $icon, $destination])
                         @if (is_string($destination))
                             <a href="{{ route($destination) }}" title="{{ $label }}"
@@ -72,7 +72,21 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                         @else
                             @php
                                 $currentDevice = $deviceType ?? $brand->device_type ?? 'mobile';
-                                $children = collect($destination)->map(function ($item) use ($currentDevice) {
+                                $children = collect($destination)->filter(function ($item) {
+                                    $route = $item[1] ?? null;
+                                    $user = auth()->user();
+                                    if ($route === 'admin.roles.index') {
+                                        return !Route::has($route) || ($user && method_exists($user, 'isSeniorAdmin') && $user->isSeniorAdmin());
+                                    }
+                                    $area = match (explode('.', $route ?? '')[1] ?? null) {
+                                        'brands', 'attributes' => 'catalog',
+                                        'users', 'storefronts', 'listings', 'listing-imports', 'media',
+                                        'locations', 'reports', 'settings' => explode('.', $route)[1],
+                                        default => null,
+                                    };
+
+                                    return $area === null || !$user || !method_exists($user, 'canAccessAdminArea') || $user->canAccessAdminArea($area);
+                                })->map(function ($item) use ($currentDevice) {
                                     $parameters = $item[3] ?? [];
                                     $active = isset($item[1]) && request()->routeIs(...(array) ($item[2] ?? $item[1]))
                                         && (! isset($parameters['device_type']) || $parameters['device_type'] === $currentDevice);
@@ -81,6 +95,7 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                                 });
                                 $activeGroup = $children->contains(fn ($item) => $item[3]);
                             @endphp
+                            @continue($children->isEmpty())
                             <div x-data="{ expanded: @js($activeGroup) }">
                                 <button type="button" title="{{ $label }}" aria-controls="admin-menu-{{ $loop->index }}"
                                     :aria-expanded="(!sidebarCollapsed && expanded).toString()"

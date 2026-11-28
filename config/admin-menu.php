@@ -6,7 +6,7 @@ return [
     ['داشبورد', 'home', 'admin.dashboard'],
     ['کاربران', 'users', [
         ['همهٔ کاربران', 'admin.users.index', 'admin.users.*'],
-        ['نقش‌ها و مجوزها'],
+        ['نقش‌ها و مجوزها', 'admin.roles.index', 'admin.roles.*'],
         ['سوابق فعالیت'],
     ]],
     ['فروشگاه‌ها', 'building-storefront', [
@@ -17,7 +17,7 @@ return [
     ['آگهی‌ها', 'clipboard-document-list', [
         ['مدیریت آگهی‌ها', 'admin.listings.index', 'admin.listings.*'],
         ['ایمپورت آگهی', 'admin.listing-imports.index', 'admin.listing-imports.index'],
-        ['تست ایمپورت آگهی', 'admin.listing-imports.test', 'admin.listing-imports.test*'],
+        ['تست ایمپورت آگهی', 'admin.listing-imports.test.create', 'admin.listing-imports.test*'],
         ['اصطلاحات ایمپورت', 'admin.listing-imports.terms.index', 'admin.listing-imports.terms.*'],
         ['رسانه‌ها', 'admin.media.index', 'admin.media.*'],
         ['قوانین انتشار و سهمیهٔ فروشگاه‌ها'],
@@ -43,6 +43,6 @@ return [
     ['مرکز اعلان‌ها', 'bell', [['اعلان‌های مدیریت', 'admin.notifications.index', 'admin.notifications.*'], ['قالب‌ها و تاریخچهٔ ارسال']]],
     ['گزارش‌ها و تحلیل داده', 'chart-bar', [['گزارش‌های مالی'], ['عملکرد فروشگاه‌ها و آگهی‌ها']]],
     ['امنیت و سطح دسترسی', 'shield-check', [['مدیران و مجوزهای عملیاتی'], ['سوابق مدیریتی و امنیتی']]],
-    ['تنظیمات و زیرساخت', 'cog-6-tooth', [['تنظیمات عمومی', 'admin.settings.edit', 'admin.settings.*'], ['سرویس‌ها و وضعیت سامانه']]],
+    ['تنظیمات و زیرساخت', 'cog-6-tooth', [['تنظیمات عمومی', 'admin.settings.edit', 'admin.settings.*'], ['استان‌ها و شهرها', 'admin.locations.index', 'admin.locations.*'], ['سرویس‌ها و وضعیت سامانه']]],
     ['مشاهده سایت', 'globe-alt', 'home'],
 ];
