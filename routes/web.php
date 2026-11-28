@@ -95,6 +95,7 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::get('/', DashboardController::class)->name('admin.dashboard');
     Route::view('/finance', 'admin.finance.index')->name('admin.finance.index');
     Route::view('/marketing', 'admin.marketing.index')->name('admin.marketing.index');
+    Route::view('/reputation', 'admin.reputation.index')->name('admin.reputation.index');
     Route::get('/listings', [AdminListingController::class, 'index'])->name('admin.listings.index');
     Route::get('/listing-packages', [\App\Http\Controllers\Admin\ListingPackageController::class, 'index'])->name('admin.listing-packages.index');
     Route::post('/listing-packages', [\App\Http\Controllers\Admin\ListingPackageController::class, 'store'])->name('admin.listing-packages.store');
