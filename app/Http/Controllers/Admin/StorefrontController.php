@@ -222,7 +222,7 @@ class StorefrontController extends Controller
         return back()->with('status', $message);
     }
 
-    public function update(UpdateStorefrontRequest $request, User $user, ImageService $imageService): RedirectResponse
+    public function update(UpdateStorefrontRequest $request, User $user, ImageService $imageService): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $store = $user->storefront;
         $previousApprovalStatus = $store?->approval_status;
@@ -305,6 +305,10 @@ class StorefrontController extends Controller
             $user->notify(new StorefrontStatusNotification($store, $store->approval_status, $store->rejection_reason));
         }
 
-        return redirect()->route('admin.storefronts.index')->with('status', 'اطلاعات فروشگاه به‌روزرسانی شد.');
+        $redirect = redirect()->route('admin.storefronts.index')->with('status', 'اطلاعات فروشگاه به‌روزرسانی شد.');
+
+        return $request->expectsJson()
+            ? response()->json(['redirect' => $redirect->getTargetUrl()])
+            : $redirect;
     }
 }

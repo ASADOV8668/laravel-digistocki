@@ -43,9 +43,18 @@
             <p class="mt-2 text-xs leading-6">نام و نام خانوادگی، کد ملی و شماره تماس درخواست‌کننده باید با مدارک جواز کسب مطابقت داشته باشند.</p>
         </div>
         <form method="POST" action="{{ route('admin.storefronts.update', $user) }}" enctype="multipart/form-data"
-            x-data="{ removeLogo: false, removeBusinessLicense: false, removeExteriorImage: false }"
+            x-data="{ removeLogo: false, removeBusinessLicense: false, removeExteriorImage: false, cameraLogo: '', cameraLicense: '', cameraExterior: '', saving: false, saveErrors: [] }"
+            @submit.prevent="submitStorefront($el, $data)"
             class="admin-card space-y-5 p-5">
             @csrf @method('PUT')
+            <div x-cloak x-show="saveErrors.length" x-ref="saveErrors" tabindex="-1" role="alert"
+                class="rounded-xl border border-error bg-red-50 p-4 text-sm text-error">
+                <ul class="list-inside list-disc">
+                    <template x-for="(error, index) in saveErrors" :key="index">
+                        <li x-text="error"></li>
+                    </template>
+                </ul>
+            </div>
             <div class="grid gap-4 sm:grid-cols-2">
                 <div><label for="admin-first-name" class="mb-2 block text-sm font-bold text-slate-700">نام</label><input
                         id="admin-first-name" name="first_name" value="{{ old('first_name', $store?->first_name) }}"
@@ -141,14 +150,15 @@
             <div class="grid gap-4 sm:grid-cols-2">
                 <div><label for="admin-store-logo" class="mb-2 block text-sm font-bold text-slate-700">لوگوی
                         فروشگاه <span class="text-error">*</span></label><input id="admin-store-logo" name="logo" type="file"
-                        accept=".jpg,.jpeg,.png,.webp,.heic,.heif" @required(!$store?->logo_path) @change="removeLogo = false"
+                        accept=".jpg,.jpeg,.png,.webp,.heic,.heif" :required="@js(!$store?->logo_path) && !cameraLogo" @change="removeLogo = false; if ($event.target.files.length) { $refs.logoCamera.value = ''; cameraLogo = '' }"
                         class="w-full rounded-xl border border-slate-200 p-2 text-sm">
                     <label for="admin-store-logo-camera"
                         class="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
                         <x-heroicon-o-camera class="h-4 w-4" /> انتخاب با دوربین
                     </label>
                     <input id="admin-store-logo-camera" name="logo_camera" type="file" accept="image/*" capture="environment"
-                        @change="removeLogo = false" class="sr-only">
+                        x-ref="logoCamera" @change="cameraLogo = $event.target.files[0]?.name || ''; if (cameraLogo) { removeLogo = false; $el.form.elements.logo.value = '' }" class="sr-only">
+                    <span x-show="cameraLogo" x-text="cameraLogo" dir="ltr" class="text-xs"></span>
                     @if ($store?->logo_path)
                         <div x-show="!removeLogo" class="relative mt-3 w-fit">
                             <img src="{{ asset('storage/'.$store->logo_path) }}" alt="لوگوی فعلی فروشگاه"
@@ -163,14 +173,15 @@
                 </div>
                 <div><label for="admin-business-license" class="mb-2 block text-sm font-bold text-slate-700">تصویر
                         جواز کسب <span class="text-error">*</span></label><input id="admin-business-license" name="business_license" type="file"
-                        accept=".jpg,.jpeg,.png,.webp,.heic,.heif" @required(!$store?->business_license_path) @change="removeBusinessLicense = false"
+                        accept=".jpg,.jpeg,.png,.webp,.heic,.heif" :required="@js(!$store?->business_license_path) && !cameraLicense" @change="removeBusinessLicense = false; if ($event.target.files.length) { $refs.licenseCamera.value = ''; cameraLicense = '' }"
                         class="w-full rounded-xl border border-slate-200 p-2 text-sm">
                     <label for="admin-business-license-camera"
                         class="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
                         <x-heroicon-o-camera class="h-4 w-4" /> انتخاب با دوربین
                     </label>
                     <input id="admin-business-license-camera" name="business_license_camera" type="file" accept="image/*"
-                        capture="environment" @change="removeBusinessLicense = false" class="sr-only">
+                        capture="environment" x-ref="licenseCamera" @change="cameraLicense = $event.target.files[0]?.name || ''; if (cameraLicense) { removeBusinessLicense = false; $el.form.elements.business_license.value = '' }" class="sr-only">
+                    <span x-show="cameraLicense" x-text="cameraLicense" dir="ltr" class="text-xs"></span>
                     @if ($store?->business_license_path)
                         <div x-show="!removeBusinessLicense" class="relative mt-3 w-fit">
                             <img src="{{ asset('storage/'.$store->business_license_path) }}" alt="تصویر فعلی جواز کسب"
@@ -188,14 +199,15 @@
                 <label for="admin-exterior-image" class="mb-2 block text-sm font-bold text-slate-700">تصویر نمایش بیرون (سردر) فروشگاه
                     <span class="text-xs font-normal text-slate-400">(اختیاری)</span></label>
                 <input id="admin-exterior-image" name="exterior_image" type="file"
-                    accept=".jpg,.jpeg,.png,.webp,.heic,.heif" @change="removeExteriorImage = false"
+                    accept=".jpg,.jpeg,.png,.webp,.heic,.heif" @change="removeExteriorImage = false; if ($event.target.files.length) { $refs.exteriorCamera.value = ''; cameraExterior = '' }"
                     class="w-full rounded-xl border border-slate-200 p-2 text-sm">
                 <label for="admin-exterior-image-camera"
                     class="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
                     <x-heroicon-o-camera class="h-4 w-4" /> انتخاب با دوربین
                 </label>
                 <input id="admin-exterior-image-camera" name="exterior_image_camera" type="file" accept="image/*"
-                    capture="environment" @change="removeExteriorImage = false" class="sr-only">
+                    capture="environment" x-ref="exteriorCamera" @change="cameraExterior = $event.target.files[0]?.name || ''; if (cameraExterior) { removeExteriorImage = false; $el.form.elements.exterior_image.value = '' }" class="sr-only">
+                <span x-show="cameraExterior" x-text="cameraExterior" dir="ltr" class="text-xs"></span>
                 @if ($store?->exterior_image_path)
                     <div x-show="!removeExteriorImage" class="relative mt-3 w-fit">
                         <img src="{{ asset('storage/'.$store->exterior_image_path) }}" alt="تصویر فعلی نمای بیرونی فروشگاه"
@@ -289,5 +301,39 @@
                     class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-black text-white transition hover:bg-primary-600"><x-heroicon-o-check
                         class="h-5 w-5" />ذخیره اطلاعات فروشگاه</button></div>
         </form>
+        <script>
+            async function submitStorefront(form, state) {
+                if (state.saving) return;
+                state.saving = true;
+                state.saveErrors = [];
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: { Accept: 'application/json' },
+                        body: new FormData(form),
+                    });
+                    const result = await response.json();
+
+                    if (response.ok && result.redirect) {
+                        window.location.assign(result.redirect);
+                        return;
+                    }
+
+                    if (response.status === 422 && result.errors) {
+                        state.saveErrors = Object.values(result.errors).flat();
+                    } else {
+                        throw new Error('Storefront save failed');
+                    }
+                } catch {
+                    state.saveErrors = ['ذخیرهٔ اطلاعات فروشگاه انجام نشد. دوباره تلاش کنید.'];
+                } finally {
+                    state.saving = false;
+                    if (state.saveErrors.length) {
+                        await new Promise(requestAnimationFrame);
+                        form.querySelector('[role="alert"][x-ref="saveErrors"]').focus();
+                    }
+                }
+            }
+        </script>
     </section>
 </x-admin-layout>
