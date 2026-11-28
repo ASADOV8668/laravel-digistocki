@@ -30,6 +30,8 @@ final class ColorCandidateMatcher
         $text = $this->normalize($text);
         $explicit = [];
         $eligible = [];
+        $compound = [];
+        $candidateLabels = array_merge([], ...array_map($this->labels(...), $candidates));
 
         foreach ($options as $option) {
             $labels = $this->labels($option);
@@ -41,6 +43,14 @@ final class ColorCandidateMatcher
             foreach ($candidates as $candidate) {
                 if (in_array($this->normalize($candidate), $labels, true)) {
                     $eligible[$option] = true;
+                    break;
+                }
+            }
+
+            $normalizedOption = $this->normalize($option);
+            foreach ($candidateLabels as $label) {
+                if ($this->contains($normalizedOption, $label)) {
+                    $compound[$option] = true;
                     break;
                 }
             }
@@ -57,7 +67,9 @@ final class ColorCandidateMatcher
             return count($explicit) === 1 ? (string) array_key_first($explicit) : null;
         }
 
-        return count($eligible) === 1 ? (string) array_key_first($eligible) : null;
+        $matches = $eligible ?: $compound;
+
+        return count($matches) === 1 ? (string) array_key_first($matches) : null;
     }
 
     private function labels(string $option): array
