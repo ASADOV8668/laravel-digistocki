@@ -6,8 +6,6 @@ return [
     ['داشبورد', 'home', 'admin.dashboard'],
     ['کاربران', 'users', [
         ['همهٔ کاربران', 'admin.users.index', 'admin.users.*'],
-        ['نقش‌ها و مجوزها', 'admin.roles.index', 'admin.roles.*'],
-        ['سوابق فعالیت'],
     ]],
     ['فروشگاه‌ها', 'building-storefront', [
         ['همهٔ فروشگاه‌ها', 'admin.storefronts.index', 'admin.storefronts.*'],
@@ -65,7 +63,13 @@ return [
     ]],
     ['مرکز اعلان‌ها', 'bell', [['اعلان‌های مدیریت', 'admin.notifications.index', 'admin.notifications.*'], ['قالب‌ها و تاریخچهٔ ارسال']]],
     ['گزارش‌ها و تحلیل داده', 'chart-bar', [['گزارش‌های مالی'], ['عملکرد فروشگاه‌ها و آگهی‌ها']]],
-    ['امنیت و سطح دسترسی', 'shield-check', [['مدیران و مجوزهای عملیاتی'], ['سوابق مدیریتی و امنیتی']]],
+    ['دسترسی و سوابق', 'shield-check', [
+        ['داشبورد دسترسی و سوابق', 'admin.access-records.index', 'admin.access-records.*'],
+        ['نقش‌ها و مجوزها', 'admin.roles.index', 'admin.roles.*'],
+        ['سوابق فعالیت کاربران'],
+        ['سوابق اقدامات مدیران'],
+        ['نشست‌ها و رویدادهای امنیتی'],
+    ]],
     ['تنظیمات و زیرساخت', 'cog-6-tooth', [['تنظیمات عمومی', 'admin.settings.edit', 'admin.settings.*'], ['استان‌ها و شهرها', 'admin.locations.index', 'admin.locations.*'], ['سرویس‌ها و وضعیت سامانه']]],
     ['مشاهده سایت', 'globe-alt', 'home'],
 ];
