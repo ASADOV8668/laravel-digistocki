@@ -80,6 +80,7 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                                     }
                                     $area = match (explode('.', $route ?? '')[1] ?? null) {
                                         'brands', 'attributes' => 'catalog',
+                                        'listing-packages' => 'listings',
                                         'users', 'storefronts', 'listings', 'listing-imports', 'media',
                                         'locations', 'reports', 'settings' => explode('.', $route)[1],
                                         default => null,

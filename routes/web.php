@@ -94,6 +94,9 @@ Route::middleware(['auth', 'active'])->group(function () {
 Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function () {
     Route::get('/', DashboardController::class)->name('admin.dashboard');
     Route::get('/listings', [AdminListingController::class, 'index'])->name('admin.listings.index');
+    Route::get('/listing-packages', [\App\Http\Controllers\Admin\ListingPackageController::class, 'index'])->name('admin.listing-packages.index');
+    Route::post('/listing-packages', [\App\Http\Controllers\Admin\ListingPackageController::class, 'store'])->name('admin.listing-packages.store');
+    Route::post('/listing-packages/assignments', [\App\Http\Controllers\Admin\ListingPackageController::class, 'assign'])->name('admin.listing-packages.assign');
     Route::get('/listings/create', [AdminListingController::class, 'create'])->name('admin.listings.create');
     Route::post('/listings', [AdminListingController::class, 'store'])->name('admin.listings.store');
     Route::get('/listings/media', [AdminListingController::class, 'media'])->name('admin.listings.media.index');
