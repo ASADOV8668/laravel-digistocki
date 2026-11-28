@@ -78,5 +78,6 @@ return [
         ['نشست‌ها و رویدادهای امنیتی'],
     ]],
     ['تنظیمات و زیرساخت', 'cog-6-tooth', [['تنظیمات عمومی', 'admin.settings.edit', 'admin.settings.*'], ['استان‌ها و شهرها', 'admin.locations.index', 'admin.locations.*'], ['سرویس‌ها و وضعیت سامانه']]],
+    ['کنترل اولویت‌ها', 'adjustments-horizontal', [['فعال‌سازی و نقش مسئول', 'admin.priority-modules.edit']]],
     ['مشاهده سایت', 'globe-alt', 'home'],
 ];

@@ -93,15 +93,17 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function () {
     Route::get('/', DashboardController::class)->name('admin.dashboard');
-    Route::view('/finance', 'admin.finance.index')->name('admin.finance.index');
-    Route::view('/marketing', 'admin.marketing.index')->name('admin.marketing.index');
-    Route::view('/reputation', 'admin.reputation.index')->name('admin.reputation.index');
-    Route::view('/access-records', 'admin.access-records.index')->name('admin.access-records.index');
-    Route::view('/notification-center', 'admin.notification-center.index')->name('admin.notification-center.index');
+    Route::get('/priority-modules', [\App\Http\Controllers\Admin\PriorityModuleController::class, 'edit'])->name('admin.priority-modules.edit');
+    Route::put('/priority-modules', [\App\Http\Controllers\Admin\PriorityModuleController::class, 'update'])->name('admin.priority-modules.update');
+    Route::view('/finance', 'admin.finance.index')->name('admin.finance.index')->middleware(\App\Http\Middleware\EnsureAdminPriorityModule::class.':finance');
+    Route::view('/marketing', 'admin.marketing.index')->name('admin.marketing.index')->middleware(\App\Http\Middleware\EnsureAdminPriorityModule::class.':marketing');
+    Route::view('/reputation', 'admin.reputation.index')->name('admin.reputation.index')->middleware(\App\Http\Middleware\EnsureAdminPriorityModule::class.':reputation');
+    Route::view('/access-records', 'admin.access-records.index')->name('admin.access-records.index')->middleware(\App\Http\Middleware\EnsureAdminPriorityModule::class.':access-records');
+    Route::view('/notification-center', 'admin.notification-center.index')->name('admin.notification-center.index')->middleware(\App\Http\Middleware\EnsureAdminPriorityModule::class.':notification-center');
     Route::get('/listings', [AdminListingController::class, 'index'])->name('admin.listings.index');
-    Route::get('/listing-packages', [\App\Http\Controllers\Admin\ListingPackageController::class, 'index'])->name('admin.listing-packages.index');
-    Route::post('/listing-packages', [\App\Http\Controllers\Admin\ListingPackageController::class, 'store'])->name('admin.listing-packages.store');
-    Route::post('/listing-packages/assignments', [\App\Http\Controllers\Admin\ListingPackageController::class, 'assign'])->name('admin.listing-packages.assign');
+    Route::get('/listing-packages', [\App\Http\Controllers\Admin\ListingPackageController::class, 'index'])->name('admin.listing-packages.index')->middleware(\App\Http\Middleware\EnsureAdminPriorityModule::class.':listing-packages');
+    Route::post('/listing-packages', [\App\Http\Controllers\Admin\ListingPackageController::class, 'store'])->name('admin.listing-packages.store')->middleware(\App\Http\Middleware\EnsureAdminPriorityModule::class.':listing-packages');
+    Route::post('/listing-packages/assignments', [\App\Http\Controllers\Admin\ListingPackageController::class, 'assign'])->name('admin.listing-packages.assign')->middleware(\App\Http\Middleware\EnsureAdminPriorityModule::class.':listing-packages');
     Route::get('/listings/create', [AdminListingController::class, 'create'])->name('admin.listings.create');
     Route::post('/listings', [AdminListingController::class, 'store'])->name('admin.listings.store');
     Route::get('/listings/media', [AdminListingController::class, 'media'])->name('admin.listings.media.index');

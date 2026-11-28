@@ -75,6 +75,14 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                                 $children = collect($destination)->filter(function ($item) {
                                     $route = $item[1] ?? null;
                                     $user = auth()->user();
+                                    $module = explode('.', $route ?? '')[1] ?? null;
+                                    $priorities = app(\App\Services\AdminPriorityModules::class);
+                                    if ($module === 'priority-modules') {
+                                        return $user && $priorities->isSenior($user);
+                                    }
+                                    if (isset(\App\Services\AdminPriorityModules::LABELS[$module]) && (! $user || ! $priorities->allows($user, $module))) {
+                                        return false;
+                                    }
                                     if ($route === 'admin.roles.index') {
                                         return !Route::has($route) || ($user && method_exists($user, 'isSeniorAdmin') && $user->isSeniorAdmin());
                                     }
