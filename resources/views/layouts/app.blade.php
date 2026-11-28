@@ -46,6 +46,7 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="stylesheet" href="{{ asset('css/public-desktop-layout.css') }}" media="(min-width: 1024px)">
 </head>
 
 <body class="bg-slate-50 font-sans text-brandtext antialiased dark:bg-slate-950 dark:text-slate-100">

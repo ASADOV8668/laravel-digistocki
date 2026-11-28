@@ -1,0 +1,8 @@
+.mobile-shell,
+#public-bottom-navigation {
+    max-width: none;
+}
+
+#public-bottom-navigation > div {
+    max-width: 64rem;
+}
