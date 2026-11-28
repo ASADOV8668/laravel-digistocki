@@ -46,7 +46,7 @@ class UpdateStorefrontRequest extends FormRequest
     {
         $store = $this->user()?->storefront;
         $currentYear = (int) PersianDate::format(now(), 'Y');
-        $slugRules = ['string', 'min:3', 'max:80', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/'];
+        $slugRules = ['string', 'min:3', 'max:80', 'regex:/^[a-z0-9]+(?:[_.][a-z0-9]+)*\z/'];
 
         if ($store) {
             $slugRules[] = 'nullable';
@@ -124,7 +124,7 @@ class UpdateStorefrontRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'slug.regex' => 'شناسه اینترنتی فروشگاه فقط می‌تواند شامل حروف انگلیسی کوچک، عدد و خط تیره باشد؛ آدرس دقیق فروشگاه می‌تواند فارسی باشد.',
+            'slug.regex' => 'شناسه اینترنتی فروشگاه فقط می‌تواند شامل حروف انگلیسی کوچک، عدد، زیرخط (_) و نقطه (.) باشد؛ آدرس دقیق فروشگاه می‌تواند فارسی باشد.',
             'contact_phone.regex' => 'شماره تماس باید دقیقاً ۱۱ رقم و با ۰۹ شروع شود.',
             'national_id.regex' => 'کد ملی باید دقیقاً ۱۰ رقم باشد.',
             'national_id.unique' => 'این کد ملی قبلاً برای کاربر دیگری ثبت شده است.',

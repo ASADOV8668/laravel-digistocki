@@ -62,7 +62,7 @@ class UpdateStorefrontRequest extends FormRequest
             'last_name' => ['nullable', 'string', 'max:100'],
             'national_id' => ['nullable', 'string', 'regex:/^\d{10}$/'],
             'name' => ['required', 'string', 'max:120'],
-            'slug' => ['required', 'string', 'min:3', 'max:80', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('seller_stores', 'slug')->ignore($store?->id)],
+            'slug' => ['required', 'string', 'min:3', 'max:80', 'regex:/^[a-z0-9]+(?:[_.][a-z0-9]+)*\z/', Rule::unique('seller_stores', 'slug')->ignore($store?->id)],
             'business_license_number' => ['nullable', 'string', 'max:80'],
             'business_license_expires_at' => ['nullable', 'string', 'max:10'],
             'business_license_expires_at_year' => ['nullable', 'integer', 'between:'.$currentYear.','.($currentYear + 10)],
@@ -124,7 +124,7 @@ class UpdateStorefrontRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'slug.regex' => 'شناسه اینترنتی فروشگاه فقط می‌تواند شامل حروف انگلیسی کوچک، عدد و خط تیره باشد؛ آدرس دقیق فروشگاه می‌تواند فارسی باشد.',
+            'slug.regex' => 'شناسه اینترنتی فروشگاه فقط می‌تواند شامل حروف انگلیسی کوچک، عدد، زیرخط (_) و نقطه (.) باشد؛ آدرس دقیق فروشگاه می‌تواند فارسی باشد.',
             'contact_phone.regex' => 'شماره تماس باید دقیقاً ۱۱ رقم و با ۰۹ شروع شود.',
             'national_id.regex' => 'کد ملی باید دقیقاً ۱۰ رقم باشد.',
             'instagram_url.regex' => 'نام کاربری اینستاگرام باید فقط شامل حروف انگلیسی، عدد، نقطه، زیرخط یا خط تیره باشد.',

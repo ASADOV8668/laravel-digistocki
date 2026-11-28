@@ -99,8 +99,8 @@
                             id="admin-store-slug" name="slug" value="{{ old('slug', $store?->slug) }}"
                             dir="ltr" required
                             class="min-w-0 flex-1 rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary"
-                            placeholder="mobile-shop"></div>
-                    <p class="mt-1 text-[11px] text-slate-400">این بخش فقط برای URL است و مدیریت می‌تواند آن را اصلاح کند؛ کاربر پس از ثبت امکان تغییر ندارد.</p>
+                            placeholder="mobile_shop.ir"></div>
+                    <p class="mt-1 text-[11px] text-slate-400">حروف انگلیسی کوچک، عدد، زیرخط (_) و نقطه (.) مجازند. پس از ثبت، مدیریت می‌تواند شناسه را اصلاح کند.</p>
                     @error('slug')
                         <p class="mt-1 text-xs font-bold text-error" role="alert">{{ $message }}</p>
                     @enderror

@@ -110,8 +110,8 @@
                         id="store-slug" name="slug" value="{{ old('slug', $store?->slug) }}"
                         @disabled($store) dir="ltr" required
                         class="public-input min-w-0 flex-1 disabled:bg-slate-100 disabled:text-slate-500"
-                        placeholder="mobile-rezaei"></div>
-                <p class="mt-1 text-[11px] text-slate-400">این بخش فقط برای URL است و باید با حروف انگلیسی کوچک، عدد و خط تیره وارد شود؛ پس از ایجاد قابل تغییر نیست.</p>
+                        placeholder="mobile_rezaei.shop"></div>
+                <p class="mt-1 text-[11px] text-slate-400">این بخش فقط برای URL است و باید با حروف انگلیسی کوچک، عدد، زیرخط (_) و نقطه (.) وارد شود. پس از ایجاد قابل تغییر نیست.</p>
                 @error('slug')
                     <p class="mt-1 text-xs font-bold text-error" role="alert">{{ $message }}</p>
                 @enderror

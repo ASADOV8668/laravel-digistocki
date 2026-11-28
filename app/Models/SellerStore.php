@@ -17,6 +17,16 @@ class SellerStore extends Model
 
     public const LISTING_APPROVAL_FREE = 'free';
 
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $store = parent::resolveRouteBinding($value, $field);
+        if ($store === null && $field === 'slug' && is_string($value) && str_contains($value, '-')) {
+            return $this->newQuery()->where('legacy_slug', $value)->first();
+        }
+
+        return $store;
+    }
+
     protected $fillable = [
         'user_id',
         'slug',
