@@ -49,6 +49,7 @@
             :class="favorited ? 'text-error' : 'text-slate-300'"><x-heroicon-o-heart x-show="!favorited"
                 class="h-4 w-4" /><x-heroicon-s-heart x-show="favorited" x-cloak
                 class="h-4 w-4 fill-current" /></button>
+        @include('components.listing-compare-actions', ['listingId' => $listing->id])
         <span
             class="absolute right-2 top-2 inline-flex h-6 min-w-6 items-center justify-center gap-0.5 rounded-md bg-neutral/90 px-1 text-[8px] font-black text-white shadow-sm"
             aria-label="{{ \App\Support\PersianNumber::digits($listing->images->count()) }} تصویر"><x-heroicon-o-camera
