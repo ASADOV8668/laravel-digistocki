@@ -17,6 +17,7 @@ return [
     ['آگهی‌ها', 'clipboard-document-list', [
         ['مدیریت آگهی‌ها', 'admin.listings.index', 'admin.listings.*'],
         ['ایمپورت آگهی', 'admin.listing-imports.index', 'admin.listing-imports.index'],
+        ['تست ایمپورت آگهی', 'admin.listing-imports.test', 'admin.listing-imports.test*'],
         ['اصطلاحات ایمپورت', 'admin.listing-imports.terms.index', 'admin.listing-imports.terms.*'],
         ['رسانه‌ها', 'admin.media.index', 'admin.media.*'],
         ['قوانین انتشار و سهمیهٔ فروشگاه‌ها'],
