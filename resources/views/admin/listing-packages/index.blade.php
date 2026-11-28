@@ -4,7 +4,7 @@
     </x-slot>
 
     <div class="space-y-5">
-        <p class="text-sm text-slate-600 dark:text-slate-300">در این مرحله، بسته و سهمیه برای فروشگاه ثبت می‌شود. اعمال سقف هنگام انتشار و محاسبهٔ سهمیهٔ مصرف‌شده در مرحلهٔ بعد فعال می‌شود.</p>
+        <p class="text-sm text-slate-600 dark:text-slate-300">پیش‌نمایش سهمیه، تعداد آگهی‌های منتشرشدهٔ فعلی فروشگاه را با سقف هر بسته مقایسه می‌کند. اجرای محدودیت و محاسبهٔ مصرف سهمیه در مرحلهٔ بعد فعال می‌شود.</p>
         @if (session('status'))
             <p role="status" class="rounded-xl bg-green-50 p-3 text-green-800">{{ session('status') }}</p>
         @endif
@@ -58,17 +58,28 @@
             <h2 class="font-bold">بسته‌های تخصیص‌یافته</h2>
             <div class="overflow-x-auto">
                 <table class="w-full min-w-max text-right text-sm [&_td]:p-2 [&_th]:p-2">
-                    <thead><tr><th>فروشگاه</th><th>بسته</th><th>سهمیهٔ انتشار</th><th>سقف فعال</th><th>شروع</th><th>پایان</th></tr></thead>
+                    <thead><tr><th>فروشگاه</th><th>بسته</th><th>سهمیهٔ کل انتشار</th><th>سقف فعال</th><th>فعال فعلی</th><th>ظرفیت خالی برآوردی</th><th>شروع</th><th>پایان</th><th>وضعیت بسته</th></tr></thead>
                     <tbody>
                         @forelse ($assignments as $assignment)
+                            <?php
+                                $now = now();
+                                $packageStatus = match (true) {
+                                    $now->lt($assignment->starts_at) => 'در انتظار شروع',
+                                    $now->gte($assignment->ends_at) => 'منقضی‌شده',
+                                    default => 'در بازهٔ اعتبار',
+                                };
+                            ?>
                             <tr class="border-t border-slate-200 dark:border-slate-700">
                                 <td>{{ $assignment->store_name }}</td><td>{{ $assignment->package_name }}</td>
                                 <td>{{ $assignment->publication_quota }}</td><td>{{ $assignment->active_listing_limit }}</td>
+                                <td>{{ $assignment->published_listing_count }}</td>
+                                <td>{{ $packageStatus === 'در بازهٔ اعتبار' ? max(0, $assignment->active_listing_limit - $assignment->published_listing_count) : '—' }}</td>
                                 <td>{{ \App\Support\PersianDate::format($assignment->starts_at) }}</td>
                                 <td>{{ \App\Support\PersianDate::format($assignment->ends_at) }}</td>
+                                <td>{{ $packageStatus }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="6">هنوز بسته‌ای تخصیص نیافته است.</td></tr>
+                            <tr><td colspan="9">هنوز بسته‌ای تخصیص نیافته است.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

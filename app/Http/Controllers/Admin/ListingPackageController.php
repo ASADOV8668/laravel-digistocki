@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Listing;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,11 @@ class ListingPackageController extends Controller
                 ->join('seller_stores', 'seller_stores.id', '=', 'store_listing_packages.seller_store_id')
                 ->join('listing_packages', 'listing_packages.id', '=', 'store_listing_packages.listing_package_id')
                 ->select('store_listing_packages.*', 'seller_stores.name as store_name', 'listing_packages.name as package_name')
+                ->addSelect([
+                    'published_listing_count' => Listing::query()->published()
+                        ->whereColumn('listings.user_id', 'seller_stores.user_id')
+                        ->selectRaw('count(*)'),
+                ])
                 ->orderByDesc('store_listing_packages.id')
                 ->paginate(25),
         ]);
