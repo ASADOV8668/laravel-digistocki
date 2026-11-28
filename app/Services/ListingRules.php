@@ -10,7 +10,6 @@ use Carbon\CarbonInterface;
 
 class ListingRules
 {
-    public const MAX_ACTIVE_LISTINGS = 10;
 
     public const EXPIRY_DAYS = 30;
 
@@ -28,21 +27,12 @@ class ListingRules
             && $store instanceof SellerStore
             && ! $store->is_admin_disabled
             && (! $store->business_license_expires_at || ! $store->business_license_expires_at->isBefore(today()))
-            && app(SystemOptions::class)->listingsEnabled()
-            && $this->activeCount($user) < self::MAX_ACTIVE_LISTINGS;
+            && app(SystemOptions::class)->listingsEnabled();
     }
 
     public function canRenew(User $user): bool
     {
-        $store = $this->storeForListing($user);
-
-        return $user->is_active
-            && $user->can_post_listings
-            && $store instanceof SellerStore
-            && ! $store->is_admin_disabled
-            && (! $store->business_license_expires_at || ! $store->business_license_expires_at->isBefore(today()))
-            && app(SystemOptions::class)->listingsEnabled()
-            && $this->activeCount($user) < self::MAX_ACTIVE_LISTINGS;
+        return $this->canCreate($user);
     }
 
     private function storeForListing(User $user): ?SellerStore
