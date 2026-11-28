@@ -70,7 +70,7 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                                 <span x-show="!sidebarCollapsed">{{ $label }}</span>
                             </a>
                         @else
-                            @php
+                            <?php
                                 $currentDevice = $deviceType ?? $brand->device_type ?? 'mobile';
                                 $children = collect($destination)->filter(function ($item) {
                                     $route = $item[1] ?? null;
@@ -94,7 +94,7 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                                     return [$item[0], $item[1] ?? null, $parameters, $active];
                                 });
                                 $activeGroup = $children->contains(fn ($item) => $item[3]);
-                            @endphp
+                            ?>
                             @continue($children->isEmpty())
                             <div x-data="{ expanded: @js($activeGroup) }">
                                 <button type="button" title="{{ $label }}" aria-controls="admin-menu-{{ $loop->index }}"
