@@ -61,7 +61,14 @@ return [
         ['گزارش‌های تخلف', 'admin.reports.index', 'admin.reports.*'],
         ['تیکت‌ها و شکایات'],
     ]],
-    ['مرکز اعلان‌ها', 'bell', [['اعلان‌های مدیریت', 'admin.notifications.index', 'admin.notifications.*'], ['قالب‌ها و تاریخچهٔ ارسال']]],
+    ['مرکز اعلان‌ها', 'bell', [
+        ['داشبورد اعلان‌ها', 'admin.notification-center.index'],
+        ['اعلان‌های مدیریت', 'admin.notifications.index', 'admin.notifications.*'],
+        ['قالب‌های پیام و کانال‌های ارسال'],
+        ['هشدارهای انقضا و تمدید بسته'],
+        ['اعلان‌های اعتبار فروشگاه'],
+        ['تاریخچهٔ ارسال'],
+    ]],
     ['گزارش‌ها و تحلیل داده', 'chart-bar', [['گزارش‌های مالی'], ['عملکرد فروشگاه‌ها و آگهی‌ها']]],
     ['دسترسی و سوابق', 'shield-check', [
         ['داشبورد دسترسی و سوابق', 'admin.access-records.index', 'admin.access-records.*'],
