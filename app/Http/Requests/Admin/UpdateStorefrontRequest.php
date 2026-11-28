@@ -97,6 +97,8 @@ class UpdateStorefrontRequest extends FormRequest
         }
 
         $validator->after(function (Validator $validator): void {
+            $this->validateDistinctImages($validator);
+
             $nationalId = (string) $this->input('national_id');
             if (preg_match('/^\d{10}$/', $nationalId) === 1 && ! $this->isValidNationalId($nationalId)) {
                 $validator->errors()->add('national_id', 'کد ملی واردشده معتبر نیست.');
@@ -119,6 +121,29 @@ class UpdateStorefrontRequest extends FormRequest
                 }
             }
         });
+    }
+
+    private function validateDistinctImages(Validator $validator): void
+    {
+        $seen = [];
+        foreach (['logo', 'business_license', 'exterior_image'] as $field) {
+            $input = $this->hasFile($field.'_camera') ? $field.'_camera' : $field;
+            $file = $this->file($input);
+            if (! $file instanceof \Illuminate\Http\UploadedFile || ! $file->isValid() || $validator->errors()->has($input)) {
+                continue;
+            }
+
+            $hash = hash_file('sha256', $file->getPathname());
+            if ($hash === false) {
+                continue;
+            }
+            if (isset($seen[$hash])) {
+                $validator->errors()->add($input, 'برای لوگو، جواز کسب و سردر فروشگاه تصویر جداگانه انتخاب کنید. یک تصویر در چند بخش انتخاب شده است.');
+                return;
+            }
+
+            $seen[$hash] = true;
+        }
     }
 
     public function messages(): array
