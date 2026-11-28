@@ -96,6 +96,8 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->group(function 
     Route::get('/priority-modules', [\App\Http\Controllers\Admin\PriorityModuleController::class, 'edit'])->name('admin.priority-modules.edit');
     Route::put('/priority-modules', [\App\Http\Controllers\Admin\PriorityModuleController::class, 'update'])->name('admin.priority-modules.update');
     Route::view('/finance', 'admin.finance.index')->name('admin.finance.index')->middleware(\App\Http\Middleware\EnsureAdminPriorityModule::class.':finance');
+    Route::get('/finance/orders', [\App\Http\Controllers\Admin\ListingPackageOrderController::class, 'index'])->name('admin.finance.orders.index')->middleware(\App\Http\Middleware\EnsureAdminPriorityModule::class.':finance');
+    Route::post('/finance/orders', [\App\Http\Controllers\Admin\ListingPackageOrderController::class, 'store'])->name('admin.finance.orders.store')->middleware(\App\Http\Middleware\EnsureAdminPriorityModule::class.':finance');
     Route::view('/marketing', 'admin.marketing.index')->name('admin.marketing.index')->middleware(\App\Http\Middleware\EnsureAdminPriorityModule::class.':marketing');
     Route::view('/reputation', 'admin.reputation.index')->name('admin.reputation.index')->middleware(\App\Http\Middleware\EnsureAdminPriorityModule::class.':reputation');
     Route::view('/access-records', 'admin.access-records.index')->name('admin.access-records.index')->middleware(\App\Http\Middleware\EnsureAdminPriorityModule::class.':access-records');

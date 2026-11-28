@@ -33,8 +33,9 @@ return [
         ['تمدید و انقضا'],
     ]],
     ['مدیریت مالی', 'banknotes', [
-        ['داشبورد مالی', 'admin.finance.index', 'admin.finance.*'],
-        ['سفارش‌ها و پرداخت‌ها'],
+        ['داشبورد مالی', 'admin.finance.index'],
+        ['پیش‌نویس سفارش بسته', 'admin.finance.orders.index', 'admin.finance.orders.*'],
+        ['پرداخت‌ها'],
         ['کیف پول و دفتر مالی'],
         ['فاکتورها'],
         ['بازپرداخت و مغایرت'],
