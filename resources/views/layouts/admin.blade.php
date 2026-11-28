@@ -60,98 +60,54 @@ $watch('sidebarCollapsed', value => localStorage.setItem('admin-sidebar-collapse
                     </button>
                 </div>
 
-                <nav class="flex-1 overflow-y-auto py-6" aria-label="ناوبری مدیریت">
-                    <p x-show="!sidebarCollapsed"
-                        class="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-400">نمای کلی</p>
-                    <a href="{{ route('admin.dashboard') }}" title="داشبورد"
-                        class="menu-item group {{ request()->routeIs('admin.dashboard') ? 'menu-item-active' : 'menu-item-inactive' }}"
-                        :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <x-heroicon-o-squares-2x2
-                            class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.dashboard') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                        <span x-show="!sidebarCollapsed">داشبورد</span>
-                    </a>
-                    <p x-show="!sidebarCollapsed"
-                        class="mb-3 mt-7 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-400">مدیریت
-                        محتوا</p>
-                    <a href="{{ route('admin.listings.index') }}" title="آگهی‌ها"
-                        class="menu-item group {{ request()->routeIs('admin.listings.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
-                        :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <x-heroicon-o-rectangle-stack
-                            class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.listings.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                        <span x-show="!sidebarCollapsed">آگهی‌ها</span>
-                    </a>
-                    <a href="{{ route('admin.media.index') }}" title="رسانه‌ها"
-                        class="menu-item group {{ request()->routeIs('admin.media.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
-                        :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <x-heroicon-o-photo
-                            class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.media.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                        <span x-show="!sidebarCollapsed">رسانه‌ها</span>
-                    </a>
-                    <a href="{{ route('admin.listing-imports.index') }}" title="ایمپورت آگهی"
-                        class="menu-item group {{ request()->routeIs('admin.listing-imports.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
-                        :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <x-heroicon-o-arrow-down-tray
-                            class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.listing-imports.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                        <span x-show="!sidebarCollapsed">ایمپورت آگهی</span>
-                    </a>
-                    <a href="{{ route('admin.users.index') }}" title="کاربران"
-                        class="menu-item group {{ request()->routeIs('admin.users.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
-                        :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <x-heroicon-o-users
-                            class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.users.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                        <span x-show="!sidebarCollapsed">کاربران</span>
-                    </a>
-                    <a href="{{ route('admin.storefronts.index') }}" title="فروشگاه‌ها"
-                        class="menu-item group {{ request()->routeIs('admin.storefronts.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
-                        :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <x-heroicon-o-building-storefront
-                            class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.storefronts.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                        <span x-show="!sidebarCollapsed">فروشگاه‌ها</span>
-                    </a>
-                    <a href="{{ route('admin.reports.index') }}" title="گزارش‌ها"
-                        class="menu-item group {{ request()->routeIs('admin.reports.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
-                        :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <x-heroicon-o-flag
-                            class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.reports.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                        <span x-show="!sidebarCollapsed">گزارش‌ها</span>
-                    </a>
+                <nav class="flex-1 space-y-1 overflow-y-auto py-6" aria-label="ناوبری مدیریت">
+                    @foreach (config('admin-menu') as [$label, $icon, $destination])
+                        @if (is_string($destination))
+                            <a href="{{ route($destination) }}" title="{{ $label }}"
+                                class="menu-item {{ request()->routeIs($destination) ? 'menu-item-active' : 'menu-item-inactive' }}"
+                                :class="sidebarCollapsed ? 'justify-center' : ''">
+                                <x-dynamic-component :component="'heroicon-o-'.$icon" class="h-5 w-5 shrink-0" />
+                                <span x-show="!sidebarCollapsed">{{ $label }}</span>
+                            </a>
+                        @else
+                            @php
+                                $currentDevice = $deviceType ?? $brand->device_type ?? 'mobile';
+                                $children = collect($destination)->map(function ($item) use ($currentDevice) {
+                                    $parameters = $item[3] ?? [];
+                                    $active = isset($item[1]) && request()->routeIs(...(array) ($item[2] ?? $item[1]))
+                                        && (! isset($parameters['device_type']) || $parameters['device_type'] === $currentDevice);
 
-                    <p x-show="!sidebarCollapsed"
-                        class="mb-3 mt-7 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-400">کاتالوگ
-                    </p>
-                    @foreach (\App\Models\PhoneModel::DEVICE_TYPES as $type => $label)
-                        @php($catalogActive = request()->routeIs('admin.brands.*', 'admin.phone-series.*', 'admin.phone-models.*') && ($deviceType ?? $brand->device_type ?? 'mobile') === $type)
-                        <a href="{{ route('admin.brands.index', ['device_type' => $type]) }}" title="کاتالوگ {{ $label }}"
-                            class="menu-item group {{ $catalogActive ? 'menu-item-active' : 'menu-item-inactive' }}"
-                            :class="sidebarCollapsed ? 'justify-center' : ''">
-                            <x-heroicon-o-rectangle-stack
-                                class="h-5 w-5 shrink-0 {{ $catalogActive ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                            <span x-show="!sidebarCollapsed">کاتالوگ {{ $label }}</span>
-                        </a>
+                                    return [$item[0], $item[1] ?? null, $parameters, $active];
+                                });
+                                $activeGroup = $children->contains(fn ($item) => $item[3]);
+                            @endphp
+                            <div x-data="{ expanded: @js($activeGroup) }">
+                                <button type="button" title="{{ $label }}" aria-controls="admin-menu-{{ $loop->index }}"
+                                    :aria-expanded="(!sidebarCollapsed && expanded).toString()"
+                                    @click="if (sidebarCollapsed) { sidebarCollapsed = false; expanded = true } else { expanded = !expanded }"
+                                    class="menu-item w-full {{ $activeGroup ? 'menu-item-active' : 'menu-item-inactive' }}"
+                                    :class="sidebarCollapsed ? 'justify-center' : ''">
+                                    <x-dynamic-component :component="'heroicon-o-'.$icon" class="h-5 w-5 shrink-0" />
+                                    <span x-show="!sidebarCollapsed" class="flex-1 text-start">{{ $label }}</span>
+                                    <x-heroicon-o-chevron-down x-show="!sidebarCollapsed" ::class="expanded ? 'rotate-180' : ''" class="h-4 w-4 shrink-0" />
+                                </button>
+                                <ul id="admin-menu-{{ $loop->index }}" x-show="expanded && !sidebarCollapsed" x-cloak class="space-y-1 py-1 ps-4">
+                                    @foreach ($children as [$childLabel, $childRoute, $parameters, $active])
+                                        <li>
+                                            @if ($childRoute && \Illuminate\Support\Facades\Route::has($childRoute))
+                                                <a href="{{ route($childRoute, $parameters) }}" @if ($active) aria-current="page" @endif
+                                                    class="menu-item {{ $active ? 'menu-item-active' : 'menu-item-inactive' }}">{{ $childLabel }}</a>
+                                            @else
+                                                <div class="flex flex-wrap items-center gap-x-2 px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
+                                                    <span>{{ $childLabel }}</span><span>در حال توسعه</span>
+                                                </div>
+                                            @endif
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                     @endforeach
-                    <a href="{{ route('admin.attributes.index') }}" title="ویژگی‌های محصول"
-                        class="menu-item group {{ request()->routeIs('admin.attributes.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
-                        :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <x-heroicon-o-adjustments-horizontal
-                            class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.attributes.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                        <span x-show="!sidebarCollapsed">ویژگی‌های محصول</span>
-                    </a>
-
-                    <p x-show="!sidebarCollapsed"
-                        class="mb-3 mt-7 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-400">سیستم
-                    </p>
-                    <a href="{{ route('admin.settings.edit') }}" title="تنظیمات"
-                        class="menu-item group {{ request()->routeIs('admin.settings.*') ? 'menu-item-active' : 'menu-item-inactive' }}"
-                        :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <x-heroicon-o-cog-6-tooth
-                            class="h-5 w-5 shrink-0 {{ request()->routeIs('admin.settings.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" />
-                        <span x-show="!sidebarCollapsed">تنظیمات</span>
-                    </a>
-                    <a href="{{ route('home') }}" title="مشاهده سایت" class="menu-item group menu-item-inactive"
-                        :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <x-heroicon-o-arrow-top-right-on-square class="menu-item-icon-inactive h-5 w-5 shrink-0" />
-                        <span x-show="!sidebarCollapsed">مشاهده سایت</span>
-                    </a>
                 </nav>
 
                 <div class="border-t border-gray-100 py-4 dark:border-gray-800">
